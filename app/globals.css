@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-signature: var(--font-signature);
+}
+
+.badge-border {
+  border: 1.5px solid oklch(77.16% 0.028 262.04 / 15%);
+}
+
+.badge-background {
+  background-color: oklch(56.78% 0.05 262.04 / var(--opacity, 0.3));
+  backdrop-filter: blur(var(--blur, 12px)) saturate(var(--saturate, 1.15));
+}
