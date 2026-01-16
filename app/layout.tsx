@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 const signature = localFont({
-  src: './fonts/Signature-December.otf',
+  src: '../public/fonts/Signature-December.otf',
   display: 'swap',
   variable: '--font-signature',
 });
