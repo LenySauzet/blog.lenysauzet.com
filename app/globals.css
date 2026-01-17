@@ -1,9 +1,14 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+  --font-mono-code: var(--font-mono-code);
+  --font-mono: var(--font-mono);
   --font-signature: var(--font-signature);
 }
 
@@ -131,6 +136,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased font-display;
   }
 }

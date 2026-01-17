@@ -1,12 +1,17 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
+import createMDX from '@next/mdx';
 import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-module.exports = withBundleAnalyzer(nextConfig);
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
+
+const nextConfig: NextConfig = {
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+};
+
+module.exports = withBundleAnalyzer(withMDX(nextConfig));

@@ -1,19 +1,31 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 
 const geistSans = Geist({
-  variable: '--font-geist-sans',
+  variable: '--font-display',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const instrument = Instrument_Serif({
   subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 });
 
-const signature = localFont({
+const FiraCode = localFont({
+  src: '../public/fonts/FiraCode.woff2',
+  variable: '--font-mono-code',
+});
+
+const DepartureMono = localFont({
+  src: '../public/fonts/DepartureMono-Regular.woff2',
+  variable: '--font-mono',
+});
+
+const SignatureDecember = localFont({
   src: '../public/fonts/Signature-December.otf',
   display: 'swap',
   variable: '--font-signature',
@@ -33,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${signature.variable} antialiased`}
+        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} ${SignatureDecember.variable}`}
       >
         {children}
       </body>
