@@ -9,6 +9,11 @@ const geistSans = Geist({
   subsets: ['latin'],
 });
 
+// const geistSans = localFont({
+//   src: '../public/fonts/Geist-Regular.ttf',
+//   variable: '--font-display',
+// });
+
 const instrument = Instrument_Serif({
   subsets: ['latin'],
   weight: '400',
