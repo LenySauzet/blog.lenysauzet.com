@@ -1,16 +1,63 @@
+import siteConfig from '@/config/site';
+import { getPosts } from '@/lib/posts-utils';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+const { url, authorName, siteName, twitter } = siteConfig;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const { metadata } = await import(`@/content/${slug}.mdx`);
+    const postUrl = `${url}/posts/${slug}`;
+
+    return {
+      title: metadata.title,
+      description: metadata.description,
+      alternates: { canonical: postUrl },
+      openGraph: {
+        title: metadata.title,
+        description: metadata.description,
+        url: postUrl,
+        type: 'article',
+        publishedTime: metadata.date,
+        authors: [authorName],
+        siteName,
+      },
+      twitter: {
+        card: twitter.card,
+        title: metadata.title,
+        description: metadata.description,
+        creator: twitter.handle,
+      },
+    };
+  } catch {
+    return { title: 'Article not found' };
+  }
+}
+
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { default: Post } = await import(`@/content/${slug}.mdx`);
-
-  return <Post />;
+  try {
+    const { default: Post } = await import(`@/content/${slug}.mdx`);
+    return <Post />;
+  } catch {
+    notFound();
+  }
 }
 
-export function generateStaticParams() {
-  return [{ slug: 'welcome' }, { slug: 'about' }];
+export async function generateStaticParams() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export const dynamicParams = false;

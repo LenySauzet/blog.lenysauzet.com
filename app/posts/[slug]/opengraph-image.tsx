@@ -1,13 +1,12 @@
+import siteConfig from '@/config/site';
+import Logo from '@/components/Logo';
+import DotMatrix from '@/components/OG/DotMatrix';
+import Shapes from '@/components/OG/Shapes';
 import { ImageResponse } from 'next/og';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import Logo from '@/components/Logo';
-import BlendedText from '@/components/OG/BlendedText';
-import DotMatrix from '@/components/OG/DotMatrix';
-import Shapes from '@/components/OG/Shapes';
-
-export const alt = 'The Blog of Lény Sauzet';
+export const alt = siteConfig.siteName;
 export const size = {
   width: 1200,
   height: 630,
@@ -22,87 +21,49 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
+  const { metadata } = await import(`@/content/${slug}.mdx`);
+
   const [instrumentSerif, geist] = await Promise.all([
     readFile(join(process.cwd(), 'public/fonts/InstrumentSerif-Regular.ttf')),
     readFile(join(process.cwd(), 'public/fonts/Geist-Bold.ttf')),
   ]);
 
-  const logoData = await readFile(
-    join(process.cwd(), 'public/static/favicon/icon.png'),
-  );
-  const logoSrc = Uint8Array.from(logoData).buffer;
-
   return new ImageResponse(
     <div
+      tw="w-full h-full flex items-center justify-center text-white "
       style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
         background: 'linear-gradient(214deg, #A0A0A0 0%, #1F2426 96.12%)',
         // background: 'linear-gradient(212deg, #37398F 19.79%, #6075B8 70.31%, #B3DFED 100%)',
       }}
     >
-      <Shapes />
       <DotMatrix />
+      <Shapes />
+
       <div
+        tw="absolute w-full h-full"
         style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
           background: 'linear-gradient(180deg, #000 0%, transparent 85.94%)',
         }}
       />
 
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: '120px',
-          display: 'flex',
-        }}
-      >
+      <div tw="w-full h-full p-28 flex flex-col items-center justify-center">
         <div
+          tw="w-full font-geist text-6xl overflow-hidden text-ellipsis flex justify-center items-center text-center flex-1"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            marginTop: 'auto',
-            width: '100%',
+            fontFamily: 'Geist',
           }}
         >
-          <div
-          style={{
-            width: '100%',
-            height: '100%',
-            fontSize: 60,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            fontFamily: 'Geist',
+          {metadata.title}
+        </div>
 
+        <div
+          tw="w-full flex justify-between items-center text-2xl"
+          style={{
+            fontFamily: 'Geist',
           }}
-          >
-            {/* <BlendedText>How to use Framer Motion with Emotion styled-components</BlendedText> */}
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit
-          </div>
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: 25,
-              fontFamily: 'Geist',
-            }}
-          >
-            <Logo fill="#FFFFFF" />
-            @LenySauzet
-          </div>
+        >
+          <Logo fill="#FFFFFF" />
+          {siteConfig.twitter.handle}
         </div>
       </div>
     </div>,
