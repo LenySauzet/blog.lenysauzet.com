@@ -1,18 +1,5 @@
-import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/posts-utils';
-import type { Metadata } from 'next';
 import Link from 'next/link';
-
-const { pages, url } = siteConfig;
-
-export const metadata: Metadata = {
-  title: pages.home.title,
-  description: pages.home.description,
-  openGraph: {
-    title: pages.home.openGraphTitle,
-    url,
-  },
-};
 
 export default async function Page() {
   const posts = await getPosts();

@@ -91,12 +91,12 @@ const twitterImages = ['/twitter-image.png']
 
 // specific pages
 const pages = {
-  home: {
-    title: 'Latest Posts',
-    description:
-      "Latest articles from Lény Sauzet's blog: web development, shaders, real-time 3D, creative coding, and software engineering insights.",
-    openGraphTitle: `Latest Posts - ${title.default}`,
-  },
+  // home: {
+  //   title: 'Latest Posts',
+  //   description:
+  //     "Latest articles from Lény Sauzet's blog: web development, shaders, real-time 3D, creative coding, and software engineering insights.",
+  //   openGraphTitle: `Latest Posts - ${title.default}`,
+  // },
 }
 
 // manifest for pwa

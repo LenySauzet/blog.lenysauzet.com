@@ -8,8 +8,8 @@ import { join } from 'node:path';
 
 export const alt = siteConfig.siteName;
 export const size = {
-  width: 1800,
-  height: 945,
+  width: 1200,
+  height: 630,
 };
 
 export const contentType = 'image/png';
@@ -48,7 +48,7 @@ export default async function Image({
       />
 
       <div
-        tw="absolute top-0 left-0 w-full h-full flex items-center justify-center text-8xl"
+        tw="absolute top-0 left-0 w-full h-full flex items-center justify-center text-6xl"
         style={{
           fontFamily: 'Geist',
         }}
@@ -56,7 +56,7 @@ export default async function Image({
         {metadata.title}
       </div>
 
-      <div tw="w-full h-full p-[150px] px-[200px] flex">
+      <div tw="w-full h-full p-[90px] px-[130px] flex">
         <div
           tw="w-full flex justify-between items-center text-3xl mt-auto"
           style={{
