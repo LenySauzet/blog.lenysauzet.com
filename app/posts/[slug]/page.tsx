@@ -16,12 +16,14 @@ export async function generateMetadata({
     const { metadata } = await import(`@/content/${slug}.mdx`);
     const postUrl = `${url}/posts/${slug}`;
 
+    const pageTitle = `${metadata.title} - ${siteName}`;
+
     return {
-      title: metadata.title,
+      title: pageTitle,
       description: metadata.description,
       alternates: { canonical: postUrl },
       openGraph: {
-        title: metadata.title,
+        title: pageTitle,
         description: metadata.description,
         url: postUrl,
         type: 'article',
@@ -31,7 +33,7 @@ export async function generateMetadata({
       },
       twitter: {
         card: twitter.card,
-        title: metadata.title,
+        title: pageTitle,
         description: metadata.description,
         creator: twitter.handle,
       },
