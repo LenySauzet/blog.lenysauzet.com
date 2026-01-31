@@ -3,6 +3,7 @@ import { getRootMetadata } from '@/config/site';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
+import { ModeToggle } from '@/components/ModeToggle';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -56,6 +57,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+
+          <div className="absolute top-0 right-0 m-4">
+            <ModeToggle />
+          </div>
+
         </ThemeProvider>
       </body>
     </html>

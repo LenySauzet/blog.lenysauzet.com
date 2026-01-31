@@ -1,5 +1,7 @@
+import { TextScramble } from '@/components/TextScramble';
 import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/posts-utils';
+import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
@@ -50,8 +52,27 @@ export default async function Page({
 }) {
   const { slug } = await params;
   try {
-    const { default: Post } = await import(`@/content/${slug}.mdx`);
-    return <Post />;
+    const { default: Post, metadata } = await import(`@/content/${slug}.mdx`);
+    return (
+      <article className="max-w-3xl mx-auto p-4 flex flex-col gap-8">
+        <div className="flex flex-col gap-2 min-h-[420px] justify-end">
+          <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
+            {metadata.title}
+          </h1>
+          <time itemProp="datepublished" dateTime={metadata.date}>
+            <TextScramble
+              className="font-mono text-sm uppercase text-foreground/50"
+              as="span"
+            >
+              {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
+            </TextScramble>
+          </time>
+        </div>
+        <div className="text-foreground/75 leading-7 flex flex-col gap-6">
+          <Post />
+        </div>
+      </article>
+    );
   } catch {
     notFound();
   }

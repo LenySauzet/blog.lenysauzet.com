@@ -1,0 +1,36 @@
+export const metadata = {
+  title: 'Field Guide to TSL and WebGPU',
+  description:
+    'A comprehensive guide to building 3D web experiences with TSL and WebGPU, covering shader development, compute shader applications, and practical examples for particle systems and post-processing effects.',
+  tags: ['hello', 'blog'],
+  date: '2026-01-30',
+};
+
+Now supported in Apple's most recent version of iOS and Safari <FootnoteRef id="1" />,
+WebGPU is finally gaining widespread support, allowing for more advanced 3D capabilities on the web.
+As someone working with WebGL [Lorem ipsum dolor sit amet](http://example.com) on the side, this was the push I needed to, at last, dedicate some time to learning more about this new set of APIs
+and see how I could port over some of my existing WebGL/shader knowledge and work to it.
+
+[Lorem ipsum dolor sit amet](http://example.com)
+
+This work involved not only familiarizing myself with **WGSL**, the shader language designed for WebGPU, but also **TSL: Three.js's higher-level,
+JavaScript-like shading language**. Moreover, WebGPU also introduces some new constructs, such as **compute shaders**, a new, exciting, yet nebulous type of shaders that seemed like
+it could improve some key aspects of my workflow.
+
+To guide me through this learning journey, I decided the most practical way would be to spend my summer porting over key projects I've worked on throughout the years, such as my glass material, post-processing, particles, as well as several other fun shader experiments.
+There were numerous gotchas and undocumented features, which sometimes made the experience quite frustrating, but in the end, I managed to familiarize myself with these new tools and build beautiful scenes with them.
+
+<FootnotesList
+  notes={[
+    {
+      id: 1,
+      content: (
+        <p>
+          <a href="https://webkit.org/blog/17333/webkit-features-in-safari-26-0/#webgpu">
+            WebGPU WebKit for Safari 26.0 adds support for WebGPU.
+          </a>
+        </p>
+      ),
+    },
+  ]}
+/>
