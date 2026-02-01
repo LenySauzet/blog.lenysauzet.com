@@ -2,8 +2,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { getRootMetadata } from '@/config/site';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
+import Footer from './_components/Footer';
+import Header from './_components/Header';
 import './globals.css';
-import { ModeToggle } from '@/components/ModeToggle';
+import { ComponentExample } from '@/components/component-example';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -56,12 +58,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <Header />
+          <main className="max-w-2xl mx-auto">
+            {children}
+            {/* <ComponentExample /> */}
+          </main>
+          <Footer />
 
-          <div className="absolute top-0 right-0 m-4">
+          {/* <div className="fixed top-0 right-0 m-4">
             <ModeToggle />
-          </div>
-
+          </div> */}
         </ThemeProvider>
       </body>
     </html>

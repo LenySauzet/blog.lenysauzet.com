@@ -5,7 +5,7 @@ export default async function Page() {
   const posts = await getPosts();
   return (
     <div>
-      <h1>Latest Posts</h1>
+      {/* <h1>Latest Posts</h1> */}
       <ul>
         {posts.slice(0, 3).map((post) => (
           <li key={post.slug}>
