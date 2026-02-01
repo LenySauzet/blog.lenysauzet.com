@@ -5,7 +5,6 @@ import localFont from 'next/font/local';
 import Footer from './_components/Footer';
 import Header from './_components/Header';
 import './globals.css';
-import { ComponentExample } from '@/components/component-example';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -59,10 +58,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main className="max-w-2xl mx-auto">
-            {children}
-            {/* <ComponentExample /> */}
-          </main>
+          <main className="max-w-2xl mx-auto py-12">{children}</main>
           <Footer />
 
           {/* <div className="fixed top-0 right-0 m-4">

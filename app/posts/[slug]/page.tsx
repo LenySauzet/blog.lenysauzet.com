@@ -55,7 +55,7 @@ export default async function Page({
     const { default: Post, metadata } = await import(`@/content/${slug}.mdx`);
     return (
       <article className="max-w-3xl mx-auto p-4 flex flex-col gap-8">
-        <div className="flex flex-col gap-2 min-h-[420px] justify-end">
+        <div className="flex flex-col gap-2 ">
           <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
             {metadata.title}
           </h1>
