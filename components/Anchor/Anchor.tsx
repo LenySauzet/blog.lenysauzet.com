@@ -5,7 +5,7 @@ import Link from 'next/link';
 const anchorClasses = `
   text-link gap-2 items-center inline-flex 
   relative after:content-[''] after:block after:absolute after:left-0 after:right-0
-  after:bottom-0 after:h-[2px] after:bg-current
+  after:bottom-0 after:h-[1px] after:bg-current
   after:opacity-0 after:transition-opacity after:pointer-events-none
   hover:after:opacity-90
 `;

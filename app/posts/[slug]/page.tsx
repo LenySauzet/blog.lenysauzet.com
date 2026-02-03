@@ -61,14 +61,14 @@ export default async function Page({
           </h1>
           <time itemProp="datepublished" dateTime={metadata.date}>
             <TextScramble
-              className="font-mono text-sm uppercase text-foreground/50"
+              className="font-mono text-sm uppercase text-muted-foreground"
               as="span"
             >
               {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
             </TextScramble>
           </time>
         </div>
-        <div className="text-foreground/75 leading-7 flex flex-col gap-6">
+        <div className="text-muted-foreground leading-7 flex flex-col gap-6 font-medium">
           <Post />
         </div>
       </article>
