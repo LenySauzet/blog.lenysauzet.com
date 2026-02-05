@@ -61,6 +61,8 @@ export default function RootLayout({
           <main className="max-w-2xl mx-auto py-12">{children}</main>
           <Footer />
 
+          <div className="fixed bottom-0 left-0 w-full h-12 bg-linear-to-t from-background via-background/70 to-transparent pointer-events-none " />
+
           {/* <div className="fixed top-0 right-0 m-4">
             <ModeToggle />
           </div> */}

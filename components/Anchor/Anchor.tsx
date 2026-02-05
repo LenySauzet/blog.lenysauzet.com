@@ -1,6 +1,13 @@
+import siteConfig from '@/config/site';
 import { LinkSquare01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import Link from 'next/link';
+
+const { url } = siteConfig;
+
+const isInternalLink = (href: string) => {
+  return href.startsWith('/') || href.startsWith(url);
+};
 
 const anchorClasses = `
   text-link gap-2 items-center inline-flex 
@@ -13,16 +20,14 @@ const anchorClasses = `
 const Anchor = ({
   children,
   href,
-  isInternal = false,
   ...props
-}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  isInternal?: boolean;
-}) => {
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+  const isInternal = href != null && isInternalLink(href);
+
   if (isInternal) {
     return (
-      <Link href={href!} className={anchorClasses} {...props}>
+      <Link href={href} className={anchorClasses} {...props}>
         {children}
-        <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
       </Link>
     );
   }
