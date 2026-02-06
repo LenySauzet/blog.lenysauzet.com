@@ -30,5 +30,8 @@ export const getPosts = async (): Promise<Post[]> => {
             }
         })
     )
+
+    posts.sort((a, b) => new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime());
+    
     return posts
 }

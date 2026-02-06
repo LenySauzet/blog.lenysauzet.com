@@ -6,6 +6,6 @@ type SplashScreenStore = {
 };
 
 export const useSplashScreenStore = create<SplashScreenStore>((set) => ({
-  isVisible: false,
+  isVisible: true,
   setVisibility: (isVisible: boolean) => set({ isVisible }),
 }));

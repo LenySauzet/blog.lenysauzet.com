@@ -7,17 +7,18 @@ import SignatureSVG from './SignatureSVG';
 export default function SplashScreen() {
   const { setVisibility } = useSplashScreenStore();
 
-  useEffect(() => {
-    setInterval(() => {
-      setVisibility(false);
-    }, 3000);
-  }, [setVisibility]);
-
   const splashScreenTransition: Transition = {
     duration: 0.7,
     delay: 3.5,
     ease: 'easeInOut',
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisibility(false);
+    }, (3.5 + 0.7) * 1000);
+    return () => clearTimeout(timer);
+  }, [setVisibility]);
 
   const signatureSVGTransition: Transition = {
     duration: 0.5,

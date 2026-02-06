@@ -1,0 +1,11 @@
+export const metadata = {
+  title: 'Mastering Signed Distance Fields in Shaders',
+  description:
+    'A guide to mastering signed distance fields in shaders, covering various techniques and tools for controlling and manipulating signed distance fields in a scene.',
+  tags: ['signed distance fields', 'blog'],
+  date: '2026-02-02',
+};
+
+As I became more familiar with post-processing over the past few months, I was curious to push those newly learned techniques beyond pure stylization to achieve something more functional. I wanted to find new ways to enrich my 3D work which wouldn't be possible without leveraging effects and passes alongside custom shaders.
+
+As it turns out, post-processing is great entrypoint to enhance a 3D scene with atmospheric and lighting effects, allowing for more realistic and dramatic visuals. Because these effects operate in screen space, their performance cost is decoupled from the underlying scene's complexity, making them an efficient solution for balancing performance and visual quality. At the end of the day, when we work with effects, we are still just drawing pixels on a screen.

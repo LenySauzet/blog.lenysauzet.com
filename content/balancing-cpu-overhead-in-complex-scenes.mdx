@@ -1,0 +1,11 @@
+export const metadata = {
+  title: 'Balancing CPU Overhead in Complex Scenes',
+  description:
+    'A guide to balancing CPU overhead in complex scenes, covering various techniques and tools for controlling and manipulating CPU overhead in a scene.',
+  tags: ['cpu', 'blog'],
+  date: '2024-02-02',
+};
+
+As I became more familiar with post-processing over the past few months, I was curious to push those newly learned techniques beyond pure stylization to achieve something more functional. I wanted to find new ways to enrich my 3D work which wouldn't be possible without leveraging effects and passes alongside custom shaders.
+
+As it turns out, post-processing is great entrypoint to enhance a 3D scene with atmospheric and lighting effects, allowing for more realistic and dramatic visuals. Because these effects operate in screen space, their performance cost is decoupled from the underlying scene's complexity, making them an efficient solution for balancing performance and visual quality. At the end of the day, when we work with effects, we are still just drawing pixels on a screen.
