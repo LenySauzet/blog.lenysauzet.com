@@ -1,4 +1,4 @@
-import { getPosts } from '@/lib/posts-utils';
+import { getPosts } from '@/lib/post-utils';
 import { format } from 'date-fns';
 import Link from 'next/link';
 

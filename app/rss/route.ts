@@ -1,5 +1,5 @@
 import siteConfig from '@/config/site';
-import { getPosts } from '@/lib/posts-utils';
+import { getPosts } from '@/lib/post-utils';
 
 const { url, rss: rssConfig } = siteConfig;
 

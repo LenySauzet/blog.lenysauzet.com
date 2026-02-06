@@ -1,6 +1,6 @@
+import Anchor from '@/components/Anchor/Anchor';
 import type { MDXComponents } from 'mdx/types';
 import Image, { type ImageProps } from 'next/image';
-import Anchor from './components/Anchor/Anchor';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
 
 function RoundedImage({ alt = '', ...props }: ImageProps) {
@@ -8,6 +8,7 @@ function RoundedImage({ alt = '', ...props }: ImageProps) {
 }
 
 const components = {
+  Anchor,
   a: Anchor,
   h1: ({ children }) => <h1 className="text-4xl font-bold">{children}</h1>,
   img: RoundedImage,

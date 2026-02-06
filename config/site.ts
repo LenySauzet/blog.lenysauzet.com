@@ -124,6 +124,7 @@ const rss = {
 // site config object
 const siteConfig = {
   url,
+  authorUrl,
   title,
   description,
   descriptionShort,

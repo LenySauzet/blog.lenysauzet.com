@@ -1,6 +1,6 @@
 import { TextScramble } from '@/components/TextScramble';
 import siteConfig from '@/config/site';
-import { getPosts } from '@/lib/posts-utils';
+import { getPosts } from '@/lib/post-utils';
 import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -61,7 +61,7 @@ export default async function Page({
           </h1>
           <time itemProp="datepublished" dateTime={metadata.date}>
             <TextScramble
-              className="font-mono text-sm uppercase text-muted-foreground"
+              className="font-mono text-sm uppercase text-muted-foreground/75"
               as="span"
             >
               {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
