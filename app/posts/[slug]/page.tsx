@@ -1,4 +1,4 @@
-import { TextScramble } from '@/components/TextScramble';
+import { ScrambledText } from '@/components/ScrambledText';
 import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/post-utils';
 import { format } from 'date-fns';
@@ -60,12 +60,21 @@ export default async function Page({
             {metadata.title}
           </h1>
           <time itemProp="datepublished" dateTime={metadata.date}>
-            <TextScramble
+            {/* <TextScramble
               className="font-mono text-sm uppercase text-muted-foreground/75"
               as="span"
             >
               {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
-            </TextScramble>
+            </TextScramble> */}
+
+            <ScrambledText
+              delay={0.5}
+              speed={0.8}
+              windowSize={3}
+              className="font-mono text-sm uppercase text-muted-foreground/75"
+            >
+              {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
+            </ScrambledText>
           </time>
         </div>
         <div className="text-muted-foreground leading-7 flex flex-col gap-6 font-medium">

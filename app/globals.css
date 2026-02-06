@@ -54,6 +54,9 @@
 
 :root {
   --base-hue: 262.04;
+  --opacity: 0.3;
+  --blur: 12px;
+  --saturate: 1.15;
 
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --link: oklch(64.6% 0.172 var(--base-hue));
@@ -137,10 +140,10 @@
 }
 
 .badge-border {
-  border: 1.5px solid oklch(77.16% 0.028 262.04 / 15%);
+  border: 1.5px solid oklch(77.16% 0.028 var(--base-hue) / 15%);
 }
 
 .badge-background {
-  background-color: oklch(56.78% 0.05 262.04 / var(--opacity, 0.3));
-  backdrop-filter: blur(var(--blur, 12px)) saturate(var(--saturate, 1.15));
+  background-color: oklch(56.78% 0.05 var(--base-hue) / var(--opacity, 0.3));
+  backdrop-filter: blur(12px) saturate(1.15);
 }

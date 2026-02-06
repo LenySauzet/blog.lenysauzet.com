@@ -5,6 +5,7 @@ import localFont from 'next/font/local';
 import Footer from './_components/Footer';
 import Header from './_components/Header';
 import './globals.css';
+import SplashScreen from '@/components/SplashScreen';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -44,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} ${SignatureDecember.variable} antialiased`}
+        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} ${SignatureDecember.variable} antialiased relative`}
       >
         <ThemeProvider
           attribute="class"
@@ -53,8 +54,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
+          <SplashScreen />
+
           <main className="max-w-2xl mx-auto py-12">{children}</main>
-          <div className="pointer-events-none fixed bottom-0 left-0 z-50 h-12 w-full bg-background to-transparent backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_top,black,transparent)]" />
+          <div className="pointer-events-none fixed bottom-0 left-0 z-1 h-12 w-full bg-background to-transparent backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_top,black,transparent)]" />
           <Footer />
         </ThemeProvider>
       </body>

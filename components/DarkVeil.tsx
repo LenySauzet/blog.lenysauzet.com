@@ -74,8 +74,11 @@ void main(){
 }
 `;
 
+const SHADER_NATIVE_HUE = 295;
+
 type Props = {
   hueShift?: number;
+  useCssBaseHue?: boolean;
   noiseIntensity?: number;
   scanlineIntensity?: number;
   speed?: number;
@@ -86,6 +89,7 @@ type Props = {
 
 export default function DarkVeil({
   hueShift = 0,
+  useCssBaseHue = false,
   noiseIntensity = 0,
   scanlineIntensity = 0,
   speed = 0.5,
@@ -138,7 +142,18 @@ export default function DarkVeil({
     const loop = () => {
       program.uniforms.uTime.value =
         ((performance.now() - start) / 1000) * speed;
-      program.uniforms.uHueShift.value = hueShift;
+
+      if (useCssBaseHue && typeof document !== 'undefined') {
+        const baseHue = parseFloat(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--base-hue')
+            .trim() || '0'
+        );
+        program.uniforms.uHueShift.value = SHADER_NATIVE_HUE - baseHue;
+      } else {
+        program.uniforms.uHueShift.value = hueShift;
+      }
+
       program.uniforms.uNoise.value = noiseIntensity;
       program.uniforms.uScan.value = scanlineIntensity;
       program.uniforms.uScanFreq.value = scanlineFrequency;
@@ -155,6 +170,7 @@ export default function DarkVeil({
     };
   }, [
     hueShift,
+    useCssBaseHue,
     noiseIntensity,
     scanlineIntensity,
     speed,

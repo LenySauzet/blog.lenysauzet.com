@@ -1,3 +1,4 @@
+import { ScrambledText } from '@/components/ScrambledText';
 import { getPosts } from '@/lib/post-utils';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -18,9 +19,9 @@ export default async function Page() {
           <ul key={year} className="">
             {posts
               .filter(
-                (post) => new Date(post.metadata.date).getFullYear() === year,
+                (post) => new Date(post.metadata.date).getFullYear() === year
               )
-              .map((post) => (
+              .map((post, index) => (
                 <li
                   key={post.slug}
                   className="flex gap-2 justify-between items-center border-b py-4 group cursor-pointer"
@@ -29,11 +30,23 @@ export default async function Page() {
                     href={`/posts/${post.slug}`}
                     className="group-hover:text-foreground transition-colors text-foreground/50"
                   >
-                    {post.metadata.title}
+                    <ScrambledText
+                      // disabled={!inView}
+                      delay={0.5 + index * 0.1}
+                      windowSize={7}
+                      speed={1.75}
+                    >
+                      {post.metadata.title}
+                    </ScrambledText>
                   </Link>
-                  <span className="text-sm font-mono group-hover:text-foreground transition-colors text-foreground/50">
+                  <ScrambledText
+                    delay={0.5 + index * 0.05}
+                    windowSize={7}
+                    speed={0.8}
+                    className="text-sm font-mono group-hover:text-foreground transition-colors text-foreground/50"
+                  >
                     {format(new Date(Date.parse(post.metadata.date)), 'MMM d')}
-                  </span>
+                  </ScrambledText>
                 </li>
               ))}
           </ul>
