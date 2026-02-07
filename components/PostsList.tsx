@@ -21,7 +21,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
   ].sort((a, b) => b - a);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
       {uniqueYears.map((year) => {
         const postsForYear = posts
           .map((post, i) => ({ ...post, flatIndex: i }))

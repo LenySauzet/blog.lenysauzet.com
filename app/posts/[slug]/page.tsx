@@ -1,3 +1,4 @@
+import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
 import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/post-utils';
@@ -77,9 +78,11 @@ export default async function Page({
             </ScrambledText>
           </time>
         </div>
-        <div className="text-muted-foreground leading-7 flex flex-col gap-6 font-medium">
+        <div className="text-muted-foreground leading-7 flex flex-col gap-6 font-medium max-w-2xl mx-auto ">
           <Post />
         </div>
+
+        <Footnote />
       </article>
     );
   } catch {

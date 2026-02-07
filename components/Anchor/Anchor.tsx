@@ -23,6 +23,9 @@ const anchorVariants = cva(
       underline: {
         true: 'relative after:absolute after:left-0 after:right-0 after:bottom-0.5 after:h-px after:bg-current after:opacity-0 after:transition-opacity after:duration-200 after:pointer-events-none hover:after:opacity-100',
       },
+      favicon: {
+        true: 'px-1',
+      },
     },
     defaultVariants: {
       variant: 'default',
@@ -89,7 +92,7 @@ const Anchor = ({
     return (
       <Link
         href={href ?? '/'}
-        className={cn(anchorVariants({ variant, discreet, underline }))}
+        className={cn(anchorVariants({ variant, discreet, underline, favicon }))}
         {...props}
       >
         <ArrowWrapper direction={direction}>{children}</ArrowWrapper>
@@ -99,7 +102,7 @@ const Anchor = ({
 
   return (
     <a
-      className={cn(anchorVariants({ variant, discreet, underline }))}
+      className={cn(anchorVariants({ variant, discreet, underline, favicon }))}
       href={href}
       {...props}
     >

@@ -9,6 +9,7 @@ function RoundedImage({ alt = '', ...props }: ImageProps) {
 
 const components = {
   Anchor,
+  
   a: Anchor,
   h1: ({ children }) => <h1 className="text-4xl font-bold">{children}</h1>,
   img: RoundedImage,
