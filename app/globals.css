@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  
   --color-secondary-background: var(--secondary-background);
   --color-link: var(--link);
   --color-background: var(--background);
@@ -137,6 +138,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+::selection {
+  background-color: oklch(from oklch(61.53% 0.1675 var(--base-hue)) l c h / 7%);
+  color: oklch(61.53% 0.1675 var(--base-hue));
 }
 
 .badge-border {

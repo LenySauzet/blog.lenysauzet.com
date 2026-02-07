@@ -41,7 +41,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                   >
                     <ScrambledText
                       disabled={isSplashVisible}
-                      delay={0.5 + post.flatIndex * 0.1}
+                      delay={post.flatIndex * 0.1}
                       windowSize={7}
                       speed={1.75}
                     >
@@ -49,7 +49,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                     </ScrambledText>
                     <ScrambledText
                       disabled={isSplashVisible}
-                      delay={0.5 + post.flatIndex * 0.05}
+                      delay={post.flatIndex * 0.05}
                       windowSize={7}
                       speed={0.8}
                       className="text-sm font-mono group-hover:text-foreground transition-colors text-foreground/50"

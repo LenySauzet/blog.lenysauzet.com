@@ -56,7 +56,7 @@ export default function RootLayout({
           <Header />
           <SplashScreen />
 
-          <main className="py-12">{children}</main>
+          <main className="py-12 px-10">{children}</main>
           <div className="pointer-events-none fixed bottom-0 left-0 z-1 h-12 w-full bg-background to-transparent backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_top,black,transparent)]" />
           <Footer />
         </ThemeProvider>
