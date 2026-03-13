@@ -1,7 +1,7 @@
 'use client';
 
 import { ScrambledText } from '@/components/ScrambledText';
-import { useSplashScreenStore } from '@/hook/use-splashScreen-store';
+// import { useSplashScreenStore } from '@/hook/use-splashScreen-store';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
@@ -14,7 +14,8 @@ type Post = {
 };
 
 export function PostsList({ posts }: { posts: Post[] }) {
-  const isSplashVisible = useSplashScreenStore((s) => s.isVisible);
+  // const isSplashVisible = useSplashScreenStore((s) => s.isVisible);
+  const isSplashVisible = false;
 
   const uniqueYears = [
     ...new Set(posts.map((post) => new Date(post.metadata.date).getFullYear())),
