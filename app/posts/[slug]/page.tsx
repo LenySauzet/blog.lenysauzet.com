@@ -62,13 +62,6 @@ export default async function Page({
               {metadata.title}
             </h1>
             <time itemProp="datepublished" dateTime={metadata.date}>
-              {/* <TextScramble
-              className="font-mono text-sm uppercase text-muted-foreground/75"
-              as="span"
-            >
-              {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
-            </TextScramble> */}
-
               <ScrambledText
                 delay={0.5}
                 speed={0.8}
