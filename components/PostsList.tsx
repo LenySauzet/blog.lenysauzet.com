@@ -38,7 +38,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
         }}
       />
 
-      <div className="flex flex-col gap-8 pt-36 pb-10 flex-1 min-h-0 overflow-y-auto border-l">
+      <div className="flex flex-col gap-8 pt-24 pb-20 flex-1 min-h-0 overflow-y-auto lg:border-l">
         {uniqueYears.map((year) => {
           const postsForYear = posts
             .map((post, i) => ({ ...post, flatIndex: i }))
@@ -47,16 +47,16 @@ export function PostsList({ posts }: { posts: Post[] }) {
             );
 
           return (
-            <div className="flex flex-col gap-4" key={year}>
+            <div className="flex flex-col gap-4 px-8 lg:px-0" key={year}>
               <span className="text-sm uppercase font-mono text-foreground/50 pl-4">
                 {year}
               </span>
               <ul>
                 {postsForYear.map((post) => (
-                  <li key={post.slug} className="group cursor-pointer border-b">
+                  <li key={post.slug} className="group cursor-pointer border-b lg:px-4">
                     <Link
                       href={`/posts/${post.slug}`}
-                      className="flex gap-2 justify-between items-center py-4 px-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
+                      className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
                     >
                       <ScrambledText
                         delay={post.flatIndex * 0.1}
