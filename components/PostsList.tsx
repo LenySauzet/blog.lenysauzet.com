@@ -20,21 +20,26 @@ export function PostsList({ posts }: { posts: Post[] }) {
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden">
+
+      <div className="pointer-events-none absolute top-0 inset-x-0 z-10 h-8 bg-linear-to-b from-background from-25% to-transparent" />
+
       <div
-        className="pointer-events-none absolute top-0 inset-x-0 z-10 h-32 backdrop-blur-md bg-linear-to-b from-background from-25% to-transparent"
+        className="pointer-events-none absolute top-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
         style={{
-          maskImage: 'linear-gradient(to bottom, black 20%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)',
           WebkitMaskImage:
-            'linear-gradient(to bottom, black 20%, transparent 100%)',
+            'linear-gradient(to bottom, black 25%, transparent 100%)',
         }}
       />
 
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 z-10 h-8 bg-linear-to-t from-background from-25% to-transparent" />
+
       <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 z-10 h-32 backdrop-blur-md bg-linear-to-t from-background from-25% to-transparent"
+        className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
         style={{
-          maskImage: 'linear-gradient(to top, black 20%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, black 25%, transparent 100%)',
           WebkitMaskImage:
-            'linear-gradient(to top, black 20%, transparent 100%)',
+            'linear-gradient(to top, black 25%, transparent 100%)',
         }}
       />
 
@@ -53,7 +58,10 @@ export function PostsList({ posts }: { posts: Post[] }) {
               </span>
               <ul>
                 {postsForYear.map((post) => (
-                  <li key={post.slug} className="group cursor-pointer border-b lg:px-4">
+                  <li
+                    key={post.slug}
+                    className="group cursor-pointer border-b lg:px-4"
+                  >
                     <Link
                       href={`/posts/${post.slug}`}
                       className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"

@@ -58,12 +58,12 @@ export default async function Image({
 
       <div tw="w-full h-full p-[90px] px-[130px] flex">
         <div
-          tw="w-full flex justify-between items-center text-3xl mt-auto"
+          tw="w-full flex justify-between items-center text-3xl mt-auto text-white"
           style={{
             fontFamily: 'Geist',
           }}
         >
-          <Logo fill="#FFFFFF" />
+          <Logo />
           {siteConfig.twitter.handle}
         </div>
       </div>
