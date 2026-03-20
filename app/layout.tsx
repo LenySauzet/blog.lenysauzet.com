@@ -3,7 +3,7 @@ import { getRootMetadata } from '@/config/site';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
-// import Header from './_components/Header';
+import Header from './_components/Header';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -51,7 +51,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* <Header /> */}
+          <Header />
           <main className="h-full">{children}</main>
         </ThemeProvider>
       </body>
