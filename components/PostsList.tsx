@@ -22,7 +22,6 @@ export function PostsList({ posts }: { posts: Post[] }) {
     <div className="relative flex flex-col h-full overflow-hidden">
 
       <div className="pointer-events-none absolute top-0 inset-x-0 z-10 h-8 bg-linear-to-b from-background from-25% to-transparent" />
-
       <div
         className="pointer-events-none absolute top-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
         style={{
@@ -33,7 +32,6 @@ export function PostsList({ posts }: { posts: Post[] }) {
       />
 
       <div className="pointer-events-none absolute bottom-0 inset-x-0 z-10 h-8 bg-linear-to-t from-background from-25% to-transparent" />
-
       <div
         className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
         style={{
@@ -43,7 +41,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
         }}
       />
 
-      <div className="flex flex-col gap-8 pt-24 pb-20 flex-1 min-h-0 overflow-y-auto lg:border-l">
+      <div className="flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l">
         {uniqueYears.map((year) => {
           const postsForYear = posts
             .map((post, i) => ({ ...post, flatIndex: i }))
@@ -53,7 +51,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
 
           return (
             <div className="flex flex-col gap-4 px-8 lg:px-0" key={year}>
-              <span className="text-sm uppercase font-mono text-foreground/50 pl-4">
+              <span className="text-sm uppercase font-mono text-foreground/50 pl-0 lg:pl-4">
                 {year}
               </span>
               <ul>

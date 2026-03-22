@@ -4,7 +4,7 @@ import { Separator } from './ui/separator';
 
 const Footnote = () => {
   return (
-    <div className="font-medium">
+    <div className="font-medium px-5 lg:px-0">
       <Separator />
       <p>
         Liked this article? Share it with a friend on{' '}
