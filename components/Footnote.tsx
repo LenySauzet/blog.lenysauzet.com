@@ -1,6 +1,6 @@
+import Separator from '@/components/Separator';
 import Anchor from './Anchor/Anchor';
 import SignatureSVG from './SignatureSVG';
-import { Separator } from './ui/separator';
 
 const Footnote = () => {
   return (

@@ -1,4 +1,4 @@
-import { Separator } from '../ui/separator';
+import Separator from "@/components/Separator";
 
 interface FootnotesProps {
   notes: Array<{
