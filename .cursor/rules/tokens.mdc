@@ -1,0 +1,119 @@
+---
+description: Design tokens, Tailwind v4, and CSS custom property patterns
+alwaysApply: false
+globs: ["**/*.ts", "**/*.tsx", "**/*.css"]
+---
+
+# Design Tokens & Styling Patterns
+
+## Approach
+
+This project uses **Tailwind CSS v4** with Shadcn/UI. Styles are applied as utility classes directly on JSX elements. There are no separate `*.styles.tsx` files — all styling is inline via `className`.
+
+Use `cn()` from `@/lib/utils` to conditionally merge classes:
+
+```tsx
+import { cn } from '@/lib/utils';
+
+<div className={cn('rounded-lg px-4 py-2', isActive && 'bg-primary text-primary-foreground')} />
+```
+
+## CSS Custom Properties
+
+Design tokens are defined in `app/globals.css` using CSS custom properties. Always reference them — never hardcode raw values.
+
+### Color Tokens (oklch-based)
+
+The color system is built on a single `--base-hue` variable (262.04 — violet/purple):
+
+| Token                     | Usage                              |
+| ------------------------- | ---------------------------------- |
+| `--background`            | Page background                    |
+| `--foreground`            | Primary text                       |
+| `--card`                  | Card/panel backgrounds             |
+| `--card-foreground`       | Text on cards                      |
+| `--primary`               | Brand color (violet)               |
+| `--primary-foreground`    | Text on primary backgrounds        |
+| `--secondary`             | Subtle backgrounds                 |
+| `--secondary-background`  | Darker background variant          |
+| `--muted`                 | Muted surface                      |
+| `--muted-foreground`      | Muted text                         |
+| `--accent`                | Accent surface                     |
+| `--border`                | Border color                       |
+| `--link`                  | Hyperlink color                    |
+
+### Radius Tokens
+
+| Token          | Value                   |
+| -------------- | ----------------------- |
+| `--radius`     | Base radius variable    |
+| `rounded-sm`   | `calc(var(--radius) - 4px)` |
+| `rounded-md`   | `calc(var(--radius) - 2px)` |
+| `rounded-lg`   | `var(--radius)`         |
+| `rounded-xl`   | `calc(var(--radius) + 4px)` |
+
+### Typography Tokens
+
+| Token               | Usage                   |
+| ------------------- | ----------------------- |
+| `--font-display`    | Display/heading font    |
+| `--font-serif`      | Serif body font         |
+| `--font-mono`       | Monospace font          |
+| `--font-mono-code`  | Code blocks             |
+| `--font-signature`  | Signature / handwriting |
+
+Apply via Tailwind:
+```tsx
+<h1 className="font-display text-4xl tracking-tight" />
+<p className="font-serif text-base leading-7" />
+<code className="font-mono-code text-sm" />
+```
+
+## Tailwind Utility Patterns
+
+### Glassmorphism
+
+Used for floating panels, the header, cards overlaid on content:
+
+```tsx
+<div
+  className="rounded-xl border border-muted bg-card/50 px-3 py-2"
+  style={{
+    backdropFilter: 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))',
+  }}
+/>
+```
+
+CSS variables `--blur`, `--saturate`, and `--opacity` are available globally from `globals.css`.
+
+### oklch Transparency
+
+Use `oklch()` with the CSS relative color syntax for transparent variants:
+
+```css
+/* In CSS or inline style */
+background-color: oklch(from var(--foreground) l c h / 0.08);
+border-color: oklch(from var(--border) l c h / 0.5);
+```
+
+In Tailwind, use arbitrary values:
+```tsx
+<div className="bg-[oklch(from_var(--foreground)_l_c_h_/_0.08)]" />
+```
+
+## Dark Mode
+
+Dark mode uses the `.dark` class on `<html>` (managed by `next-themes`). The `@custom-variant dark` in `globals.css` maps it to the `dark:` prefix.
+
+```tsx
+<div className="bg-background text-foreground dark:bg-secondary-background" />
+```
+
+## Key Principles
+
+- **Never hardcode colors** — use `var(--*)` tokens or Tailwind semantic classes
+- **Never hardcode spacing** — use Tailwind spacing scale (`p-4`, `gap-2`, etc.)
+- **No separate style files** — Tailwind utilities go directly in JSX `className`
+- **Use `cn()`** from `@/lib/utils` for all conditional class merging
+- **oklch everywhere** — use `oklch()` for transparency and color manipulation
+- **Shadcn components** are pre-styled; customize via `className` props, not by editing `components/ui/`

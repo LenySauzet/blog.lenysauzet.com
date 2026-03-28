@@ -1,0 +1,89 @@
+---
+description: Testing philosophy and patterns
+alwaysApply: false
+globs:
+  [
+    '**/*.spec.ts',
+    '**/*.spec.tsx',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+  ]
+---
+
+# Testing Conventions
+
+## Current State
+
+This project has no test framework configured yet. Before writing any test, **ask the user** whether tests should be added for the current change.
+
+If tests are to be added, set up **Vitest** with Testing Library — it integrates natively with Next.js and Vite-based toolchains.
+
+## Recommended Setup (Vitest)
+
+```bash
+bun add -D vitest @vitejs/plugin-react @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom
+```
+
+`vitest.config.ts`:
+```ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts'],
+  },
+  resolve: {
+    alias: { '@': path.resolve(__dirname, '.') },
+  },
+});
+```
+
+`vitest.setup.ts`:
+```ts
+import '@testing-library/jest-dom';
+```
+
+## Unit Test Patterns
+
+- Files: `__tests__/ComponentName.spec.tsx` adjacent to the component
+- Import via barrel: `from '../'`
+- Test user-visible behavior, not implementation
+
+```tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
+
+import Component from '../';
+
+describe('ComponentName', () => {
+  it('renders expected content', () => {
+    render(<Component />);
+    expect(screen.getByRole('heading')).toHaveTextContent('Title');
+  });
+
+  it('responds to interaction', async () => {
+    render(<Component />);
+    await userEvent.click(screen.getByRole('button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('result')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+## Testing Principles
+
+- Use `waitFor` for async assertions
+- Prefer `getByRole` (accessible queries) over `getByTestId`
+- Test what the user sees and does — avoid testing internals
+- Server Components: test utility functions (`lib/post-utils.ts`, etc.) separately
+- Client Components: test via render + interaction
+
+## IMPORTANT
+
+Always confirm with the user whether a test is required before writing one.

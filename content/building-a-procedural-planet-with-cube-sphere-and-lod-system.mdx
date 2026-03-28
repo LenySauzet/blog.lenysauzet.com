@@ -1,0 +1,269 @@
+export const metadata = {
+  title: 'Building a Procedural Planet with Cube Sphere and LOD System',
+  description:
+    'A technical deep dive into building real-time procedural planets using a cube sphere topology, multi-resolution LOD, frustum culling, object pooling, and physically-based atmosphere scattering.',
+  tags: ['procedural', 'threejs', 'lod', 'performance'],
+  date: '2026-04-21',
+};
+
+Generating a convincing procedural planet in real time is one of those problems that looks deceptively simple from the outside — just a sphere with some noise applied to it, right? — and turns out to be an entire engineering rabbit hole the moment you try to push it beyond a tech demo. Over the past few months I've been building one from scratch, and this post is my attempt to document the key decisions and techniques that made it actually run well in the browser.
+
+We'll go through the full stack: starting with why a **cube sphere** beats a UV sphere for this use case, then moving on to a **quadtree LOD** system for terrain resolution, **frustum culling**, **object pooling** for chunk lifecycle management, and finally a physically-based **atmosphere scattering** model running in a post-process pass.
+
+## Why a Cube Sphere?
+
+The classic UV sphere — latitude/longitude grid — is the first thing most people reach for. It's simple, and every sphere tutorial uses it. But it has a fatal flaw for procedural terrain: **pole pinching**. Because all vertices along the top and bottom edge converge to a single point, the triangle density there is absurdly high while the equatorial triangles are comparatively sparse. This uneven density causes visible seams when you apply noise-based displacement, and makes a uniform LOD subdivision strategy impossible.
+
+A cube sphere solves this by projecting the six faces of a cube onto a sphere. The key insight is that when you normalize a point on a cube face to unit length, you get a point on the sphere. The formula for a face pointing along the +Y axis looks like this:
+
+```glsl
+vec3 cubeToSphere(vec3 p) {
+  float x2 = p.x * p.x;
+  float y2 = p.y * p.y;
+  float z2 = p.z * p.z;
+  return vec3(
+    p.x * sqrt(1.0 - y2 / 2.0 - z2 / 2.0 + y2 * z2 / 3.0),
+    p.y * sqrt(1.0 - x2 / 2.0 - z2 / 2.0 + x2 * z2 / 3.0),
+    p.z * sqrt(1.0 - x2 / 2.0 - y2 / 2.0 + x2 * y2 / 3.0)
+  );
+}
+```
+
+This is Dmitry Chamberlain's **spherified cube** mapping — it preserves area far better than a raw normalize, reducing the ratio between the largest and smallest triangle from ~5.8x (raw normalize) down to ~1.27x. The practical result is a much more uniform triangle distribution across the whole surface, which is exactly what we need for consistent noise-displacement and LOD transitions.
+
+### Generating a Face
+
+Each of the six cube faces is its own independent mesh. This is important — it means they can be updated, culled, and pooled independently. A face is a flat grid in local space that gets projected to sphere coordinates before being uploaded to the GPU:
+
+```ts
+function buildFaceGeometry(resolution: number, faceNormal: THREE.Vector3): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  const axisA = new THREE.Vector3(faceNormal.y, faceNormal.z, faceNormal.x);
+  const axisB = new THREE.Vector3().crossVectors(faceNormal, axisA);
+
+  for (let y = 0; y <= resolution; y++) {
+    for (let x = 0; x <= resolution; x++) {
+      const tx = (x / resolution) * 2 - 1;
+      const ty = (y / resolution) * 2 - 1;
+
+      const cubePoint = new THREE.Vector3()
+        .addScaledVector(faceNormal, 1)
+        .addScaledVector(axisA, tx)
+        .addScaledVector(axisB, ty);
+
+      const spherePoint = spherifyCube(cubePoint);
+      positions.push(spherePoint.x, spherePoint.y, spherePoint.z);
+    }
+  }
+
+  for (let y = 0; y < resolution; y++) {
+    for (let x = 0; x < resolution; x++) {
+      const i = y * (resolution + 1) + x;
+      indices.push(i, i + resolution + 1, i + 1);
+      indices.push(i + 1, i + resolution + 1, i + resolution + 2);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+```
+
+## Quadtree LOD
+
+A flat cube face mesh at a fixed resolution will not scale. A planet observed from orbit can get away with a coarse 32×32 grid, but the moment you approach the surface you need millions of triangles to render believable terrain detail. The standard solution is a **quadtree**: each face starts as a single root node covering the entire face, and nodes subdivide recursively based on distance to the camera.
+
+### Node Structure
+
+Each node tracks its depth, its four children (or null if it's a leaf), and a reference to a geometry chunk:
+
+```ts
+interface QuadNode {
+  depth: number;
+  bounds: { center: THREE.Vector3; size: number };
+  children: [QuadNode, QuadNode, QuadNode, QuadNode] | null;
+  chunk: TerrainChunk | null;
+}
+```
+
+### Subdivision Criteria
+
+The rule is simple: if the distance from the camera to the node's bounding sphere is less than `size * lodFactor`, subdivide. A `lodFactor` of 2.0–3.0 works well in practice:
+
+```ts
+function shouldSubdivide(node: QuadNode, camera: THREE.Vector3, lodFactor: number): boolean {
+  if (node.depth >= MAX_LOD_DEPTH) return false;
+  const dist = camera.distanceTo(node.bounds.center);
+  return dist < node.bounds.size * lodFactor;
+}
+```
+
+The full update loop traverses the tree, compares the current subdivision state against what _should_ be the state given the current camera position, and queues any necessary splits or merges. This traversal runs every frame but is cheap — it's just tree iteration with a handful of distance checks, no GPU work.
+
+### Avoiding T-Junctions
+
+The classic problem with a naive quadtree terrain is **T-junctions**: when a high-resolution chunk shares an edge with a lower-resolution neighbor, the vertices along the edge don't align, producing visible cracks. The standard fix is **skirts** — extra geometry hanging down from each edge of a chunk that fills the gaps — combined with a **geomorphing** technique that smoothly shifts edge vertices from their high-res position to the low-res interpolated position as the LOD transition happens.
+
+Geomorphing happens in the vertex shader. Each vertex carries a `morphFactor` uniform that goes from 0 (full detail) to 1 (morphed to match the parent level):
+
+```glsl
+uniform float uMorphFactor;
+
+attribute vec3 position;
+attribute vec3 morphTarget; // position at parent LOD level
+
+void main() {
+  vec3 p = mix(position, morphTarget, uMorphFactor);
+  // apply noise displacement, then output...
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+}
+```
+
+The `morphFactor` ramps from 0 to 1 in the distance range `[splitDistance * 0.8, splitDistance]`, so the transition is invisible unless you're looking for it.
+
+## Frustum Culling
+
+With six faces each holding a deep quadtree, we can end up with thousands of leaf nodes. Most of them will be on the back side of the planet or outside the camera frustum entirely. Drawing them is pure waste.
+
+Three.js performs its own frustum culling on `Mesh` objects, but doing it ourselves at the quadtree level is far more efficient — we can prune entire subtrees early, avoiding even the traversal cost for invisible regions.
+
+Each node gets a bounding sphere, computed once at creation time:
+
+```ts
+function computeBoundingSphere(node: QuadNode): THREE.Sphere {
+  const radius = node.bounds.size * Math.SQRT2 * 0.5 + MAX_TERRAIN_HEIGHT;
+  return new THREE.Sphere(node.bounds.center, radius);
+}
+```
+
+During the tree update, before recursing into children, we check the bounding sphere against the camera frustum:
+
+```ts
+const frustum = new THREE.Frustum();
+frustum.setFromProjectionMatrix(
+  new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+);
+
+function updateNode(node: QuadNode, camera: THREE.Camera): void {
+  if (!frustum.intersectsSphere(node.boundingSphere)) {
+    hideSubtree(node);
+    return;
+  }
+  // ... continue subdivision logic
+}
+```
+
+We also add a **back-face culling** step at the node level: if the angle between the camera direction and the node's surface normal is greater than ~100°, the node is definitely on the back of the planet and can be skipped entirely. This is especially cheap because it's just a dot product.
+
+```ts
+function isBackFacing(node: QuadNode, cameraPos: THREE.Vector3): boolean {
+  const toCamera = new THREE.Vector3().subVectors(cameraPos, node.bounds.center).normalize();
+  return toCamera.dot(node.bounds.center.clone().normalize()) < -0.1;
+}
+```
+
+Together, frustum culling and back-face culling typically eliminate 60–80% of nodes before any GPU submission.
+
+## Object Pooling for Chunk Lifecycle
+
+Terrain chunks are expensive to create: they involve geometry construction, noise sampling, normal computation, and GPU buffer upload. If we naively allocate and destroy chunks as nodes split and merge, we'll stutter constantly from GC pressure and re-upload overhead.
+
+The solution is an **object pool**: a fixed-size reservoir of pre-allocated `TerrainChunk` objects that we reuse instead of creating new ones.
+
+```ts
+class ChunkPool {
+  private available: TerrainChunk[] = [];
+  private active = new Set<TerrainChunk>();
+
+  constructor(private readonly poolSize: number) {
+    for (let i = 0; i < poolSize; i++) {
+      this.available.push(new TerrainChunk());
+    }
+  }
+
+  acquire(): TerrainChunk | null {
+    const chunk = this.available.pop();
+    if (!chunk) return null; // pool exhausted
+    this.active.add(chunk);
+    return chunk;
+  }
+
+  release(chunk: TerrainChunk): void {
+    chunk.reset();
+    this.active.delete(chunk);
+    this.available.push(chunk);
+  }
+}
+```
+
+When a node acquires a chunk, it initializes the geometry on a **Web Worker** using `generateTerrainData()` — a CPU-side function that samples the noise stack and returns typed arrays. The main thread receives the result via `postMessage` and uploads it to the GPU via `BufferGeometry.setAttribute`. This keeps the main thread unblocked during chunk generation.
+
+The pool size needs to be tuned to your LOD depth. A reasonable formula is `6 * 4^lodDepth * visibilityFactor`, though in practice I've found that 256–512 chunks is enough for LOD levels 0–8 at a typical camera altitude.
+
+## Atmosphere Scattering
+
+The atmosphere is the visual feature that transforms a grey procedural sphere into something that looks like a real planet. The physically-based model we want is **Rayleigh scattering** (responsible for blue skies and red sunsets) plus **Mie scattering** (responsible for the glow around the sun and the bright limb of the planet).
+
+Rather than computing the full in-scattering integral in a screen-space pass, we precompute a **transmittance LUT** and a **scattering LUT** into a pair of 256×64 textures that store the optical depth and in-scattered light as functions of view angle and altitude. This approach, popularized by Sebastien Hillaire's 2020 Siggraph paper, lets us sample expensive integrals in O(1) in the final shader.
+
+### Transmittance LUT
+
+The transmittance LUT stores the optical depth along a ray from a point at a given altitude to the atmosphere boundary:
+
+```glsl
+// Sample the transmittance LUT
+// uv.x = cos(zenith angle), uv.y = normalized altitude
+vec3 sampleTransmittance(sampler2D lut, float cosAngle, float altitude) {
+  float u = clamp(cosAngle * 0.5 + 0.5, 0.0, 1.0);
+  float v = clamp(altitude / ATMOSPHERE_HEIGHT, 0.0, 1.0);
+  return texture(lut, vec2(u, v)).rgb;
+}
+```
+
+### Sky View LUT
+
+The sky view LUT stores the full in-scattered luminance for each direction in the sky hemisphere, pre-integrated over the atmosphere column. This is sampled in the final post-process pass with just two texture fetches — one for the sky color and one for the sun disk transmittance:
+
+```glsl
+vec3 computeSkyColor(vec3 rayDir, vec3 sunDir) {
+  vec2 uv = skyViewLUTCoords(rayDir);
+  vec3 inScatter = texture(uSkyViewLUT, uv).rgb;
+
+  // Sun disk
+  float sunAngle = dot(rayDir, sunDir);
+  float sunDisk = smoothstep(0.9998, 0.9999, sunAngle);
+  vec3 sunColor = SUN_INTENSITY * sampleTransmittance(uTransmittanceLUT, dot(sunDir, vec3(0,1,0)), 0.0);
+
+  return inScatter + sunDisk * sunColor;
+}
+```
+
+### Aerial Perspective
+
+For terrain that's visible at distance, we apply **aerial perspective** — a subtle fog-like effect where the atmosphere scatters light between the terrain and the camera, desaturating and blue-shifting distant geometry. This is also stored in a 3D LUT (a 32×32×32 texture), sampled in the terrain fragment shader using the terrain's view-space depth:
+
+```glsl
+vec4 aerialPerspective = texture(uAerialPerspectiveLUT, vec3(screenUV, linearDepth / FAR_CLIP));
+vec3 finalColor = mix(terrainColor * aerialPerspective.a, aerialPerspective.rgb, 1.0 - aerialPerspective.a);
+```
+
+The combined effect — the limb of the planet glowing with scattered sunlight, the horizon haze, the sun bloom — makes a dramatic visual difference and costs only a few extra texture samples per pixel.
+
+## Putting It All Together
+
+The render order looks like this each frame:
+
+1. **Quadtree update** — traverse all six face trees, run frustum + back-face culling, compute subdivision decisions, queue any necessary chunk acquisitions or releases. This runs synchronously on the main thread and should complete in under 1 ms.
+2. **Chunk generation** — any newly acquired chunks kick off a Worker task. Results are applied in the next available frame to avoid stalling.
+3. **Geometry morphing** — update `uMorphFactor` uniforms on all chunks based on current camera distance.
+4. **Terrain pass** — render all visible chunks. Depth prepass optional but helpful if the material is expensive.
+5. **Atmosphere pass** — fullscreen quad that composites sky color and aerial perspective on top of the terrain using the depth buffer.
+
+At LOD depth 8 over a planet of radius 6371 km (Earth scale), this pipeline runs comfortably at 60 fps on mid-range hardware, resolving terrain features down to roughly 1 meter when at ground level — enough to see individual rocks if you've got high-frequency noise in your stack.
+
+There's a lot more to explore from here: ocean rendering with wave simulation, dynamic cloud layers, multi-biome blending, or even procedural city placement using a spatial hash. But the foundation described here — a well-distributed cube sphere, a clean quadtree LOD with morphing, aggressive culling, and a precomputed atmosphere — is a solid base to build on.

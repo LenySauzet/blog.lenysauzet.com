@@ -1,0 +1,152 @@
+---
+description: TypeScript conventions, import order, and ESLint rules
+alwaysApply: false
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# TypeScript & Code Conventions
+
+## TypeScript
+
+- Strict mode enabled (`strict: true` in `tsconfig.json`), avoid `any`
+- Use `unknown` for external/untrusted input and narrow safely
+- Prefix genuinely unused variables with `_`
+- Use `useId()` for generated element IDs
+- Define prop interfaces explicitly; avoid `React.FC`
+- Use `interface` for object shapes, `type` for unions/intersections/utilities
+
+## Path Alias
+
+All imports use the `@/` alias pointing to the project root:
+
+```tsx
+import { cn } from '@/lib/utils';
+import siteConfig from '@/config/site';
+import { getPosts } from '@/lib/post-utils';
+import Anchor from '@/components/Anchor';
+```
+
+Never use relative `../../../` imports when `@/` works.
+
+## Import Order
+
+1. React and Next.js (framework-level)
+2. Third-party libraries
+3. `@/lib/*` utilities and hooks
+4. `@/config/*`
+5. `@/components/ui/*` (Shadcn primitives)
+6. `@/components/*` (custom components)
+7. Relative imports (same feature)
+8. Type-only imports (`import type`)
+
+### Example
+
+```tsx
+// 1. React / Next
+import { useEffect, useId, useState } from 'react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+// 2. Third-party
+import { motion } from 'motion/react';
+import { format } from 'date-fns';
+import { Home01Icon } from '@hugeicons/react';
+
+// 3. Lib / hooks
+import { cn } from '@/lib/utils';
+import { getPosts } from '@/lib/post-utils';
+
+// 4. Config
+import siteConfig from '@/config/site';
+
+// 5. Shadcn UI primitives
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+
+// 6. Custom components
+import Anchor from '@/components/Anchor';
+import { ScrambledText } from '@/components/ScrambledText';
+
+// 7. Relative
+import { MySubComponent } from './MySubComponent';
+
+// 8. Types
+import type { Post } from './types';
+```
+
+## ESLint Rules
+
+- No `console.log` (error) — remove debug statements, use proper error handling
+- React hooks rules enforced (`rules-of-hooks`, `exhaustive-deps`)
+- Unused vars must be prefixed with `_`
+
+## Prop Interfaces
+
+Always define explicit prop interfaces:
+
+```tsx
+export interface CardProps {
+  title: string;
+  description?: string;
+  href: string;
+  className?: string;
+}
+
+const Card = ({ title, description, href, className }: CardProps) => {
+  return (
+    <a href={href} className={cn('rounded-lg border p-4', className)}>
+      <h3 className="font-semibold">{title}</h3>
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
+    </a>
+  );
+};
+
+export default Card;
+```
+
+## Server Component Typing
+
+Use `Promise<PageProps>` for Next.js App Router page params:
+
+```tsx
+// app/posts/[slug]/page.tsx
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  // ...
+}
+```
+
+## Error Handling
+
+Use `try/catch` with unknown narrowing. Never silently swallow errors:
+
+```tsx
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'Unexpected error';
+}
+
+try {
+  const result = await riskyOperation();
+} catch (error: unknown) {
+  // handle or rethrow
+  throw new Error(getErrorMessage(error));
+}
+```
+
+## MDX Metadata Typing
+
+Posts export a typed `metadata` object. Define and reuse the type in `lib/post-utils.ts`:
+
+```tsx
+type PostMetadata = {
+  title: string;
+  description: string;
+  tags: string[];
+  date: string; // 'YYYY-MM-DD'
+};
+```

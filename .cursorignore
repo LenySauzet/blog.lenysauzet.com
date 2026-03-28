@@ -1,0 +1,40 @@
+# Build outputs
+.next/
+out/
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+bun.lock
+bun.lockb
+
+# Generated files
+public/static/og/
+public/rss.xml
+public/sitemap.xml
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Binary assets (images, fonts)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.woff
+*.woff2
+*.ico
+*.svg
+
+# Test artifacts
+coverage/
+
+# Environment
+.env*
+!.env.example
+
+# IDE
+.idea/
+*.swp
+*.swo
+
