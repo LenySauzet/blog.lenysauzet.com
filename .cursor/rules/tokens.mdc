@@ -109,6 +109,42 @@ Dark mode uses the `.dark` class on `<html>` (managed by `next-themes`). The `@c
 <div className="bg-background text-foreground dark:bg-secondary-background" />
 ```
 
+## Motion Tokens
+
+Defined in `app/globals.css` `:root`. Use in CSS transitions or pass as numeric seconds to Motion:
+
+| Token | Value | When to use |
+|-------|-------|-------------|
+| `--duration-instant` | 50ms | Imperceptible state changes |
+| `--duration-fast` | 150ms | Micro-interactions, hover |
+| `--duration-moderate` | 300ms | Standard enter/exit |
+| `--duration-slow` | 500ms | Deliberate reveals |
+| `--duration-deliberate` | 700ms | Dramatic exits (splash screen) |
+| `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Default transitions |
+| `--ease-enter` | `cubic-bezier(0, 0, 0.2, 1)` | Elements entering viewport |
+| `--ease-exit` | `cubic-bezier(0.4, 0, 1, 1)` | Elements leaving |
+| `--ease-bounce` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Springy reveals |
+
+```tsx
+// Motion transition using tokens (convert ms → seconds)
+transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}  // --duration-moderate + --ease-standard
+
+// CSS transition using tokens
+style={{ transition: 'opacity var(--duration-fast) var(--ease-standard)' }}
+```
+
+## Elevation Tokens
+
+| Token | Usage |
+|-------|-------|
+| `--shadow-sm` | Subtle card lift |
+| `--shadow-md` | Dropdowns, floating panels |
+| `--shadow-lg` | Modals, sheets |
+
+```tsx
+<div style={{ boxShadow: 'var(--shadow-md)' }} />
+```
+
 ## Key Principles
 
 - **Never hardcode colors** — use `var(--*)` tokens or Tailwind semantic classes

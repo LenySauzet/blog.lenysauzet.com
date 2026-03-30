@@ -1,6 +1,6 @@
 'use client';
-import { useSplashScreenStore } from '@/hook/use-splashScreen-store';
-import { motion, Transition } from 'framer-motion';
+import { useSplashScreenStore } from '@/hooks/use-splashScreen-store';
+import { motion, type Transition } from 'motion/react';
 import { useEffect } from 'react';
 import SignatureSVG from './SignatureSVG';
 

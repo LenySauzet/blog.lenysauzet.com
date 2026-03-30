@@ -184,12 +184,35 @@ export function GLCanvas() {
 }
 ```
 
+## Prop API Conventions
+
+- **Composition over configuration**: use `children` + `asChild` (Radix) rather than deeply nested config objects
+- **Variants via CVA**: use `class-variance-authority` for mutually exclusive states (`variant`, `size`, `intent`); never ad-hoc boolean props for variants
+- **`className` always accepted**: every component should accept and spread `className` for escape-hatch customization
+- **`forwardRef`** on any component that wraps an HTML element — enables parent focus management and Radix `asChild` compatibility:
+
+```tsx
+import { forwardRef } from 'react';
+
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'outlined';
+}
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant = 'default', ...props }, ref) => (
+    <div ref={ref} className={cn(cardVariants({ variant }), className)} {...props} />
+  )
+);
+Card.displayName = 'Card';
+```
+
 ## Creating a New Component
 
 1. Create `components/ComponentName/ComponentName.tsx` with a named prop interface
 2. Apply styles with Tailwind utilities; use `cn()` for conditional classes
-3. Create `components/ComponentName/index.ts` barrel export
-4. If it belongs in MDX, register it in `mdx-components.tsx`
+3. Add `forwardRef` if the component wraps a DOM element
+4. Create `components/ComponentName/index.ts` barrel export
+5. If it belongs in MDX, register it in `mdx-components.tsx`
 
 ## Zustand State
 

@@ -65,8 +65,94 @@ Use `@hugeicons/react` exclusively. For inline SVG elements use `@hugeicons/core
 
 ### Animations
 
-`motion` (framer-motion successor). `AnimatePresence` is required for exit animations. OGL canvas components must be `'use client'` and initialize inside `useEffect` with cleanup.
+`motion` (framer-motion successor). Import always from `motion/react` — never from `framer-motion`. `AnimatePresence` is required for exit animations. OGL canvas components must be `'use client'` and initialize inside `useEffect` with cleanup.
 
 ### State
 
-Zustand stores live in `hook/`. Current stores: `use-cmdk-store.ts`, `use-splashScreen-store.tsx`.
+Zustand stores live in `hooks/`. Current stores: `use-cmdk-store.ts`, `use-splashScreen-store.tsx`.
+
+---
+
+## Design Token Reference
+
+All tokens are CSS custom properties defined in `app/globals.css` and mapped to Tailwind utilities via `@theme inline`.
+
+### Color tokens
+
+| Token | Tailwind utility | Usage |
+|-------|-----------------|-------|
+| `--background` | `bg-background` | Page background |
+| `--foreground` | `text-foreground` | Primary text |
+| `--card` | `bg-card` | Card / panel surfaces |
+| `--primary` | `bg-primary`, `text-primary` | Brand violet, CTAs |
+| `--muted` | `bg-muted` | Subtle backgrounds |
+| `--muted-foreground` | `text-muted-foreground` | Secondary / hint text |
+| `--border` | `border-border` | Borders, dividers |
+| `--link` | `text-link` | Hyperlink color |
+| `--secondary-background` | `bg-secondary-background` | Darker surface variant |
+
+### Typography tokens
+
+| Token | Tailwind utility | Font |
+|-------|-----------------|------|
+| `--font-display` | `font-display` | Geist — headings |
+| `--font-serif` | `font-serif` | Instrument Serif — prose body |
+| `--font-mono-code` | `font-mono-code` | Fira Code — code blocks |
+| `--font-mono` | `font-mono` | Departure Mono — UI mono |
+| `--font-signature` | `font-signature` | Signature December — decorative |
+
+### Motion tokens
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--duration-instant` | 50ms | Imperceptible state changes |
+| `--duration-fast` | 150ms | Micro-interactions, hover |
+| `--duration-moderate` | 300ms | Standard transitions |
+| `--duration-slow` | 500ms | Deliberate reveals |
+| `--duration-deliberate` | 700ms | Splash screen, dramatic exits |
+| `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Default |
+| `--ease-enter` | `cubic-bezier(0, 0, 0.2, 1)` | Elements entering |
+| `--ease-exit` | `cubic-bezier(0.4, 0, 1, 1)` | Elements leaving |
+| `--ease-bounce` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Springy reveals |
+
+### Elevation tokens
+
+| Token | Usage |
+|-------|-------|
+| `--shadow-sm` | Subtle card lift |
+| `--shadow-md` | Dropdowns, floating panels |
+| `--shadow-lg` | Modals, sheets |
+
+### Glassmorphism pattern
+
+```tsx
+<div
+  className="rounded-xl border border-muted bg-card/50 px-3 py-2"
+  style={{ backdropFilter: 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))' }}
+/>
+```
+
+---
+
+## New Component Checklist
+
+Before marking any component done:
+
+- [ ] **TypeScript**: explicit prop interface, `strict` mode clean, no `any`
+- [ ] **Accessibility**: keyboard navigable, visible focus ring, `aria-label` on icon-only elements, `useReducedMotion()` for animations
+- [ ] **Dark mode**: verified visually in both `.dark` and light mode
+- [ ] **Server/client**: correctly classified — no unnecessary `'use client'`
+- [ ] **Token usage**: no hardcoded colors, spacing, or font values
+- [ ] **Import order**: follows `.cursor/rules/typescript.mdc` ordering (framework → third-party → lib → config → ui → components → relative → types)
+- [ ] **MDX registration**: if usable in posts, registered in `mdx-components.tsx`
+- [ ] **Docs**: any new pattern worth documenting is added to this file
+
+---
+
+## Known Intentional Patterns
+
+**Two Separator components**: `components/Separator.tsx` is a custom dashed/decorative separator (used between post sections). `components/ui/separator.tsx` is the Radix-based primitive (used in nav/layout). Both are intentional — do not consolidate.
+
+**Two text-reveal components**: `components/ScrambledText.tsx` is the accessibility-first version with `useReducedMotion()` and sr-only fallback — prefer this one. `components/TextScramble.tsx` uses the Motion library directly and is kept for reference but not preferred for new usage.
+
+**Animation import**: Always `from 'motion/react'`. Never `from 'framer-motion'` — the package is the same (Motion v12 re-exports from `motion/react`), but `motion/react` is the canonical alias going forward.

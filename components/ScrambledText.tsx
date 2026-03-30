@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-import useInterval from '@/hook/useInterval';
+import useInterval from '@/hooks/useInterval';
 
 export const alphanumericChars =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_-+=[]{}|\\:;,.<>?'.split(

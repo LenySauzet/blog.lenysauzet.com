@@ -1,7 +1,7 @@
 'use client';
 import Logo from '@/components/Logo';
 import { Separator } from '@/components/ui/separator';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { redirect, RedirectType } from 'next/navigation';
 import { useState } from 'react';
 
