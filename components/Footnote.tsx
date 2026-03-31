@@ -4,7 +4,7 @@ import SignatureSVG from './SignatureSVG';
 
 const Footnote = () => {
   return (
-    <div className="font-medium px-5 lg:px-0">
+    <div className="font-medium">
       <Separator />
       <p>
         Liked this article? Share it with a friend on{' '}

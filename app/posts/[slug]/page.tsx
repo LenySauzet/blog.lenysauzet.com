@@ -55,9 +55,9 @@ export default async function Page({
   try {
     const { default: Post, metadata } = await import(`@/content/${slug}.mdx`);
     return (
-      <article className="max-w-2xl mx-auto flex flex-col gap-8">
-        <div className="px-5">
-          <div className="flex flex-col gap-2 ">
+      <article className="max-w-2xl mx-auto flex flex-col gap-8 pt-28 sm:pt-56">
+        <div className="px-4">
+          <div className="flex flex-col gap-1 mb-8">
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
             </h1>
@@ -72,7 +72,8 @@ export default async function Page({
               </ScrambledText>
             </time>
           </div>
-          <div className="text-muted-foreground leading-7 flex flex-col gap-6 font-medium">
+
+          <div className="flex flex-col gap-2 font-medium">
             <Post />
           </div>
         </div>
