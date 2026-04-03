@@ -1,4 +1,5 @@
 import { ThemeProvider } from '@/components/theme-provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
@@ -51,8 +52,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main className="h-full">{children}</main>
+          <TooltipProvider delayDuration={400}>
+            <Header />
+            <main className="h-full">{children}</main>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

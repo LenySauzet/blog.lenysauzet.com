@@ -1,4 +1,5 @@
 import Anchor from '@/components/Anchor/Anchor';
+import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import Image, { type ImageProps } from 'next/image';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
@@ -64,6 +65,7 @@ const components = {
   img: RoundedImage,
   FootnoteRef: ({ id }) => <FootnoteRef id={id} />,
   FootnotesList: ({ notes }) => <FootnotesList notes={notes} />,
+  VideoPlayer,
 } satisfies MDXComponents;
 
 export function useMDXComponents(): MDXComponents {
