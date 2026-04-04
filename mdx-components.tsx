@@ -33,12 +33,15 @@ const components = {
     </h4>
   ),
   p: ({ children }) => (
-    <p className="font-display text-muted-foreground text-base leading-7 mb-4">
+    <p className="font-display text-muted-foreground text-base leading-7">
       {children}
     </p>
   ),
   strong: ({ children }) => (
     <strong className="font-medium text-foreground">{children}</strong>
+  ),
+  em: ({ children }) => (
+    <span className="italic text-muted-foreground/75">{children}</span>
   ),
   blockquote: ({ children }) => (
     <blockquote className="border-l-2 border-primary pl-4 my-6 italic text-muted-foreground">

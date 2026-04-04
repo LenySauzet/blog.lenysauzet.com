@@ -73,7 +73,7 @@ export default async function Page({
             </time>
           </div>
 
-          <div className="flex flex-col gap-2 font-medium">
+          <div className="flex flex-col gap-5 font-medium">
             <Post />
           </div>
         </div>
