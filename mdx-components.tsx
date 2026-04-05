@@ -1,4 +1,5 @@
 import Anchor from '@/components/Anchor/Anchor';
+import { PostH2 } from '@/components/PostH2';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import Image, { type ImageProps } from 'next/image';
@@ -17,11 +18,7 @@ const components = {
       {children}
     </h1>
   ),
-  h2: ({ children }) => (
-    <h2 className="font-display text-2xl font-semibold tracking-tight mt-12 mb-4 text-foreground">
-      {children}
-    </h2>
-  ),
+  h2: ({ children }) => <PostH2>{children}</PostH2>,
   h3: ({ children }) => (
     <h3 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
       {children}

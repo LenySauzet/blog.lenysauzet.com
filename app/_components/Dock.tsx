@@ -18,7 +18,7 @@ const Dock = () => {
   return (
     <div className="flex items-center gap-1">
       <Logo className="w-6 h-6 mr-3" />
-      <Separator orientation="vertical" className="bg-muted" />
+      <Separator orientation="vertical" className="bg-border/60" />
       <ul className="flex items-center">
         {navigations.map((navigation) => (
           <li
@@ -26,7 +26,7 @@ const Dock = () => {
             onClick={navigation.action}
             onMouseEnter={() => setHoveredItem(navigation.label)}
             onMouseLeave={() => setHoveredItem(null)}
-            className="cursor-pointer relative px-3 py-1 text-sm"
+            className="cursor-pointer relative px-3 py-1 text-sm font-medium"
           >
             <AnimatePresence>
               {hoveredItem === navigation.label && (

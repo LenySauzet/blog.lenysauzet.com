@@ -26,3 +26,9 @@ I’ve dedicated a lot of time over the past few months to trying the different 
 halftone can take and overlaying them on top of static images, videos, or interactive 3D scenes as shaders.
 **Simple dots on a grid**, **ink splatters**, **grids overlapping at an angle yielding some Moiré effects**, **blending colors in interesting ways**, **breaking the grid**, etc.
 I even tried my hand at seeing **how halftone could be animated** in a fun yet meaningful way. Every single one of these variants had its own interesting implementation details/shading techniques and aesthetic that I felt were worth writing about and breaking down to make building and designing with halftone more approachable.
+
+## Behind the Dot Pattern
+
+I explored several optical illusions and “trompe l’oeil” post-processing effects in [Post-Processing Shaders as a Creative Medium](/posts/post-processing-as-a-creative-medium/) that create the illusion of texture or material, like woven crochet or glass. Halftone is, funnily enough, not so different as it is inherently an optical illusion itself.
+
+The effect creates the impression of continuous/smooth tones, much like dithering, by providing a high-frequency grid of dots. Because these dots can be smaller than the **eye's spatial resolution**, the brain ends up performing **a spatial average of the pattern**. Thus, past a certain dot radius, we stop seeing individual dots composing the grid and instead *see* the **ratio of 'ink' to 'empty space'** as smooth tones.
