@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 /** Mirrors --duration-fast from app/globals.css, expressed in seconds for Motion. */
 const FADE_DURATION = 0.15;
@@ -51,6 +51,23 @@ export function Lightbox({
   children,
 }: LightboxProps) {
   const close = () => onOpenChange(false);
+
+  /**
+   * Radix kills pointer events on <body> for as long as its dismissable layer
+   * is mounted, and `forceMount` keeps that layer alive for the whole exit
+   * animation — so the page stays unscrollable well after the dialog is
+   * logically gone. `pointer-events` inherits, so this reaches the scroll
+   * container too and the wheel has nothing to target.
+   *
+   * Radix already ties focus trapping to `open` rather than to mount for this
+   * exact reason; the pointer-events lock is the one thing it left on mount.
+   * Releasing it on close is safe: Radix restores its own saved value when the
+   * layer finally unmounts.
+   */
+  useEffect(() => {
+    if (open) return;
+    document.body.style.pointerEvents = '';
+  }, [open]);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>

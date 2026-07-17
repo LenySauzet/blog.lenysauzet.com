@@ -25,6 +25,20 @@ function Harness() {
   );
 }
 
+/** Same surface, but with `open` driven from the outside. */
+function Controlled({ open }: { open: boolean }) {
+  return (
+    <Lightbox
+      open={open}
+      onOpenChange={() => {}}
+      title="Distance field breakdown"
+      trigger={<button type="button">Open</button>}
+    >
+      <div>zoomed</div>
+    </Lightbox>
+  );
+}
+
 const open = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: 'Open' }));
   return screen.findByRole('dialog');
@@ -77,6 +91,23 @@ describe('Lightbox', () => {
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     );
+  });
+
+  it('gives the page back the moment it closes, not when the exit finishes', async () => {
+    const { rerender } = render(<Controlled open />);
+
+    // Radix disables pointer events on <body> while its layer is mounted.
+    await waitFor(() =>
+      expect(document.body.style.pointerEvents).toBe('none')
+    );
+
+    rerender(<Controlled open={false} />);
+
+    // forceMount keeps the surface alive to animate out. The page must not
+    // wait for that: pointer-events inherits, so a lingering lock freezes the
+    // scroll container too.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(document.body.style.pointerEvents).toBe('');
   });
 
   it('returns focus to the trigger once dismissed', async () => {

@@ -194,7 +194,16 @@ Kept as a record of what the design got wrong before contact with the code.
    name, not imported: Turbopack resolves it itself, and `next.config.ts` compiles to CommonJS,
    which cannot require an ESM-only package.
 
-6. **Dismissal is tested on Lightbox, not ImageZoom.** Under jsdom every element measures zero,
+6. **The pointer-events lock is released on close, not on unmount.** Radix disables pointer
+   events on `<body>` while its dismissable layer is mounted, and `forceMount` keeps that layer
+   alive for the whole exit animation. Since `pointer-events` inherits, the lock reached the
+   scroll container and the page stayed frozen for ~900ms after the dialog was logically gone.
+   Radix already ties `trapFocus` to `open` rather than to mount for this same reason — the
+   pointer-events lock is the one thing it left on mount. An effect keyed on `open` releases it;
+   Radix restores its own saved value when the layer finally unmounts. Measured: the scroll
+   container regains `pointer-events: auto` at t+60ms instead of t+900ms.
+
+7. **Dismissal is tested on Lightbox, not ImageZoom.** Under jsdom every element measures zero,
    so the shared-layout morph never settles and the subtree stays mounted. A real browser
    unmounts it cleanly, with focus restored to the trigger — verified via Playwright. Lightbox
    carries no `layoutId`, so its exit completes and the assertion is meaningful there.
@@ -203,7 +212,8 @@ Kept as a record of what the design got wrong before contact with the code.
 
 - `bun run lint` — 0 errors (4 warnings, all pre-existing in `TextScramble`/`MediaPlayer`).
 - `bunx tsc --noEmit` — clean.
-- `bun run test` — 31 tests, 5 files, all passing.
+- `bun run test` — 32 tests, 5 files, all passing. The pointer-events regression test was
+  confirmed to fail with the fix reverted, so it is not vacuous.
 - `bun run build` — succeeds; all 13 posts prerender.
 - Browser (Playwright, 1200×762): `cursor: zoom-in` inline → `zoom-out` zoomed; dimensions
   probed to 960×731 from the CDN; scrim resolves to `oklch(0.1468 0.01 262.04 / 0.8)`; zoomed
