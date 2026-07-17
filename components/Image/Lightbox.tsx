@@ -1,13 +1,9 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import type { ReactNode } from 'react';
 
-/** Mirrors --duration-fast from app/globals.css, expressed in seconds for Motion. */
-const FADE_DURATION = 0.15;
-
-const SCRIM_OPACITY = 0.8;
+import { cn } from '@/lib/utils';
 
 interface LightboxProps {
   open: boolean;
@@ -21,27 +17,39 @@ interface LightboxProps {
 }
 
 /**
- * A full-bleed modal surface that dismisses on click or Escape. Knows nothing
- * about what it displays.
+ * A full-bleed surface that dismisses on click or Escape. Knows nothing about
+ * what it displays.
  *
- * There is no close button: the whole surface is the dismiss target, which the
- * zoom-out cursor advertises, and Escape covers the keyboard. Radix focuses the
- * surface itself when it holds nothing focusable, so the dialog stays reachable.
+ * Built the way every other dialog in this app is built: Radix's own presence
+ * plus CSS animations. No Motion, no AnimatePresence, no forceMount.
  *
- * Deliberately composes the raw Radix primitives rather than
- * `components/ui/dialog.tsx`: that surface centres itself with a
- * `translate(-50%, -50%)`, and a transformed ancestor corrupts the bounding-box
- * maths behind Motion's layout projection. Everything else it brings
- * (`bg-popover`, padding, ring) would have to be negated here anyway.
+ * Two decisions carry the whole design, and both exist so the reader can scroll
+ * the instant they dismiss:
  *
- * `forceMount` plus `AnimatePresence` keeps the subtree alive long enough for
- * the exit animation to play; Radix would otherwise unmount it instantly.
- * AnimatePresence only tracks its *direct* children, so the surface is its one
- * keyed child — wrapping siblings in a fragment leaves it with nothing to
- * animate and the subtree never unmounts.
+ * `modal={false}` means Radix never disables pointer events on <body>. That lock
+ * lives as long as the layer is mounted, and the layer must outlive the dismiss
+ * to animate out — so with a modal layer the page is necessarily frozen for the
+ * length of the exit. Nothing is lost by dropping it: this surface covers the
+ * viewport and owns `overflow-y-auto`, so it is already the wheel's target and
+ * the page behind cannot scroll while it is open.
  *
- * There is no separate Radix Overlay: it would only contribute the scrim, while
- * the focus trap and scroll lock already come from Content.
+ * `data-[state=closed]:pointer-events-none` hands the wheel back the moment
+ * Radix flips state, while the surface is still fading out. This works only
+ * because of `modal={false}`: a modal layer gets an inline `pointer-events:
+ * auto` from Radix, and no class beats an inline style.
+ *
+ * There is deliberately no shared-layout morph back to the inline image. It
+ * would interpolate towards the box the trigger held at dismissal, so any scroll
+ * during the animation moves the target and the image jumps by exactly the
+ * distance scrolled. A position morph and a scrollable page are mutually
+ * exclusive; scrolling won.
+ *
+ * There is no close button either: the whole surface is the dismiss target,
+ * which the zoom-out cursor advertises, and Escape covers the keyboard.
+ *
+ * It also does not reuse `components/ui/dialog.tsx`: that surface is a centred
+ * panel with its own background, padding and ring, none of which apply to a
+ * full-bleed image.
  */
 export function Lightbox({
   open,
@@ -50,55 +58,29 @@ export function Lightbox({
   trigger,
   children,
 }: LightboxProps) {
-  const close = () => onOpenChange(false);
-
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
-      <DialogPrimitive.Portal forceMount>
-        <AnimatePresence>
-          {open ? (
-            <DialogPrimitive.Content
-              asChild
-              forceMount
-              aria-describedby={undefined}
-              key="lightbox-surface"
-            >
-              {/* Above z-50, which the site header already occupies: relying on
-                  portal DOM order alone to win that tie is too fragile.
-
-                  The surface spans the viewport, so Radix's outside-click never
-                  fires: dismissal is wired explicitly below. Fading a custom
-                  property rather than the element's own opacity keeps the scrim
-                  animating without dragging the morphing image along with it.
-
-                  The page stays locked for the whole exit, Radix's own default.
-                  Letting it scroll was tried and reverted: the morph targets the
-                  box the trigger occupied when dismissal started, so scrolling
-                  moves that target and the image teleports by exactly the scroll
-                  distance when it unmounts. A position morph and a moving target
-                  are mutually exclusive; the fix is to keep the exit short
-                  enough that the lock goes unnoticed. */}
-              <motion.div
-                className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8"
-                style={{
-                  backgroundColor:
-                    'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',
-                }}
-                initial={{ '--scrim-opacity': 0 }}
-                animate={{ '--scrim-opacity': SCRIM_OPACITY }}
-                exit={{ '--scrim-opacity': 0 }}
-                transition={{ duration: FADE_DURATION }}
-                onClick={close}
-              >
-                <DialogPrimitive.Title className="sr-only">
-                  {title}
-                </DialogPrimitive.Title>
-                {children}
-              </motion.div>
-            </DialogPrimitive.Content>
-          ) : null}
-        </AnimatePresence>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          onClick={() => onOpenChange(false)}
+          className={cn(
+            // z-100, not z-50: the site header already claims z-50, and winning
+            // that tie on portal DOM order alone is too fragile.
+            'fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8',
+            'bg-background/80 outline-none',
+            'duration-300 ease-[cubic-bezier(0.2,0,0,1)]',
+            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+            'data-[state=closed]:pointer-events-none'
+          )}
+        >
+          <DialogPrimitive.Title className="sr-only">
+            {title}
+          </DialogPrimitive.Title>
+          {children}
+        </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
   );

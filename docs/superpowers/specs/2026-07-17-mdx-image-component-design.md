@@ -117,9 +117,9 @@ unmounts content instantly and kills the exit animation.
 | rest | `scale: 1`, `cursor-zoom-in` |
 | hover | `whileHover` → `scale: 1.02` |
 | press | `whileTap` → `scale: 0.95` |
-| release → zoomed | shared `layoutId` morph |
+| release → zoomed | surface fades and scales up from 95% |
 | zoomed | `cursor-zoom-out`; click anywhere or Escape closes |
-| zoomed → rest | same morph, reversed |
+| zoomed → rest | fades and scales back to 95%; the page scrolls straight away |
 
 Because the content surface covers the viewport, Radix's outside-click never fires — closing is
 wired explicitly via `onClick` on the surface. Escape and focus trap come from Radix for free.
@@ -129,36 +129,63 @@ advertises, so a button would be a second affordance for the same action sitting
 one it duplicates. Escape covers the keyboard, and Radix focuses the surface itself when it
 holds nothing focusable, so the dialog stays reachable.
 
-### One transition, and why its duration is a correctness constraint
+### No shared-layout morph, and `modal={false}`
 
-A single tween — `--duration-fast` (150ms) with `--ease-standard` — set once via `MotionConfig`
-and inherited by hover, press and the morph both ways. No spring, no elastic: smooth, like a
-lerp.
+The reference design morphs the inline image into the zoomed one and back. The morph back was
+built, measured, and **removed**. The requirement that killed it: the reader must be able to
+scroll the instant they click to dismiss.
 
-**The duration is not a matter of taste.** Radix holds pointer events off `<body>` for as long
-as its dismissable layer is mounted, and the layer lives until the morph ends. So the
-animation's length *is* how long the page stays unscrollable.
+Those two cannot coexist. A morph interpolates towards a *box* — the one the trigger held at
+dismissal. That box belongs to the document flow, so scrolling moves it, and the image lands
+where the trigger used to be, jumping by exactly the distance scrolled (measured: 232px scrolled
+→ 232px jump, twice, with different animation configs). And keeping the target still means
+locking the page, which is the thing being asked for.
 
-The stock shadcn dialog behaves identically — measured in this app: `pointer-events: none` on
-`<body>` while open, scroll returning 146ms after Escape. It never feels like it blocks anything
-because it closes in 100ms, not because it works differently. There is nothing architectural to
-fix, and nothing to hack around.
+`layoutScroll` — Motion's documented answer to "this ancestor scrolls" — was wired onto the post
+scroller and **does not fix it**: it corrects measurement when an animation *starts*, it does not
+re-target one in flight. Measured, then reverted: still 232px scrolled, 232px jump.
+
+So the zoom is CSS, driven by Radix's `data-state`, exactly like every other dialog in this app.
+`Lightbox` uses no Motion at all — no `AnimatePresence`, no `forceMount`, no `layoutId`, no
+projection. Motion is left only on the trigger's hover/press.
+
+`modal={false}` is the other half. Radix disables pointer events on `<body>` for as long as its
+layer is mounted, and the layer must outlive the dismiss in order to animate out — so a modal
+layer freezes the page for the whole exit, by construction. **Nothing is lost by dropping it:**
+the surface covers the viewport and owns `overflow-y-auto`, so it is already the wheel's target
+and the page behind cannot scroll while it is open. Verified: `pageStaysPutWhileOpen` holds with
+no lock at all.
+
+It also makes `data-[state=closed]:pointer-events-none` work, which is what hands the wheel back
+mid-fade. Under `modal={true}` Radix writes an inline `pointer-events: auto` on its layer, and
+no class beats an inline style — that was a real, wasted debugging round.
+
+Accessibility survives the switch: keyboard open, accessible name, focus moved into the dialog,
+Escape, focus restored to the trigger, reduced motion — all verified in a browser. The focus trap
+is the only loss, and the surface holds nothing focusable.
+
+### Trigger feedback
+
+Hover (`scale: 1.02`) and press (`scale: 0.95`) stay on Motion: a 150ms tween on
+`--duration-fast` / `--ease-standard`, set once through `MotionConfig`.
+
+The zoom itself is a 300ms `fade` + `zoom-95` on `--ease-standard`, via `tw-animate-css`, the
+same vocabulary `components/ui/dialog.tsx` already uses.
+
+For the record, since every earlier revision tried to buy scrollability by shortening the
+animation, and each was measured:
 
 | Config | Scroll unlocked after |
 |---|---|
 | `spring bounce 0.35 / duration 0.6` | 690ms |
 | `spring stiffness 400 / damping 27` | 636ms |
 | `spring duration 0.3 / bounce 0.3` | 347ms |
-| **tween 150ms / ease-standard** | **224ms** |
+| `tween 150ms` | 224ms |
 | _(stock shadcn dialog, for reference)_ | _146ms_ |
+| **CSS + `modal={false}`, 300ms** | **immediate, mid-animation** |
 
-Springs were rejected outright: they have no bounded end, converging sub-pixel long after they
-stop being visible, and `restDelta` is **not honoured by the layout projection** — measured, not
-assumed.
-
-The lock now covers exactly the animation, which is what makes the whole thing coherent: by the
-time the page can scroll, the morph is already over, so a moving target — and the jump it caused
-— is structurally impossible rather than defended against.
+Springs are gone for a second reason too: they have no bounded end, converging sub-pixel long
+after they stop being visible, and `restDelta` is **not honoured by the layout projection**.
 
 ## Accessibility
 
