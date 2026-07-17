@@ -2,7 +2,7 @@
 
 Date: 2026-07-17
 Branch: `feat/image-component`
-Status: approved, pending implementation
+Status: implemented. See "Corrections found during implementation" for where reality differed.
 
 ## Goal
 
@@ -96,9 +96,10 @@ explicitly protects.
 ### Why not `@base-ui/react`
 
 Maxime uses Base UI because it is his design system's primitive layer. Here, `radix-ui` is the
-primitive layer (`components/ui/*`). `@base-ui/react` is a dependency that **nothing imports** —
-introducing a second dialog implementation for one component would be a maintenance liability.
-It is proposed for removal.
+primitive layer (`components/ui/*`), so the dialog composes Radix.
+
+`@base-ui/react` **stays**: `components/ui/combobox.tsx` imports it, because Radix ships no
+combobox. An earlier claim that nothing imported it came from a malformed grep.
 
 ## Interaction model
 
@@ -153,6 +154,56 @@ Conditional classes via `cn()`.
 2. Dev server on a test post using `test.png`.
 3. Screenshots of both states (inline + zoomed), in light and dark mode.
 4. Confirm no CLS on load and that the build fails loudly on an unknown `src`.
+
+## Corrections found during implementation
+
+Kept as a record of what the design got wrong before contact with the code.
+
+1. **No Radix Overlay.** The design paired an Overlay with a Content. In practice the surface
+   spans the viewport, so the Overlay contributed only the scrim, while the focus trap and
+   scroll lock already come from Content. Worse, wrapping the two siblings in a fragment left
+   `AnimatePresence` — which tracks only its *direct* children — with nothing to animate, so the
+   subtree never unmounted. The surface is now a single keyed child.
+
+2. **The scrim fades a custom property, not `opacity`.** Fading the element's own opacity would
+   drag the morphing image along with it. Animating `--scrim-opacity` inside an
+   `oklch(from var(--background) …)` background isolates the scrim from its children.
+
+3. **The zoomed image is bounded on both axes.** `width: 80dvw` alone let a tall image outgrow
+   the viewport and pushed the close button under the site header. Width is now solved through
+   the known aspect ratio — `min(80dvw, calc(ZOOM_MAX_BLOCK_SIZE * w / h))` — which fits both
+   axes without letterboxing or distortion. Capping `max-w`/`max-h` with `w-auto` was tried and
+   rejected: it renders at the image's natural size instead of scaling up.
+
+4. **The surface reserves the header band** (`sm:pt-24`, `max-sm:pb-24`, mirroring the header's
+   own responsive placement) and sits at `z-100`, since the header also claims `z-50`.
+
+5. **`remark-unwrap-images` is pinned to 4.0.1.** The 5.0.0 tarball on npm contains only
+   `package.json` and `readme.md` — a broken publish upstream. The plugin is also referenced by
+   name, not imported: Turbopack resolves it itself, and `next.config.ts` compiles to CommonJS,
+   which cannot require an ESM-only package.
+
+6. **Dismissal is tested on Lightbox, not ImageZoom.** Under jsdom every element measures zero,
+   so the shared-layout morph never settles and the subtree stays mounted. A real browser
+   unmounts it cleanly, with focus restored to the trigger — verified via Playwright. Lightbox
+   carries no `layoutId`, so its exit completes and the assertion is meaningful there.
+
+## Verified
+
+- `bun run lint` — 0 errors (4 warnings, all pre-existing in `TextScramble`/`MediaPlayer`).
+- `bunx tsc --noEmit` — clean.
+- `bun run test` — 30 tests, 5 files, all passing.
+- `bun run build` — succeeds; all 13 posts prerender.
+- Browser (Playwright, 1200×762): `cursor: zoom-in` inline → `zoom-out` zoomed; dimensions
+  probed to 960×731 from the CDN; scrim resolves to `oklch(0.1468 0.01 262.04 / 0.8)`; zoomed
+  image 749×570, aspect preserved, fits the viewport, close button clears the header; Escape
+  unmounts the dialog and returns focus to the trigger.
+
+### Not verified
+
+Light mode. `app/layout.tsx` hardcodes `dark` on `<body>`, so the site renders dark regardless
+of `ThemeProvider`. Pre-existing and outside this branch. Token usage was verified instead: the
+component hardcodes no color, and every value resolves from a semantic token.
 
 ## Out of scope
 

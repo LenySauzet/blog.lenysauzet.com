@@ -9,9 +9,24 @@ bun dev          # Start development server
 bun build        # Production build
 bun start        # Start production server
 bun lint         # Run ESLint (eslint-config-next)
+bun run test     # Vitest (jsdom + React Testing Library), single run
+bun run test:watch
 ```
 
-No test framework is configured. Ask before adding any.
+Tests are Vitest + React Testing Library, colocated as `Component.test.tsx` next to the
+component. `bun test` runs Bun's own runner and will **not** work — always `bun run test`.
+
+Two constraints worth knowing before writing tests:
+
+- **jsdom gives every element a zero-sized box**, so Motion's layout projection never settles
+  and a subtree animating out via a shared `layoutId` never unmounts. Assert dismissal on the
+  component that owns the dialog, not the one that owns the morph. Animation fidelity belongs
+  in a real browser.
+- **`server-only` is aliased to a stub** (`test/stubs/`) because Vitest does not set the
+  react-server condition. The guard still holds in the real build.
+
+`vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
+determinism. jsdom is pinned to v26: v29 needs `require(ESM)`, which lands in Node 22.12.
 
 ## Architecture
 
@@ -33,6 +48,30 @@ export const metadata = {
 The slug is the filename. Posts are loaded via dynamic `import()` at build time (`generateStaticParams` + `dynamicParams = false` in `app/posts/[slug]/page.tsx`). The `getPosts()` helper in `lib/post-utils.ts` reads the `content/` directory and imports each file's metadata.
 
 MDX components are registered globally in `mdx-components.tsx` via `useMDXComponents()`.
+
+### Media and the CDN
+
+Images and videos live on `cdn.lenysauzet.com`, declared in `config/site.ts` as `cdnUrl`.
+Posts reference them **by path relative to the CDN root**; `resolveCdnUrl()` in `lib/cdn.ts`
+prefixes the origin, and absolute URLs pass through untouched. That resolver is the only
+place aware of the CDN — both `Image` and `VideoPlayer` go through it.
+
+```mdx
+<Image src="shade-of-halftone/circle-sdf.png" alt="Diagram breaking down the distance field" />
+```
+
+`width`/`height` are optional: `components/Image` is an async Server Component that reads the
+image header at build time (ranged request + `image-size`, memoized with `cache()`) to reserve
+space and avoid CLS. Supplying both skips the lookup. **The source must exist on the CDN or the
+build fails by design** — a guessed dimension would ship as layout shift on every visit.
+
+Cloudflare image transformations are *not* enabled on the zone, so optimization runs through
+Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to `next/image`: that
+makes Next bypass its optimizer and serve the loader's URL verbatim.
+
+Markdown `![alt](src)` maps onto the same component. `remark-unwrap-images` lifts it out of the
+paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It is pinned to
+`4.0.1` — **5.0.0 is a broken publish whose npm tarball contains no code**.
 
 ### Styling
 
@@ -154,5 +193,9 @@ Before marking any component done:
 **Two Separator components**: `components/Separator.tsx` is a custom dashed/decorative separator (used between post sections). `components/ui/separator.tsx` is the Radix-based primitive (used in nav/layout). Both are intentional — do not consolidate.
 
 **Two text-reveal components**: `components/ScrambledText.tsx` is the accessibility-first version with `useReducedMotion()` and sr-only fallback — prefer this one. `components/TextScramble.tsx` uses the Motion library directly and is kept for reference but not preferred for new usage.
+
+**`components/Image/Lightbox.tsx` does not use `components/ui/dialog.tsx`**: that surface centres itself with a `translate(-50%, -50%)`, and a transformed ancestor corrupts the bounding-box maths behind Motion's layout projection. It composes the raw Radix `Dialog` primitives instead. Colocated on purpose — do not promote it to a shared primitive until a second consumer exists.
+
+**`@base-ui/react` is a real dependency**, not dead weight: `components/ui/combobox.tsx` needs it, since Radix ships no combobox. Radix remains the primitive layer for everything else — do not add Base UI components without a reason that specific.
 
 **Animation import**: Always `from 'motion/react'`. Never `from 'framer-motion'` — the package is the same (Motion v12 re-exports from `motion/react`), but `motion/react` is the canonical alias going forward.

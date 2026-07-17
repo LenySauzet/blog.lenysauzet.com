@@ -1,16 +1,23 @@
 import Anchor from '@/components/Anchor/Anchor';
+import Image from '@/components/Image';
 import { PostH2 } from '@/components/PostH2';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
-import Image, { type ImageProps } from 'next/image';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
 
-function RoundedImage({ alt = '', ...props }: ImageProps) {
-  return <Image alt={alt} className="rounded-lg" {...props} />;
+/**
+ * Bridges markdown `![alt](src)` onto the Image component so both syntaxes
+ * behave identically. `src` is narrowed because remark always emits a string,
+ * while the HTML img type also allows a Blob.
+ */
+function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
+  if (typeof src !== 'string') return null;
+  return <Image src={src} alt={alt ?? ''} />;
 }
 
 const components = {
   Anchor,
+  Image,
 
   a: Anchor,
   h1: ({ children }) => (
@@ -62,7 +69,7 @@ const components = {
   ),
   li: ({ children }) => <li className="leading-7">{children}</li>,
   hr: () => <hr className="border-border my-8" />,
-  img: RoundedImage,
+  img: MarkdownImage,
   FootnoteRef: ({ id }) => <FootnoteRef id={id} />,
   FootnotesList: ({ notes }) => <FootnotesList notes={notes} />,
   VideoPlayer,

@@ -4,6 +4,9 @@ import type { Metadata } from 'next'
 const url = 'https://blog.lenysauzet.com'
 const authorUrl = 'https://lenysauzet.com'
 
+// media cdn: assets referenced from posts resolve against this origin
+const cdnUrl = 'https://cdn.lenysauzet.com'
+
 // text content
 const title = {
   template: '%s - The Blog of Lény Sauzet',
@@ -125,6 +128,7 @@ const rss = {
 const siteConfig = {
   url,
   authorUrl,
+  cdnUrl,
   title,
   description,
   descriptionShort,
