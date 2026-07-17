@@ -93,20 +93,22 @@ describe('Lightbox', () => {
     );
   });
 
-  it('gives the page back the moment it closes, not when the exit finishes', async () => {
+  it('keeps the page locked for as long as it is on screen', async () => {
     const { rerender } = render(<Controlled open />);
 
-    // Radix disables pointer events on <body> while its layer is mounted.
-    await waitFor(() =>
-      expect(document.body.style.pointerEvents).toBe('none')
-    );
+    await waitFor(() => expect(document.body.style.pointerEvents).toBe('none'));
 
     rerender(<Controlled open={false} />);
 
-    // forceMount keeps the surface alive to animate out. The page must not
-    // wait for that: pointer-events inherits, so a lingering lock freezes the
-    // scroll container too.
+    // The surface is still animating out, and the page must stay locked until
+    // it is gone: the morph targets the box the trigger held at dismissal, so
+    // scrolling now would move that target and make the image jump on unmount.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(document.body.style.pointerEvents).toBe('none');
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
     expect(document.body.style.pointerEvents).toBe('');
   });
 

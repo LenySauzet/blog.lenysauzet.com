@@ -129,13 +129,26 @@ advertises, so a button would be a second affordance for the same action sitting
 one it duplicates. Escape covers the keyboard, and Radix focuses the surface itself when it
 holds nothing focusable, so the dialog stays reachable.
 
-### Easing
+### Easing, and why its duration is a correctness constraint
 
-`type: 'spring', bounce: 0.35` rather than a strict Penner `easeOutElastic`. On a `layoutId`
-morph the easing drives the image's *dimensions*, not a detached scale: elastic's ~10% overshoot
-would push the zoomed image past the viewport, and a fixed-duration curve cannot be interrupted
-cleanly when the user re-clicks mid-flight. A bouncy spring reads as elastic, stays inside
-bounds, and resumes from current velocity.
+`{ type: 'spring', duration: 0.3, bounce: 0.3 }` rather than a strict Penner `easeOutElastic`.
+On a `layoutId` morph the curve drives the image's *dimensions*, not a detached scale: elastic's
+~10% overshoot would push the zoomed image past the viewport.
+
+The duration is not a matter of taste. The page is locked until AnimatePresence unmounts the
+surface, and that happens when the morph reports done — so **the animation's length is the
+lock's length**. Three revisions:
+
+| Config | Lock window | Dead tail |
+|---|---|---|
+| `bounce: 0.35, duration: 0.6` | 690ms | 309ms |
+| `stiffness: 400, damping: 27` (+`restDelta`) | 636ms | 258ms |
+| `duration: 0.3, bounce: 0.3` | **337ms** | 84ms |
+
+Physical springs (`stiffness`/`damping`) were rejected: they have no bounded end, converging
+sub-pixel long after they stop being visible, and `restDelta` is **not honoured by the layout
+projection** — measured, not assumed. Asking for a duration and a bounce keeps the elastic read
+while making the lock a number we choose.
 
 ## Accessibility
 
@@ -194,14 +207,27 @@ Kept as a record of what the design got wrong before contact with the code.
    name, not imported: Turbopack resolves it itself, and `next.config.ts` compiles to CommonJS,
    which cannot require an ESM-only package.
 
-6. **The pointer-events lock is released on close, not on unmount.** Radix disables pointer
-   events on `<body>` while its dismissable layer is mounted, and `forceMount` keeps that layer
-   alive for the whole exit animation. Since `pointer-events` inherits, the lock reached the
-   scroll container and the page stayed frozen for ~900ms after the dialog was logically gone.
-   Radix already ties `trapFocus` to `open` rather than to mount for this same reason — the
-   pointer-events lock is the one thing it left on mount. An effect keyed on `open` releases it;
-   Radix restores its own saved value when the layer finally unmounts. Measured: the scroll
-   container regains `pointer-events: auto` at t+60ms instead of t+900ms.
+6. **The page stays locked for the whole exit — and the exit was shortened instead.** The
+   original report was "I have to wait a second before I can scroll again". Two fixes were
+   attempted and both reverted:
+
+   - releasing Radix's `<body>` pointer-events lock on close;
+   - dropping the surface's own pointer events via the exit variant, since Radix writes an
+     inline `pointer-events: auto` that no class can beat.
+
+   Together they did let the page scroll mid-exit — and introduced a worse bug: the morph
+   targets the box the trigger held **when dismissal started**, so scrolling moved that target
+   and the image teleported on unmount by exactly the scroll distance (measured: 232px scrolled,
+   232px jump — a perfect correlation). **A position morph and a moving target are mutually
+   exclusive.**
+
+   The lock was never the disease; the 690ms animation was. Reverting to Radix's untouched
+   behaviour and cutting the morph to 337ms makes the lock standard modal behaviour, and
+   unnoticeable.
+
+   Process note: the first of those fixes was "verified" by reading `pointer-events` back and
+   finding `auto`. That is a proxy, not the behaviour. Scrolling was still dead. Only a real
+   `mouse.wheel` measuring `scrollTop` caught it.
 
 7. **Dismissal is tested on Lightbox, not ImageZoom.** Under jsdom every element measures zero,
    so the shared-layout morph never settles and the subtree stays mounted. A real browser
@@ -215,10 +241,11 @@ Kept as a record of what the design got wrong before contact with the code.
 - `bun run test` — 32 tests, 5 files, all passing. The pointer-events regression test was
   confirmed to fail with the fix reverted, so it is not vacuous.
 - `bun run build` — succeeds; all 13 posts prerender.
-- Browser (Playwright, 1200×762): `cursor: zoom-in` inline → `zoom-out` zoomed; dimensions
-  probed to 960×731 from the CDN; scrim resolves to `oklch(0.1468 0.01 262.04 / 0.8)`; zoomed
-  image 749×570, aspect preserved, fits the viewport, close button clears the header; Escape
-  unmounts the dialog and returns focus to the trigger.
+- Browser (Playwright, 1200×762), with **real mouse and keyboard input**, not synthetic events:
+  opens; page locked while open; unmounted by 400ms; scrolls again immediately after; Escape
+  unmounts and returns focus to the trigger; `<body>` pointer-events restored; two images on one
+  page operate independently. Morph traced frame by frame:
+  `0ms:960 → 120ms:685 → 162ms:658 (overshoot) → 287ms:672`, landing within 3px of the trigger.
 
 ### Not verified
 

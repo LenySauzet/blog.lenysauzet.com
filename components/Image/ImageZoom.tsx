@@ -9,6 +9,12 @@ import { cn } from '@/lib/utils';
 import { Lightbox } from './Lightbox';
 
 /**
+ * How long the page stays locked after a dismiss, so keep it short.
+ * Mirrors --duration-moderate from app/globals.css.
+ */
+const ZOOM_DURATION = 0.3;
+
+/**
  * Reads as an elastic ease-out while staying physical.
  *
  * On a shared-layout morph the curve drives the image's own dimensions rather
@@ -16,8 +22,21 @@ import { Lightbox } from './Lightbox';
  * zoomed image past the viewport, and its fixed duration could not resume from
  * the current velocity when the user re-clicks mid-flight. A bouncy spring
  * overshoots, settles inside bounds, and stays interruptible.
+ *
+ * Duration-driven rather than physical (`stiffness`/`damping`) because the
+ * duration is a correctness constraint here, not a matter of taste: the page is
+ * necessarily locked until the morph ends and AnimatePresence unmounts the
+ * surface (see Lightbox). A physical spring has no bounded end — it converges
+ * sub-pixel for hundreds of milliseconds after it stops being visible, and
+ * `restDelta` is not honoured by the layout projection, so the lock outlives
+ * the animation. Asking for a duration and a bounce keeps the elastic read
+ * while making the lock a number we choose.
  */
-const ZOOM_SPRING = { type: 'spring', bounce: 0.35, duration: 0.6 } as const;
+const ZOOM_SPRING = {
+  type: 'spring',
+  duration: ZOOM_DURATION,
+  bounce: 0.3,
+} as const;
 
 /**
  * Both copies share one file, so the hint targets the larger, zoomed rendering

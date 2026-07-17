@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 /** Mirrors --duration-fast from app/globals.css, expressed in seconds for Motion. */
 const FADE_DURATION = 0.15;
@@ -52,23 +52,6 @@ export function Lightbox({
 }: LightboxProps) {
   const close = () => onOpenChange(false);
 
-  /**
-   * Radix kills pointer events on <body> for as long as its dismissable layer
-   * is mounted, and `forceMount` keeps that layer alive for the whole exit
-   * animation — so the page stays unscrollable well after the dialog is
-   * logically gone. `pointer-events` inherits, so this reaches the scroll
-   * container too and the wheel has nothing to target.
-   *
-   * Radix already ties focus trapping to `open` rather than to mount for this
-   * exact reason; the pointer-events lock is the one thing it left on mount.
-   * Releasing it on close is safe: Radix restores its own saved value when the
-   * layer finally unmounts.
-   */
-  useEffect(() => {
-    if (open) return;
-    document.body.style.pointerEvents = '';
-  }, [open]);
-
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
@@ -89,14 +72,13 @@ export function Lightbox({
                   property rather than the element's own opacity keeps the scrim
                   animating without dragging the morphing image along with it.
 
-                  The exit variant drops pointer events because forceMount keeps
-                  this full-bleed surface over the viewport for the whole morph:
-                  it would otherwise keep swallowing the wheel, leaving the page
-                  behind frozen until the animation ended. It has to be set here
-                  rather than through a class, because Radix writes an inline
-                  `pointer-events: auto` on its dismissable layer — inline styles
-                  beat any class. Motion owns this element's inline style, so it
-                  is what can override it. */}
+                  The page stays locked for the whole exit, Radix's own default.
+                  Letting it scroll was tried and reverted: the morph targets the
+                  box the trigger occupied when dismissal started, so scrolling
+                  moves that target and the image teleports by exactly the scroll
+                  distance when it unmounts. A position morph and a moving target
+                  are mutually exclusive; the fix is to keep the exit short
+                  enough that the lock goes unnoticed. */}
               <motion.div
                 className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8"
                 style={{
@@ -105,7 +87,7 @@ export function Lightbox({
                 }}
                 initial={{ '--scrim-opacity': 0 }}
                 animate={{ '--scrim-opacity': SCRIM_OPACITY }}
-                exit={{ '--scrim-opacity': 0, pointerEvents: 'none' }}
+                exit={{ '--scrim-opacity': 0 }}
                 transition={{ duration: FADE_DURATION }}
                 onClick={close}
               >
