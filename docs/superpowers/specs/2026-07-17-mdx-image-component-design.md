@@ -20,7 +20,9 @@ Two success criteria, equally weighted:
 <Image src="shade-of-halftone/circle-sdf.png" alt="Diagram breaking down the distance field..." />
 ```
 
-- `src` is a **path relative to the CDN root**. `resolveImageSrc()` prefixes the base URL.
+- `src` is a **path relative to the media kind's prefix**. The CDN bucket is namespaced
+  (`images/…`, `videos/…`), so `resolveImageUrl('blog/halftone.png')` yields
+  `{cdnUrl}/images/blog/halftone.png`. Origin and layout both live in `config/site.ts`.
   Absolute `http(s)://` sources are passed through untouched.
 - `alt` is required. It doubles as the `<figcaption>` and as the dialog's accessible title.
 - `width` / `height` are **optional**. When omitted they are resolved at build time (see below).

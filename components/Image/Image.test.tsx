@@ -33,19 +33,19 @@ describe('Image', () => {
     probe.mockClear();
   });
 
-  it('resolves a relative src against the CDN', async () => {
+  it('resolves a relative src against the CDN images prefix', async () => {
     render(await Image({ src: 'post/diagram.png', alt: 'A diagram' }));
 
     expect(screen.getByTestId('zoom')).toHaveAttribute(
       'src',
-      `${siteConfig.cdnUrl}/post/diagram.png`
+      `${siteConfig.cdnUrl}/images/post/diagram.png`
     );
   });
 
   it('looks up dimensions when the post omits them', async () => {
     render(await Image({ src: 'post/diagram.png', alt: 'A diagram' }));
 
-    expect(probe).toHaveBeenCalledWith(`${siteConfig.cdnUrl}/post/diagram.png`);
+    expect(probe).toHaveBeenCalledWith(`${siteConfig.cdnUrl}/images/post/diagram.png`);
     const image = screen.getByTestId('zoom');
     expect(image).toHaveAttribute('width', '960');
     expect(image).toHaveAttribute('height', '731');

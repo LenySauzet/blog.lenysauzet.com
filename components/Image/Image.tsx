@@ -1,10 +1,10 @@
-import { resolveCdnUrl } from '@/lib/cdn';
+import { resolveImageUrl } from '@/lib/cdn';
 import { getImageDimensions } from '@/lib/image-utils';
 
 import ImageZoom from './ImageZoom';
 
 export interface ImageProps {
-  /** Path relative to the CDN root, or an absolute URL. */
+  /** Path relative to the CDN's images prefix, or an absolute URL. */
   src: string;
   /** Required. Doubles as the caption and the lightbox's accessible name. */
   alt: string;
@@ -20,7 +20,7 @@ export interface ImageProps {
  * The image component for posts.
  *
  * ```mdx
- * <Image src="shade-of-halftone/circle-sdf.png" alt="Diagram breaking down..." />
+ * <Image src="blog/halftone.png" alt="Diagram breaking down..." />
  * ```
  *
  * A server component by design: URL resolution and the dimension lookup are
@@ -36,7 +36,7 @@ export default async function Image({
   quality = 100,
   ...props
 }: ImageProps) {
-  const url = resolveCdnUrl(src);
+  const url = resolveImageUrl(src);
   const dimensions =
     width && height ? { width, height } : await getImageDimensions(url);
 

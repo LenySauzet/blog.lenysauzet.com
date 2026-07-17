@@ -51,19 +51,27 @@ MDX components are registered globally in `mdx-components.tsx` via `useMDXCompon
 
 ### Media and the CDN
 
-Images and videos live on `cdn.lenysauzet.com`, declared in `config/site.ts` as `cdnUrl`.
-Posts reference them **by path relative to the CDN root**; `resolveCdnUrl()` in `lib/cdn.ts`
-prefixes the origin, and absolute URLs pass through untouched. That resolver is the only
-place aware of the CDN — both `Image` and `VideoPlayer` go through it.
+Media lives on `cdn.lenysauzet.com` (Cloudflare R2), namespaced by kind: `images/…` and
+`videos/…`. Both the origin and that layout are declared in `config/site.ts` (`cdnUrl`,
+`cdnPaths`).
+
+Posts reference assets **relative to their media prefix**. `lib/cdn.ts` is the only module
+aware of the CDN: `resolveImageUrl('blog/halftone.png')` →
+`https://cdn.lenysauzet.com/images/blog/halftone.png`. Absolute URLs pass through untouched, so
+a post can still point at a third-party asset. `Image` and `VideoPlayer` each go through their
+own resolver.
 
 ```mdx
-<Image src="shade-of-halftone/circle-sdf.png" alt="Diagram breaking down the distance field" />
+<Image src="blog/halftone.png" alt="Diagram breaking down the distance field" />
 ```
 
 `width`/`height` are optional: `components/Image` is an async Server Component that reads the
 image header at build time (ranged request + `image-size`, memoized with `cache()`) to reserve
 space and avoid CLS. Supplying both skips the lookup. **The source must exist on the CDN or the
 build fails by design** — a guessed dimension would ship as layout shift on every visit.
+
+Prefer omitting them. Hand-written values tend to be the size the image is *displayed* at, not
+its intrinsic size, which skews the aspect ratio and the generated `srcset`.
 
 Cloudflare image transformations are *not* enabled on the zone, so optimization runs through
 Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to `next/image`: that

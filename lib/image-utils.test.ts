@@ -49,8 +49,8 @@ describe('getImageDimensions', () => {
   });
 
   it('downloads only the header rather than the whole file', async () => {
-    const fetchMock = vi.fn(
-      async (_url: string, _init?: RequestInit) => respondWith(pngHeader(100, 50))
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      respondWith(pngHeader(100, 50))
     );
     vi.stubGlobal('fetch', fetchMock);
 
