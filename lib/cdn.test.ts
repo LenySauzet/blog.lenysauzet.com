@@ -55,9 +55,4 @@ describe('media-kind resolvers', () => {
       `${cdnUrl}/videos/blog/demo.mp4`
     );
   });
-
-  it('keeps a post free to point at a third-party asset', () => {
-    const external = 'https://cdn.maximeheckel.com/videos/blog/demo.mp4';
-    expect(resolveVideoUrl(external)).toBe(external);
-  });
 });

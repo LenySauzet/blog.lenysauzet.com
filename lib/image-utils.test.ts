@@ -33,8 +33,10 @@ function respondWith(body: Uint8Array, init: Partial<Response> = {}) {
 }
 
 describe('getImageDimensions', () => {
+  // `restoreAllMocks` only undoes `vi.spyOn`, and this file stubs a global —
+  // so it would look like isolation while doing nothing.
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('reads the dimensions out of the image header', async () => {

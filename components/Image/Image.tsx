@@ -13,7 +13,6 @@ export interface ImageProps {
   height?: number;
   priority?: boolean;
   quality?: number;
-  className?: string;
 }
 
 /**

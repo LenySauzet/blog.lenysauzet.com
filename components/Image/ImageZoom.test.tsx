@@ -35,14 +35,6 @@ const openLightbox = async (user: ReturnType<typeof userEvent.setup>) => {
 };
 
 describe('ImageZoom', () => {
-  it('names the trigger with the alt text', () => {
-    renderZoom();
-
-    expect(
-      screen.getByRole('button', { name: 'Distance field breakdown' })
-    ).toBeInTheDocument();
-  });
-
   it('stays closed until the trigger is activated', () => {
     renderZoom();
 

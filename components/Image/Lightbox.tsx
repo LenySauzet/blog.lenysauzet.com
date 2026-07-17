@@ -26,8 +26,6 @@ interface LightboxProps {
   title: string;
   /** Content shown while zoomed in. */
   children: ReactNode;
-  /** Fade duration in seconds. Match the caller's morph or the scrim flashes. */
-  duration: number;
 }
 
 /**
@@ -40,38 +38,57 @@ interface LightboxProps {
  * stay usable while the image animates away. Radix ties that lock to its layer's
  * mount, and the layer must outlive the dismiss to animate out, so the page is
  * frozen for the whole exit by construction. What is left of a dialog once those
- * are gone is a portal, Escape, focus restoration and two ARIA attributes —
- * which is all of the code below.
+ * are gone is a portal, Escape, focus handling and two ARIA attributes — which
+ * is all of the code below.
  *
  * Nothing is ever locked. The surface covers the viewport and `overscroll-contain`
  * stops the wheel chaining past it, so the page cannot move while it is up. On
  * dismiss the exit variant drops pointer events, handing the wheel straight back
  * mid-animation.
+ *
+ * Timing comes from the `MotionConfig` the caller provides — React context
+ * crosses the portal — so the scrim cannot drift out of sync with whatever the
+ * content is doing. Fading it faster than the image reads as a flash.
  */
 export function Lightbox({
   open,
   onOpenChange,
   title,
   children,
-  duration,
 }: LightboxProps) {
   const isHydrated = useIsHydrated();
+  const surface = useRef<HTMLDivElement>(null);
   const restoreFocusTo = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
 
+    const surfaceEl = surface.current;
     restoreFocusTo.current = document.activeElement as HTMLElement | null;
+
+    // `aria-modal` tells assistive tech the rest of the page does not exist, so
+    // the keyboard must agree: pull focus onto the surface, and refuse to let
+    // Tab wander back out to content that is only visually covered. Nothing in
+    // here is focusable, so trapping amounts to not moving at all.
+    surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onOpenChange(false);
+      if (event.key === 'Tab') event.preventDefault();
     };
     document.addEventListener('keydown', onKeyDown);
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      // Only meaningful if focus is still inside the surface being torn down.
-      restoreFocusTo.current?.focus();
+
+      // Only take focus back if it is still ours to give. This also runs when
+      // the component unmounts outright — a route change, say — and stealing
+      // focus onto a disappearing trigger would be worse than doing nothing.
+      const active = document.activeElement;
+      const focusIsOurs =
+        !active || active === document.body || surfaceEl?.contains(active);
+
+      if (focusIsOurs) restoreFocusTo.current?.focus({ preventScroll: true });
     };
   }, [open, onOpenChange]);
 
@@ -82,6 +99,7 @@ export function Lightbox({
       {open ? (
         <motion.div
           key="lightbox"
+          ref={surface}
           role="dialog"
           aria-modal="true"
           aria-label={title}
@@ -98,7 +116,6 @@ export function Lightbox({
           initial={{ '--scrim-opacity': 0 }}
           animate={{ '--scrim-opacity': 0.8 }}
           exit={{ '--scrim-opacity': 0, pointerEvents: 'none' }}
-          transition={{ duration }}
           onClick={() => onOpenChange(false)}
         >
           {children}

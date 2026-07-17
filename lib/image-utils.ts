@@ -6,7 +6,7 @@ import { cache } from 'react';
 /** Header bytes requested when probing. Enough for PNG/JPEG/WebP/AVIF metadata. */
 const PROBE_BYTE_LENGTH = 65_535;
 
-export interface ImageDimensions {
+interface ImageDimensions {
   width: number;
   height: number;
 }

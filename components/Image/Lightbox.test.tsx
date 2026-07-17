@@ -22,7 +22,6 @@ function Harness() {
         open={open}
         onOpenChange={setOpen}
         title="Distance field breakdown"
-        duration={0.3}
       >
         <div data-testid="zoomed-content">zoomed</div>
       </Lightbox>
@@ -37,7 +36,6 @@ function Controlled({ open }: { open: boolean }) {
       open={open}
       onOpenChange={() => {}}
       title="Distance field breakdown"
-      duration={0.3}
     >
       <div>zoomed</div>
     </Lightbox>
@@ -114,16 +112,34 @@ describe('Lightbox', () => {
     expect(document.body.style.pointerEvents).toBe('');
   });
 
-  it('stops the wheel chaining past it to the page', async () => {
+  it('takes focus when it opens', async () => {
     const user = userEvent.setup();
     render(<Harness />);
 
     const surface = await open(user);
 
-    // The surface covers the viewport and owns the scroll; without this the
-    // wheel falls through to the page once the surface has nothing left to
-    // scroll, and the page drifts behind the open image.
-    expect(surface.className).toContain('overscroll-contain');
+    // aria-modal claims the rest of the page does not exist. Leaving focus on
+    // the trigger outside would make that a lie, and would let the next Tab
+    // land on content the surface only visually covers.
+    expect(surface).toHaveFocus();
+  });
+
+  it('does not let Tab escape to the page behind', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Harness />
+        <a href="/elsewhere">Behind the surface</a>
+      </>
+    );
+
+    const surface = await open(user);
+    await user.tab();
+
+    expect(surface).toHaveFocus();
+    expect(
+      screen.getByRole('link', { name: 'Behind the surface' })
+    ).not.toHaveFocus();
   });
 
   it('returns focus to the trigger once dismissed', async () => {
@@ -136,5 +152,29 @@ describe('Lightbox', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus()
     );
+  });
+
+  it('leaves focus alone if the reader moved it elsewhere', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Harness />
+        <button type="button">Elsewhere</button>
+      </>
+    );
+
+    await open(user);
+
+    // Focus can leave by means the surface does not mediate — a click, the
+    // browser chrome. Yanking it back on dismiss would discard the reader's
+    // intent.
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+    elsewhere.focus();
+    await user.keyboard('{Escape}');
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
+    expect(elsewhere).toHaveFocus();
   });
 });

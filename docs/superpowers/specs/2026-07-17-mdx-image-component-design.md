@@ -155,9 +155,17 @@ wheel chaining past it, so the page cannot move while it is up — verified: `pa
 holds with `document.body.style.pointerEvents` never set. On dismiss the exit variant drops
 pointer events and the page scrolls immediately, mid-morph.
 
-Cost: the focus trap. Accepted — the surface holds nothing focusable. Everything else is
-verified in a browser: keyboard open, accessible name, `aria-modal`, Escape, focus restored to
-the trigger, no orphan nodes, one surface at a time, reduced motion.
+There *is* a focus trap, and it is four lines: on open, `.focus()` the surface; while open,
+`preventDefault` on Tab. `aria-modal="true"` promises assistive tech that nothing else exists, so
+the keyboard has to honour it — an earlier revision set the attribute but left focus on the
+trigger, so Tab walked straight out into the footer links behind the scrim (a keyboard user could
+even open a second lightbox over the first). Trapping is cheap here precisely because nothing
+inside is focusable: "trap" reduces to "don't move".
+
+Focus is restored on dismiss only when it is still the surface's to give — guarded against the
+cleanup running on an outright unmount (a route change) or after the reader has clicked focus
+elsewhere. Verified in a browser: keyboard open, focus into the dialog, Tab stays trapped across
+four presses, Escape restores to the trigger, and restoration is skipped when focus moved away.
 
 ### Superseded: `modal={false}`
 

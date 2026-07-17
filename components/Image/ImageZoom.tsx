@@ -4,28 +4,21 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
-import { cn } from '@/lib/utils';
-
 import { Lightbox } from './Lightbox';
 
 /**
- * One duration for everything: hover, press, the morph, and the scrim.
- * Mirrors --duration-moderate from app/globals.css.
+ * One transition for everything below, and — through `MotionConfig` — for the
+ * Lightbox's scrim too. Mirrors --duration-moderate and --ease-standard from
+ * app/globals.css.
  *
- * The scrim in particular must share it. Fading the backdrop faster than the
- * morph makes it vanish mid-flight, which reads as a flash.
- */
-const ZOOM_DURATION = 0.3;
-
-/** Mirrors --ease-standard from app/globals.css. */
-const ZOOM_EASE = [0.2, 0, 0, 1] as const;
-
-/**
+ * Sharing it with the scrim is not cosmetic: fading the backdrop faster than the
+ * image makes it vanish mid-morph, which reads as a flash.
+ *
  * A plain tween, not a spring. Springs have no bounded end — they converge
  * sub-pixel long after they stop being visible — and `restDelta` is not honoured
  * by the layout projection, so the exit lingers past its last visible frame.
  */
-const ZOOM_TRANSITION = { duration: ZOOM_DURATION, ease: ZOOM_EASE } as const;
+const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
 /**
  * Both copies share one file, so the hint targets the larger, zoomed rendering
@@ -48,21 +41,15 @@ export interface ImageZoomProps {
   height: number;
   priority?: boolean;
   quality?: number;
-  className?: string;
 }
 
-function CdnImage({
-  className,
-  ...props
-}: Omit<ImageZoomProps, 'src'> & { src: string }) {
+/** The inline and zoomed copies are the same image under one sizing contract. */
+function PostImage(props: ImageZoomProps) {
   return (
     <NextImage
       {...props}
       sizes={IMAGE_SIZES}
-      className={cn(
-        'h-auto w-full rounded-lg border border-border object-cover',
-        className
-      )}
+      className="h-auto w-full rounded-lg border border-border object-cover"
     />
   );
 }
@@ -92,15 +79,10 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         style={{ willChange: 'transform' }}
         className="block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
       >
-        <CdnImage alt={alt} {...props} />
+        <PostImage alt={alt} {...props} />
       </motion.button>
 
-      <Lightbox
-        open={open}
-        onOpenChange={setOpen}
-        title={alt}
-        duration={ZOOM_DURATION}
-      >
+      <Lightbox open={open} onOpenChange={setOpen} title={alt}>
         {/* The surface is already named by `alt` and owns dismissal, so this
             copy is decorative and non-interactive. */}
         <motion.div
@@ -116,7 +98,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
           }}
           className="[--zoom-max-inline-size:97dvw] md:[--zoom-max-inline-size:80dvw]"
         >
-          <CdnImage alt="" {...props} />
+          <PostImage alt="" {...props} />
         </motion.div>
       </Lightbox>
     </MotionConfig>
