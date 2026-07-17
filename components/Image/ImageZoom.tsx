@@ -9,33 +9,23 @@ import { cn } from '@/lib/utils';
 import { Lightbox } from './Lightbox';
 
 /**
- * How long the page stays locked after a dismiss, so keep it short.
- * Mirrors --duration-moderate from app/globals.css.
- */
-const ZOOM_DURATION = 0.3;
-
-/**
- * Reads as an elastic ease-out while staying physical.
+ * One transition for every motion here: hover, press, and the morph both ways.
+ * Mirrors --duration-fast and --ease-standard from app/globals.css.
  *
- * On a shared-layout morph the curve drives the image's own dimensions rather
- * than a detached scale, so a textbook elastic's overshoot would push the
- * zoomed image past the viewport, and its fixed duration could not resume from
- * the current velocity when the user re-clicks mid-flight. A bouncy spring
- * overshoots, settles inside bounds, and stays interruptible.
+ * A plain tween rather than a spring, and a short one, because the duration is
+ * a correctness constraint rather than a matter of taste. Radix holds pointer
+ * events off <body> for as long as its layer is mounted, and the layer lives
+ * until the morph ends — so the animation's length *is* how long the page stays
+ * unscrollable. Springs have no bounded end: they converge sub-pixel long after
+ * they stop being visible, and `restDelta` is not honoured by the layout
+ * projection, so the lock outlives the animation.
  *
- * Duration-driven rather than physical (`stiffness`/`damping`) because the
- * duration is a correctness constraint here, not a matter of taste: the page is
- * necessarily locked until the morph ends and AnimatePresence unmounts the
- * surface (see Lightbox). A physical spring has no bounded end — it converges
- * sub-pixel for hundreds of milliseconds after it stops being visible, and
- * `restDelta` is not honoured by the layout projection, so the lock outlives
- * the animation. Asking for a duration and a bounce keeps the elastic read
- * while making the lock a number we choose.
+ * 150ms lands the lightbox where the stock shadcn dialog already sits (measured
+ * at 146ms), which is why that one never feels like it blocks anything.
  */
-const ZOOM_SPRING = {
-  type: 'spring',
-  duration: ZOOM_DURATION,
-  bounce: 0.3,
+const ZOOM_TRANSITION = {
+  duration: 0.15,
+  ease: [0.2, 0, 0, 1],
 } as const;
 
 /**
@@ -93,14 +83,13 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const layoutId = `image-zoom-${useId()}`;
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion="user" transition={ZOOM_TRANSITION}>
       <Lightbox open={open} onOpenChange={setOpen} title={alt} trigger={
         <motion.button
           type="button"
           layoutId={layoutId}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.95 }}
-          transition={{ layout: ZOOM_SPRING }}
           style={{ willChange: 'transform' }}
           className="block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         >
@@ -112,7 +101,6 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         <motion.div
           layoutId={layoutId}
           whileTap={{ scale: 0.98 }}
-          transition={{ layout: ZOOM_SPRING }}
           style={{
             willChange: 'transform',
             // Widen to the viewport, but never past the width at which the

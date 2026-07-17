@@ -117,9 +117,9 @@ unmounts content instantly and kills the exit animation.
 | rest | `scale: 1`, `cursor-zoom-in` |
 | hover | `whileHover` → `scale: 1.02` |
 | press | `whileTap` → `scale: 0.95` |
-| release → zoomed | shared `layoutId` morph, spring `bounce: 0.35` |
+| release → zoomed | shared `layoutId` morph |
 | zoomed | `cursor-zoom-out`; click anywhere or Escape closes |
-| zoomed → rest | same spring, interruptible mid-flight |
+| zoomed → rest | same morph, reversed |
 
 Because the content surface covers the viewport, Radix's outside-click never fires — closing is
 wired explicitly via `onClick` on the surface. Escape and focus trap come from Radix for free.
@@ -129,26 +129,36 @@ advertises, so a button would be a second affordance for the same action sitting
 one it duplicates. Escape covers the keyboard, and Radix focuses the surface itself when it
 holds nothing focusable, so the dialog stays reachable.
 
-### Easing, and why its duration is a correctness constraint
+### One transition, and why its duration is a correctness constraint
 
-`{ type: 'spring', duration: 0.3, bounce: 0.3 }` rather than a strict Penner `easeOutElastic`.
-On a `layoutId` morph the curve drives the image's *dimensions*, not a detached scale: elastic's
-~10% overshoot would push the zoomed image past the viewport.
+A single tween — `--duration-fast` (150ms) with `--ease-standard` — set once via `MotionConfig`
+and inherited by hover, press and the morph both ways. No spring, no elastic: smooth, like a
+lerp.
 
-The duration is not a matter of taste. The page is locked until AnimatePresence unmounts the
-surface, and that happens when the morph reports done — so **the animation's length is the
-lock's length**. Three revisions:
+**The duration is not a matter of taste.** Radix holds pointer events off `<body>` for as long
+as its dismissable layer is mounted, and the layer lives until the morph ends. So the
+animation's length *is* how long the page stays unscrollable.
 
-| Config | Lock window | Dead tail |
-|---|---|---|
-| `bounce: 0.35, duration: 0.6` | 690ms | 309ms |
-| `stiffness: 400, damping: 27` (+`restDelta`) | 636ms | 258ms |
-| `duration: 0.3, bounce: 0.3` | **337ms** | 84ms |
+The stock shadcn dialog behaves identically — measured in this app: `pointer-events: none` on
+`<body>` while open, scroll returning 146ms after Escape. It never feels like it blocks anything
+because it closes in 100ms, not because it works differently. There is nothing architectural to
+fix, and nothing to hack around.
 
-Physical springs (`stiffness`/`damping`) were rejected: they have no bounded end, converging
-sub-pixel long after they stop being visible, and `restDelta` is **not honoured by the layout
-projection** — measured, not assumed. Asking for a duration and a bounce keeps the elastic read
-while making the lock a number we choose.
+| Config | Scroll unlocked after |
+|---|---|
+| `spring bounce 0.35 / duration 0.6` | 690ms |
+| `spring stiffness 400 / damping 27` | 636ms |
+| `spring duration 0.3 / bounce 0.3` | 347ms |
+| **tween 150ms / ease-standard** | **224ms** |
+| _(stock shadcn dialog, for reference)_ | _146ms_ |
+
+Springs were rejected outright: they have no bounded end, converging sub-pixel long after they
+stop being visible, and `restDelta` is **not honoured by the layout projection** — measured, not
+assumed.
+
+The lock now covers exactly the animation, which is what makes the whole thing coherent: by the
+time the page can scroll, the morph is already over, so a moving target — and the jump it caused
+— is structurally impossible rather than defended against.
 
 ## Accessibility
 
@@ -221,9 +231,9 @@ Kept as a record of what the design got wrong before contact with the code.
    232px jump — a perfect correlation). **A position morph and a moving target are mutually
    exclusive.**
 
-   The lock was never the disease; the 690ms animation was. Reverting to Radix's untouched
-   behaviour and cutting the morph to 337ms makes the lock standard modal behaviour, and
-   unnoticeable.
+   The lock was never the disease; the 690ms animation was. Radix's behaviour is untouched and
+   the morph is now a 150ms tween, which puts the lock in the same class as every other dialog
+   in the app.
 
    Process note: the first of those fixes was "verified" by reading `pointer-events` back and
    finding `auto`. That is a proxy, not the behaviour. Scrolling was still dead. Only a real
