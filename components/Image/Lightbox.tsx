@@ -87,7 +87,16 @@ export function Lightbox({
                   The surface spans the viewport, so Radix's outside-click never
                   fires: dismissal is wired explicitly below. Fading a custom
                   property rather than the element's own opacity keeps the scrim
-                  animating without dragging the morphing image along with it. */}
+                  animating without dragging the morphing image along with it.
+
+                  The exit variant drops pointer events because forceMount keeps
+                  this full-bleed surface over the viewport for the whole morph:
+                  it would otherwise keep swallowing the wheel, leaving the page
+                  behind frozen until the animation ended. It has to be set here
+                  rather than through a class, because Radix writes an inline
+                  `pointer-events: auto` on its dismissable layer — inline styles
+                  beat any class. Motion owns this element's inline style, so it
+                  is what can override it. */}
               <motion.div
                 className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8"
                 style={{
@@ -96,7 +105,7 @@ export function Lightbox({
                 }}
                 initial={{ '--scrim-opacity': 0 }}
                 animate={{ '--scrim-opacity': SCRIM_OPACITY }}
-                exit={{ '--scrim-opacity': 0 }}
+                exit={{ '--scrim-opacity': 0, pointerEvents: 'none' }}
                 transition={{ duration: FADE_DURATION }}
                 onClick={close}
               >
