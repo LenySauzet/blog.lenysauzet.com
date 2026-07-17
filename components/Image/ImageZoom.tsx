@@ -26,11 +26,11 @@ const ZOOM_SPRING = { type: 'spring', bounce: 0.35, duration: 0.6 } as const;
 const IMAGE_SIZES = '(max-width: 768px) 97vw, 80vw';
 
 /**
- * Leaves room for the close button, the surface padding, and the band the site
- * header occupies. An absolute reserve rather than a percentage: the chrome is
- * a fixed height, so a ratio would under-reserve on short viewports.
+ * Mirrors the surface's own p-8 on both edges. An absolute reserve rather than
+ * a percentage: the padding is a fixed height, so a ratio would under-reserve
+ * on short viewports.
  */
-const ZOOM_MAX_BLOCK_SIZE = 'calc(100dvh - 12rem)';
+const ZOOM_MAX_BLOCK_SIZE = 'calc(100dvh - 4rem)';
 
 export interface ImageZoomProps {
   /** Fully resolved URL. Resolution happens on the server. */

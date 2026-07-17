@@ -81,17 +81,6 @@ describe('ImageZoom', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('offers a way out of the lightbox', async () => {
-    const user = userEvent.setup();
-    renderZoom();
-
-    const dialog = await openLightbox(user);
-
-    expect(
-      within(dialog).getByRole('button', { name: 'Close' })
-    ).toBeInTheDocument();
-  });
-
   it('shows the same image zoomed in', async () => {
     const user = userEvent.setup();
     renderZoom();

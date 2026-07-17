@@ -1,12 +1,8 @@
 'use client';
 
-import { Cancel01Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import type { ReactNode } from 'react';
-
-import { Button } from '@/components/ui/button';
 
 /** Mirrors --duration-fast from app/globals.css, expressed in seconds for Motion. */
 const FADE_DURATION = 0.15;
@@ -25,8 +21,12 @@ interface LightboxProps {
 }
 
 /**
- * A full-bleed modal surface that dismisses on click, Escape, or its close
- * button. Knows nothing about what it displays.
+ * A full-bleed modal surface that dismisses on click or Escape. Knows nothing
+ * about what it displays.
+ *
+ * There is no close button: the whole surface is the dismiss target, which the
+ * zoom-out cursor advertises, and Escape covers the keyboard. Radix focuses the
+ * surface itself when it holds nothing focusable, so the dialog stays reachable.
  *
  * Deliberately composes the raw Radix primitives rather than
  * `components/ui/dialog.tsx`: that surface centres itself with a
@@ -64,17 +64,15 @@ export function Lightbox({
               aria-describedby={undefined}
               key="lightbox-surface"
             >
-              {/* The surface spans the viewport, so Radix's outside-click never
+              {/* Above z-50, which the site header already occupies: relying on
+                  portal DOM order alone to win that tie is too fragile.
+
+                  The surface spans the viewport, so Radix's outside-click never
                   fires: dismissal is wired explicitly below. Fading a custom
                   property rather than the element's own opacity keeps the scrim
                   animating without dragging the morphing image along with it. */}
-              {/* Above z-50, which the site header already occupies: relying on
-                  portal DOM order alone to win that tie is too fragile.
-                  The extra padding mirrors where the header sits — top on
-                  desktop, bottom on mobile — so the close button never centres
-                  itself on top of the nav. */}
               <motion.div
-                className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8 max-sm:pb-24 sm:pt-24"
+                className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto p-8"
                 style={{
                   backgroundColor:
                     'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',
@@ -88,28 +86,7 @@ export function Lightbox({
                 <DialogPrimitive.Title className="sr-only">
                   {title}
                 </DialogPrimitive.Title>
-                <div className="flex flex-col items-center gap-4">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{
-                      duration: FADE_DURATION,
-                      delay: FADE_DURATION,
-                    }}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="rounded-full"
-                      onClick={close}
-                    >
-                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-                      <span className="sr-only">Close</span>
-                    </Button>
-                  </motion.div>
-                  {children}
-                </div>
+                {children}
               </motion.div>
             </DialogPrimitive.Content>
           ) : null}

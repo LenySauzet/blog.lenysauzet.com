@@ -55,18 +55,6 @@ describe('Lightbox', () => {
     expect(within(dialog).getByTestId('zoomed-content')).toBeInTheDocument();
   });
 
-  it('dismisses through the close button', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    const dialog = await open(user);
-    await user.click(within(dialog).getByRole('button', { name: 'Close' }));
-
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    );
-  });
-
   it('dismisses on Escape', async () => {
     const user = userEvent.setup();
     render(<Harness />);

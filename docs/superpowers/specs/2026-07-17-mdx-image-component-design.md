@@ -118,11 +118,16 @@ unmounts content instantly and kills the exit animation.
 | hover | `whileHover` → `scale: 1.02` |
 | press | `whileTap` → `scale: 0.95` |
 | release → zoomed | shared `layoutId` morph, spring `bounce: 0.35` |
-| zoomed | `cursor-zoom-out`; click anywhere, Escape, or the X button closes |
+| zoomed | `cursor-zoom-out`; click anywhere or Escape closes |
 | zoomed → rest | same spring, interruptible mid-flight |
 
 Because the content surface covers the viewport, Radix's outside-click never fires — closing is
 wired explicitly via `onClick` on the surface. Escape and focus trap come from Radix for free.
+
+There is **no close button**. The whole surface is the dismiss target, which the zoom-out cursor
+advertises, so a button would be a second affordance for the same action sitting on top of the
+one it duplicates. Escape covers the keyboard, and Radix focuses the surface itself when it
+holds nothing focusable, so the dialog stays reachable.
 
 ### Easing
 
@@ -136,6 +141,8 @@ bounds, and resumes from current velocity.
 
 - `alt` required; rendered as `<figcaption>` and as an `sr-only` `DialogTitle` (Radix warns without one).
 - Trigger is keyboard-focusable, activates on Enter/Space, with a visible focus ring.
+- The zoomed copy carries `alt=""`: the dialog title already names it, so announcing it twice
+  would be noise.
 - Focus trap, `aria-modal`, scroll lock, Escape: inherited from Radix.
 - `useReducedMotion()` disables scale and morph — the dialog opens instantly, the image stays reachable.
 
@@ -172,13 +179,15 @@ Kept as a record of what the design got wrong before contact with the code.
    `oklch(from var(--background) …)` background isolates the scrim from its children.
 
 3. **The zoomed image is bounded on both axes.** `width: 80dvw` alone let a tall image outgrow
-   the viewport and pushed the close button under the site header. Width is now solved through
-   the known aspect ratio — `min(80dvw, calc(ZOOM_MAX_BLOCK_SIZE * w / h))` — which fits both
-   axes without letterboxing or distortion. Capping `max-w`/`max-h` with `w-auto` was tried and
-   rejected: it renders at the image's natural size instead of scaling up.
+   the viewport. Width is now solved through the known aspect ratio —
+   `min(80dvw, calc(ZOOM_MAX_BLOCK_SIZE * w / h))` — which fits both axes without letterboxing
+   or distortion. Capping `max-w`/`max-h` with `w-auto` was tried and rejected: it renders at
+   the image's natural size instead of scaling up.
 
-4. **The surface reserves the header band** (`sm:pt-24`, `max-sm:pb-24`, mirroring the header's
-   own responsive placement) and sits at `z-100`, since the header also claims `z-50`.
+4. **The surface sits at `z-100`**, since the site header also claims `z-50` and winning that
+   tie on portal DOM order alone is fragile. An earlier revision also reserved the header band
+   with `sm:pt-24` / `max-sm:pb-24`; that existed only to keep the close button off the nav and
+   went away with the button.
 
 5. **`remark-unwrap-images` is pinned to 4.0.1.** The 5.0.0 tarball on npm contains only
    `package.json` and `readme.md` — a broken publish upstream. The plugin is also referenced by
@@ -194,7 +203,7 @@ Kept as a record of what the design got wrong before contact with the code.
 
 - `bun run lint` — 0 errors (4 warnings, all pre-existing in `TextScramble`/`MediaPlayer`).
 - `bunx tsc --noEmit` — clean.
-- `bun run test` — 30 tests, 5 files, all passing.
+- `bun run test` — 31 tests, 5 files, all passing.
 - `bun run build` — succeeds; all 13 posts prerender.
 - Browser (Playwright, 1200×762): `cursor: zoom-in` inline → `zoom-out` zoomed; dimensions
   probed to 960×731 from the CDN; scrim resolves to `oklch(0.1468 0.01 262.04 / 0.8)`; zoomed
