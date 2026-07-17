@@ -117,9 +117,9 @@ unmounts content instantly and kills the exit animation.
 | rest | `scale: 1`, `cursor-zoom-in` |
 | hover | `whileHover` → `scale: 1.02` |
 | press | `whileTap` → `scale: 0.95` |
-| release → zoomed | surface fades and scales up from 95% |
+| release → zoomed | shared `layoutId` morph |
 | zoomed | `cursor-zoom-out`; click anywhere or Escape closes |
-| zoomed → rest | fades and scales back to 95%; the page scrolls straight away |
+| zoomed → rest | same morph reversed; the page scrolls straight away |
 
 Because the content surface covers the viewport, Radix's outside-click never fires — closing is
 wired explicitly via `onClick` on the surface. Escape and focus trap come from Radix for free.
@@ -129,7 +129,37 @@ advertises, so a button would be a second affordance for the same action sitting
 one it duplicates. Escape covers the keyboard, and Radix focuses the surface itself when it
 holds nothing focusable, so the dialog stays reachable.
 
-### No shared-layout morph, and `modal={false}`
+### No dialog primitive at all
+
+`Lightbox` is a portal, Escape, focus restoration and two ARIA attributes. It uses neither
+Radix nor Base UI, and that is the decision that made everything else fall into place.
+
+A dialog primitive brings a focus trap, a scroll lock and layer management. This surface holds
+one decorative image: the trap has nothing to trap, the layer management has one layer, and the
+scroll lock is the exact thing that has to be defeated for the page to stay usable while the
+image animates away.
+
+**Radix ties its lock to the layer's mount**, and the layer must outlive the dismiss to animate
+out — so the page is frozen for the whole exit *by construction*. Five revisions were burned on
+that: shortening the animation to hide it, releasing `<body>` pointer events by hand, fighting
+the inline `pointer-events: auto` Radix writes on its own layer, and finally deleting the morph
+entirely.
+
+**Base UI ties it to `open`** (`useScrollLock(open && modal === true, popupElement)`), which is
+why the reference implementation never had this problem — its primitive, not its animation.
+Switching to Base UI did fix it. But once the lock was gone, so was the last reason to have a
+primitive at all.
+
+**Nothing is locked now.** The surface covers the viewport and `overscroll-contain` stops the
+wheel chaining past it, so the page cannot move while it is up — verified: `pageStaysPutWhileOpen`
+holds with `document.body.style.pointerEvents` never set. On dismiss the exit variant drops
+pointer events and the page scrolls immediately, mid-morph.
+
+Cost: the focus trap. Accepted — the surface holds nothing focusable. Everything else is
+verified in a browser: keyboard open, accessible name, `aria-modal`, Escape, focus restored to
+the trigger, no orphan nodes, one surface at a time, reduced motion.
+
+### Superseded: `modal={false}`
 
 The reference design morphs the inline image into the zoomed one and back. The morph back was
 built, measured, and **removed**. The requirement that killed it: the reader must be able to
@@ -166,26 +196,30 @@ is the only loss, and the surface holds nothing focusable.
 
 ### Trigger feedback
 
-Hover (`scale: 1.02`) and press (`scale: 0.95`) stay on Motion: a 150ms tween on
-`--duration-fast` / `--ease-standard`, set once through `MotionConfig`.
+**One duration, `--duration-moderate` (300ms), for everything** — hover, press, the morph, and
+the scrim — set once through `MotionConfig`. The scrim sharing it is not cosmetic: fading the
+backdrop in 150ms while the morph ran 300ms made it vanish mid-flight, which reads as a flash.
+Traced after the fix, the two land together:
 
-The zoom itself is a 300ms `fade` + `zoom-95` on `--ease-standard`, via `tw-animate-css`, the
-same vocabulary `components/ui/dialog.tsx` already uses.
+```
+  0ms scrim:0.80 w:960     203ms scrim:0.15 w:689
+ 95ms scrim:0.48 w:778     303ms scrim:0.00 w:672
+```
 
-For the record, since every earlier revision tried to buy scrollability by shortening the
-animation, and each was measured:
+A plain tween, not a spring: springs have no bounded end, converging sub-pixel long after they
+stop being visible, and `restDelta` is **not honoured by the layout projection**.
 
-| Config | Scroll unlocked after |
+Every earlier revision tried to buy scrollability by shortening the animation. Each was measured,
+and the point of the table is that the duration was never the variable that mattered:
+
+| Config | Scroll returns after |
 |---|---|
 | `spring bounce 0.35 / duration 0.6` | 690ms |
 | `spring stiffness 400 / damping 27` | 636ms |
 | `spring duration 0.3 / bounce 0.3` | 347ms |
 | `tween 150ms` | 224ms |
 | _(stock shadcn dialog, for reference)_ | _146ms_ |
-| **CSS + `modal={false}`, 300ms** | **immediate, mid-animation** |
-
-Springs are gone for a second reason too: they have no bounded end, converging sub-pixel long
-after they stop being visible, and `restDelta` is **not honoured by the layout projection**.
+| **no primitive, tween 300ms** | **immediate, mid-morph** |
 
 ## Accessibility
 

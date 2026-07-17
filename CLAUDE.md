@@ -202,7 +202,11 @@ Before marking any component done:
 
 **Two text-reveal components**: `components/ScrambledText.tsx` is the accessibility-first version with `useReducedMotion()` and sr-only fallback — prefer this one. `components/TextScramble.tsx` uses the Motion library directly and is kept for reference but not preferred for new usage.
 
-**`components/Image/Lightbox.tsx` does not use `components/ui/dialog.tsx`**: that surface centres itself with a `translate(-50%, -50%)`, and a transformed ancestor corrupts the bounding-box maths behind Motion's layout projection. It composes the raw Radix `Dialog` primitives instead. Colocated on purpose — do not promote it to a shared primitive until a second consumer exists.
+**`components/Image/Lightbox.tsx` uses no dialog primitive** — not `ui/dialog.tsx`, not Radix, not Base UI. This is deliberate and hard-won; do not "fix" it by reaching for one.
+
+A dialog primitive brings a focus trap, a scroll lock and layer management. That surface holds one decorative image, so the trap has nothing to trap, and **Radix's scroll lock is tied to its layer's mount** — the layer must outlive a dismiss to animate out, so the page is frozen for the whole exit animation, by construction. Base UI ties the same lock to `open` and does not have the problem. Neither is needed: the surface covers the viewport and `overscroll-contain` keeps the page still, then drops pointer events on exit so it scrolls again mid-animation. What remains is a portal, Escape, focus restoration and two ARIA attributes.
+
+Colocated on purpose — do not promote it to a shared primitive until a second consumer exists.
 
 **`@base-ui/react` is a real dependency**, not dead weight: `components/ui/combobox.tsx` needs it, since Radix ships no combobox. Radix remains the primitive layer for everything else — do not add Base UI components without a reason that specific.
 
