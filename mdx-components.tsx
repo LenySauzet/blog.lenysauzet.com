@@ -1,5 +1,6 @@
 import Anchor from '@/components/Anchor/Anchor';
 import Image from '@/components/Image';
+import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
@@ -57,17 +58,9 @@ const components = {
       {children}
     </code>
   ),
-  ul: ({ children }) => (
-    <ul className="font-serif list-disc list-outside pl-6 mb-4 space-y-1 text-foreground">
-      {children}
-    </ul>
-  ),
-  ol: ({ children }) => (
-    <ol className="font-serif list-decimal list-outside pl-6 mb-4 space-y-1 text-foreground">
-      {children}
-    </ol>
-  ),
-  li: ({ children }) => <li className="leading-7">{children}</li>,
+  ul: ({ children }) => <List variant="unordered">{children}</List>,
+  ol: ({ children }) => <List variant="ordered">{children}</List>,
+  li: ({ children }) => <ListItem>{children}</ListItem>,
   hr: () => <hr className="border-border my-8" />,
   img: MarkdownImage,
   FootnoteRef: ({ id }) => <FootnoteRef id={id} />,
