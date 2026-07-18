@@ -161,6 +161,30 @@
   color: oklch(61.53% 0.1675 var(--base-hue));
 }
 
+/*
+ * Ordered prose lists (components/List). Every list item renders a decorative
+ * arrow marker; an ordered list swaps it for a number. This lives in CSS
+ * because a counter cannot be expressed as a Tailwind utility — `content` with
+ * `counter()` is not a class. Scoped to direct children so a nested list, which
+ * is its own `data-list` element, keeps its own numbering.
+ */
+ol[data-list='ordered'] {
+  counter-reset: list-marker;
+}
+ol[data-list='ordered'] > li {
+  counter-increment: list-marker;
+}
+ol[data-list='ordered'] > li > [data-list-marker] {
+  display: none;
+}
+ol[data-list='ordered'] > li::before {
+  content: counter(list-marker) '.';
+  flex-shrink: 0;
+  min-width: 1.25rem;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
 .badge-border {
   border: 1.5px solid oklch(77.16% 0.028 var(--base-hue) / 15%);
 }
