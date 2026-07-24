@@ -87,7 +87,9 @@ export default async function Page({
 }
 
 export async function generateStaticParams() {
-  const posts = await getPosts();
+  // Drafts are hidden from the feed but still built, so their URL resolves
+  // under `dynamicParams = false`.
+  const posts = await getPosts({ includeDrafts: true });
   return posts.map((post) => ({ slug: post.slug }));
 }
 

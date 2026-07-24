@@ -8,11 +8,19 @@ type Post = {
         description: string
         date: string
         tags: string[]
+        /** When true, the post is reachable by URL but hidden from every public listing. */
+        draft?: boolean
     }
     content: string,
     lastModified: Date
 }
-export const getPosts = async (): Promise<Post[]> => {
+
+type GetPostsOptions = {
+    /** Include drafts. Off by default so the feed, RSS and sitemap never leak them. */
+    includeDrafts?: boolean
+}
+
+export const getPosts = async ({ includeDrafts = false }: GetPostsOptions = {}): Promise<Post[]> => {
     const contentDir = path.join(process.cwd(), 'content')
     const files = await fs.readdir(contentDir)
     const mdxFiles = files.filter((f) => f.endsWith('.mdx'))
@@ -31,7 +39,11 @@ export const getPosts = async (): Promise<Post[]> => {
         })
     )
 
-    posts.sort((a, b) => new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime());
-    
-    return posts
+    const visible = includeDrafts
+        ? posts
+        : posts.filter((post) => !post.metadata.draft)
+
+    visible.sort((a, b) => new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime());
+
+    return visible
 }
