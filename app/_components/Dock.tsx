@@ -1,5 +1,6 @@
 'use client';
 import Logo from '@/components/Logo';
+import { ModeToggle } from '@/components/ModeToggle';
 import { Separator } from '@/components/ui/separator';
 import { AnimatePresence, motion } from 'motion/react';
 import { redirect, RedirectType } from 'next/navigation';
@@ -44,6 +45,8 @@ const Dock = () => {
           </li>
         ))}
       </ul>
+      <Separator orientation="vertical" className="ml-2 mr-1 bg-border/60" />
+      <ModeToggle />
     </div>
   );
 };

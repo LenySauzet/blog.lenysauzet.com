@@ -28,6 +28,22 @@ Two constraints worth knowing before writing tests:
 `vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
 determinism. jsdom is pinned to v26: v29 needs `require(ESM)`, which lands in Node 22.12.
 
+## Branch workflow
+
+One component per branch, PR into `main`, squash-merge, delete the branch. `main` is what
+deploys, so **do not commit straight to it** — every change goes through a branch.
+
+**Never stack branches.** Three rules keep it that way:
+
+1. Branch from an up-to-date `main` (`git checkout main && git pull` first).
+2. If a feature needs another feature's code, **merge that one into `main` first** — never
+   branch B off branch A. A cross-branch dependency is the signal to merge, not to stack.
+3. Shared foundations (the Vitest setup, design tokens, `Image`, `List`) already live on `main`,
+   so independent components can be built in parallel and merged in any order.
+
+Squash-merging a stack after the fact is painful (deleting a base branch can *close* its
+dependent PRs) — the rules above avoid ever getting there.
+
 ## Architecture
 
 **Next.js 16 App Router** with static generation. All pages are Server Components by default; add `'use client'` only when using hooks or browser APIs.
@@ -85,7 +101,13 @@ paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It 
 
 **Tailwind CSS v4** with Shadcn/UI. No separate style files — all styling is inline `className`. Use `cn()` from `@/lib/utils` for conditional merging.
 
-The color system is oklch-based with a single `--base-hue: 262.04` (violet) root variable defined in `app/globals.css`. Semantic tokens (`--foreground`, `--primary`, `--muted-foreground`, etc.) map to Tailwind color utilities. Dark mode is managed by `next-themes` via the `.dark` class.
+The color system is oklch-based with a single `--base-hue: 262.04` (violet) root variable defined in `app/globals.css`. Semantic tokens (`--foreground`, `--primary`, `--muted-foreground`, etc.) map to Tailwind color utilities. **Retheming the whole site is one line** — change `--base-hue` and every oklch token shifts with it; that is the point of the shadcn token layer, so never hardcode a colour that should follow it.
+
+### Theming (light / dark)
+
+`next-themes` owns the theme, writing `light`/`dark` as a class on `<html>` (`attribute="class"`, `defaultTheme="dark"`, `enableSystem`). **Never hardcode `dark` on `<body>` or any element** — that force-applies dark and breaks the toggle (it was a bug once; don't reintroduce it). Both palettes live in `app/globals.css`: `:root` is light, `.dark` overrides. Because every component styles with tokens, supporting both modes is automatic — verify new work in *both* before calling it done.
+
+`components/ModeToggle` (Light / Dark / System) is the switcher, mounted in the Dock (`app/_components/Dock.tsx`). `<html suppressHydrationWarning>` plus next-themes' injected script avoids the theme flash. Mobile chrome colour follows the OS via the `themeColor` viewport export in `app/layout.tsx`.
 
 Font CSS variables are injected by Next.js font optimization in `app/layout.tsx`: `--font-display` (Geist), `--font-serif` (Instrument Serif), `--font-mono-code` (Fira Code), `--font-mono` (Departure Mono), `--font-signature`.
 

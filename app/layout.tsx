@@ -1,6 +1,7 @@
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
+import type { Viewport } from 'next';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
@@ -35,6 +36,16 @@ const SignatureDecember = localFont({
 });
 
 export const metadata = getRootMetadata();
+
+// Colours the mobile browser chrome to match the page. Static media queries
+// track the OS preference; a manual toggle away from it is a deliberate,
+// accepted trade-off for not shipping a client effect just for the chrome.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+  ],
+};
 
 export default function RootLayout({
   children,
