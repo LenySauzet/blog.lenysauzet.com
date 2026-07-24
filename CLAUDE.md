@@ -101,7 +101,9 @@ paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It 
 
 **Tailwind CSS v4** with Shadcn/UI. No separate style files — all styling is inline `className`. Use `cn()` from `@/lib/utils` for conditional merging.
 
-The color system is oklch-based with a single `--base-hue: 262.04` (violet) root variable defined in `app/globals.css`. Semantic tokens (`--foreground`, `--primary`, `--muted-foreground`, etc.) map to Tailwind color utilities. **Retheming the whole site is one line** — change `--base-hue` and every oklch token shifts with it; that is the point of the shadcn token layer, so never hardcode a colour that should follow it.
+The color system is oklch-based with a single `--base-hue: 262.04` root variable defined in `app/globals.css`. Semantic tokens (`--foreground`, `--primary`, `--muted-foreground`, etc.) map to Tailwind color utilities. **Retheming the whole site is one line** — change `--base-hue` and every oklch token shifts with it; that is the point of the shadcn token layer, so never hardcode a colour that should follow it.
+
+**`--primary` is the thematic accent** — the one bright blue every active/selected state shares (primary buttons, checked checkboxes, switched-on toggles, radio dots, list markers, callout accents). This is the shadcn model: components style their active state with `bg-primary`/`text-primary`/`border-primary`, so a new interactive component is coherent for free. Do **not** reach for `--link` (that is specifically the hyperlink colour) or `--accent` (shadcn's muted hover surface) for an accent — use `primary`.
 
 ### Theming (light / dark)
 

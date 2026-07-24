@@ -11,8 +11,8 @@ const FootnoteRef = ({ id }: FootnoteRefProps) => (
       font-mono font-normal [font-variant-numeric:tabular-nums]
       border border-transparent
       w-fit min-w-[12px] h-[14px] p-px
-      focus-within:border-link focus-within:text-link
-      hover:border-link hover:text-link
+      focus-within:border-primary focus-within:text-primary
+      hover:border-primary hover:text-primary
       transition-colors
     "
   >
