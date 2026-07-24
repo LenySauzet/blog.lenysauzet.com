@@ -1,17 +1,25 @@
-import { InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
+import { InformationCircleIcon, OctagonIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// No vertical margin: posts lay blocks out in a flex column with its own gap,
-// like every other prose element here.
-const calloutVariants = cva('relative rounded-xl border p-4', {
+// HugeIcons has no octagon-with-alert, so compose its octagon with an
+// exclamation to match the reference's danger glyph.
+const OctagonAlertIcon: IconSvgElement = [
+  ...OctagonIcon,
+  ['path', { d: 'M12 8.5V13', key: 'octagon-alert-stem' }],
+  ['path', { d: 'M12 16H12.01', key: 'octagon-alert-dot' }],
+];
+
+// my-2 on top of the post's own 20px block gap: callouts want a touch more room
+// than plain paragraphs, and flex margins there do not collapse.
+const calloutVariants = cva('relative my-2 rounded-xl border px-4 py-3', {
   variants: {
     variant: {
-      info: 'border-primary/15 bg-primary/[0.06]',
-      danger: 'border-destructive/15 bg-destructive/[0.06]',
+      info: 'border-primary/15 bg-primary/[0.06] dark:border-primary/[0.08]',
+      danger: 'border-destructive/15 bg-destructive/[0.06] dark:border-destructive/[0.08]',
     },
   },
   defaultVariants: { variant: 'info' },
@@ -32,7 +40,7 @@ type CalloutVariant = NonNullable<VariantProps<typeof calloutVariants>['variant'
 
 const variantIcon: Record<CalloutVariant, IconSvgElement> = {
   info: InformationCircleIcon,
-  danger: SpamIcon,
+  danger: OctagonAlertIcon,
 };
 
 const variantAnnounce: Record<CalloutVariant, string> = {
@@ -55,7 +63,7 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
       {label ? (
         <span
           className={cn(
-            'absolute -top-4 -right-2 rounded-lg px-2.5 py-1 text-sm font-medium select-none',
+            'absolute -top-4 -right-2 rounded-lg px-2.5 py-1.5 text-sm font-medium select-none',
             badgeColor({ variant })
           )}
         >
@@ -65,11 +73,11 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
         <span
           aria-hidden="true"
           className={cn(
-            'absolute -top-5 -right-5 grid place-items-center rounded-full border-[6px] border-background p-1',
+            'absolute -top-5 -right-5 grid place-items-center rounded-full border-[6px] border-background p-1.5',
             badgeColor({ variant })
           )}
         >
-          <HugeiconsIcon icon={variantIcon[variant]} size={18} strokeWidth={2.5} />
+          <HugeiconsIcon icon={variantIcon[variant]} size={20} strokeWidth={2.5} />
         </span>
       )}
 
