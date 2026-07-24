@@ -63,8 +63,7 @@ describe('ListItem', () => {
       </List>
     );
 
-    // The arrow is presentational; the list role comes from the ul/li. Screen
-    // readers must not announce it, so the marker carries aria-hidden and the
+    // The arrow is presentational, so the marker carries aria-hidden and the
     // item's accessible text is just its content.
     const item = screen.getByRole('listitem');
     const marker = item.querySelector('[data-list-marker]');
@@ -74,9 +73,8 @@ describe('ListItem', () => {
   });
 
   it('gives ordered lists the counter hook its CSS targets', () => {
-    // The number is drawn by a CSS counter on this marker element (see
-    // app/globals.css), which jsdom cannot render — so assert the hook exists
-    // rather than the glyph.
+    // The number is a CSS counter jsdom can't render (see app/globals.css), so
+    // assert the marker hook exists rather than the glyph.
     render(
       <List variant="ordered">
         <ListItem>First</ListItem>

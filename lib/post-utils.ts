@@ -8,7 +8,7 @@ type Post = {
         description: string
         date: string
         tags: string[]
-        /** When true, the post is reachable by URL but hidden from every public listing. */
+        /** Reachable by URL but hidden from every public listing. */
         draft?: boolean
     }
     content: string,
@@ -16,7 +16,7 @@ type Post = {
 }
 
 type GetPostsOptions = {
-    /** Include drafts. Off by default so the feed, RSS and sitemap never leak them. */
+    /** Off by default so the feed, RSS and sitemap never leak drafts. */
     includeDrafts?: boolean
 }
 

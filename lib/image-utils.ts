@@ -3,7 +3,7 @@ import 'server-only';
 import { imageSize } from 'image-size';
 import { cache } from 'react';
 
-/** Header bytes requested when probing. Enough for PNG/JPEG/WebP/AVIF metadata. */
+// Enough header bytes for PNG/JPEG/WebP/AVIF metadata.
 const PROBE_BYTE_LENGTH = 65_535;
 
 interface ImageDimensions {
@@ -11,21 +11,9 @@ interface ImageDimensions {
   height: number;
 }
 
-/**
- * Reads an image's intrinsic dimensions straight from its header bytes.
- *
- * next/image needs width and height to reserve space and avoid layout shift,
- * but the CDN does not expose them and hardcoding them in every post is both
- * tedious and prone to drift. Posts are statically generated, so this runs at
- * build time only and costs nothing at runtime.
- *
- * A ranged request keeps this cheap: only the header is downloaded, not the
- * whole file. `cache()` collapses repeat lookups of the same source within a
- * render pass.
- *
- * Throws rather than falling back to a guess: a wrong dimension ships as
- * layout shift on every visit, which is worse than a failed build.
- */
+// Reads an image's intrinsic dimensions from its header bytes via a ranged
+// request, at build time only. Throws rather than guessing: a wrong dimension
+// ships as layout shift on every visit, which is worse than a failed build.
 export const getImageDimensions = cache(
   async (url: string): Promise<ImageDimensions> => {
     let response: Response;

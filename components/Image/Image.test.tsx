@@ -11,8 +11,8 @@ vi.mock('@/lib/image-utils', () => ({
   getImageDimensions: vi.fn(async () => ({ width: 960, height: 731 })),
 }));
 
-// Stands in for the client island: these tests are about what the server
-// resolves and hands over, not about the zoom interaction.
+// Stub the client island: these tests cover what the server resolves and hands
+// over, not the zoom interaction.
 vi.mock('./ImageZoom', () => ({
   default: (props: ImageZoomProps) => (
     <img
