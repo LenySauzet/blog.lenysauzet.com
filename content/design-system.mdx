@@ -1,0 +1,151 @@
+export const metadata = {
+  title: 'Design System',
+  description:
+    'A living reference for every component available when writing a post on this blog — typography, links, lists, media, footnotes and more, each shown live next to its source.',
+  tags: ['design-system', 'components', 'reference'],
+  date: '2026-07-19',
+  draft: true,
+};
+
+This page is a living reference for everything you can write in a post. Each
+section shows a component rendered live, and — where it is not obvious from
+markdown — the source that produced it. It is hidden from the feed and exists
+only to check the pieces still look right together.
+
+## Typography
+
+Headings map straight from markdown. A post's title is its `h1`, so bodies start
+at `h2`; `h3` and `h4` carry the structure below it.
+
+### This is a third-level heading
+
+#### And this is a fourth-level heading
+
+Body copy is set in Geist. It carries **strong emphasis** for the load-bearing
+words, _italic emphasis_ for a lighter touch, and `inline code` for identifiers,
+file names, and anything you would type verbatim.
+
+## Links
+
+Links render through the `Anchor` component. External links show a favicon and
+open in a new tab; internal links stay in place.
+
+An [external link](https://maximeheckel.com) sits inline in a sentence, right
+next to an [internal one](/) — the first carries its site's favicon, the second
+does not.
+
+<Anchor href="https://developer.mozilla.org/en-US/docs/Web/CSS" discreet>
+  A discreet variant tones the link down for dense reference lists.
+</Anchor>
+
+## Blockquote
+
+> A blockquote sets an aside apart from the surrounding prose — a definition, a
+> pulled quote, a caveat worth pausing on.
+
+## Lists
+
+Unordered lists carry an arrow marker in the brand colour:
+
+- First item
+- Second item
+- Third item
+
+Ordered lists swap the arrow for a number:
+
+1. First step
+2. Second step
+3. Third step
+
+Lists nest without any extra effort — an ordered list inside an unordered one
+keeps its numbers under the parent's arrow:
+
+- Parent item
+  1. Nested first
+  2. Nested second
+- Another parent
+  - Nested arrow one
+  - Nested arrow two
+
+## Images
+
+Images are CDN-backed and zoomable — click to open the lightbox, click anywhere
+or press Escape to dismiss. Dimensions are read at build time, so a post only
+needs a `src` and an `alt`.
+
+```mdx
+<Image src="blog/halftone.png" alt="A classic halftone gradient" />
+```
+
+<Image src="blog/halftone.png" alt="A classic halftone gradient" />
+
+## Video
+
+`VideoPlayer` embeds a CDN-hosted clip with its own controls, autoplay and loop.
+It honours reduced-motion preferences by not autoplaying when the reader asks for
+less motion.
+
+```mdx
+<VideoPlayer src="blog/demo.mp4" autoPlay muted loop width={663} height={398} />
+```
+
+<VideoPlayer
+  src="https://cdn.maximeheckel.com/videos/blog/halftone-compilation-compressed.mp4"
+  autoPlay
+  muted
+  loop
+  width={663}
+  height={398}
+/>
+
+## Footnotes
+
+A footnote reference marks a spot in the text <FootnoteRef id="1" />, and the
+list at the end resolves it — the reference and the entry link to each other.
+
+```mdx
+A claim worth sourcing <FootnoteRef id="1" />.
+
+<FootnotesList
+  notes={[
+    { id: 1, content: <p>The supporting note, with its own <a href="...">link</a>.</p> },
+  ]}
+/>
+```
+
+## Code
+
+Inline `code` sits in a sentence, while a fenced block carries a full snippet:
+
+```tsx
+export function greet(name: string) {
+  return `Hello, ${name}`;
+}
+```
+
+## Dividers
+
+A horizontal rule separates two stretches of prose when a heading would be too
+much.
+
+---
+
+That is the whole vocabulary. If a component is missing from this page, it is
+either not yet wired into MDX or not meant for prose.
+
+<FootnotesList
+  notes={[
+    {
+      id: 1,
+      content: (
+        <p>
+          Footnotes are resolved by{' '}
+          <a href="https://github.com/LenySauzet/blog.lenysauzet.com">
+            the FootnotesList component
+          </a>
+          , which renders this list and links each entry back to its reference.
+        </p>
+      ),
+    },
+  ]}
+/>
