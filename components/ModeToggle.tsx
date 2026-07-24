@@ -12,11 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-/**
- * Light / Dark / System switcher. `useTheme` from next-themes writes the class
- * on `<html>`; the sun and moon cross-fade through `dark:` variants, which key
- * off that class. `relative` anchors the absolutely-positioned moon.
- */
+// The sun/moon cross-fade through `dark:` variants; `relative` anchors the
+// absolutely-positioned moon.
 export function ModeToggle() {
   const { setTheme } = useTheme();
 

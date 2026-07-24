@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getImageDimensions } from './image-utils';
 
-/** Smallest byte sequence image-size can read a PNG's dimensions from. */
 function pngHeader(width: number, height: number): Uint8Array {
   const bytes: number[] = [
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // signature
@@ -33,8 +32,7 @@ function respondWith(body: Uint8Array, init: Partial<Response> = {}) {
 }
 
 describe('getImageDimensions', () => {
-  // `restoreAllMocks` only undoes `vi.spyOn`, and this file stubs a global —
-  // so it would look like isolation while doing nothing.
+  // `restoreAllMocks` only undoes `vi.spyOn`; this file stubs a global.
   beforeEach(() => {
     vi.unstubAllGlobals();
   });

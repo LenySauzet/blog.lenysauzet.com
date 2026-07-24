@@ -37,9 +37,9 @@ const SignatureDecember = localFont({
 
 export const metadata = getRootMetadata();
 
-// Colours the mobile browser chrome to match the page. Static media queries
-// track the OS preference; a manual toggle away from it is a deliberate,
-// accepted trade-off for not shipping a client effect just for the chrome.
+// Mobile browser chrome. Static media queries track the OS preference; a manual
+// theme toggle away from it is an accepted trade-off for not shipping a client
+// effect just for the chrome.
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },

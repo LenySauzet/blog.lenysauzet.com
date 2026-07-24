@@ -5,11 +5,8 @@ import { describe, expect, it } from 'vitest';
 
 import { Lightbox } from './Lightbox';
 
-/**
- * Dismissal is asserted here rather than on ImageZoom: this surface carries no
- * shared-layout morph, so its exit completes under jsdom, where every element is
- * zero-sized and Motion's layout projection never settles.
- */
+// Dismissal is asserted here, not on ImageZoom: this surface has no shared-layout
+// morph, so its exit completes under jsdom's zero-sized boxes.
 function Harness() {
   const [open, setOpen] = useState(false);
 
@@ -29,7 +26,6 @@ function Harness() {
   );
 }
 
-/** Same surface, but with `open` driven from the outside. */
 function Controlled({ open }: { open: boolean }) {
   return (
     <Lightbox
@@ -101,11 +97,9 @@ describe('Lightbox', () => {
     const { rerender } = render(<Controlled open />);
     await screen.findByRole('dialog');
 
-    // The reason this component owns its own surface instead of using a dialog
-    // primitive. Radix disables pointer events on <body> for as long as its
-    // layer is mounted, and the layer must outlive the dismiss to animate out,
-    // freezing the page for the length of the exit. Nothing here ever touches
-    // the page: `overscroll-contain` is what keeps it still while open.
+    // Why this owns its surface instead of a dialog primitive: Radix disables
+    // <body> pointer events while its layer is mounted, freezing the page for
+    // the exit. Here nothing touches the page; `overscroll-contain` holds it.
     expect(document.body.style.pointerEvents).toBe('');
 
     rerender(<Controlled open={false} />);
@@ -118,9 +112,7 @@ describe('Lightbox', () => {
 
     const surface = await open(user);
 
-    // aria-modal claims the rest of the page does not exist. Leaving focus on
-    // the trigger outside would make that a lie, and would let the next Tab
-    // land on content the surface only visually covers.
+    // aria-modal claims the page is gone, so focus must leave the trigger.
     expect(surface).toHaveFocus();
   });
 
@@ -165,9 +157,8 @@ describe('Lightbox', () => {
 
     await open(user);
 
-    // Focus can leave by means the surface does not mediate — a click, the
-    // browser chrome. Yanking it back on dismiss would discard the reader's
-    // intent.
+    // Focus can leave by means the surface doesn't mediate; yanking it back on
+    // dismiss would discard the reader's intent.
     const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
     elsewhere.focus();
     await user.keyboard('{Escape}');

@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import ImageZoom from './ImageZoom';
 
-// next/image validates remotePatterns against runtime config that Vitest does
-// not load. A plain img keeps these tests about the zoom behaviour.
+// next/image validates remotePatterns against runtime config Vitest doesn't
+// load; a plain img keeps these tests about the zoom behaviour.
 vi.mock('next/image', () => ({
   default: ({
     src,
@@ -67,7 +67,6 @@ describe('ImageZoom', () => {
 
     const dialog = await openLightbox(user);
 
-    // The dialog is already named by its title; the zoomed image is decorative.
     expect(
       within(dialog).queryByRole('img', { name: 'Distance field breakdown' })
     ).not.toBeInTheDocument();
@@ -86,6 +85,5 @@ describe('ImageZoom', () => {
   });
 });
 
-// Dismissal lives in Lightbox.test.tsx. It cannot be asserted here: the shared
-// layoutId morph never completes under jsdom, where every element measures zero,
-// so the subtree stays mounted. A real browser unmounts it — verified manually.
+// Dismissal is asserted in Lightbox.test.tsx: the shared-layoutId morph never
+// completes under jsdom's zero-sized boxes, so the subtree stays mounted here.

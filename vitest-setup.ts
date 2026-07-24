@@ -2,16 +2,10 @@ import '@testing-library/jest-dom/vitest';
 
 import { afterEach, vi } from 'vitest';
 
-/**
- * jsdom gives every element a zero-sized box, so Motion's layout projection
- * never settles and an exiting subtree would stay mounted forever. Reporting
- * reduced motion makes Motion skip transform and layout animations, which keeps
- * behavioural assertions deterministic.
- *
- * Animation fidelity is not a jsdom concern: it is verified in a real browser.
- */
-// Assigned unconditionally: jsdom ships its own matchMedia that always reports
-// `matches: false`, so a truthiness guard here would silently do nothing.
+// Report reduced motion so Motion skips transform/layout animations, which
+// never settle under jsdom's zero-sized boxes. Assigned unconditionally: jsdom
+// ships a matchMedia that always reports `matches: false`, so a guard would
+// silently do nothing.
 window.matchMedia = (query: string) =>
   ({
     matches: /prefers-reduced-motion/.test(query),
@@ -24,7 +18,7 @@ window.matchMedia = (query: string) =>
     dispatchEvent: () => false,
   }) as MediaQueryList;
 
-// Motion's press gesture constructs PointerEvents, which jsdom does not ship.
+// Motion's press gesture constructs PointerEvents, which jsdom lacks.
 if (!window.PointerEvent) {
   class PointerEventPolyfill extends MouseEvent {
     readonly pointerId: number;
