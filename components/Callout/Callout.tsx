@@ -1,25 +1,17 @@
-import { InformationCircleIcon, OctagonIcon } from '@hugeicons/core-free-icons';
+import { InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// HugeIcons has no octagon-with-alert, so compose its octagon with an
-// exclamation to match the reference's danger glyph.
-const OctagonAlertIcon: IconSvgElement = [
-  ...OctagonIcon,
-  ['path', { d: 'M12 8.5V13', key: 'octagon-alert-stem' }],
-  ['path', { d: 'M12 16H12.01', key: 'octagon-alert-dot' }],
-];
-
-// my-2 on top of the post's own 20px block gap: callouts want a touch more room
-// than plain paragraphs, and flex margins there do not collapse.
-const calloutVariants = cva('relative my-2 rounded-xl border px-4 py-3', {
+// my-3 on top of the post's own 20px block gap: callouts want more room than
+// plain paragraphs, and flex margins there do not collapse.
+const calloutVariants = cva('relative my-3 rounded-xl border px-4 py-3', {
   variants: {
     variant: {
-      info: 'border-primary/15 bg-primary/[0.06] dark:border-primary/[0.08]',
-      danger: 'border-destructive/15 bg-destructive/[0.06] dark:border-destructive/[0.08]',
+      info: 'border-primary/15 bg-primary/10 dark:border-primary/[0.08]',
+      danger: 'border-destructive/15 bg-destructive/10 dark:border-destructive/[0.08]',
     },
   },
   defaultVariants: { variant: 'info' },
@@ -40,7 +32,7 @@ type CalloutVariant = NonNullable<VariantProps<typeof calloutVariants>['variant'
 
 const variantIcon: Record<CalloutVariant, IconSvgElement> = {
   info: InformationCircleIcon,
-  danger: OctagonAlertIcon,
+  danger: SpamIcon,
 };
 
 const variantAnnounce: Record<CalloutVariant, string> = {
