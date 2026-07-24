@@ -1,15 +1,17 @@
-import { AlertCircleIcon, InformationCircleIcon } from '@hugeicons/core-free-icons';
+import { InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-const calloutVariants = cva('relative my-6 rounded-xl border p-4', {
+// No vertical margin: posts lay blocks out in a flex column with its own gap,
+// like every other prose element here.
+const calloutVariants = cva('relative rounded-xl border p-4', {
   variants: {
     variant: {
-      info: 'border-primary/20 bg-primary/[0.06]',
-      danger: 'border-destructive/25 bg-destructive/[0.06]',
+      info: 'border-primary/15 bg-primary/[0.06]',
+      danger: 'border-destructive/15 bg-destructive/[0.06]',
     },
   },
   defaultVariants: { variant: 'info' },
@@ -30,7 +32,7 @@ type CalloutVariant = NonNullable<VariantProps<typeof calloutVariants>['variant'
 
 const variantIcon: Record<CalloutVariant, IconSvgElement> = {
   info: InformationCircleIcon,
-  danger: AlertCircleIcon,
+  danger: SpamIcon,
 };
 
 const variantAnnounce: Record<CalloutVariant, string> = {
@@ -53,7 +55,7 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
       {label ? (
         <span
           className={cn(
-            'absolute -top-3.5 right-3 rounded-lg px-2.5 py-1 text-sm font-medium select-none',
+            'absolute -top-4 -right-2 rounded-lg px-2.5 py-1 text-sm font-medium select-none',
             badgeColor({ variant })
           )}
         >
@@ -63,7 +65,7 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
         <span
           aria-hidden="true"
           className={cn(
-            'absolute -top-4 -right-4 grid place-items-center rounded-full border-4 border-background p-1',
+            'absolute -top-5 -right-5 grid place-items-center rounded-full border-[6px] border-background p-1',
             badgeColor({ variant })
           )}
         >
@@ -71,7 +73,7 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
         </span>
       )}
 
-      <div className="flex flex-col gap-3 [&_p]:m-0 [&_p]:text-foreground">
+      <div className="flex flex-col gap-2 [&_p]:m-0 [&_p]:text-foreground">
         {children}
       </div>
     </aside>
