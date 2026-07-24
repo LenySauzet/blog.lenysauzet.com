@@ -43,6 +43,35 @@ does not.
 > A blockquote sets an aside apart from the surrounding prose — a definition, a
 > pulled quote, a caveat worth pausing on.
 
+## Callouts
+
+A callout pulls a note out of the flow with a tinted panel and a corner badge.
+`info` is the default; `danger` warns. A `label` swaps the corner icon for a
+short text pill.
+
+```mdx
+<Callout variant="info">The default note.</Callout>
+<Callout variant="info" label="Learn more">A note with a labelled corner.</Callout>
+<Callout variant="danger">A warning.</Callout>
+<Callout variant="danger" label="Be careful!">A warning with a label.</Callout>
+```
+
+<Callout variant="info">
+  Info callout — the default, with the info icon in the corner.
+</Callout>
+
+<Callout variant="info" label="Learn more">
+  Info callout with a labelled corner instead of the icon.
+</Callout>
+
+<Callout variant="danger">
+  Danger callout — the alert icon marks it as a warning.
+</Callout>
+
+<Callout variant="danger" label="Be careful!">
+  Danger callout with a labelled corner.
+</Callout>
+
 ## Lists
 
 Unordered lists carry an arrow marker in the brand colour:

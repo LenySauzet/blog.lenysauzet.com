@@ -1,4 +1,5 @@
 import Anchor from '@/components/Anchor/Anchor';
+import { Callout } from '@/components/Callout';
 import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
@@ -18,6 +19,7 @@ function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
 
 const components = {
   Anchor,
+  Callout,
   Image,
 
   a: Anchor,
