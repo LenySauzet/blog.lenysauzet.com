@@ -4,6 +4,16 @@ import type { Metadata } from 'next'
 const url = 'https://blog.lenysauzet.com'
 const authorUrl = 'https://lenysauzet.com'
 
+// media cdn: assets referenced from posts resolve against this origin
+const cdnUrl = 'https://cdn.lenysauzet.com'
+
+// bucket layout: relative paths in posts are namespaced by media kind, so
+// `blog/halftone.png` resolves to `{cdnUrl}/images/blog/halftone.png`
+const cdnPaths = {
+  images: 'images',
+  videos: 'videos',
+}
+
 // text content
 const title = {
   template: '%s - The Blog of Lény Sauzet',
@@ -125,6 +135,8 @@ const rss = {
 const siteConfig = {
   url,
   authorUrl,
+  cdnUrl,
+  cdnPaths,
   title,
   description,
   descriptionShort,

@@ -2,9 +2,12 @@
 import { useInView, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
+import { resolveVideoUrl } from '@/lib/cdn';
+
 import { MediaPlayer } from './MediaPlayer';
 
 interface VideoPlayerProps {
+  /** Path relative to the CDN's videos prefix, or an absolute URL. */
   src: string;
   alt?: string;
   type?: string;
@@ -62,7 +65,7 @@ const VideoPlayer = ({
         >
           {glow && <MediaPlayer.Glow />}
           <MediaPlayer.Video width={width} height={height}>
-            <source src={src} type={type} />
+            <source src={resolveVideoUrl(src)} type={type} />
           </MediaPlayer.Video>
           {title && (
             <MediaPlayer.VideoOverlay>{title}</MediaPlayer.VideoOverlay>
