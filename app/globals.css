@@ -7,7 +7,6 @@
 @theme inline {
   
   --color-secondary-background: var(--secondary-background);
-  --color-link: var(--link);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-display: var(--font-display);
@@ -76,15 +75,14 @@
   --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);
 
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
-  --link: oklch(64.6% 0.172 var(--base-hue));
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 var(--base-hue));
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 var(--base-hue));
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 var(--base-hue));
-  --primary: oklch(0.488 0.243 var(--base-hue));
-  --primary-foreground: oklch(0.97 0.014 var(--base-hue));
+  --primary: oklch(0.58 0.2 var(--base-hue));
+  --primary-foreground: oklch(0.21 0.04 var(--base-hue));
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
   --muted: oklch(0.967 0.001 var(--base-hue));
@@ -113,15 +111,14 @@
 
 .dark {
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
-  --link: oklch(61.53% 0.1675 var(--base-hue));
   --background: oklch(14.68% 0.01 var(--base-hue));
   --foreground: oklch(93.66% 0.027 var(--base-hue));
   --card: oklch(0.21 0.006 var(--base-hue));
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 var(--base-hue));
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.42 0.18 var(--base-hue));
-  --primary-foreground: oklch(0.97 0.014 var(--base-hue));
+  --primary: oklch(0.63 0.17 var(--base-hue));
+  --primary-foreground: oklch(0.21 0.04 var(--base-hue));
   --secondary: oklch(0.274 0.006 var(--base-hue));
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 var(--base-hue));
@@ -161,13 +158,8 @@
   color: oklch(61.53% 0.1675 var(--base-hue));
 }
 
-/*
- * Ordered prose lists (components/List). Every list item renders a decorative
- * arrow marker; an ordered list swaps it for a number. This lives in CSS
- * because a counter cannot be expressed as a Tailwind utility — `content` with
- * `counter()` is not a class. Scoped to direct children so a nested list, which
- * is its own `data-list` element, keeps its own numbering.
- */
+/* CSS counters have no Tailwind equivalent. Scoped to direct children so nested
+   lists keep their own numbering. */
 ol[data-list='ordered'] {
   counter-reset: list-marker;
 }

@@ -10,7 +10,7 @@ import { cva, VariantProps } from 'class-variance-authority';
 import Link from 'next/link';
 
 const anchorVariants = cva(
-  'text-link inline-flex gap-1 items-baseline leading-none cursor-pointer group w-fit no-underline',
+  'text-primary inline-flex gap-1 items-baseline leading-none cursor-pointer group w-fit no-underline',
   {
     variants: {
       variant: {
