@@ -71,7 +71,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
             // axes: capping both would letterbox or distort the image.
             width: `min(var(--zoom-max-inline-size), calc(${ZOOM_MAX_BLOCK_SIZE} * ${props.width} / ${props.height}))`,
           }}
-          className="[--zoom-max-inline-size:97dvw] md:[--zoom-max-inline-size:80dvw]"
+          className="[--zoom-max-inline-size:calc(100dvw_-_4rem)] md:[--zoom-max-inline-size:80dvw]"
         >
           <PostImage alt="" {...props} />
         </motion.div>
