@@ -73,10 +73,12 @@ export function Sandpack({
     if (!wrap) return;
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
     const update = () => {
-      const scroller = wrap.querySelector('.cm-scroller');
+      const scroller = wrap.querySelector<HTMLElement>('.cm-scroller');
       if (!scroller) return;
       const gutter = wrap.querySelector('.cm-gutters');
       wrap.style.setProperty('--gutter-w', gutter ? `${gutter.getBoundingClientRect().width}px` : '0px');
+      // The horizontal scrollbar's own height, so the fades stop above it.
+      wrap.style.setProperty('--scrollbar-h', `${scroller.offsetHeight - scroller.clientHeight}px`);
       const max = scroller.scrollWidth - scroller.clientWidth;
       const left = max <= 1 ? 0 : clamp(scroller.scrollLeft / FADE);
       const right = max <= 1 ? 0 : clamp((max - scroller.scrollLeft) / FADE);
@@ -127,12 +129,12 @@ export function Sandpack({
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute z-[2] w-[56px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
-                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: '14px', left: 'var(--gutter-w, 0px)', opacity: 'var(--edge-left, 0)' }}
+                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: 'var(--scrollbar-h, 0px)', left: 'var(--gutter-w, 0px)', opacity: 'var(--edge-left, 0)' }}
                 />
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute right-0 z-[2] w-[56px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
-                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: '14px', opacity: 'var(--edge-right, 0)' }}
+                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: 'var(--scrollbar-h, 0px)', opacity: 'var(--edge-right, 0)' }}
                 />
               </div>
             ) : null}

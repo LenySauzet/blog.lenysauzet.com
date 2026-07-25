@@ -18,13 +18,15 @@ import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+// grid place-items-center + shrink-0 keep the icon dead-centre; the transition
+// is scoped so a stray layout change can never animate into a visible drift.
 const toolbarButton =
-  'grid size-8 cursor-pointer place-items-center rounded-lg text-muted-foreground transition-all duration-150 hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-90 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
+  'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground transition-[transform,background-color,color] duration-150 hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-90 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
 
 // The shared tooltip inverts to the foreground colour; recolour it to the code
-// surface so it reads as a dark popover, arrow included.
+// surface as a dark popover (its arrow is dropped via hideArrow).
 const tooltipClass =
-  'border border-[var(--code-border)] bg-[var(--code-bg)] text-foreground [&_svg]:bg-[var(--code-bg)] [&_svg]:fill-[var(--code-bg)]';
+  'border border-[var(--code-border)] bg-[var(--code-bg)] text-foreground';
 
 // Tooltip + hover/press feedback, shared by every toolbar control.
 export function IconToolbarButton({
@@ -50,7 +52,7 @@ export function IconToolbarButton({
           <HugeiconsIcon icon={icon} size={16} strokeWidth={2} />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" className={tooltipClass}>{label}</TooltipContent>
+      <TooltipContent side="top" hideArrow className={tooltipClass}>{label}</TooltipContent>
     </Tooltip>
   );
 }
@@ -71,7 +73,7 @@ export function RunButton() {
           <HugeiconsIcon icon={PlayIcon} size={20} strokeWidth={2} />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" className={tooltipClass}>Run</TooltipContent>
+      <TooltipContent side="top" hideArrow className={tooltipClass}>Run</TooltipContent>
     </Tooltip>
   );
 }
@@ -89,7 +91,7 @@ export function OpenInCodeSandboxButton() {
           <HugeiconsIcon icon={Layers01Icon} size={16} strokeWidth={2} />
         </UnstyledOpenInCodeSandboxButton>
       </TooltipTrigger>
-      <TooltipContent side="top" className={tooltipClass}>Open in CodeSandbox</TooltipContent>
+      <TooltipContent side="top" hideArrow className={tooltipClass}>Open in CodeSandbox</TooltipContent>
     </Tooltip>
   );
 }

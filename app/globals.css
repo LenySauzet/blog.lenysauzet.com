@@ -354,22 +354,26 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   background: var(--code-border);
 }
 .sandpack-root .sp-tabs {
+  align-items: stretch;
   min-height: 48px;
   padding: 0 0.75rem;
   border-bottom: 1px solid var(--code-border);
   background: var(--background);
 }
 /* Active file tab: a rounded-top tab in the editor colour that opens into the
-   content, its border curving through radial-gradient corner notches (ported
-   from Maxime Heckel's). The tab bar sits on the darker page background. */
+   content, its border curving through layered radial-gradient corner notches
+   (ported from Maxime Heckel's). The tab stretches to the bar's bottom so its
+   2px editor-coloured bottom border hides the bar's divider under it. */
 .sandpack-root .sp-tab-container {
   position: relative;
+  display: flex;
+  align-items: center;
   margin-top: 4px;
   outline: none !important;
   border: 1px solid transparent;
   border-bottom: none;
-  border-top-left-radius: var(--radius-md);
-  border-top-right-radius: var(--radius-md);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 .sandpack-root .sp-tab-container[aria-selected='true'] {
   border-color: var(--code-border);
@@ -411,7 +415,6 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
     radial-gradient(circle at top right, transparent 7px, var(--code-bg) 7px);
 }
 .sandpack-root .sp-tab-button {
-  height: 40px;
   padding: 0 0.75rem;
   border: none !important;
   border-radius: 0 !important;

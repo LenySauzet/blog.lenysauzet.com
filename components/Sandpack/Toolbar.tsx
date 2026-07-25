@@ -46,7 +46,7 @@ export function Toolbar({
   );
 
   return (
-    <div className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-[var(--code-border)] bg-[var(--code-bg)] px-2">
+    <div className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-[var(--code-border)] bg-[var(--background)] px-2">
       <div className="flex items-center gap-1">
         <ToggleCodeButton onClick={onToggleCode} />
         {tabButton('preview', 'Preview')}
