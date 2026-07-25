@@ -284,6 +284,63 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   color: var(--shiki-foreground);
 }
 
+/* Sandpack live editor — overrides its internal sp- and cm- classes (out of
+   Tailwind's reach) so it matches the code-block surface. */
+.sandpack-root .sp-layout {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-xl);
+  background: transparent;
+}
+.sandpack-root .sp-editor {
+  min-width: 0;
+  border-right: 1px solid var(--code-border);
+}
+.sandpack-root .cm-scroller {
+  padding: 0.5rem 0 !important;
+}
+.sandpack-root .cm-content {
+  padding: 0 !important;
+}
+.sandpack-root .cm-gutters {
+  border: none;
+  background: var(--code-bg);
+}
+.sandpack-root .cm-gutterElement {
+  min-width: 2.5rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono-code);
+  font-size: 12px;
+  opacity: 0.65;
+}
+.sandpack-root .sp-tabs {
+  border-bottom: 1px solid var(--code-border);
+  background: var(--background);
+}
+.sandpack-root .sp-tab-button {
+  font-family: var(--font-mono-code);
+}
+.sandpack-root .sp-console-actions {
+  display: none;
+}
+.sandpack-root .sp-preview-container,
+.sandpack-root .sp-preview-iframe {
+  background: var(--code-bg);
+}
+.sandpack-root.sandpack-fullscreen .sp-layout {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  height: 100dvh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+.sandpack-root.sandpack-fullscreen .sp-layout iframe {
+  height: 100dvh !important;
+}
+
 .badge-border {
   border: 1.5px solid oklch(77.16% 0.028 var(--base-hue) / 15%);
 }
