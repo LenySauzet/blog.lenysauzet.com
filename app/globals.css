@@ -284,6 +284,215 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   color: var(--shiki-foreground);
 }
 
+/* Sandpack live editor — overrides its internal sp- and cm- classes (out of
+   Tailwind's reach). Editor and preview are separate rounded cards, and the
+   widget bleeds wider than the prose column on desktop, as in the reference. */
+.sandpack-root .sp-layout {
+  gap: 1rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+@media (min-width: 960px) {
+  .sandpack-root {
+    width: calc(100% + 250px);
+    margin-left: -125px;
+    margin-right: -125px;
+  }
+}
+@media (max-width: 959px) {
+  .sandpack-root .sp-layout {
+    flex-direction: column;
+  }
+  .sandpack-root .sp-editor-wrap,
+  .sandpack-root .sp-preview-card {
+    width: 100%;
+    min-width: 0;
+  }
+}
+.sandpack-root .sp-editor {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+}
+.sandpack-root .cm-scroller {
+  padding: 0.5rem 0 !important;
+}
+.sandpack-root .cm-content {
+  padding: 0 !important;
+}
+.sandpack-root .cm-gutter {
+  padding: 0 0.5rem !important;
+}
+.sandpack-root .cm-gutters {
+  border: none;
+  /* Opaque, so code scrolled left clips cleanly behind the line numbers. */
+  background: var(--code-bg);
+  /* Raise above the code so the fade below (its ::after) covers it, and let that
+     pseudo-element spill past the gutter's right edge. */
+  z-index: 2;
+  overflow: visible;
+}
+/* Left edge fade, painted by the gutter itself so it stays glued to the sticky
+   line-number column exactly — including through macOS elastic overscroll, where
+   a wrapper-anchored overlay separates from the gutter and leaks code. Opacity
+   tracks the horizontal scroll via --edge-left (set on the wrapper, inherited). */
+.sandpack-root .cm-gutters::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 3rem;
+  pointer-events: none;
+  background: linear-gradient(to right, var(--code-bg), transparent);
+  opacity: var(--edge-left, 0);
+  transition: opacity 150ms;
+}
+.sandpack-root .cm-gutterElement {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono-code);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  opacity: 1;
+}
+/* Thin, themed scrollbars (both axes); keep the corner transparent. */
+.sandpack-root .cm-scroller::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sandpack-root .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sandpack-root .cm-scroller::-webkit-scrollbar-thumb {
+  border: 2px solid var(--code-bg);
+  border-radius: 8px;
+  background: var(--code-border);
+}
+.sandpack-root .cm-scroller::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* UnstyledOpenInCodeSandboxButton nests a <form> inside its button; take it out
+   of flow so it doesn't shove the icon off-centre while staying clickable. */
+.sandpack-root [aria-label='Open in CodeSandbox'] form {
+  position: absolute;
+  inset: 0;
+}
+.sandpack-root .sp-tabs {
+  position: relative;
+  border: none !important;
+  border-bottom: 1px solid var(--code-border) !important;
+  background: var(--background);
+}
+.sandpack-root .sp-tabs-scrollable-container {
+  padding: 0 4px;
+}
+/* Active file tab: a rounded-top tab in the editor colour that opens into the
+   content, its border curving through layered radial-gradient corner notches
+   (ported verbatim from Maxime Heckel's design system). */
+.sandpack-root .sp-tab-container {
+  --tab-border-color: transparent;
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 80px;
+  padding: 0 0.5rem;
+  margin-top: 4px;
+  margin-bottom: 0;
+  white-space: nowrap;
+  outline: none !important;
+  border-top: 1px solid var(--tab-border-color);
+  border-left: 1px solid var(--tab-border-color);
+  border-right: 1px solid var(--tab-border-color);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.sandpack-root .sp-tab-container > button {
+  margin: 0 auto;
+  font-family: var(--font-mono-code);
+  cursor: pointer;
+}
+.sandpack-root .sp-tab-container[aria-selected='true'] {
+  --tab-border-color: var(--code-border);
+  background: var(--code-bg);
+  border-bottom: 2px solid var(--code-bg);
+  margin-bottom: 0;
+  color: var(--foreground) !important;
+}
+.sandpack-root .sp-tab-container[aria-selected='true']::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: -9px;
+  width: 9px;
+  height: 9px;
+  background:
+    radial-gradient(
+      circle at top left,
+      transparent 8px,
+      var(--code-border) 8px,
+      var(--code-border) 9px,
+      transparent 9px
+    ),
+    radial-gradient(circle at top left, transparent 7px, var(--code-bg) 7px);
+}
+.sandpack-root .sp-tab-container[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -9px;
+  width: 9px;
+  height: 9px;
+  background:
+    radial-gradient(
+      circle at top right,
+      transparent 8px,
+      var(--code-border) 8px,
+      var(--code-border) 9px,
+      transparent 9px
+    ),
+    radial-gradient(circle at top right, transparent 7px, var(--code-bg) 7px);
+}
+.sandpack-root .sp-console-actions {
+  display: none;
+}
+/* Masks CodeMirror's momentary reflow when the active file changes: the mask
+   remounts on file switch (keyed) and fades from opaque to clear. */
+.sandpack-root .sp-switch-mask {
+  animation: sp-switch-fade 260ms ease-out forwards;
+}
+@keyframes sp-switch-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.sandpack-root .sp-preview-container,
+.sandpack-root .sp-preview-iframe {
+  background: transparent;
+}
+.sandpack-root.sandpack-fullscreen .sp-layout {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  height: 100dvh;
+  margin: 0;
+  gap: 0;
+}
+.sandpack-root.sandpack-fullscreen .sp-editor-wrap,
+.sandpack-root.sandpack-fullscreen .sp-preview-card {
+  border-radius: 0;
+}
+.sandpack-root.sandpack-fullscreen .sp-layout iframe {
+  height: 100dvh !important;
+}
+
 .badge-border {
   border: 1.5px solid oklch(77.16% 0.028 var(--base-hue) / 15%);
 }

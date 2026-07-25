@@ -4,6 +4,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
+import { Sandpack } from '@/components/Sandpack';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
@@ -22,6 +23,7 @@ const components = {
   Anchor,
   Callout,
   Image,
+  Sandpack,
 
   a: Anchor,
   h1: ({ children }) => (
