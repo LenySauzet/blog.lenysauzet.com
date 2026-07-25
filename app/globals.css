@@ -229,7 +229,7 @@ ol[data-list='ordered'] > li::before {
 /* Fenced code blocks (rehype-pretty-code + Shiki). These target generated
    markup — data attributes and per-line spans Tailwind classes cannot reach —
    so they live here alongside the list counters above. */
-[data-rehype-pretty-code-figure] pre {
+figure[data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
   padding: 0.75rem 0;
   background: transparent;
@@ -237,21 +237,21 @@ ol[data-list='ordered'] > li::before {
   font-size: 0.875rem;
   line-height: 1.7;
 }
-[data-rehype-pretty-code-figure] code {
+figure[data-rehype-pretty-code-figure] code {
   display: grid;
   counter-reset: line;
 }
-[data-rehype-pretty-code-figure] [data-line] {
+figure[data-rehype-pretty-code-figure] [data-line] {
   min-height: 1lh;
   padding: 0 1rem;
   border-left: 3px solid transparent;
 }
 /* Hovering any line tints it, exactly as a highlighted line is tinted. */
-[data-rehype-pretty-code-figure] [data-line]:hover {
+figure[data-rehype-pretty-code-figure] [data-line]:hover {
   background-color: var(--code-emphasis);
 }
 /* Line numbers, always on — matches the reference design. */
-[data-rehype-pretty-code-figure] code > [data-line]::before {
+figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);
   counter-increment: line;
   display: inline-block;
@@ -261,24 +261,27 @@ ol[data-list='ordered'] > li::before {
   text-align: right;
   opacity: 0.65;
 }
-[data-rehype-pretty-code-figure] [data-highlighted-line] {
+figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
   border-left-color: var(--primary);
   background-color: var(--code-emphasis);
 }
-[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);
 }
-[data-rehype-pretty-code-title] {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--code-border);
-  color: var(--foreground);
-  font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 500;
+
+/* Inline code — a mini code-block: same surface + border, tokens coloured by
+   Shiki (defaultLang.inline). Distinguished from block code by ancestor, which
+   a component override cannot see but this selector can. */
+:not(pre) > code {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--code-border);
+  background-color: var(--code-bg);
+  padding: 0.1em 0.4em;
+  font-family: var(--font-mono-code);
+  font-size: 0.85em;
+  color: var(--shiki-foreground);
 }
 
 .badge-border {

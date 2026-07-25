@@ -142,5 +142,25 @@ export const codeTheme = {
       scope: ['keyword.operator', 'storage.type.function.arrow'],
       settings: { foreground: 'var(--shiki-token-operator)' },
     },
+    // The stock css-variables scopes miss most TS type/class/interface/enum
+    // names and decorators, leaving them plain. Colour them like functions
+    // (pink), as Maxime does, for readable dense TypeScript.
+    {
+      scope: [
+        'entity.name.type',
+        'entity.name.type.class',
+        'entity.name.type.interface',
+        'entity.name.type.enum',
+        'entity.name.type.alias',
+        'entity.name.type.module',
+        'entity.other.inherited-class',
+        'support.type',
+        'support.class',
+        'meta.decorator',
+        'meta.decorator entity.name.function',
+        'punctuation.decorator',
+      ],
+      settings: { foreground: 'var(--shiki-token-function)' },
+    },
   ],
 };

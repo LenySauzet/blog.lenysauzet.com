@@ -24,9 +24,9 @@ const withMDX = createMDX({
     // is a plain serializable object (see config/code-theme.ts); a copy button
     // is layered on via the figure override in mdx-components.tsx.
     rehypePlugins: [
-      // block-only default: plain inline `code` stays untouched and keeps its
-      // pill styling (see mdx-components.tsx), only fenced blocks are highlighted.
-      ['rehype-pretty-code', { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
+      // Highlight fenced blocks and inline code as TS by default (MDX parses
+      // the `{:lang}` annotation's braces as JSX, so per-inline opt-in is out).
+      ['rehype-pretty-code', { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext', inline: 'ts' } }],
     ],
   },
 });
