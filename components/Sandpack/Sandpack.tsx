@@ -60,6 +60,8 @@ export function Sandpack({
     const update = () => {
       const scroller = wrap.querySelector('.cm-scroller');
       if (!scroller) return;
+      const gutter = wrap.querySelector('.cm-gutters');
+      wrap.style.setProperty('--gutter-w', gutter ? `${gutter.getBoundingClientRect().width}px` : '0px');
       const max = scroller.scrollWidth - scroller.clientWidth;
       const left = max <= 1 ? 0 : clamp(scroller.scrollLeft / FADE);
       const right = max <= 1 ? 0 : clamp((max - scroller.scrollLeft) / FADE);
@@ -103,10 +105,18 @@ export function Sandpack({
                 style={{ height: paneHeight }}
               >
                 <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
+                {/* Edge fades track the code scroll; the sticky gutter (higher
+                    z-index in CSS) hides the left fade over the line numbers, and
+                    both stop above the horizontal scrollbar. */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute right-0 bottom-0 z-[2] w-[48px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
-                  style={{ top: `${TOOLBAR_HEIGHT}px`, opacity: 'var(--edge-right, 0)' }}
+                  className="pointer-events-none absolute z-[2] w-[56px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: '14px', left: 'var(--gutter-w, 0px)', opacity: 'var(--edge-left, 0)' }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-0 z-[2] w-[56px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: '14px', opacity: 'var(--edge-right, 0)' }}
                 />
               </div>
             ) : null}

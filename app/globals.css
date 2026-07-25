@@ -324,6 +324,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   padding: 0 !important;
 }
 .sandpack-root .cm-gutters {
+  position: relative;
+  z-index: 3;
   border: none;
   background: var(--code-bg);
 }
@@ -336,17 +338,59 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 .sandpack-root .sp-tabs {
   min-height: 48px;
-  align-items: center;
-  padding: 0 0.5rem;
+  align-items: flex-end;
+  padding: 0 0.75rem;
   border-bottom: 1px solid var(--code-border);
   background: var(--code-bg);
 }
+/* Active file tab: an outlined, rounded-top tab whose bottom opens into the
+   editor content, with radial-gradient notches connecting the corners. */
+.sandpack-root .sp-tab-container {
+  position: relative;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+.sandpack-root .sp-tab-container[aria-selected='true'] {
+  border-color: var(--code-border);
+  background: var(--code-bg);
+}
+.sandpack-root .sp-tab-container[aria-selected='true']::before,
+.sandpack-root .sp-tab-container[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.sandpack-root .sp-tab-container[aria-selected='true']::before {
+  left: -8px;
+  background: radial-gradient(
+    circle at top left,
+    transparent 7px,
+    var(--code-border) 7px,
+    var(--code-border) 8px,
+    var(--code-bg) 8px
+  );
+}
+.sandpack-root .sp-tab-container[aria-selected='true']::after {
+  right: -8px;
+  background: radial-gradient(
+    circle at top right,
+    transparent 7px,
+    var(--code-border) 7px,
+    var(--code-border) 8px,
+    var(--code-bg) 8px
+  );
+}
 .sandpack-root .sp-tab-button {
-  height: 32px;
-  margin: 0;
+  height: 36px;
   padding: 0 0.75rem;
   border: none !important;
-  border-radius: var(--radius-md) !important;
+  border-radius: 0 !important;
   outline: none !important;
   box-shadow: none !important;
   color: var(--muted-foreground);
@@ -357,8 +401,7 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root .sp-tab-button:hover {
   color: var(--foreground);
 }
-.sandpack-root .sp-tab-button[data-active='true'] {
-  background: var(--code-emphasis);
+.sandpack-root .sp-tab-container[aria-selected='true'] .sp-tab-button {
   color: var(--foreground);
 }
 .sandpack-root .sp-console-actions {
