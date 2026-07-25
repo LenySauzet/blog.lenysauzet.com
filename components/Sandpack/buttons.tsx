@@ -18,10 +18,13 @@ import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-// grid place-items-center + shrink-0 keep the icon dead-centre; the transition
-// is scoped so a stray layout change can never animate into a visible drift.
+// grid place-items-center + shrink-0 keep the icon dead-centre. The plain
+// `transition` utility is deliberate: Tailwind v4's scale-* sets the individual
+// `scale` property, not `transform`, so a `transition-[transform,...]` never
+// animated it (the scale looked raw). `transition` covers scale/translate/rotate.
+// will-change promotes a compositor layer so the 200ms scale feedback stays smooth.
 const toolbarButton =
-  'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground transition-[transform,background-color,color] duration-150 hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-90 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
+  'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground [will-change:transform] transition duration-200 ease-out hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-95 focus-visible:scale-110 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
 
 // The shared tooltip inverts to the foreground colour; recolour it to the code
 // surface as a dark popover (its arrow is dropped via hideArrow).
@@ -52,7 +55,7 @@ export function IconToolbarButton({
           <HugeiconsIcon icon={icon} size={16} strokeWidth={2} />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" hideArrow className={tooltipClass}>{label}</TooltipContent>
+      <TooltipContent side="top" sideOffset={8} hideArrow className={tooltipClass}>{label}</TooltipContent>
     </Tooltip>
   );
 }
@@ -68,12 +71,12 @@ export function RunButton() {
           type="button"
           aria-label="Run"
           onClick={sandpack.runSandpack}
-          className="pointer-events-auto grid size-11 cursor-pointer place-items-center rounded-full border border-[var(--code-border)] bg-[var(--code-bg)] text-foreground shadow-md transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="pointer-events-auto grid size-11 cursor-pointer place-items-center rounded-full border border-[var(--code-border)] bg-[var(--code-bg)] text-foreground shadow-md [will-change:transform] transition duration-200 ease-out hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <HugeiconsIcon icon={PlayIcon} size={20} strokeWidth={2} />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" hideArrow className={tooltipClass}>Run</TooltipContent>
+      <TooltipContent side="top" sideOffset={8} hideArrow className={tooltipClass}>Run</TooltipContent>
     </Tooltip>
   );
 }
@@ -84,14 +87,19 @@ export function RefreshButton() {
 }
 
 export function OpenInCodeSandboxButton() {
+  // Sandpack's button spreads incoming props AFTER its own submit onClick, so a
+  // Radix trigger applied directly would clobber it. Wrap it (as Maxime does)
+  // so the trigger's handlers land on the span and the submit stays intact.
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <UnstyledOpenInCodeSandboxButton aria-label="Open in CodeSandbox" className={toolbarButton}>
-          <HugeiconsIcon icon={Layers01Icon} size={16} strokeWidth={2} />
-        </UnstyledOpenInCodeSandboxButton>
+        <span className="inline-flex">
+          <UnstyledOpenInCodeSandboxButton aria-label="Open in CodeSandbox" className={toolbarButton}>
+            <HugeiconsIcon icon={Layers01Icon} size={16} strokeWidth={2} />
+          </UnstyledOpenInCodeSandboxButton>
+        </span>
       </TooltipTrigger>
-      <TooltipContent side="top" hideArrow className={tooltipClass}>Open in CodeSandbox</TooltipContent>
+      <TooltipContent side="top" sideOffset={8} hideArrow className={tooltipClass}>Open in CodeSandbox</TooltipContent>
     </Tooltip>
   );
 }

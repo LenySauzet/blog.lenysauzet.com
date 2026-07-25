@@ -323,26 +323,45 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root .cm-content {
   padding: 0 !important;
 }
+.sandpack-root .cm-gutter {
+  padding: 0 0.5rem !important;
+}
 .sandpack-root .cm-gutters {
-  position: relative;
-  z-index: 3;
   border: none;
+  /* Opaque, so code scrolled left clips cleanly behind the line numbers. */
   background: var(--code-bg);
+  /* Raise above the code so the fade below (its ::after) covers it, and let that
+     pseudo-element spill past the gutter's right edge. */
+  z-index: 2;
+  overflow: visible;
+}
+/* Left edge fade, painted by the gutter itself so it stays glued to the sticky
+   line-number column exactly — including through macOS elastic overscroll, where
+   a wrapper-anchored overlay separates from the gutter and leaks code. Opacity
+   tracks the horizontal scroll via --edge-left (set on the wrapper, inherited). */
+.sandpack-root .cm-gutters::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 3rem;
+  pointer-events: none;
+  background: linear-gradient(to right, var(--code-bg), transparent);
+  opacity: var(--edge-left, 0);
+  transition: opacity 150ms;
 }
 .sandpack-root .cm-gutterElement {
-  min-width: 2.5rem;
   color: var(--muted-foreground);
   font-family: var(--font-mono-code);
   font-size: 12px;
-  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  opacity: 1;
 }
-/* Left padding on the lines: gives the code breathing room from the gutter and
-   means scrolled content clips cleanly on the padding, not mid-character. */
-.sandpack-root .cm-line {
-  padding-left: 0.75rem;
-}
-/* Thin, themed horizontal scrollbar the edge fades can clear. */
+/* Thin, themed scrollbars (both axes); keep the corner transparent. */
 .sandpack-root .cm-scroller::-webkit-scrollbar {
+  width: 8px;
   height: 8px;
 }
 .sandpack-root .cm-scroller::-webkit-scrollbar-track {
@@ -353,32 +372,56 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border-radius: 8px;
   background: var(--code-border);
 }
+.sandpack-root .cm-scroller::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* UnstyledOpenInCodeSandboxButton nests a <form> inside its button; take it out
+   of flow so it doesn't shove the icon off-centre while staying clickable. */
+.sandpack-root [aria-label='Open in CodeSandbox'] form {
+  position: absolute;
+  inset: 0;
+}
 .sandpack-root .sp-tabs {
-  align-items: stretch;
-  min-height: 48px;
-  padding: 0 0.75rem;
-  border-bottom: 1px solid var(--code-border);
+  position: relative;
+  border: none !important;
+  border-bottom: 1px solid var(--code-border) !important;
   background: var(--background);
+}
+.sandpack-root .sp-tabs-scrollable-container {
+  padding: 0 4px;
 }
 /* Active file tab: a rounded-top tab in the editor colour that opens into the
    content, its border curving through layered radial-gradient corner notches
-   (ported from Maxime Heckel's). The tab stretches to the bar's bottom so its
-   2px editor-coloured bottom border hides the bar's divider under it. */
+   (ported verbatim from Maxime Heckel's design system). */
 .sandpack-root .sp-tab-container {
+  --tab-border-color: transparent;
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 80px;
+  padding: 0 0.5rem;
   margin-top: 4px;
+  margin-bottom: 0;
+  white-space: nowrap;
   outline: none !important;
-  border: 1px solid transparent;
-  border-bottom: none;
+  border-top: 1px solid var(--tab-border-color);
+  border-left: 1px solid var(--tab-border-color);
+  border-right: 1px solid var(--tab-border-color);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
+.sandpack-root .sp-tab-container > button {
+  margin: 0 auto;
+  font-family: var(--font-mono-code);
+  cursor: pointer;
+}
 .sandpack-root .sp-tab-container[aria-selected='true'] {
-  border-color: var(--code-border);
-  border-bottom: 2px solid var(--code-bg);
+  --tab-border-color: var(--code-border);
   background: var(--code-bg);
+  border-bottom: 2px solid var(--code-bg);
+  margin-bottom: 0;
+  color: var(--foreground) !important;
 }
 .sandpack-root .sp-tab-container[aria-selected='true']::before {
   content: '';
@@ -413,23 +456,6 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
       transparent 9px
     ),
     radial-gradient(circle at top right, transparent 7px, var(--code-bg) 7px);
-}
-.sandpack-root .sp-tab-button {
-  padding: 0 0.75rem;
-  border: none !important;
-  border-radius: 0 !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: var(--muted-foreground);
-  font-family: var(--font-mono-code);
-  cursor: pointer;
-  transition: color 150ms;
-}
-.sandpack-root .sp-tab-button:hover {
-  color: var(--foreground);
-}
-.sandpack-root .sp-tab-container[aria-selected='true'] .sp-tab-button {
-  color: var(--foreground);
 }
 .sandpack-root .sp-console-actions {
   display: none;

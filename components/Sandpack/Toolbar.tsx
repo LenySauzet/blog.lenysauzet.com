@@ -35,7 +35,7 @@ export function Toolbar({
       aria-pressed={selectedTab === tab}
       onClick={() => onTabSelect(tab)}
       className={cn(
-        'cursor-pointer rounded-lg border px-3 py-1 text-sm transition-colors',
+        'cursor-pointer rounded-lg border px-3 py-1 text-sm transition-colors duration-200 ease-out',
         selectedTab === tab
           ? 'border-[var(--code-border)] bg-[var(--code-bg)] text-foreground'
           : 'border-transparent text-muted-foreground hover:text-foreground'

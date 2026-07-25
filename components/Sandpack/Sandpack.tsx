@@ -22,8 +22,8 @@ import { Toolbar, type Tab } from './Toolbar';
 
 const EDITOR_HEIGHT = 560;
 const TOOLBAR_HEIGHT = 48;
-// Distance over which an edge fade reaches full opacity.
-const FADE = 24;
+// Scroll distance over which an edge fade ramps from clear to full.
+const FADE = 40;
 
 const setupByTemplate: Partial<Record<SandpackPredefinedTemplate, SandpackFiles>> = {
   react: reactSetupFiles,
@@ -65,33 +65,52 @@ export function Sandpack({
   const [consoleKey, setConsoleKey] = useState(0);
   const editorWrap = useRef<HTMLDivElement>(null);
 
-  // Fade the editor's horizontal-overflow shadows with the scroll position. The
-  // listener is capture-phase on the wrapper, so it survives CodeMirror
-  // re-creating its scroller on file switches.
+  // Drive the editor's horizontal-overflow fades from the scroll position. The
+  // scroll listener is capture-phase on the wrapper (it survives CodeMirror
+  // recreating its scroller on file switch), and a MutationObserver re-measures
+  // once the scroller first mounts and whenever it's rebuilt — the init step the
+  // wrapper's own ResizeObserver can't see, since the wrapper never resizes.
   useEffect(() => {
     const wrap = editorWrap.current;
     if (!wrap) return;
-    const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
+    const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
+    let scroller: HTMLElement | null = null;
+
     const update = () => {
-      const scroller = wrap.querySelector<HTMLElement>('.cm-scroller');
+      if (!scroller?.isConnected) scroller = wrap.querySelector<HTMLElement>('.cm-scroller');
       if (!scroller) return;
-      const gutter = wrap.querySelector('.cm-gutters');
-      wrap.style.setProperty('--gutter-w', gutter ? `${gutter.getBoundingClientRect().width}px` : '0px');
-      // The horizontal scrollbar's own height, so the fades stop above it.
+      const wrapTop = wrap.getBoundingClientRect().top;
+      const rect = scroller.getBoundingClientRect();
+      // Fades cover only the code area (below the tabs) and stop above the
+      // horizontal scrollbar, both measured live rather than assumed.
+      wrap.style.setProperty('--code-top', `${rect.top - wrapTop}px`);
       wrap.style.setProperty('--scrollbar-h', `${scroller.offsetHeight - scroller.clientHeight}px`);
+      wrap.style.setProperty('--scrollbar-w', `${scroller.offsetWidth - scroller.clientWidth}px`);
       const max = scroller.scrollWidth - scroller.clientWidth;
-      const left = max <= 1 ? 0 : clamp(scroller.scrollLeft / FADE);
-      const right = max <= 1 ? 0 : clamp((max - scroller.scrollLeft) / FADE);
-      wrap.style.setProperty('--edge-left', String(left));
-      wrap.style.setProperty('--edge-right', String(right));
+      wrap.style.setProperty('--edge-left', String(max <= 1 ? 0 : clamp(scroller.scrollLeft / FADE)));
+      wrap.style.setProperty('--edge-right', String(max <= 1 ? 0 : clamp((max - scroller.scrollLeft) / FADE)));
     };
+
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        update();
+      });
+    };
+
     update();
     wrap.addEventListener('scroll', update, { capture: true, passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(wrap);
+    const resizeObserver = new ResizeObserver(schedule);
+    resizeObserver.observe(wrap);
+    const mutationObserver = new MutationObserver(schedule);
+    mutationObserver.observe(wrap, { childList: true, subtree: true });
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       wrap.removeEventListener('scroll', update, { capture: true });
-      observer.disconnect();
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
   }, [showCode]);
 
@@ -123,18 +142,14 @@ export function Sandpack({
               >
                 <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
                 <EditorSwitchMask />
-                {/* Edge fades track the code scroll; the sticky gutter (higher
-                    z-index in CSS) hides the left fade over the line numbers, and
-                    both stop above the horizontal scrollbar. */}
+                {/* Right edge fade: an overlay anchored to the wrapper's right
+                    edge, stopping before both scrollbars. The LEFT fade is not
+                    here — it lives on `.cm-gutters::after` in CSS so it stays
+                    glued to the sticky line-number column through overscroll. */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute z-[2] w-[56px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
-                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: 'var(--scrollbar-h, 0px)', left: 'var(--gutter-w, 0px)', opacity: 'var(--edge-left, 0)' }}
-                />
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute right-0 z-[2] w-[56px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
-                  style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: 'var(--scrollbar-h, 0px)', opacity: 'var(--edge-right, 0)' }}
+                  className="pointer-events-none absolute z-[3] w-12 bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+                  style={{ top: 'var(--code-top, 0px)', bottom: 'var(--scrollbar-h, 0px)', right: 'var(--scrollbar-w, 0px)', opacity: 'var(--edge-right, 0)' }}
                 />
               </div>
             ) : null}
