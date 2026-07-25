@@ -24,16 +24,13 @@ import { cn } from '@/lib/utils';
 const toolbarButton =
   'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground [will-change:transform] transition duration-200 ease-out hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-95 focus-visible:scale-110 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
 
-// The shared tooltip inverts to the foreground colour; recolour it to the code
-// surface as a dark popover (its arrow is dropped via hideArrow).
-const tooltipClass = 'border border-[var(--code-border)] bg-[var(--code-bg)] text-foreground';
-
-// One dark, arrow-less tooltip above any toolbar control.
+// One tooltip above any toolbar control. The dark, arrow-less design now lives in
+// the shared TooltipContent primitive, so only the placement is set here.
 function ToolbarTooltip({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="top" sideOffset={8} hideArrow className={tooltipClass}>
+      <TooltipContent side="top" sideOffset={8}>
         {label}
       </TooltipContent>
     </Tooltip>
