@@ -9,13 +9,39 @@ export const metadata = {
 
 ## Typography
 
-### This is a third-level heading
+Four typefaces carry the site, each shown at a representative size.
 
-#### And this is a fourth-level heading
+### Display — Geist
 
-Body copy is set in Geist. It carries **strong emphasis** for the load-bearing
-words, _italic emphasis_ for a lighter touch, and `inline code` for identifiers,
-file names, and anything you would type verbatim.
+<div className="font-display text-3xl text-foreground">Almost before we knew it, we had left the ground.</div>
+
+### Serif — Instrument Serif
+
+<div className="font-serif text-3xl text-foreground">Almost before we knew it, we had left the ground.</div>
+
+### Mono — Departure Mono
+
+<div className="font-mono text-xl text-foreground">1 AU = 1,495978707 × 10¹¹ m</div>
+
+### Mono, code — Fira Code
+
+<div className="font-mono-code text-lg text-foreground">console.log('foobar')</div>
+
+### Headings
+
+Posts nest levels two through four; level one is reserved for the title.
+
+## Heading level two
+
+### Heading level three
+
+#### Heading level four
+
+### Emphasis
+
+Body copy carries **strong emphasis** for the load-bearing words, _italic
+emphasis_ for a lighter touch, and `inline code` for identifiers, file names and
+anything you would type verbatim.
 
 ## Links
 
@@ -67,6 +93,72 @@ does not.
   - Nested arrow one
   - Nested arrow two
 
+## Inline Code
+
+`const foo = () => 'bar'`
+
+## Code Block
+
+### Basic
+
+```tsx
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name) {
+  const message = `hi ${name}`;
+  return message;
+}
+```
+
+### With title and highlighting
+
+```tsx title="greet.ts" {6-8}
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name) {
+  const message = `hi ${name}`;
+  return message;
+}
+```
+
+## Sandpack Code Block
+
+<Sandpack
+  template="react"
+  files={{
+    '/App.js': `import { useState } from 'react';
+
+export default function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button
+      onClick={() => setCount((c) => c + 1)}
+      style={{
+        padding: '12px 20px',
+        borderRadius: 12,
+        border: '1px solid #2a2a2a',
+        background: '#141414',
+        color: 'white',
+        fontFamily: 'sans-serif',
+        fontSize: 16,
+        cursor: 'pointer',
+      }}
+    >
+      Clicked {count} times
+    </button>
+  );
+}
+`,
+  }}
+/>
+
 ## Images
 
 <Image src="blog/halftone.png" alt="A classic halftone gradient" />
@@ -86,119 +178,6 @@ does not.
 
 A footnote reference marks a spot in the text <FootnoteRef id="1" />, and the
 list at the end resolves it — the reference and the entry link to each other.
-
-## Code
-
-Inline `const foo = () => 'bar'` sits in a sentence. A fenced block carries a
-full snippet, syntax-highlighted at build time with line numbers:
-
-```tsx
-console.log('hello world');
-
-/**
- * Some comments
- */
-function sayHi(name: string) {
-  const message = `hi ${name}`;
-  return message;
-}
-```
-
-A `title=` adds a header bar; `{6-8}` highlights a line range:
-
-```tsx title="greet.ts" {6-8}
-console.log('hello world');
-
-/**
- * Some comments
- */
-function sayHi(name: string) {
-  const message = `hi ${name}`;
-  return message;
-}
-```
-
-A denser snippet exercises the full token set — types, generics, decorators,
-enums, regex, numeric literals and control flow:
-
-```tsx title="user-manager.ts"
-export enum UserRole {
-  Admin = 'ADMIN',
-  Editor = 'EDITOR',
-  Viewer = 'VIEWER',
-}
-
-export type Nullable<T> = T | null | undefined;
-
-export interface Identifiable {
-  readonly id: string;
-  createdAt: Date;
-}
-
-export interface User<T = Record<string, unknown>> extends Identifiable {
-  username: string;
-  email: string;
-  role: UserRole;
-  age?: number;
-  metadata: T;
-}
-
-function LogClass(target: Function) {
-  console.log(`Class initialized: ${target.name}`);
-}
-
-@LogClass
-export class UserManager<T extends Identifiable> implements Disposable {
-  public readonly version: string = '1.0.0';
-  private users: Map<string, T> = new Map();
-  static readonly MAX_USERS: number = 1000;
-
-  public addUser(user: T): boolean {
-    if (this.users.has(user.id)) {
-      return false;
-    }
-    this.users.set(user.id, user);
-    return true;
-  }
-
-  public findById(id: string): Nullable<T> {
-    return this.users.get(id) ?? null;
-  }
-}
-
-const pi: number = 3.14159;
-let bigNumber: bigint = 9007199254740991n;
-const emailRegex: RegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/g;
-const tupleExample: [string, number, boolean] = ['test', 42, true];
-
-export function evaluateUserStatus(user: Nullable<User>): string {
-  const roleName = user?.role ?? UserRole.Viewer;
-  const hasAccess = user?.age && user.age >= 18 ? 'Adult' : 'Minor';
-
-  switch (roleName) {
-    case UserRole.Admin:
-      return `Administrator (${hasAccess})`;
-    default:
-      return `Visitor (${hasAccess})`;
-  }
-}
-```
-
-Any Shiki-bundled language works — the fence's tag picks the grammar. A wide
-line scrolls horizontally, with the edge shadows fading in and out:
-
-```glsl title="shader.glsl"
-float miePhase(float mu) {
-  float gg = MIE_G * MIE_G;
-  float num = 3.0 * (1.0 - gg) * (1.0 + mu * mu);
-  float den = 8.0 * PI * (2.0 + gg) * pow(max(1.0 + gg - 2.0 * MIE_G * mu, 1e-4), 1.5);
-  return num / den;
-}
-
-float mieDensity(float h) {
-  return exp(-max(h, 0.0) / MIE_SCALE_HEIGHT);
-}
-```
 
 ## Dividers
 
