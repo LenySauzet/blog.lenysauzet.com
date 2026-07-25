@@ -1,5 +1,6 @@
 import Anchor from '@/components/Anchor/Anchor';
 import { Callout } from '@/components/Callout';
+import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
@@ -55,11 +56,17 @@ const components = {
       {children}
     </blockquote>
   ),
-  code: ({ children }) => (
-    <code className="font-mono-code text-sm bg-muted rounded px-1.5 py-0.5 text-foreground">
-      {children}
-    </code>
-  ),
+  // Inline code (string children) gets the pill; a fenced block's <code> — whose
+  // children are Shiki's token spans — passes through with its highlight props.
+  code: ({ children, ...props }) =>
+    typeof children === 'string' ? (
+      <code className="rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono-code text-[0.85em] text-foreground">
+        {children}
+      </code>
+    ) : (
+      <code {...props}>{children}</code>
+    ),
+  figure: CodeBlock,
   ul: ({ children }) => <List variant="unordered">{children}</List>,
   ol: ({ children }) => <List variant="ordered">{children}</List>,
   li: ({ children }) => <ListItem>{children}</ListItem>,

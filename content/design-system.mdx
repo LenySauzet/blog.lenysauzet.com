@@ -89,11 +89,32 @@ list at the end resolves it — the reference and the entry link to each other.
 
 ## Code
 
-Inline `code` sits in a sentence, while a fenced block carries a full snippet:
+Inline `const foo = () => 'bar'` sits in a sentence. A fenced block carries a
+full snippet, syntax-highlighted at build time with line numbers:
 
 ```tsx
-export function greet(name: string) {
-  return `Hello, ${name}`;
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name: string) {
+  const message = `hi ${name}`;
+  return message;
+}
+```
+
+A `title=` adds a header bar; `{6-8}` highlights a line range:
+
+```tsx title="greet.ts" {6-8}
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name: string) {
+  const message = `hi ${name}`;
+  return message;
 }
 ```
 
