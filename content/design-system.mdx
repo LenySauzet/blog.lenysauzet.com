@@ -200,38 +200,6 @@ float mieDensity(float h) {
 }
 ```
 
-```js {17,3} title="Using glslFn and wgslFn to write native shader code alongside TSL"
-const baseColor = uniform(new THREE.Vector4(1, 1, 1, 1));
-
-const colorGLSL = glslFn(/* glsl */ `
-vec4 colorFn(vec4 baseColor, vec2 uv) {
-  float red   = (uv.x + 2.3) * 0.3;
-  float green = (uv.y + 1.7) / 8.2;
-  float blue  = mod(uv.x + uv.y, 10.0);
-  return mix(baseColor, vec4(red, green, blue, 1.0), uv.x);
-}
-`);
-
-const colorNodeGLSL = colorGLSL({
-  baseColor: baseColor,
-  uv: uv(),
-});
-
-const colorWGSL = wgslFn(/* wgsl */ `
-fn colorFn(baseColor: vec4f, uv: vec2f) -> vec4f {
-  let red   = (uv.x + 2.3) * 0.3;
-  let green = (uv.y + 1.7) / 8.2;
-  let blue  = (uv.x + uv.y) % 10.0;
-  return mix(baseColor, vec4f(red, green, blue, 1.0), uv.x);
-}
-`);
-
-const colorNodeWGSL = colorWGSL({
-  baseColor: baseColor,
-  uv: uv(),
-});
-```
-
 ## Dividers
 
 ---
