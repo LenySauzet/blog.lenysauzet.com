@@ -6,7 +6,9 @@ import {
   isValidElement,
   type ReactElement,
   type ReactNode,
+  useEffect,
   useRef,
+  useState,
 } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -19,8 +21,35 @@ function isTitle(child: ReactNode): child is TitleElement {
   return isValidElement(child) && 'data-rehype-pretty-code-title' in (child.props as object);
 }
 
+// Distance over which an edge fade reaches full opacity.
+const FADE = 24;
+
 export function CodeBlock({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const ref = useRef<HTMLElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: 0, right: 0 });
+
+  // Fade the horizontal-overflow shadows in and out with the scroll position.
+  useEffect(() => {
+    const pre = scrollRef.current?.querySelector('pre');
+    if (!pre) return;
+    const update = () => {
+      const max = pre.scrollWidth - pre.clientWidth;
+      if (max <= 1) return setEdges({ left: 0, right: 0 });
+      setEdges({
+        left: Math.min(pre.scrollLeft / FADE, 1),
+        right: Math.min((max - pre.scrollLeft) / FADE, 1),
+      });
+    };
+    update();
+    pre.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(pre);
+    return () => {
+      pre.removeEventListener('scroll', update);
+      observer.disconnect();
+    };
+  }, []);
 
   // Every fenced block is wrapped by rehype-pretty-code; any other <figure>
   // passes straight through untouched.
@@ -69,7 +98,19 @@ export function CodeBlock({ className, children, ...props }: ComponentPropsWitho
           className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
         />
       )}
-      {body}
+      <div ref={scrollRef} className="relative">
+        {body}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 w-[70px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+          style={{ opacity: edges.left }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 w-[70px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+          style={{ opacity: edges.right }}
+        />
+      </div>
     </figure>
   );
 }

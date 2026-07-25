@@ -275,7 +275,7 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
    Shiki (defaultLang.inline). Distinguished from block code by ancestor, which
    a component override cannot see but this selector can. */
 :not(pre) > code {
-  border-radius: var(--radius-sm);
+  border-radius: 0.5rem;
   border: 1px solid var(--code-border);
   background-color: var(--code-bg);
   padding: 0.1em 0.4em;

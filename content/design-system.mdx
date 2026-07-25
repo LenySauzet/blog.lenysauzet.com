@@ -184,6 +184,22 @@ export function evaluateUserStatus(user: Nullable<User>): string {
 }
 ```
 
+Any Shiki-bundled language works — the fence's tag picks the grammar. A wide
+line scrolls horizontally, with the edge shadows fading in and out:
+
+```glsl title="shader.glsl"
+float miePhase(float mu) {
+  float gg = MIE_G * MIE_G;
+  float num = 3.0 * (1.0 - gg) * (1.0 + mu * mu);
+  float den = 8.0 * PI * (2.0 + gg) * pow(max(1.0 + gg - 2.0 * MIE_G * mu, 1e-4), 1.5);
+  return num / den;
+}
+
+float mieDensity(float h) {
+  return exp(-max(h, 0.0) / MIE_SCALE_HEIGHT);
+}
+```
+
 ## Dividers
 
 ---
