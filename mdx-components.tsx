@@ -1,4 +1,5 @@
 import Anchor from '@/components/Anchor/Anchor';
+import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Callout } from '@/components/Callout';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -21,6 +22,7 @@ function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
 
 const components = {
   Anchor,
+  BeforeAfterImage,
   Callout,
   Image,
   Sandpack,

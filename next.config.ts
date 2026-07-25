@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
         hostname: new URL(siteConfig.cdnUrl).hostname,
         pathname: '/**',
       },
+      {
+        // Reference assets for ported posts (e.g. the halftone/dithering pieces).
+        protocol: 'https',
+        hostname: 'cdn.maximeheckel.com',
+        pathname: '/**',
+      },
     ],
   },
 };
