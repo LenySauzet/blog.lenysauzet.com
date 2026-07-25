@@ -41,7 +41,14 @@ describe('CodeBlock', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Copy code' }));
 
     expect(writeText).toHaveBeenCalledWith('const a = 1;\nconst b = 2;');
-    expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    // The button keeps its stable name; confirmation lands in the status region.
+    expect(await screen.findByText('Copied to clipboard')).toBeInTheDocument();
+  });
+
+  it('exposes the code as a named, focusable-scroll region', () => {
+    render(<Fixture />);
+
+    expect(screen.getByRole('region', { name: 'Code' })).toBeInTheDocument();
   });
 
   it('passes a plain figure through without chrome', () => {
