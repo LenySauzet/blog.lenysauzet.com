@@ -107,6 +107,33 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 var(--base-hue));
   --sidebar-border: oklch(0.92 0.004 var(--base-hue));
   --sidebar-ring: oklch(0.705 0.015 var(--base-hue));
+
+  /* Syntax highlighting (Shiki css-variables theme). Like the rest of the
+     design, the whole palette is driven by --base-hue, so re-theming the site
+     re-themes the code with it. Lightness/chroma per token are ported from
+     Maxime Heckel's scale; function (pink) and operator (orange) are the two
+     fixed-hue accents that deliberately do not rotate. Light mode values. */
+  --shiki-foreground: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-comment: oklch(0.62 0.03 var(--base-hue));
+  --shiki-token-parameter: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-punctuation: oklch(0.58 0.09 var(--base-hue));
+  --shiki-token-constant: oklch(0.3642 0.168 var(--base-hue));
+  --shiki-token-keyword: oklch(0.4651 0.225 var(--base-hue));
+  --shiki-token-string: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-string-expression: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-function: oklch(0.556 0.24 352);
+  --shiki-token-operator: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-link: oklch(0.4651 0.225 var(--base-hue));
+  --shiki-token-inserted: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-deleted: oklch(0.3642 0.168 var(--base-hue));
+  --shiki-token-changed: oklch(0.4651 0.225 var(--base-hue));
+
+  /* Code block chrome — a faintly-tinted panel on the light page, defined by a
+     visible border. Emphasis (highlight + line hover) is the accent at low
+     alpha, so it tracks --base-hue. */
+  --code-bg: oklch(0.98 0.004 var(--base-hue));
+  --code-border: oklch(0.9 0.005 var(--base-hue));
+  --code-emphasis: oklch(from var(--primary) l c h / 0.07);
 }
 
 .dark {
@@ -142,6 +169,28 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 var(--base-hue));
+
+  /* Dark mode: lighter shades so tokens sit brightly on the dark surface. */
+  --shiki-foreground: oklch(0.6665 0.04 var(--base-hue));
+  --shiki-token-comment: oklch(0.575 0.03 var(--base-hue));
+  --shiki-token-parameter: oklch(0.6665 0.04 var(--base-hue));
+  --shiki-token-punctuation: oklch(0.68 0.05 var(--base-hue));
+  --shiki-token-constant: oklch(0.6153 0.1675 var(--base-hue));
+  --shiki-token-keyword: oklch(0.7165 0.122 var(--base-hue));
+  --shiki-token-string: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-string-expression: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-function: oklch(0.8675 0.086 352);
+  --shiki-token-operator: oklch(0.9099 0.066 60);
+  --shiki-token-link: oklch(0.7165 0.122 var(--base-hue));
+  --shiki-token-inserted: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-deleted: oklch(0.6153 0.1675 var(--base-hue));
+  --shiki-token-changed: oklch(0.7165 0.122 var(--base-hue));
+
+  /* Dark: a panel a touch lighter than the page, held by a clearly visible
+     border — the definition comes from the border, not a big lightness step. */
+  --code-bg: oklch(0.1675 0.011 var(--base-hue));
+  --code-border: oklch(0.2484 0.018 var(--base-hue));
+  --code-emphasis: oklch(from var(--primary) l c h / 0.09);
 }
 
 @layer base {
@@ -175,6 +224,64 @@ ol[data-list='ordered'] > li::before {
   min-width: 1.25rem;
   color: var(--primary);
   font-variant-numeric: tabular-nums;
+}
+
+/* Fenced code blocks (rehype-pretty-code + Shiki). These target generated
+   markup — data attributes and per-line spans Tailwind classes cannot reach —
+   so they live here alongside the list counters above. */
+figure[data-rehype-pretty-code-figure] pre {
+  overflow-x: auto;
+  padding: 0.75rem 0;
+  background: transparent;
+  font-family: var(--font-mono-code);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+figure[data-rehype-pretty-code-figure] code {
+  display: grid;
+  counter-reset: line;
+}
+figure[data-rehype-pretty-code-figure] [data-line] {
+  min-height: 1lh;
+  padding: 0 1rem;
+  border-left: 3px solid transparent;
+}
+/* Hovering any line tints it, exactly as a highlighted line is tinted. */
+figure[data-rehype-pretty-code-figure] [data-line]:hover {
+  background-color: var(--code-emphasis);
+}
+/* Line numbers, always on — matches the reference design. */
+figure[data-rehype-pretty-code-figure] code > [data-line]::before {
+  content: counter(line);
+  counter-increment: line;
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 1.25rem;
+  color: var(--muted-foreground);
+  text-align: right;
+  opacity: 0.65;
+}
+figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
+  border-left-color: var(--primary);
+  background-color: var(--code-emphasis);
+}
+figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.25rem;
+  background-color: oklch(from var(--primary) l c h / 0.16);
+}
+
+/* Inline code — a mini code-block: same surface + border, tokens coloured by
+   Shiki (defaultLang.inline). Distinguished from block code by ancestor, which
+   a component override cannot see but this selector can. */
+:not(pre) > code {
+  border-radius: 0.5rem;
+  border: 1px solid var(--code-border);
+  background-color: var(--code-bg);
+  padding: 0.1em 0.4em;
+  font-family: var(--font-mono-code);
+  font-size: 0.85em;
+  color: var(--shiki-foreground);
 }
 
 .badge-border {

@@ -89,11 +89,114 @@ list at the end resolves it — the reference and the entry link to each other.
 
 ## Code
 
-Inline `code` sits in a sentence, while a fenced block carries a full snippet:
+Inline `const foo = () => 'bar'` sits in a sentence. A fenced block carries a
+full snippet, syntax-highlighted at build time with line numbers:
 
 ```tsx
-export function greet(name: string) {
-  return `Hello, ${name}`;
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name: string) {
+  const message = `hi ${name}`;
+  return message;
+}
+```
+
+A `title=` adds a header bar; `{6-8}` highlights a line range:
+
+```tsx title="greet.ts" {6-8}
+console.log('hello world');
+
+/**
+ * Some comments
+ */
+function sayHi(name: string) {
+  const message = `hi ${name}`;
+  return message;
+}
+```
+
+A denser snippet exercises the full token set — types, generics, decorators,
+enums, regex, numeric literals and control flow:
+
+```tsx title="user-manager.ts"
+export enum UserRole {
+  Admin = 'ADMIN',
+  Editor = 'EDITOR',
+  Viewer = 'VIEWER',
+}
+
+export type Nullable<T> = T | null | undefined;
+
+export interface Identifiable {
+  readonly id: string;
+  createdAt: Date;
+}
+
+export interface User<T = Record<string, unknown>> extends Identifiable {
+  username: string;
+  email: string;
+  role: UserRole;
+  age?: number;
+  metadata: T;
+}
+
+function LogClass(target: Function) {
+  console.log(`Class initialized: ${target.name}`);
+}
+
+@LogClass
+export class UserManager<T extends Identifiable> implements Disposable {
+  public readonly version: string = '1.0.0';
+  private users: Map<string, T> = new Map();
+  static readonly MAX_USERS: number = 1000;
+
+  public addUser(user: T): boolean {
+    if (this.users.has(user.id)) {
+      return false;
+    }
+    this.users.set(user.id, user);
+    return true;
+  }
+
+  public findById(id: string): Nullable<T> {
+    return this.users.get(id) ?? null;
+  }
+}
+
+const pi: number = 3.14159;
+let bigNumber: bigint = 9007199254740991n;
+const emailRegex: RegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/g;
+const tupleExample: [string, number, boolean] = ['test', 42, true];
+
+export function evaluateUserStatus(user: Nullable<User>): string {
+  const roleName = user?.role ?? UserRole.Viewer;
+  const hasAccess = user?.age && user.age >= 18 ? 'Adult' : 'Minor';
+
+  switch (roleName) {
+    case UserRole.Admin:
+      return `Administrator (${hasAccess})`;
+    default:
+      return `Visitor (${hasAccess})`;
+  }
+}
+```
+
+Any Shiki-bundled language works — the fence's tag picks the grammar. A wide
+line scrolls horizontally, with the edge shadows fading in and out:
+
+```glsl title="shader.glsl"
+float miePhase(float mu) {
+  float gg = MIE_G * MIE_G;
+  float num = 3.0 * (1.0 - gg) * (1.0 + mu * mu);
+  float den = 8.0 * PI * (2.0 + gg) * pow(max(1.0 + gg - 2.0 * MIE_G * mu, 1e-4), 1.5);
+  return num / den;
+}
+
+float mieDensity(float h) {
+  return exp(-max(h, 0.0) / MIE_SCALE_HEIGHT);
 }
 ```
 
