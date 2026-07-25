@@ -155,6 +155,7 @@ const MediaPlayerRoot = ({
   const [volume, setVolume] = useState(muted ? 0 : 1);
   const [prevVolume, setPrevVolume] = useState(1);
   const [isFocusWithin, setIsFocusWithin] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -304,7 +305,10 @@ const MediaPlayerRoot = ({
     }
   };
 
-  const controlsHidden = isPlaying && !isFocusWithin && !isMobileDevice();
+  // Hover is folded into the state that drives `animate` (rather than a separate
+  // whileHover) so that while paused — when controls are already visible —
+  // hovering never re-triggers the animation, which flashed the backdrop-filter.
+  const controlsHidden = isPlaying && !isFocusWithin && !isHovered && !isMobileDevice();
 
   return (
     <MediaContext.Provider
@@ -333,7 +337,8 @@ const MediaPlayerRoot = ({
         ref={containerRef}
         initial={controlsHidden ? 'hidden' : 'visible'}
         animate={controlsHidden ? 'hidden' : 'visible'}
-        whileHover="visible"
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
         onFocus={(e) => {
           requestAnimationFrame(() => {
             if ((e.target as HTMLElement).matches(':focus-visible'))
@@ -436,19 +441,55 @@ const MediaPlayerVideo = ({
 
 MediaPlayerVideo.displayName = 'MediaPlayerVideo';
 
+// Progressive blur: each layer blurs more, is masked to a higher slice of the
+// band, and carries its OWN dark tint as a background. Baking the tint onto the
+// backdrop-filter elements (rather than stacking a separate tint layer on top)
+// is the frosted-glass primitive — an element's background always paints over
+// its own backdrop — so it renders identically across browsers, unlike relying
+// on the paint order between composited and non-composited siblings.
+// Each mask holds the blur at full strength through a plateau, then tapers to
+// zero *before* the band's bottom edge — so the blur stays strong enough to keep
+// the high-contrast content soft through the mid-band and dies out smoothly
+// rather than the sharp image popping back at a hard line.
+const TITLE_BLUR_LAYERS = [
+  { blur: 2, mask: 'linear-gradient(to bottom, black 0%, black 52%, transparent 92%)', tint: 0.14 },
+  { blur: 4, mask: 'linear-gradient(to bottom, black 0%, black 26%, transparent 58%)', tint: 0.12 },
+  { blur: 8, mask: 'linear-gradient(to bottom, black 0%, transparent 32%)', tint: 0.16 },
+];
+
 const MediaPlayerVideoOverlay = ({
   children,
 }: {
   children: React.ReactNode;
 }) => (
-  <div
-    className="relative w-full h-full px-5 pt-5 overflow-hidden rounded-t-xl"
-    style={{
-      backdropFilter: 'blur(0.5px)',
-      background: 'linear-gradient(to bottom, oklch(0 0 0 / 0.3), transparent)',
-    }}
-  >
-    <p className="font-display text-sm font-medium text-white/90">{children}</p>
+  <div className="relative w-full px-5 pt-4">
+    {/* A soft top band whose blur intensity and dark tint both ramp down it, so
+        the title stays legible over any frame without darkening the whole video. */}
+    {/* No overflow:hidden here — it hard-clips the backdrop-filter at the band's
+        bottom edge, which reads as a seam over high-contrast frames. The top
+        corners are rounded on the layers themselves (border-radius clips their
+        corners without clipping the soft bottom the masks fade out). */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 top-0 h-28"
+    >
+      {TITLE_BLUR_LAYERS.map(({ blur, mask, tint }) => (
+        <div
+          key={blur}
+          className="absolute inset-0 rounded-t-xl [will-change:transform]"
+          style={{
+            backdropFilter: `blur(${blur}px)`,
+            WebkitBackdropFilter: `blur(${blur}px)`,
+            background: `oklch(0 0 0 / ${tint})`,
+            maskImage: mask,
+            WebkitMaskImage: mask,
+          }}
+        />
+      ))}
+    </div>
+    <p className="relative font-display text-base font-semibold tracking-tight text-white drop-shadow-[0_1px_2px_oklch(0_0_0_/_0.4)]">
+      {children}
+    </p>
   </div>
 );
 
