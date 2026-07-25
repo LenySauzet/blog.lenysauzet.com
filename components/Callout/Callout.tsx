@@ -73,7 +73,9 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
         </span>
       )}
 
-      <div className="flex flex-col gap-2 [&_p]:m-0 [&_p]:text-foreground">
+      {/* Neutralise each block's own vertical margin so the gap alone sets the
+          rhythm — lets any component (image, code, list, video) sit inside. */}
+      <div className="flex flex-col gap-4 [&>*]:my-0 [&>p]:text-foreground">
         {children}
       </div>
     </aside>
