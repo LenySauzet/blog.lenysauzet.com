@@ -142,9 +142,11 @@ export const codeTheme = {
       scope: ['keyword.operator', 'storage.type.function.arrow'],
       settings: { foreground: 'var(--shiki-token-operator)' },
     },
-    // The stock css-variables scopes miss most TS type/class/interface/enum
-    // names and decorators, leaving them plain. Colour them like functions
-    // (pink), as Maxime does, for readable dense TypeScript.
+    // The stock css-variables theme classifies TypeScript coarsely; these rules
+    // realign it with Maxime Heckel's Prism palette. Order matters — a more
+    // specific scope wins, and later rules break ties.
+    //
+    // Type / class / interface / enum names and decorators → the function accent.
     {
       scope: [
         'entity.name.type',
@@ -154,7 +156,6 @@ export const codeTheme = {
         'entity.name.type.alias',
         'entity.name.type.module',
         'entity.other.inherited-class',
-        'support.type',
         'support.class',
         'meta.decorator',
         'meta.decorator entity.name.function',
@@ -162,17 +163,37 @@ export const codeTheme = {
       ],
       settings: { foreground: 'var(--shiki-token-function)' },
     },
-    // The stock scopes lump ordinary variables in with numeric constants, which
-    // paints every identifier the constant colour. Keep plain variables plain
-    // (only literals stay coloured) for the calmer, Prism-like reading Maxime has.
+    // Primitive/builtin type keywords (string, number, boolean, null, undefined)
+    // read as keywords, not types — blue rather than the function pink.
+    {
+      scope: ['support.type.primitive', 'support.type.builtin'],
+      settings: { foreground: 'var(--shiki-token-keyword)' },
+    },
+    // Ordinary variables and object references stay plain — the calmer,
+    // Prism-like reading Maxime has, where only literals and properties colour.
     {
       scope: [
         'variable.other.constant',
         'variable.other.readwrite',
         'variable.other.object',
-        'variable.other.property',
       ],
       settings: { foreground: 'var(--shiki-foreground)' },
+    },
+    // Property names — declarations, object-literal keys and member access —
+    // take the constant colour, as Maxime paints properties.
+    {
+      scope: [
+        'variable.object.property',
+        'meta.object-literal.key',
+        'variable.other.object.property',
+        'variable.other.property',
+      ],
+      settings: { foreground: 'var(--shiki-token-constant)' },
+    },
+    // The member accessor dot is punctuation, not part of the function.
+    {
+      scope: ['punctuation.accessor'],
+      settings: { foreground: 'var(--shiki-token-punctuation)' },
     },
   ],
 };
