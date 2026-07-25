@@ -336,18 +336,36 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   font-size: 12px;
   opacity: 0.65;
 }
+/* Left padding on the lines: gives the code breathing room from the gutter and
+   means scrolled content clips cleanly on the padding, not mid-character. */
+.sandpack-root .cm-line {
+  padding-left: 0.75rem;
+}
+/* Thin, themed horizontal scrollbar the edge fades can clear. */
+.sandpack-root .cm-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+.sandpack-root .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sandpack-root .cm-scroller::-webkit-scrollbar-thumb {
+  border: 2px solid var(--code-bg);
+  border-radius: 8px;
+  background: var(--code-border);
+}
 .sandpack-root .sp-tabs {
   min-height: 48px;
-  align-items: flex-end;
   padding: 0 0.75rem;
   border-bottom: 1px solid var(--code-border);
-  background: var(--code-bg);
+  background: var(--background);
 }
-/* Active file tab: an outlined, rounded-top tab whose bottom opens into the
-   editor content, with radial-gradient notches connecting the corners. */
+/* Active file tab: a rounded-top tab in the editor colour that opens into the
+   content, its border curving through radial-gradient corner notches (ported
+   from Maxime Heckel's). The tab bar sits on the darker page background. */
 .sandpack-root .sp-tab-container {
   position: relative;
-  margin-bottom: -1px;
+  margin-top: 4px;
+  outline: none !important;
   border: 1px solid transparent;
   border-bottom: none;
   border-top-left-radius: var(--radius-md);
@@ -355,39 +373,45 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 .sandpack-root .sp-tab-container[aria-selected='true'] {
   border-color: var(--code-border);
+  border-bottom: 2px solid var(--code-bg);
   background: var(--code-bg);
 }
-.sandpack-root .sp-tab-container[aria-selected='true']::before,
+.sandpack-root .sp-tab-container[aria-selected='true']::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: -9px;
+  width: 9px;
+  height: 9px;
+  background:
+    radial-gradient(
+      circle at top left,
+      transparent 8px,
+      var(--code-border) 8px,
+      var(--code-border) 9px,
+      transparent 9px
+    ),
+    radial-gradient(circle at top left, transparent 7px, var(--code-bg) 7px);
+}
 .sandpack-root .sp-tab-container[aria-selected='true']::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  width: 8px;
-  height: 8px;
-  pointer-events: none;
-}
-.sandpack-root .sp-tab-container[aria-selected='true']::before {
-  left: -8px;
-  background: radial-gradient(
-    circle at top left,
-    transparent 7px,
-    var(--code-border) 7px,
-    var(--code-border) 8px,
-    var(--code-bg) 8px
-  );
-}
-.sandpack-root .sp-tab-container[aria-selected='true']::after {
-  right: -8px;
-  background: radial-gradient(
-    circle at top right,
-    transparent 7px,
-    var(--code-border) 7px,
-    var(--code-border) 8px,
-    var(--code-bg) 8px
-  );
+  bottom: -2px;
+  right: -9px;
+  width: 9px;
+  height: 9px;
+  background:
+    radial-gradient(
+      circle at top right,
+      transparent 8px,
+      var(--code-border) 8px,
+      var(--code-border) 9px,
+      transparent 9px
+    ),
+    radial-gradient(circle at top right, transparent 7px, var(--code-bg) 7px);
 }
 .sandpack-root .sp-tab-button {
-  height: 36px;
+  height: 40px;
   padding: 0 0.75rem;
   border: none !important;
   border-radius: 0 !important;
@@ -406,6 +430,19 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 .sandpack-root .sp-console-actions {
   display: none;
+}
+/* Masks CodeMirror's momentary reflow when the active file changes: the mask
+   remounts on file switch (keyed) and fades from opaque to clear. */
+.sandpack-root .sp-switch-mask {
+  animation: sp-switch-fade 260ms ease-out forwards;
+}
+@keyframes sp-switch-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 .sandpack-root .sp-preview-container,
 .sandpack-root .sp-preview-iframe {

@@ -6,6 +6,7 @@ import {
   SandpackLayout,
   SandpackPreview,
   SandpackProvider,
+  useSandpack,
   type SandpackFiles,
   type SandpackPredefinedTemplate,
 } from '@codesandbox/sandpack-react';
@@ -27,6 +28,20 @@ const FADE = 24;
 const setupByTemplate: Partial<Record<SandpackPredefinedTemplate, SandpackFiles>> = {
   react: reactSetupFiles,
 };
+
+// Keyed on the active file, so it remounts and replays its fade-out each switch,
+// hiding CodeMirror's reflow. No state — the animation lives in CSS.
+function EditorSwitchMask() {
+  const { sandpack } = useSandpack();
+  return (
+    <div
+      key={sandpack.activeFile}
+      aria-hidden="true"
+      className="sp-switch-mask pointer-events-none absolute inset-x-0 z-[4] bg-[var(--code-bg)]"
+      style={{ top: `${TOOLBAR_HEIGHT}px`, bottom: 0 }}
+    />
+  );
+}
 
 export interface SandpackProps {
   template?: SandpackPredefinedTemplate;
@@ -105,6 +120,7 @@ export function Sandpack({
                 style={{ height: paneHeight }}
               >
                 <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
+                <EditorSwitchMask />
                 {/* Edge fades track the code scroll; the sticky gutter (higher
                     z-index in CSS) hides the left fade over the line numbers, and
                     both stop above the horizontal scrollbar. */}
