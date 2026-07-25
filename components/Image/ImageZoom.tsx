@@ -13,7 +13,8 @@ import { Lightbox } from './Lightbox';
 const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
 // Targets the larger, zoomed rendering so the shared file is never upscaled.
-const IMAGE_SIZES = '(max-width: 768px) 97vw, 80vw';
+// Mobile matches the zoom's rendered width (the surface's content box).
+const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 
 // Mirrors the surface's p-8. Absolute, not a percentage: the padding is a fixed
 // height, so a ratio would under-reserve on short viewports.
