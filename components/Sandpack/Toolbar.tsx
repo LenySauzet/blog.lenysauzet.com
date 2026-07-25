@@ -1,16 +1,15 @@
 'use client';
 
 import { FullScreenIcon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 
 import { cn } from '@/lib/utils';
 
 import {
   ClearConsoleButton,
+  IconToolbarButton,
   OpenInCodeSandboxButton,
   RefreshButton,
   ToggleCodeButton,
-  toolbarButton,
 } from './buttons';
 
 export type Tab = 'preview' | 'console';
@@ -36,7 +35,7 @@ export function Toolbar({
       aria-pressed={selectedTab === tab}
       onClick={() => onTabSelect(tab)}
       className={cn(
-        'rounded-lg border px-3 py-1 text-sm transition-colors',
+        'cursor-pointer rounded-lg border px-3 py-1 text-sm transition-colors',
         selectedTab === tab
           ? 'border-[var(--code-border)] bg-[var(--code-bg)] text-foreground'
           : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -47,7 +46,7 @@ export function Toolbar({
   );
 
   return (
-    <div className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-[var(--code-border)] bg-background px-2">
+    <div className="flex min-h-12 w-full items-center justify-between gap-2 border-b border-[var(--code-border)] bg-[var(--code-bg)] px-2">
       <div className="flex items-center gap-1">
         <ToggleCodeButton onClick={onToggleCode} />
         {tabButton('preview', 'Preview')}
@@ -56,15 +55,12 @@ export function Toolbar({
       <div className="flex items-center gap-0.5">
         {selectedTab === 'preview' ? (
           <>
-            <button
-              type="button"
-              aria-label="Fullscreen"
-              title="Fullscreen"
+            <IconToolbarButton
+              icon={FullScreenIcon}
+              label="Fullscreen"
               onClick={onFullscreen}
-              className={cn(toolbarButton, 'max-[750px]:hidden')}
-            >
-              <HugeiconsIcon icon={FullScreenIcon} size={16} strokeWidth={2} />
-            </button>
+              className="max-[750px]:hidden"
+            />
             <RefreshButton />
             <OpenInCodeSandboxButton />
           </>

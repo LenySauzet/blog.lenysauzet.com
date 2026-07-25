@@ -304,12 +304,18 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   .sandpack-root .sp-layout {
     flex-direction: column;
   }
+  .sandpack-root .sp-editor-wrap,
+  .sandpack-root .sp-preview-card {
+    width: 100%;
+    min-width: 0;
+  }
 }
 .sandpack-root .sp-editor {
+  flex: 1;
+  width: 100%;
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--code-border);
-  border-radius: var(--radius-xl);
+  border: none;
+  border-radius: 0;
 }
 .sandpack-root .cm-scroller {
   padding: 0.5rem 0 !important;
@@ -329,14 +335,30 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   opacity: 0.65;
 }
 .sandpack-root .sp-tabs {
+  min-height: 48px;
+  align-items: center;
+  padding: 0 0.5rem;
   border-bottom: 1px solid var(--code-border);
   background: var(--code-bg);
 }
 .sandpack-root .sp-tab-button {
+  height: 32px;
+  margin: 0;
+  padding: 0 0.75rem;
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  outline: none !important;
+  box-shadow: none !important;
   color: var(--muted-foreground);
   font-family: var(--font-mono-code);
+  cursor: pointer;
+  transition: color 150ms;
+}
+.sandpack-root .sp-tab-button:hover {
+  color: var(--foreground);
 }
 .sandpack-root .sp-tab-button[data-active='true'] {
+  background: var(--code-emphasis);
   color: var(--foreground);
 }
 .sandpack-root .sp-console-actions {
@@ -354,7 +376,7 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   margin: 0;
   gap: 0;
 }
-.sandpack-root.sandpack-fullscreen .sp-editor,
+.sandpack-root.sandpack-fullscreen .sp-editor-wrap,
 .sandpack-root.sandpack-fullscreen .sp-preview-card {
   border-radius: 0;
 }

@@ -12,7 +12,7 @@ export const sandpackTheme: SandpackTheme = {
     disabled: 'var(--muted-foreground)',
     hover: 'var(--foreground)',
     clickable: 'var(--muted-foreground)',
-    accent: 'var(--primary)',
+    accent: 'var(--foreground)',
     error: 'var(--destructive)',
     errorSurface: 'oklch(from var(--destructive) l c h / 0.12)',
   },
