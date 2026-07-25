@@ -136,5 +136,11 @@ export const codeTheme = {
       scope: ['markup.changed', 'punctuation.definition.changed'],
       settings: { foreground: 'var(--shiki-token-changed)' },
     },
+    // Not part of the stock css-variables theme: give operators (= => etc.)
+    // their own token so they can carry the fixed orange accent.
+    {
+      scope: ['keyword.operator', 'storage.type.function.arrow'],
+      settings: { foreground: 'var(--shiki-token-operator)' },
+    },
   ],
 };

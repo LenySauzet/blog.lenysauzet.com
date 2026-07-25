@@ -108,23 +108,25 @@
   --sidebar-border: oklch(0.92 0.004 var(--base-hue));
   --sidebar-ring: oklch(0.705 0.015 var(--base-hue));
 
-  /* Syntax highlighting (Shiki css-variables theme). Chrome follows the theme
-     via semantic tokens; syntax stays multi-hue for legibility and borrows
-     Tailwind's own palette rather than a bespoke one. Light mode: deeper
-     shades for contrast on the light surface. */
-  --shiki-foreground: var(--foreground);
-  --shiki-token-keyword: var(--color-blue-600);
-  --shiki-token-function: var(--color-violet-600);
-  --shiki-token-string: var(--color-emerald-600);
-  --shiki-token-string-expression: var(--color-teal-600);
-  --shiki-token-constant: var(--color-amber-600);
-  --shiki-token-parameter: var(--color-sky-700);
-  --shiki-token-punctuation: var(--color-slate-500);
-  --shiki-token-comment: var(--muted-foreground);
-  --shiki-token-link: var(--primary);
-  --shiki-token-inserted: var(--color-emerald-600);
-  --shiki-token-deleted: var(--color-rose-600);
-  --shiki-token-changed: var(--color-amber-600);
+  /* Syntax highlighting (Shiki css-variables theme). Like the rest of the
+     design, the whole palette is driven by --base-hue, so re-theming the site
+     re-themes the code with it. Lightness/chroma per token are ported from
+     Maxime Heckel's scale; function (pink) and operator (orange) are the two
+     fixed-hue accents that deliberately do not rotate. Light mode values. */
+  --shiki-foreground: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-comment: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-parameter: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-punctuation: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-constant: oklch(0.3642 0.168 var(--base-hue));
+  --shiki-token-keyword: oklch(0.4651 0.225 var(--base-hue));
+  --shiki-token-string: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-string-expression: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-function: oklch(0.556 0.24 352);
+  --shiki-token-operator: oklch(0.5013 0.047 var(--base-hue));
+  --shiki-token-link: oklch(0.4651 0.225 var(--base-hue));
+  --shiki-token-inserted: oklch(0.5552 0.223 var(--base-hue));
+  --shiki-token-deleted: oklch(0.3642 0.168 var(--base-hue));
+  --shiki-token-changed: oklch(0.4651 0.225 var(--base-hue));
 
   /* Code block chrome — a faintly-tinted panel on the light page, defined by a
      visible border. Emphasis (highlight + line hover) is the accent at low
@@ -169,16 +171,20 @@
   --sidebar-ring: oklch(0.552 0.016 var(--base-hue));
 
   /* Dark mode: lighter shades so tokens sit brightly on the dark surface. */
-  --shiki-token-keyword: var(--color-blue-400);
-  --shiki-token-function: var(--color-violet-400);
-  --shiki-token-string: var(--color-emerald-400);
-  --shiki-token-string-expression: var(--color-teal-300);
-  --shiki-token-constant: var(--color-amber-300);
-  --shiki-token-parameter: var(--color-sky-300);
-  --shiki-token-punctuation: var(--color-slate-400);
-  --shiki-token-inserted: var(--color-emerald-400);
-  --shiki-token-deleted: var(--color-rose-400);
-  --shiki-token-changed: var(--color-amber-300);
+  --shiki-foreground: oklch(0.6665 0.04 var(--base-hue));
+  --shiki-token-comment: oklch(0.6665 0.04 var(--base-hue));
+  --shiki-token-parameter: oklch(0.6665 0.04 var(--base-hue));
+  --shiki-token-punctuation: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-constant: oklch(0.6153 0.1675 var(--base-hue));
+  --shiki-token-keyword: oklch(0.7165 0.122 var(--base-hue));
+  --shiki-token-string: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-string-expression: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-function: oklch(0.8675 0.086 352);
+  --shiki-token-operator: oklch(0.9099 0.066 60);
+  --shiki-token-link: oklch(0.7165 0.122 var(--base-hue));
+  --shiki-token-inserted: oklch(0.8153 0.078 var(--base-hue));
+  --shiki-token-deleted: oklch(0.6153 0.1675 var(--base-hue));
+  --shiki-token-changed: oklch(0.7165 0.122 var(--base-hue));
 
   /* Dark: a panel a touch lighter than the page, held by a clearly visible
      border — the definition comes from the border, not a big lightness step. */
