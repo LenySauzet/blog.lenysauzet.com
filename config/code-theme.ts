@@ -162,5 +162,17 @@ export const codeTheme = {
       ],
       settings: { foreground: 'var(--shiki-token-function)' },
     },
+    // The stock scopes lump ordinary variables in with numeric constants, which
+    // paints every identifier the constant colour. Keep plain variables plain
+    // (only literals stay coloured) for the calmer, Prism-like reading Maxime has.
+    {
+      scope: [
+        'variable.other.constant',
+        'variable.other.readwrite',
+        'variable.other.object',
+        'variable.other.property',
+      ],
+      settings: { foreground: 'var(--shiki-foreground)' },
+    },
   ],
 };
