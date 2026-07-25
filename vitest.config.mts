@@ -22,6 +22,6 @@ export default defineConfig({
     // when `afterEach` exists as a global. Without this it silently stops.
     globals: true,
     setupFiles: ['./vitest-setup.ts'],
-    include: ['{app,components,lib,hooks}/**/*.test.{ts,tsx}'],
+    include: ['{app,components,config,lib,hooks}/**/*.test.{ts,tsx}'],
   },
 });
