@@ -285,17 +285,31 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 
 /* Sandpack live editor — overrides its internal sp- and cm- classes (out of
-   Tailwind's reach) so it matches the code-block surface. */
+   Tailwind's reach). Editor and preview are separate rounded cards, and the
+   widget bleeds wider than the prose column on desktop, as in the reference. */
 .sandpack-root .sp-layout {
-  gap: 0;
-  overflow: hidden;
-  border: 1px solid var(--code-border);
-  border-radius: var(--radius-xl);
+  gap: 1rem;
+  border: none;
+  border-radius: 0;
   background: transparent;
+}
+@media (min-width: 960px) {
+  .sandpack-root {
+    width: calc(100% + 250px);
+    margin-left: -125px;
+    margin-right: -125px;
+  }
+}
+@media (max-width: 959px) {
+  .sandpack-root .sp-layout {
+    flex-direction: column;
+  }
 }
 .sandpack-root .sp-editor {
   min-width: 0;
-  border-right: 1px solid var(--code-border);
+  overflow: hidden;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-xl);
 }
 .sandpack-root .cm-scroller {
   padding: 0.5rem 0 !important;
@@ -316,17 +330,21 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 .sandpack-root .sp-tabs {
   border-bottom: 1px solid var(--code-border);
-  background: var(--background);
+  background: var(--code-bg);
 }
 .sandpack-root .sp-tab-button {
+  color: var(--muted-foreground);
   font-family: var(--font-mono-code);
+}
+.sandpack-root .sp-tab-button[data-active='true'] {
+  color: var(--foreground);
 }
 .sandpack-root .sp-console-actions {
   display: none;
 }
 .sandpack-root .sp-preview-container,
 .sandpack-root .sp-preview-iframe {
-  background: var(--code-bg);
+  background: transparent;
 }
 .sandpack-root.sandpack-fullscreen .sp-layout {
   position: fixed;
@@ -334,7 +352,10 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   z-index: 101;
   height: 100dvh;
   margin: 0;
-  border: none;
+  gap: 0;
+}
+.sandpack-root.sandpack-fullscreen .sp-editor,
+.sandpack-root.sandpack-fullscreen .sp-preview-card {
   border-radius: 0;
 }
 .sandpack-root.sandpack-fullscreen .sp-layout iframe {

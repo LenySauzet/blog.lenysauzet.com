@@ -76,7 +76,7 @@ export function Sandpack({
             <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: paneHeight }} />
           ) : null}
           <div
-            className="relative flex flex-1 flex-col overflow-hidden bg-[var(--code-bg)]"
+            className="sp-preview-card relative flex flex-1 flex-col overflow-hidden rounded-xl border border-[var(--code-border)] bg-[var(--code-bg)]"
             style={{ height: paneHeight }}
           >
             <div className="pointer-events-none absolute inset-0 z-[1] grid place-items-center">
