@@ -90,7 +90,7 @@
   --accent: oklch(0.967 0.001 var(--base-hue));
   --accent-foreground: oklch(0.21 0.006 var(--base-hue));
   --destructive: oklch(64.4% 0.204 21.9);
-  --border: oklch(0.92 0.004 var(--base-hue));
+  --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
@@ -128,11 +128,12 @@
   --shiki-token-deleted: oklch(0.3642 0.168 var(--base-hue));
   --shiki-token-changed: oklch(0.4651 0.225 var(--base-hue));
 
-  /* Code block chrome — a faintly-tinted panel on the light page, defined by a
-     visible border. Emphasis (highlight + line hover) is the accent at low
-     alpha, so it tracks --base-hue. */
-  --code-bg: oklch(0.98 0.004 var(--base-hue));
-  --code-border: oklch(0.9 0.005 var(--base-hue));
+  /* Code / inset surface. Aliased to the semantic card + border tokens so code
+     blocks, inline code, Sandpack, the tooltip and Details all share one source
+     — change --card/--border and every inset surface follows, no drift. Emphasis
+     (highlight + line hover) is the accent at low alpha, so it tracks --base-hue. */
+  --code-bg: var(--card);
+  --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
 }
 
@@ -186,10 +187,8 @@
   --shiki-token-deleted: oklch(0.6153 0.1675 var(--base-hue));
   --shiki-token-changed: oklch(0.7165 0.122 var(--base-hue));
 
-  /* Dark: a panel a touch lighter than the page, held by a clearly visible
-     border — the definition comes from the border, not a big lightness step. */
-  --code-bg: oklch(0.1675 0.011 var(--base-hue));
-  --code-border: oklch(0.2484 0.018 var(--base-hue));
+  /* --code-bg/--code-border inherit the aliased :root definitions (card/border);
+     only the emphasis tint is a touch stronger on the dark surface. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
 }
 
