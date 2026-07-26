@@ -35,7 +35,7 @@ function PostImage(props: ImageZoomProps) {
     <NextImage
       {...props}
       sizes={IMAGE_SIZES}
-      className="h-auto w-full rounded-lg border border-border object-cover"
+      className="h-auto w-full rounded-lg border-2 border-border object-cover"
     />
   );
 }
