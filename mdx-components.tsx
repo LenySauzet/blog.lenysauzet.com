@@ -1,6 +1,7 @@
 import Anchor from '@/components/Anchor/Anchor';
 import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Badge } from '@/components/ui/badge';
+import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
 import Details from '@/components/Details';
 import Fullbleed from '@/components/Fullbleed';
@@ -61,11 +62,7 @@ const components = {
   em: ({ children }) => (
     <span className="italic text-muted-foreground/75">{children}</span>
   ),
-  blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-primary pl-4 my-6 italic text-muted-foreground">
-      {children}
-    </blockquote>
-  ),
+  blockquote: Blockquote,
   figure: CodeBlock,
   ul: ({ children }) => <List variant="unordered">{children}</List>,
   ol: ({ children }) => <List variant="ordered">{children}</List>,
