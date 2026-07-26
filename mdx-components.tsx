@@ -1,5 +1,6 @@
 import Anchor from '@/components/Anchor/Anchor';
 import BeforeAfterImage from '@/components/BeforeAfterImage';
+import { Badge } from '@/components/ui/badge';
 import { Callout } from '@/components/Callout';
 import Details from '@/components/Details';
 import Fullbleed from '@/components/Fullbleed';
@@ -24,6 +25,7 @@ function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
 
 const components = {
   Anchor,
+  Badge,
   BeforeAfterImage,
   Callout,
   Details,
