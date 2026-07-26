@@ -1,6 +1,7 @@
 import Anchor from '@/components/Anchor/Anchor';
 import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Callout } from '@/components/Callout';
+import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
@@ -24,6 +25,7 @@ const components = {
   Anchor,
   BeforeAfterImage,
   Callout,
+  Fullbleed,
   Image,
   Sandpack,
 
