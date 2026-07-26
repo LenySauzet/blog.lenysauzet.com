@@ -272,6 +272,30 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
+/* Build-time math (rehype-mathjax → MathJax SVG). Display equations are centred
+   (MathJax's own style) and brighter than the muted body; a wide one (a matrix)
+   scrolls horizontally rather than breaking the column. Inline math flows with
+   its surrounding text at the ambient colour. The SVG fills with currentColor,
+   so setting `color` makes it theme-aware. */
+mjx-container[display='true'] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0.25rem;
+  color: var(--foreground);
+}
+/* Tailwind preflight makes the MathJax <svg> display:block, which the
+   container's `text-align: center` (MathJax's own) can't centre. Restore
+   inline-block so it centres (and scrolls when it overflows). */
+mjx-container[display='true'] svg {
+  display: inline-block;
+}
+/* Inline math: the container renders as `display: inline` here, so Tailwind's
+   preflight `svg { display: block }` breaks the math onto its own line. Force
+   the inline-block box MathJax expects so inline equations flow with the text. */
+mjx-container:not([display='true']) {
+  display: inline-block;
+}
+
 /* Fenced code blocks (rehype-pretty-code + Shiki). These target generated
    markup — data attributes and per-line spans Tailwind classes cannot reach —
    so they live here alongside the list counters above. */
