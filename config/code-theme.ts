@@ -8,7 +8,7 @@ export const codeTheme = {
   type: 'dark',
   colors: {
     'editor.foreground': 'var(--shiki-foreground)',
-    'editor.background': 'var(--shiki-background)',
+    'editor.background': 'var(--code-bg)',
   },
   tokenColors: [
     {
