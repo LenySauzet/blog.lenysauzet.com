@@ -31,6 +31,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -90,6 +92,11 @@
   --accent: oklch(0.967 0.001 var(--base-hue));
   --accent-foreground: oklch(0.21 0.006 var(--base-hue));
   --destructive: oklch(64.4% 0.204 21.9);
+  /* Fixed-hue status colours (green/orange don't rotate with --base-hue, like the
+     fixed syntax accents) — ported from Maxime Heckel's scale. Per theme: darker
+     for legibility on the light page, brighter on the dark surface below. */
+  --success: oklch(0.5284 0.117 170);
+  --warning: oklch(0.7412 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
@@ -154,6 +161,9 @@
   --accent: oklch(0.274 0.006 var(--base-hue));
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(64.4% 0.204 21.9);
+  /* Status colours on the dark surface — Maxime's green-900 / orange-900. */
+  --success: oklch(0.8602 0.176 170);
+  --warning: oklch(0.7093 0.18 60);
   --border: oklch(24.84% 0.018 var(--base-hue));
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 var(--base-hue));

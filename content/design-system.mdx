@@ -13,19 +13,27 @@ Four typefaces carry the site, each shown at a representative size.
 
 ### Display — Geist
 
-<div className="font-display text-3xl text-foreground">Almost before we knew it, we had left the ground.</div>
+<div className="font-display text-3xl text-foreground">
+  Almost before we knew it, we had left the ground.
+</div>
 
 ### Serif — Instrument Serif
 
-<div className="font-serif text-3xl text-foreground">Almost before we knew it, we had left the ground.</div>
+<div className="font-serif text-3xl text-foreground">
+  Almost before we knew it, we had left the ground.
+</div>
 
 ### Mono — Departure Mono
 
-<div className="font-mono text-xl text-foreground">1 AU = 1,495978707 × 10¹¹ m</div>
+<div className="font-mono text-xl text-foreground">
+  1 AU = 1,495978707 × 10¹¹ m
+</div>
 
 ### Mono, code — Fira Code
 
-<div className="font-mono-code text-lg text-foreground">console.log('foobar')</div>
+<div className="font-mono-code text-lg text-foreground">
+  console.log('foobar')
+</div>
 
 ### Headings
 
@@ -75,6 +83,13 @@ does not.
 <Callout variant="danger" label="Be careful!">
   Danger callout with a labelled corner.
 </Callout>
+
+## Pill
+
+<Badge variant="info">Info Pill</Badge>
+<Badge variant="success">Success Pill</Badge>
+<Badge variant="warning">Warning Pill</Badge>
+<Badge variant="danger">Danger Pill</Badge>
 
 ## Lists
 
@@ -137,15 +152,15 @@ function sayHi(name) {
 import './scene.css';
 
 function WavingHand() {
-  return (
-    <motion.span
-      style={{ display: 'inline-block', transformOrigin: '70% 70%' }}
-      animate={{ rotate: [0, 18, -8, 18, 0] }}
-      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.6 }}
-    >
-      👋
-    </motion.span>
-  );
+return (
+
+<motion.span
+style={{ display: 'inline-block', transformOrigin: '70% 70%' }}
+animate={{ rotate: [0, 18, -8, 18, 0] }}
+transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.6 }} >
+👋
+</motion.span>
+);
 }
 
 export default function App() {
@@ -161,16 +176,16 @@ export default function App() {
 }
 
 body {
-  color: white;
+color: white;
 }
 
 h1 {
-  font-family: sans-serif;
-  font-size: 2.75rem;
-  font-weight: 600;
+font-family: sans-serif;
+font-size: 2.75rem;
+font-weight: 600;
 }
 `,
-  }}
+}}
 />
 
 ## Images
@@ -191,9 +206,9 @@ h1 {
 ## Details/Summary
 
 <Details summary="Summary: Some short text">
-Content. Some long text nested inside the component. Useful to avoid long,
-optional content. It can take some simple strings or some other custom React
-components. As you want!
+  Content. Some long text nested inside the component. Useful to avoid long,
+  optional content. It can take some simple strings or some other custom React
+  components. As you want!
 </Details>
 
 ## Video
