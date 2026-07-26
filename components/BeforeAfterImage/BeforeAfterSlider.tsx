@@ -113,7 +113,9 @@ export function BeforeAfterSlider({
       onPointerCancel={endDrag}
       style={{ '--progress': `${position}%` } as React.CSSProperties}
       className={cn(
-        'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-xl border border-border select-none',
+        // Same 2px --border as the site's images; the divider/handle sit on the
+        // image itself and keep HANDLE_EDGE (a theme token would half-vanish there).
+        'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-xl border-2 border-border select-none',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none'
       )}
     >
