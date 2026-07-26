@@ -18,7 +18,7 @@ type LinkTypeIcon = {
 
 export const getLinkTypeIcon = (href?: string): LinkTypeIcon => {
     if (!href || isInternalLink(href)) {
-        return { label: 'Internal' };
+        return { label: 'internal' };
     }
 
     if (href.startsWith('mailto:')) {
