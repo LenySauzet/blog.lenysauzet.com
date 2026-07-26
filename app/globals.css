@@ -226,6 +226,43 @@ ol[data-list='ordered'] > li::before {
   font-variant-numeric: tabular-nums;
 }
 
+/* components/Details reveal keyframes. Referenced from the Details content's
+   className via `data-[state=…]:animate-[details-open_…]`, so the animation is
+   present the instant Radix flips data-state (a separate CSS rule would race
+   Radix's unmount check). Unique names — reusing tw-animate-css's `accordion-*`
+   fails, because the bundler dedupes same-named @keyframes and keeps its
+   height-only copy. Radix sets --radix-accordion-content-height and delays
+   unmount until the close animation ends, so the exit plays too. A richer reveal
+   than plain height: fade + an 8px slide + a blur. */
+@keyframes details-open {
+  from {
+    height: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(8px);
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+    transform: translateY(0);
+    filter: none;
+  }
+}
+@keyframes details-close {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+    transform: translateY(0);
+    filter: none;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(8px);
+  }
+}
+
 /* Fenced code blocks (rehype-pretty-code + Shiki). These target generated
    markup — data attributes and per-line spans Tailwind classes cannot reach —
    so they live here alongside the list counters above. */
