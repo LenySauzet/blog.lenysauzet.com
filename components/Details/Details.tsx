@@ -18,6 +18,15 @@ export interface DetailsProps {
 
 const ITEM_VALUE = 'details';
 
+// Maxime's blue-900 accent glow, base-hue driven: a bright inner ring plus a
+// wide soft halo. It rides on the accent bar's box-shadow, so fading the bar's
+// opacity fades the halo with it (opacity applies to the shadow too).
+const ACCENT_GLOW =
+  '0 0 16px 4px oklch(0.53 0.21 var(--base-hue) / 0.95), 0 0 34px 13px oklch(0.53 0.21 var(--base-hue) / 0.5)';
+
+// The site's frosted-glass recipe (see CLAUDE.md), driven by the theme tokens.
+const GLASS_FILTER = 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))';
+
 export default function Details({ summary, children, defaultOpen = false }: DetailsProps) {
   return (
     <Accordion
@@ -35,16 +44,12 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
       >
         <AccordionPrimitive.Header className="flex">
           <AccordionPrimitive.Trigger className="relative flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left outline-none">
-            {/* The 2px primary accent bar at the card's left edge. Its glow is a
-                constant box-shadow; fading the bar's opacity fades the halo with
-                it (opacity applies to the shadow too). This IS the active cue. */}
+            {/* The 2px primary accent bar at the card's left edge — the active
+                cue. Its glow (ACCENT_GLOW) fades in with the bar's opacity. */}
             <span
               aria-hidden="true"
               className="absolute top-1/2 left-0 h-6 w-0.5 -translate-y-1/2 rounded-full bg-primary opacity-0 transition-opacity duration-[400ms] ease-in-out group-data-[state=open]:opacity-100 motion-reduce:transition-none"
-              style={{
-                boxShadow:
-                  '0 0 16px 4px oklch(0.53 0.21 var(--base-hue) / 0.95), 0 0 34px 13px oklch(0.53 0.21 var(--base-hue) / 0.5)',
-              }}
+              style={{ boxShadow: ACCENT_GLOW }}
             />
 
             <span className="font-display text-base leading-6 text-foreground">{summary}</span>
@@ -52,12 +57,8 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
             {/* A single plus rotates 45° into a cross on open. Glass circle,
                 vertically centred with the summary line. */}
             <span
-              className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground"
-              style={{
-                background: 'oklch(from var(--muted) l c h / 0.6)',
-                backdropFilter: 'blur(12px) saturate(1.15)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
-              }}
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-muted/60 text-muted-foreground"
+              style={{ backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER }}
             >
               <HugeiconsIcon
                 icon={PlusSignIcon}
