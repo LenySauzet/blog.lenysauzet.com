@@ -16,9 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # Pinned to the same major as local development. Vitest spawns Node, not
+      # bun, so an unpinned runner silently tests against a different runtime
+      # than anyone develops on: jsdom 30 passed here while failing locally on
+      # 22.9 with ERR_REQUIRE_ESM. Keep in step with .nvmrc.
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.15
+      - run: node --version
       - run: bun install --frozen-lockfile
       - run: bun lint
       - run: bun run type-check
@@ -30,6 +38,9 @@ jobs:
     needs: verify
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.15
