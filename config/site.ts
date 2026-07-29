@@ -92,15 +92,6 @@ const openGraph = {
 
 const twitterImages = ['/twitter-image.png']
 
-const pages = {
-  // home: {
-  //   title: 'Latest Posts',
-  //   description:
-  //     "Latest articles from Lény Sauzet's blog: web development, shaders, real-time 3D, creative coding, and software engineering insights.",
-  //   openGraphTitle: `Latest Posts - ${title.default}`,
-  // },
-}
-
 const manifest = {
   name: title.default,
   short_name: 'Blog',
@@ -137,7 +128,6 @@ const siteConfig = {
   robots,
   openGraph,
   twitterImages,
-  pages,
   manifest,
   rss,
   authorName: author.name,
@@ -184,9 +174,5 @@ export function getRootMetadata(): Metadata {
       creator: twitter.handle,
       images: twitterImages,
     },
-    // verification: {
-    //   google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-    //   yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION,
-    // },
   }
 }
