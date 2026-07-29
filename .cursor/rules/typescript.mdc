@@ -50,7 +50,8 @@ import { notFound } from 'next/navigation';
 // 2. Third-party
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
-import { Home01Icon } from '@hugeicons/react';
+import { Home01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 // 3. Lib / hooks
 import { cn } from '@/lib/utils';

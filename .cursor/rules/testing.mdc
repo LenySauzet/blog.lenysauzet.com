@@ -1,5 +1,5 @@
 ---
-description: Testing philosophy and patterns
+description: Testing conventions and the jsdom constraints specific to this project
 alwaysApply: false
 globs:
   [
@@ -12,78 +12,63 @@ globs:
 
 # Testing Conventions
 
-## Current State
+Vitest + React Testing Library are configured and in use. Run with `bun run test`
+(`bun test` invokes Bun's own runner and will not work).
 
-This project has no test framework configured yet. Before writing any test, **ask the user** whether tests should be added for the current change.
+## Layout
 
-If tests are to be added, set up **Vitest** with Testing Library — it integrates natively with Next.js and Vite-based toolchains.
-
-## Recommended Setup (Vitest)
-
-```bash
-bun add -D vitest @vitejs/plugin-react @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom
-```
-
-`vitest.config.ts`:
-```ts
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
-
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-  },
-  resolve: {
-    alias: { '@': path.resolve(__dirname, '.') },
-  },
-});
-```
-
-`vitest.setup.ts`:
-```ts
-import '@testing-library/jest-dom';
-```
-
-## Unit Test Patterns
-
-- Files: `__tests__/ComponentName.spec.tsx` adjacent to the component
-- Import via barrel: `from '../'`
-- Test user-visible behavior, not implementation
+Tests are **colocated** next to what they cover, named `Component.test.tsx`, and import
+the unit directly rather than through the barrel:
 
 ```tsx
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import Component from '../';
-
-describe('ComponentName', () => {
-  it('renders expected content', () => {
-    render(<Component />);
-    expect(screen.getByRole('heading')).toHaveTextContent('Title');
-  });
-
-  it('responds to interaction', async () => {
-    render(<Component />);
-    await userEvent.click(screen.getByRole('button'));
-    await waitFor(() => {
-      expect(screen.getByTestId('result')).toBeInTheDocument();
-    });
-  });
-});
+import Details from './Details';
 ```
 
-## Testing Principles
+`vitest.config.mts` collects `{app,components,config,lib,hooks}/**/*.test.{ts,tsx}`.
+Two settings there are load-bearing:
 
-- Use `waitFor` for async assertions
-- Prefer `getByRole` (accessible queries) over `getByTestId`
-- Test what the user sees and does — avoid testing internals
-- Server Components: test utility functions (`lib/post-utils.ts`, etc.) separately
-- Client Components: test via render + interaction
+- **`globals: true`** — Testing Library registers its between-test DOM cleanup only when
+  `afterEach` exists as a global. Without it, cleanup silently stops.
+- **`server-only` is aliased to `test/stubs/`** because Vitest does not set the
+  react-server condition. The guard still holds in the real build.
 
-## IMPORTANT
+`vitest-setup.ts` polyfills `PointerEvent` (Motion's press gesture constructs them) and
+forces `prefers-reduced-motion`. jsdom is pinned to v26; v29 needs `require(ESM)`.
 
-Always confirm with the user whether a test is required before writing one.
+## The jsdom constraint that shapes most tests here
+
+**jsdom gives every element a zero-sized box.** Motion's layout projection therefore
+never settles, so a subtree animating out through a shared `layoutId` never unmounts and
+an exit animation never completes.
+
+Assert the *state*, not the disappearance:
+
+```tsx
+// Good: the trigger's ARIA state is deterministic.
+expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+// Bad under jsdom: this subtree may never unmount.
+await waitFor(() => expect(screen.queryByText('Nested content')).not.toBeInTheDocument());
+```
+
+Where a morph and a dialog are split across two components, assert dismissal on the one
+that owns the dialog, not the one that owns the morph. Animation fidelity belongs in a
+real browser, not here.
+
+CSS-driven output is invisible too: jsdom does not render `content: counter(...)`, so
+assert the marker hook exists rather than the glyph.
+
+## Principles
+
+- Prefer accessible queries (`getByRole`) over `getByTestId`.
+- Test what the user sees and does, not internals.
+- Server Components: test the utilities they call (`lib/post-utils.ts`,
+  `lib/image-utils.ts`) directly; stub the client island when testing what the server
+  hands over.
+- `vi.restoreAllMocks` only undoes `vi.spyOn`. Reset globals you stub yourself.
+- When an assertion looks strange, leave one line saying why. Those comments are the
+  point; see the writing-style rule in [CLAUDE.md](/CLAUDE.md).
