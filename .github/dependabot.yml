@@ -9,17 +9,30 @@ updates:
     schedule:
       interval: "monthly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps):"
       prefix-development: 'chore(deps): '
       include: "scope"
     labels:
       - "dependencies"
-    rebase-strategy: 'disabled'
     reviewers:
       - 'LenySauzet'
-    
+    # Chaque PR réécrit bun.lock, donc deux PR ouvertes en parallèle entrent en
+    # conflit dès que la première est mergée. Le rebase automatique est ce qui
+    # règle ça : ne pas le désactiver.
+    groups:
+      # Un seul lot pour tout ce qui ne franchit pas de majeure. Sans ça, une
+      # exécution ouvre une dizaine de PR qui se marchent dessus.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Publication cassée : la tarball npm de la 5.0.0 ne contient aucun code.
+      - dependency-name: "remark-unwrap-images"
+        versions: [">=5.0.0"]
 
   # Workflows GitHub Actions
   - package-ecosystem: "github-actions"
@@ -32,3 +45,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
