@@ -142,6 +142,10 @@
   --code-bg: var(--card);
   --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
+  /* Inline code is not syntax-highlighted (see next.config.ts) — it takes this
+     single thematic colour instead, matching the string token of the block
+     palette so the two surfaces read as one system. */
+  --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
 
 .dark {
@@ -200,6 +204,7 @@
   /* --code-bg/--code-border inherit the aliased :root definitions (card/border);
      only the emphasis tint is a touch stronger on the dark surface. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
+  --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
 @layer base {
@@ -341,9 +346,10 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   background-color: oklch(from var(--primary) l c h / 0.16);
 }
 
-/* Inline code — a mini code-block: same surface + border, tokens coloured by
-   Shiki (defaultLang.inline). Distinguished from block code by ancestor, which
-   a component override cannot see but this selector can. */
+/* Inline code — a mini code-block: same surface + border, but one flat thematic
+   colour rather than Shiki tokens, so a bare identifier still stands out of the
+   prose. Distinguished from block code by ancestor, which a component override
+   cannot see but this selector can. */
 :not(pre) > code {
   border-radius: 0.5rem;
   border: 1px solid var(--code-border);
@@ -351,7 +357,7 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   padding: 0.1em 0.4em;
   font-family: var(--font-mono-code);
   font-size: 0.85em;
-  color: var(--shiki-foreground);
+  color: var(--code-inline);
 }
 
 /* Sandpack live editor — overrides its internal sp- and cm- classes (out of
