@@ -38,12 +38,12 @@ export function Sandpack({
   const [selectedTab, setSelectedTab] = useState<Tab>(defaultTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCode, setShowCode] = useState(true);
-  // Bumping the key remounts SandpackConsole, which is how its logs are cleared
-  // (each useSandpackConsole holds its own local log state — see ClearConsoleButton).
+  // Remounting SandpackConsole is the only way to clear its logs; each
+  // useSandpackConsole holds its own local state.
   const [consoleKey, setConsoleKey] = useState(0);
 
-  // Lock the page scroll while fullscreen, in an effect so it's always restored —
-  // including if the editor unmounts (route change) without exiting fullscreen.
+  // In an effect so the lock is released even if the editor unmounts on a route
+  // change without exiting fullscreen.
   useEffect(() => {
     document.body.style.overflow = isFullscreen ? 'hidden' : '';
     return () => {

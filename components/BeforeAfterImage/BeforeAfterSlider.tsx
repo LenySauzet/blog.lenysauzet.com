@@ -9,14 +9,13 @@ import { cn } from '@/lib/utils';
 
 const STEP = 5;
 const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
-// The handle's edge colour — a light base-hue tint that reads on any image in
-// either theme. The divider reuses it so the two lines always match, with the
-// handle border as the single source of truth.
+// Sits on the image, not on a theme surface, so it is a fixed tint that reads in
+// both themes rather than a semantic token.
 const HANDLE_EDGE = 'oklch(0.82 0.03 var(--base-hue) / 0.45)';
 const clamp = (value: number) => Math.min(Math.max(value, 0), 100);
 
 export interface BeforeAfterSliderProps {
-  /** Fully resolved URLs — resolution happens on the server. */
+  /** Fully resolved URLs; resolution happens on the server. */
   beforeSrc: string;
   afterSrc: string;
   /** Accessible name for the slider. */
@@ -38,10 +37,9 @@ export function BeforeAfterSlider({
   const [position, setPosition] = useState(() => clamp(defaultPosition));
   const [dragging, setDragging] = useState(false);
 
-  // The divider is driven straight to the CSS var so dragging never waits on a
-  // React render; `latest` holds the live value and aria-valuenow is synced once
-  // per frame. `latest` (not `position`) is the base for keyboard steps, so rapid
-  // presses compound correctly instead of reading a stale render.
+  // Dragging writes the CSS var directly so it never waits on a React render;
+  // `latest` holds the live value and keyboard steps build on it, so rapid
+  // presses compound instead of reading a stale render.
   const latest = useRef(position);
   const frame = useRef(0);
   const apply = (next: number) => {
@@ -61,8 +59,7 @@ export function BeforeAfterSlider({
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    // Capture so the drag keeps tracking outside the element; guarded because it
-    // throws for a pointer that's already been released.
+    // Guarded: throws for a pointer that has already been released.
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
@@ -113,8 +110,6 @@ export function BeforeAfterSlider({
       onPointerCancel={endDrag}
       style={{ '--progress': `${position}%` } as React.CSSProperties}
       className={cn(
-        // Same 2px --border as the site's images; the divider/handle sit on the
-        // image itself and keep HANDLE_EDGE (a theme token would half-vanish there).
         'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-xl border-2 border-border select-none',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none'
       )}
@@ -129,7 +124,6 @@ export function BeforeAfterSlider({
         draggable={false}
         className={imageClass}
       />
-      {/* The "after" image, clipped from the left to the divider. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -146,7 +140,6 @@ export function BeforeAfterSlider({
           className={imageClass}
         />
       </div>
-      {/* Divider line + glass handle, centred on the divider. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 z-[1] -translate-x-1/2"
@@ -156,9 +149,6 @@ export function BeforeAfterSlider({
           className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
           style={{ backgroundColor: HANDLE_EDGE }}
         />
-        {/* A control that sits on the (theme-independent) image, so its glass is a
-            fixed base-hue grey-blue — identical and legible in both themes rather
-            than following the page's surface tokens, which broke it in light. */}
         <div
           className="absolute top-1/2 left-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md"
           style={{

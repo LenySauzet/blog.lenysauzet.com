@@ -4,8 +4,7 @@ import dynamic from 'next/dynamic';
 
 import { EDITOR_HEIGHT } from './constants';
 
-// Sandpack is a heavy, browser-only dependency: load it lazily and never on the
-// server, so only posts that embed a live editor pay for it.
+// Heavy and browser-only, so only posts that embed a live editor pay for it.
 export const Sandpack = dynamic(() => import('./Sandpack').then((mod) => mod.Sandpack), {
   ssr: false,
   loading: () => (

@@ -15,9 +15,8 @@ import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
 
 /**
- * Bridges markdown `![alt](src)` onto the Image component so both syntaxes
- * behave identically. `src` is narrowed because remark always emits a string,
- * while the HTML img type also allows a Blob.
+ * Bridges markdown `![alt](src)` onto Image. `src` is narrowed because the HTML
+ * img type also allows a Blob, which remark never emits.
  */
 function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
   if (typeof src !== 'string') return null;

@@ -15,8 +15,8 @@ export interface ImageProps {
   quality?: number;
 }
 
-// Server component: URL resolution and the dimension lookup run at build time,
-// so the figure and caption ship as plain HTML; only the zoom crosses to client.
+// URL resolution and the dimension lookup run at build time, so only the zoom
+// crosses to the client.
 export default async function Image({
   src,
   alt,

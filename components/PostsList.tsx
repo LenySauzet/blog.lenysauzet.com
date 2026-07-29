@@ -1,7 +1,6 @@
 'use client';
 
 import { ScrambledText } from '@/components/ScrambledText';
-// import { useSplashScreenStore } from '@/hook/use-splashScreen-store';
 import { format } from 'date-fns';
 import Link from 'next/link';
 

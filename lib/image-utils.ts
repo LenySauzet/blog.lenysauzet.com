@@ -11,9 +11,8 @@ interface ImageDimensions {
   height: number;
 }
 
-// Reads an image's intrinsic dimensions from its header bytes via a ranged
-// request, at build time only. Throws rather than guessing: a wrong dimension
-// ships as layout shift on every visit, which is worse than a failed build.
+// Throws rather than guessing: a wrong dimension ships as layout shift on every
+// visit, which is worse than a failed build.
 export const getImageDimensions = cache(
   async (url: string): Promise<ImageDimensions> => {
     let response: Response;

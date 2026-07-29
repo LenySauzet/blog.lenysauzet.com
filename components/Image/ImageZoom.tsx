@@ -6,18 +6,15 @@ import { useId, useState } from 'react';
 
 import { Lightbox } from './Lightbox';
 
-// Shared with the Lightbox scrim via MotionConfig, so the scrim can't fade
-// faster than the image (which reads as a flash). A plain tween, not a spring:
-// springs have no bounded end and `restDelta` is ignored by layout projection,
-// so a spring exit lingers past its last visible frame.
+// A tween, not a spring: layout projection ignores `restDelta`, so a spring exit
+// lingers past its last visible frame.
 const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
-// Targets the larger, zoomed rendering so the shared file is never upscaled.
-// Mobile matches the zoom's rendered width (the surface's content box).
+// Sized for the zoomed rendering, so the shared file is never upscaled.
 const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 
-// Mirrors the surface's p-8. Absolute, not a percentage: the padding is a fixed
-// height, so a ratio would under-reserve on short viewports.
+// Mirrors the surface's p-8. Absolute, since a ratio would under-reserve on
+// short viewports.
 const ZOOM_MAX_BLOCK_SIZE = 'calc(100dvh - 4rem)';
 
 export interface ImageZoomProps {
@@ -40,9 +37,8 @@ function PostImage(props: ImageZoomProps) {
   );
 }
 
-// Both copies share one `layoutId`, so Motion tweens the bounding box of one
-// into the other instead of cross-fading. `reducedMotion="user"` drops the
-// transform/layout animations in one place, so no branch is needed below.
+// Both copies share one `layoutId`, so Motion tweens one bounding box into the
+// other instead of cross-fading.
 export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const [open, setOpen] = useState(false);
   const layoutId = `image-zoom-${useId()}`;
@@ -68,8 +64,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
           whileTap={{ scale: 0.98 }}
           style={{
             willChange: 'transform',
-            // Solve for width through the aspect ratio rather than capping both
-            // axes: capping both would letterbox or distort the image.
+            // Solved through the aspect ratio; capping both axes would letterbox.
             width: `min(var(--zoom-max-inline-size), calc(${ZOOM_MAX_BLOCK_SIZE} * ${props.width} / ${props.height}))`,
           }}
           className="[--zoom-max-inline-size:calc(100dvw_-_4rem)] md:[--zoom-max-inline-size:80dvw]"

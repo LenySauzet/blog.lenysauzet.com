@@ -5,8 +5,8 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// my-3 on top of the post's own 20px block gap: callouts want more room than
-// plain paragraphs, and flex margins there do not collapse.
+// my-3 stacks on the post's block gap rather than collapsing into it: the parent
+// is a flex column.
 const calloutVariants = cva('relative my-3 rounded-xl border px-4 py-3', {
   variants: {
     variant: {
@@ -17,8 +17,7 @@ const calloutVariants = cva('relative my-3 rounded-xl border px-4 py-3', {
   defaultVariants: { variant: 'info' },
 });
 
-// The floating badge sits on the tinted variant colour; its icon/text takes the
-// page background, so it reads inverted against the badge in either theme.
+// The badge inverts: variant colour as its surface, page background as its ink.
 const badgeColor = cva('bg-(--badge) text-background', {
   variants: {
     variant: {
@@ -73,8 +72,8 @@ export function Callout({ variant = 'info', label, children }: CalloutProps) {
         </span>
       )}
 
-      {/* Neutralise each block's own vertical margin so the gap alone sets the
-          rhythm — lets any component (image, code, list, video) sit inside. */}
+      {/* `[&>*]:my-0` neutralises each child's own margin so the gap alone sets
+          the rhythm, letting any block sit inside. */}
       <div className="flex flex-col gap-4 [&>*]:my-0 [&>p]:text-foreground">
         {children}
       </div>

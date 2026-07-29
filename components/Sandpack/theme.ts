@@ -1,8 +1,7 @@
 import type { SandpackTheme } from '@codesandbox/sandpack-react';
 
-// Maps Sandpack onto the same design tokens as the static code block, so the
-// live editor inherits the site theme (and re-themes with --base-hue). Ported
-// from Maxime Heckel's mapping, retargeted to this project's tokens.
+// Maps Sandpack onto the same tokens as the static code block, so the live
+// editor re-themes with --base-hue like everything else.
 export const sandpackTheme: SandpackTheme = {
   colors: {
     surface1: 'var(--code-bg)',

@@ -33,7 +33,6 @@ export default async function Image({
       tw="w-full h-full flex items-center justify-center text-white"
       style={{
         background: 'linear-gradient(214deg, #A0A0A0 0%, #1F2426 96.12%)',
-        // background: 'linear-gradient(212deg, #37398F 19.79%, #6075B8 70.31%, #B3DFED 100%)',
       }}
     >
       <DotMatrix />

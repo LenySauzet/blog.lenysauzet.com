@@ -19,13 +19,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 
 // Tailwind v4's scale-* sets the `scale` property, not `transform`, so the plain
-// `transition` utility (which covers scale) is what animates the hover/press
-// feedback; will-change keeps that scale on its own compositor layer.
+// `transition` utility is what animates the hover/press feedback.
 const toolbarButton =
   'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground [will-change:transform] transition duration-200 ease-out hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-95 focus-visible:scale-110 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
 
-// One tooltip above any toolbar control. The dark, arrow-less design now lives in
-// the shared TooltipContent primitive, so only the placement is set here.
 function ToolbarTooltip({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Tooltip>
@@ -37,7 +34,6 @@ function ToolbarTooltip({ label, children }: { label: string; children: ReactNod
   );
 }
 
-// Icon button with tooltip + hover/press feedback, shared by every toolbar control.
 export function IconToolbarButton({
   icon,
   label,
@@ -58,7 +54,6 @@ export function IconToolbarButton({
   );
 }
 
-// Centered play overlay, shown until the bundler is running.
 export function RunButton() {
   const { sandpack } = useSandpack();
   if (sandpack.status === 'running') return null;
@@ -83,8 +78,7 @@ export function RefreshButton() {
 
 export function OpenInCodeSandboxButton() {
   // Sandpack's button spreads incoming props AFTER its own submit onClick, so a
-  // Radix trigger applied directly would clobber it. Wrap it (as Maxime does) so
-  // the trigger's handlers land on the span and the submit stays intact.
+  // Radix trigger applied directly would clobber it. The span takes it instead.
   return (
     <ToolbarTooltip label="Open in CodeSandbox">
       <span className="inline-flex">
@@ -100,9 +94,8 @@ export function ToggleCodeButton({ onClick }: { onClick: () => void }) {
   return <IconToolbarButton icon={FileScriptIcon} label="Toggle code" onClick={onClick} />;
 }
 
-// The visible console is cleared by remounting SandpackConsole (via onClear); the
-// hook's own reset() only clears a separate, non-rendered log instance, so it's
-// intentionally not called here.
+// Clearing remounts SandpackConsole. The hook's own reset() is deliberately not
+// called: it clears a separate, non-rendered log instance.
 export function ClearConsoleButton({ onClear }: { onClear: () => void }) {
   return <IconToolbarButton icon={Delete02Icon} label="Clear console" onClick={onClear} />;
 }

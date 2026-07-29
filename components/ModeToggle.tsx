@@ -12,8 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-// The sun/moon cross-fade through `dark:` variants; `relative` anchors the
-// absolutely-positioned moon.
 export function ModeToggle() {
   const { setTheme } = useTheme();
 

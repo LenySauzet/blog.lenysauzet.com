@@ -2,10 +2,9 @@ import '@testing-library/jest-dom/vitest';
 
 import { afterEach, vi } from 'vitest';
 
-// Report reduced motion so Motion skips transform/layout animations, which
-// never settle under jsdom's zero-sized boxes. Assigned unconditionally: jsdom
-// ships a matchMedia that always reports `matches: false`, so a guard would
-// silently do nothing.
+// Motion skips transform/layout animations under reduced motion; they never
+// settle against jsdom's zero-sized boxes. Assigned unconditionally, since
+// jsdom's own matchMedia always reports `matches: false`.
 window.matchMedia = (query: string) =>
   ({
     matches: /prefers-reduced-motion/.test(query),

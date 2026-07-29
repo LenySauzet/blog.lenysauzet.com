@@ -92,9 +92,7 @@
   --accent: oklch(0.967 0.001 var(--base-hue));
   --accent-foreground: oklch(0.21 0.006 var(--base-hue));
   --destructive: oklch(64.4% 0.204 21.9);
-  /* Fixed-hue status colours (green/orange don't rotate with --base-hue, like the
-     fixed syntax accents) — ported from Maxime Heckel's scale. Per theme: darker
-     for legibility on the light page, brighter on the dark surface below. */
+  /* Green and orange deliberately do not rotate with --base-hue. */
   --success: oklch(0.5284 0.117 170);
   --warning: oklch(0.7412 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
@@ -115,11 +113,8 @@
   --sidebar-border: oklch(0.92 0.004 var(--base-hue));
   --sidebar-ring: oklch(0.705 0.015 var(--base-hue));
 
-  /* Syntax highlighting (Shiki css-variables theme). Like the rest of the
-     design, the whole palette is driven by --base-hue, so re-theming the site
-     re-themes the code with it. Lightness/chroma per token are ported from
-     Maxime Heckel's scale; function (pink) and operator (orange) are the two
-     fixed-hue accents that deliberately do not rotate. Light mode values. */
+  /* Syntax palette, light values. Driven by --base-hue so re-theming the site
+     re-themes the code, except function (pink) and operator (orange). */
   --shiki-foreground: oklch(0.5013 0.047 var(--base-hue));
   --shiki-token-comment: oklch(0.62 0.03 var(--base-hue));
   --shiki-token-parameter: oklch(0.5013 0.047 var(--base-hue));
@@ -135,16 +130,12 @@
   --shiki-token-deleted: oklch(0.3642 0.168 var(--base-hue));
   --shiki-token-changed: oklch(0.4651 0.225 var(--base-hue));
 
-  /* Code / inset surface. Aliased to the semantic card + border tokens so code
-     blocks, inline code, Sandpack, the tooltip and Details all share one source
-     — change --card/--border and every inset surface follows, no drift. Emphasis
-     (highlight + line hover) is the accent at low alpha, so it tracks --base-hue. */
+  /* Every inset surface (code blocks, inline code, Sandpack, tooltip, Details)
+     aliases the semantic tokens, so they cannot drift apart. */
   --code-bg: var(--card);
   --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
-  /* Inline code is not syntax-highlighted (see next.config.ts) — it takes this
-     single thematic colour instead, matching the string token of the block
-     palette so the two surfaces read as one system. */
+  /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
 
@@ -165,7 +156,6 @@
   --accent: oklch(0.274 0.006 var(--base-hue));
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(64.4% 0.204 21.9);
-  /* Status colours on the dark surface — Maxime's green-900 / orange-900. */
   --success: oklch(0.8602 0.176 170);
   --warning: oklch(0.7093 0.18 60);
   --border: oklch(24.84% 0.018 var(--base-hue));
@@ -185,7 +175,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 var(--base-hue));
 
-  /* Dark mode: lighter shades so tokens sit brightly on the dark surface. */
   --shiki-foreground: oklch(0.6665 0.04 var(--base-hue));
   --shiki-token-comment: oklch(0.575 0.03 var(--base-hue));
   --shiki-token-parameter: oklch(0.6665 0.04 var(--base-hue));
@@ -201,8 +190,7 @@
   --shiki-token-deleted: oklch(0.6153 0.1675 var(--base-hue));
   --shiki-token-changed: oklch(0.7165 0.122 var(--base-hue));
 
-  /* --code-bg/--code-border inherit the aliased :root definitions (card/border);
-     only the emphasis tint is a touch stronger on the dark surface. */
+  /* --code-bg and --code-border inherit their :root aliases. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
@@ -240,14 +228,10 @@ ol[data-list='ordered'] > li::before {
   font-variant-numeric: tabular-nums;
 }
 
-/* components/Details reveal keyframes. Referenced from the Details content's
-   className via `data-[state=…]:animate-[details-open_…]`, so the animation is
-   present the instant Radix flips data-state (a separate CSS rule would race
-   Radix's unmount check). Unique names — reusing tw-animate-css's `accordion-*`
-   fails, because the bundler dedupes same-named @keyframes and keeps its
-   height-only copy. Radix sets --radix-accordion-content-height and delays
-   unmount until the close animation ends, so the exit plays too. A richer reveal
-   than plain height: fade + an 8px slide + a blur. */
+/* components/Details reveal. The names must stay unique: reusing tw-animate-css's
+   `accordion-*` silently fails, because the bundler dedupes same-named @keyframes
+   and keeps its height-only copy. `filter: none`, not `blur(0)`, which Lightning
+   CSS minifies to the invalid `blur()`. */
 @keyframes details-open {
   from {
     height: 0;
@@ -277,33 +261,27 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
-/* Build-time math (rehype-mathjax → MathJax SVG). Display equations are centred
-   (MathJax's own style) and brighter than the muted body; a wide one (a matrix)
-   scrolls horizontally rather than breaking the column. Inline math flows with
-   its surrounding text at the ambient colour. The SVG fills with currentColor,
-   so setting `color` makes it theme-aware. */
+/* Build-time math (rehype-mathjax, SVG output). A wide equation scrolls rather
+   than breaking the column; the SVG fills with currentColor, so `color` is what
+   makes it theme-aware. */
 mjx-container[display='true'] {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.5rem 0.25rem;
   color: var(--foreground);
 }
-/* Tailwind preflight makes the MathJax <svg> display:block, which the
-   container's `text-align: center` (MathJax's own) can't centre. Restore
-   inline-block so it centres (and scrolls when it overflows). */
+/* Both rules undo Tailwind preflight's `svg { display: block }`, which MathJax's
+   own `text-align: center` cannot centre and which breaks inline math onto its
+   own line. */
 mjx-container[display='true'] svg {
   display: inline-block;
 }
-/* Inline math: the container renders as `display: inline` here, so Tailwind's
-   preflight `svg { display: block }` breaks the math onto its own line. Force
-   the inline-block box MathJax expects so inline equations flow with the text. */
 mjx-container:not([display='true']) {
   display: inline-block;
 }
 
-/* Fenced code blocks (rehype-pretty-code + Shiki). These target generated
-   markup — data attributes and per-line spans Tailwind classes cannot reach —
-   so they live here alongside the list counters above. */
+/* Fenced code blocks. These target rehype-pretty-code's generated markup, which
+   Tailwind classes cannot reach. */
 figure[data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
   padding: 0.75rem 0;
@@ -321,11 +299,9 @@ figure[data-rehype-pretty-code-figure] [data-line] {
   padding: 0 1rem;
   border-left: 3px solid transparent;
 }
-/* Hovering any line tints it, exactly as a highlighted line is tinted. */
 figure[data-rehype-pretty-code-figure] [data-line]:hover {
   background-color: var(--code-emphasis);
 }
-/* Line numbers, always on — matches the reference design. */
 figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);
   counter-increment: line;
@@ -346,10 +322,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   background-color: oklch(from var(--primary) l c h / 0.16);
 }
 
-/* Inline code — a mini code-block: same surface + border, but one flat thematic
-   colour rather than Shiki tokens, so a bare identifier still stands out of the
-   prose. Distinguished from block code by ancestor, which a component override
-   cannot see but this selector can. */
+/* Block code is excluded by ancestor, which a component override cannot see but
+   this selector can. */
 :not(pre) > code {
   border-radius: 0.5rem;
   border: 1px solid var(--code-border);
@@ -360,9 +334,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   color: var(--code-inline);
 }
 
-/* Sandpack live editor — overrides its internal sp- and cm- classes (out of
-   Tailwind's reach). Editor and preview are separate rounded cards, and the
-   widget bleeds wider than the prose column on desktop, as in the reference. */
+/* Sandpack live editor. Overrides its internal sp- and cm- classes, which are
+   out of Tailwind's reach. */
 .sandpack-root .sp-layout {
   gap: 1rem;
   border: none;
@@ -406,15 +379,12 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border: none;
   /* Opaque, so code scrolled left clips cleanly behind the line numbers. */
   background: var(--code-bg);
-  /* Raise above the code so the fade below (its ::after) covers it, and let that
-     pseudo-element spill past the gutter's right edge. */
   z-index: 2;
   overflow: visible;
 }
-/* Left edge fade, painted by the gutter itself so it stays glued to the sticky
-   line-number column exactly — including through macOS elastic overscroll, where
-   a wrapper-anchored overlay separates from the gutter and leaks code. Opacity
-   tracks the horizontal scroll via --edge-left (set on the wrapper, inherited). */
+/* Painted by the gutter itself rather than by the wrapper: through macOS elastic
+   overscroll a wrapper-anchored overlay separates from the sticky gutter and
+   leaks code. */
 .sandpack-root .cm-gutters::after {
   content: '';
   position: absolute;
@@ -435,7 +405,6 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   user-select: none;
   opacity: 1;
 }
-/* Thin, themed scrollbars (both axes); keep the corner transparent. */
 .sandpack-root .cm-scroller::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -451,8 +420,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root .cm-scroller::-webkit-scrollbar-corner {
   background: transparent;
 }
-/* UnstyledOpenInCodeSandboxButton nests a <form> inside its button; take it out
-   of flow so it doesn't shove the icon off-centre while staying clickable. */
+/* UnstyledOpenInCodeSandboxButton nests a <form> inside its button. Out of flow
+   so it stays clickable without shoving the icon off-centre. */
 .sandpack-root [aria-label='Open in CodeSandbox'] form {
   position: absolute;
   inset: 0;
@@ -466,9 +435,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root .sp-tabs-scrollable-container {
   padding: 0 4px;
 }
-/* Active file tab: a rounded-top tab in the editor colour that opens into the
-   content, its border curving through layered radial-gradient corner notches
-   (ported verbatim from Maxime Heckel's design system). */
+/* The active tab's border curves into the content through the layered
+   radial-gradient corner notches in the ::before/::after below. */
 .sandpack-root .sp-tab-container {
   --tab-border-color: transparent;
   position: relative;
@@ -536,8 +504,7 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root .sp-console-actions {
   display: none;
 }
-/* Masks CodeMirror's momentary reflow when the active file changes: the mask
-   remounts on file switch (keyed) and fades from opaque to clear. */
+/* Masks CodeMirror's reflow on file switch. Replayed by the mask remounting. */
 .sandpack-root .sp-switch-mask {
   animation: sp-switch-fade 260ms ease-out forwards;
 }

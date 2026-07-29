@@ -1,8 +1,7 @@
-// Shiki's `css-variables` theme, generated once via `createCssVariablesTheme`
-// and inlined as plain data: next.config.ts compiles to CommonJS and cannot
-// import ESM-only shiki, and Turbopack only accepts serializable plugin
-// options. Token colours resolve to the `--shiki-token-*` variables defined in
-// app/globals.css, so the palette lives with the rest of the design tokens.
+// Shiki's `css-variables` theme, inlined as plain data rather than built via
+// `createCssVariablesTheme`: next.config.ts compiles to CommonJS and cannot
+// import ESM-only shiki, and Turbopack only accepts serializable plugin options.
+// Colours resolve to the `--shiki-token-*` variables in app/globals.css.
 export const codeTheme = {
   name: 'css-variables',
   type: 'dark',
@@ -136,17 +135,15 @@ export const codeTheme = {
       scope: ['markup.changed', 'punctuation.definition.changed'],
       settings: { foreground: 'var(--shiki-token-changed)' },
     },
-    // Not part of the stock css-variables theme: give operators (= => etc.)
-    // their own token so they can carry the fixed orange accent.
+    // Not in the stock css-variables theme: operators get their own token so
+    // they can carry the fixed orange accent.
     {
       scope: ['keyword.operator', 'storage.type.function.arrow'],
       settings: { foreground: 'var(--shiki-token-operator)' },
     },
-    // The stock css-variables theme classifies TypeScript coarsely; these rules
-    // realign it with Maxime Heckel's Prism palette. Order matters — a more
-    // specific scope wins, and later rules break ties.
-    //
-    // Type / class / interface / enum names and decorators → the function accent.
+    // The rules below realign the stock theme's coarse TypeScript classification
+    // with Maxime Heckel's Prism palette. Order matters: the more specific scope
+    // wins, and later rules break ties.
     {
       scope: [
         'entity.name.type',
@@ -163,14 +160,13 @@ export const codeTheme = {
       ],
       settings: { foreground: 'var(--shiki-token-function)' },
     },
-    // Primitive/builtin type keywords (string, number, boolean, null, undefined)
-    // read as keywords, not types — blue rather than the function pink.
+    // `string`, `number`, `boolean` read as keywords, not as types.
     {
       scope: ['support.type.primitive', 'support.type.builtin'],
       settings: { foreground: 'var(--shiki-token-keyword)' },
     },
-    // Ordinary variables and object references stay plain — the calmer,
-    // Prism-like reading Maxime has, where only literals and properties colour.
+    // Plain variables stay uncoloured, so only literals and properties carry a
+    // colour. This is what makes the palette read as Prism rather than VS Code.
     {
       scope: [
         'variable.other.constant',
@@ -179,8 +175,6 @@ export const codeTheme = {
       ],
       settings: { foreground: 'var(--shiki-foreground)' },
     },
-    // Property names — declarations, object-literal keys and member access —
-    // take the constant colour, as Maxime paints properties.
     {
       scope: [
         'variable.object.property',
@@ -190,7 +184,7 @@ export const codeTheme = {
       ],
       settings: { foreground: 'var(--shiki-token-constant)' },
     },
-    // The member accessor dot is punctuation, not part of the function.
+    // The accessor dot is punctuation, not part of the function name.
     {
       scope: ['punctuation.accessor'],
       settings: { foreground: 'var(--shiki-token-punctuation)' },

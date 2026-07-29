@@ -12,8 +12,7 @@ const badgeVariants = cva(
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
-        // Tinted status variants (the "pill" family): a ~10% wash of the status
-        // colour with the colour itself as text, ported from Maxime Heckel.
+        // Custom, not from the CLI: re-run `add badge --diff` and re-apply.
         info: "bg-primary/10 [a]:hover:bg-primary/15 text-primary",
         success: "bg-success/10 [a]:hover:bg-success/15 text-success",
         warning: "bg-warning/10 [a]:hover:bg-warning/15 text-warning",

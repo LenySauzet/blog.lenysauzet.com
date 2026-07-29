@@ -28,13 +28,10 @@ interface LightboxProps {
 }
 
 /**
- * Full-bleed surface, dismisses on click or Escape. Deliberately NOT a dialog
- * primitive (Radix / Base UI): a primitive's scroll lock is tied to its layer's
- * mount, and the layer must outlive the dismiss to animate out — freezing the
- * page for the whole exit. Nothing here is ever locked: `overscroll-contain`
- * keeps the page still while open, and on dismiss the exit variant drops pointer
- * events, handing the wheel back mid-animation. Timing comes from the caller's
- * MotionConfig (context crosses the portal) so the scrim can't drift out of sync.
+ * Deliberately NOT a dialog primitive: Radix ties its scroll lock to the layer's
+ * mount, and the layer must outlive the dismiss to animate out, so the page stays
+ * frozen for the whole exit. Here `overscroll-contain` holds the page still and
+ * the exit variant drops pointer events instead.
  */
 export function Lightbox({
   open,
@@ -52,9 +49,7 @@ export function Lightbox({
     const surfaceEl = surface.current;
     restoreFocusTo.current = document.activeElement as HTMLElement | null;
 
-    // `aria-modal` claims the rest of the page is gone, so the keyboard must
-    // agree: focus the surface and block Tab from wandering out. Nothing here
-    // is focusable, so the trap amounts to not moving at all.
+    // `aria-modal` claims the rest of the page is gone, so Tab must not leave.
     surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -66,8 +61,8 @@ export function Lightbox({
     return () => {
       document.removeEventListener('keydown', onKeyDown);
 
-      // Only restore focus if it is still ours: this cleanup also runs on
-      // unmount (e.g. a route change), where stealing focus would be wrong.
+      // This cleanup also runs on unmount (a route change), where stealing focus
+      // back would be wrong.
       const active = document.activeElement;
       const focusIsOurs =
         !active || active === document.body || surfaceEl?.contains(active);
@@ -90,8 +85,8 @@ export function Lightbox({
           tabIndex={-1}
           // z-100, not z-50: the site header already claims z-50.
           className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
-          // Fade a custom property, not the element's opacity, so the scrim
-          // animates without dragging the morphing image with it.
+          // Fading a custom property rather than opacity keeps the morphing
+          // image out of the fade.
           style={{
             backgroundColor:
               'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',

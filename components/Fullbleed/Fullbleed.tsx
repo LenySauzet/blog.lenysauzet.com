@@ -8,12 +8,9 @@ export interface FullbleedProps {
   maxWidth?: number;
 }
 
-// Breaks any block out of the prose column to bleed wider than the body — capped,
-// centred, and reverting to the column width below md. The classic full-bleed
-// trick: the outer box spans 100vw via viewport-centred negative margins (which
-// re-centre it regardless of the narrower parent), then the inner box constrains
-// the content. The post's own overflow-x:hidden clips that 100vw span to the
-// viewport, so it never adds horizontal scroll.
+// The outer box spans 100vw through viewport-centred negative margins, which
+// re-centre it regardless of the narrower parent; the inner box then caps the
+// content. The post's own overflow-x:hidden clips the span, so no scrollbar.
 export default function Fullbleed({
   children,
   widthPercent = 80,
