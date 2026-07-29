@@ -1,56 +1,76 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) and every other agent working in this repo.
+This file is the single source of truth: `AGENTS.md` and `.cursor/rules/general.mdc`
+both point here. Glob-scoped detail lives in `.cursor/rules/*.mdc` and is listed under
+[Where the rest lives](#where-the-rest-lives).
 
 ## Commands
 
 ```bash
-bun dev          # Start development server
-bun build        # Production build
-bun start        # Start production server
-bun lint         # Run ESLint (eslint-config-next)
-bun run test     # Vitest (jsdom + React Testing Library), single run
+bun dev              # Development server
+bun run build        # Production build
+bun start            # Serve the production build
+bun lint             # ESLint (eslint-config-next)
+bun run type-check   # tsc --noEmit
+bun run test         # Vitest, single run
 bun run test:watch
 ```
 
-Tests are Vitest + React Testing Library, colocated as `Component.test.tsx` next to the
-component. `bun test` runs Bun's own runner and will **not** work — always `bun run test`.
+`bun test` runs Bun's own runner and will **not** work. Always `bun run test`.
 
-Two constraints worth knowing before writing tests:
+## Verification gate
 
-- **jsdom gives every element a zero-sized box**, so Motion's layout projection never settles
-  and a subtree animating out via a shared `layoutId` never unmounts. Assert dismissal on the
-  component that owns the dialog, not the one that owns the morph. Animation fidelity belongs
-  in a real browser.
-- **`server-only` is aliased to a stub** (`test/stubs/`) because Vitest does not set the
-  react-server condition. The guard still holds in the real build.
+Before claiming anything is done, run what CI runs and paste the output:
 
-`vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
-determinism. jsdom is pinned to v26: v29 needs `require(ESM)`, which lands in Node 22.12.
+```bash
+bun lint && bun run type-check && bun run test && bun run build
+```
+
+`.github/workflows/ci.yml` runs exactly these on every PR. A green local run is the
+claim; anything less is "untested".
+
+Two things CI cannot check, so check them by hand:
+
+- **Both themes.** Every component is styled with tokens, so light mode is free, but
+  free is not the same as verified. Look at it in both.
+- **The build reaches the CDN.** `components/Image` resolves image dimensions from
+  remote headers at build time, so a broken asset path fails the build by design.
 
 ## Branch workflow
 
-One component per branch, PR into `main`, squash-merge, delete the branch. `main` is what
-deploys, so **do not commit straight to it** — every change goes through a branch.
+One component per branch, PR into `main`, squash-merge, delete the branch. `main` is
+what deploys, so **never commit straight to it**.
 
-**Never stack branches.** Three rules keep it that way:
+**Never stack branches:**
 
 1. Branch from an up-to-date `main` (`git checkout main && git pull` first).
-2. If a feature needs another feature's code, **merge that one into `main` first** — never
-   branch B off branch A. A cross-branch dependency is the signal to merge, not to stack.
-3. Shared foundations (the Vitest setup, design tokens, `Image`, `List`) already live on `main`,
-   so independent components can be built in parallel and merged in any order.
+2. If a feature needs another branch's code, **merge that one into `main` first**. A
+   cross-branch dependency is the signal to merge, not to stack.
+3. Shared foundations (Vitest setup, design tokens, `Image`, `List`) are already on
+   `main`, so independent components can be built in parallel and merged in any order.
 
-Squash-merging a stack after the fact is painful (deleting a base branch can *close* its
-dependent PRs) — the rules above avoid ever getting there.
+Squash-merging a stack after the fact is painful: deleting a base branch can *close*
+its dependent PRs.
+
+## Writing style
+
+Code, comments, and file names in **English**. Comments are for what the code cannot
+say: a constraint, a trap, a decision that would otherwise invite a bug-reintroducing
+"fix". Never restate the line below. Never use an em dash. No commented-out code, that
+is what git history is for.
 
 ## Architecture
 
-**Next.js 16 App Router** with static generation. All pages are Server Components by default; add `'use client'` only when using hooks or browser APIs.
+**Next.js 16 App Router**, statically generated. Server Components by default; add
+`'use client'` only for hooks or browser APIs.
+
+`content/design-system.mdx` renders every content component live at
+`/posts/design-system`. Read it first when adding or changing one.
 
 ### Content system
 
-Posts live in `content/*.mdx` and use **JS export frontmatter** (not YAML):
+Posts live in `content/*.mdx` and use **JS export frontmatter**, not YAML:
 
 ```mdx
 export const metadata = {
@@ -58,194 +78,202 @@ export const metadata = {
   description: '...',
   tags: ['webgl'],
   date: 'YYYY-MM-DD',
+  draft: true, // optional: reachable by URL, hidden from every listing
 };
 ```
 
-The slug is the filename. Posts are loaded via dynamic `import()` at build time (`generateStaticParams` + `dynamicParams = false` in `app/posts/[slug]/page.tsx`). The `getPosts()` helper in `lib/post-utils.ts` reads the `content/` directory and imports each file's metadata.
+The slug is the filename. Posts load via dynamic `import()` at build time
+(`generateStaticParams` + `dynamicParams = false` in `app/posts/[slug]/page.tsx`).
+`getPosts()` in `lib/post-utils.ts` reads `content/` and imports each file's metadata;
+it excludes drafts unless asked, so the feed, RSS and sitemap never leak them.
 
-MDX components are registered globally in `mdx-components.tsx` via `useMDXComponents()`.
+MDX components are registered globally in `mdx-components.tsx`.
 
 ### Media and the CDN
 
-Media lives on `cdn.lenysauzet.com` (Cloudflare R2), namespaced by kind: `images/…` and
-`videos/…`. Both the origin and that layout are declared in `config/site.ts` (`cdnUrl`,
-`cdnPaths`).
-
-Posts reference assets **relative to their media prefix**. `lib/cdn.ts` is the only module
-aware of the CDN: `resolveImageUrl('blog/halftone.png')` →
-`https://cdn.lenysauzet.com/images/blog/halftone.png`. Absolute URLs pass through untouched, so
-a post can still point at a third-party asset. `Image` and `VideoPlayer` each go through their
-own resolver.
+Media lives on `cdn.lenysauzet.com` (Cloudflare R2), namespaced by kind: `images/…`
+and `videos/…`. Origin and layout are declared in `config/site.ts` (`cdnUrl`,
+`cdnPaths`); `lib/cdn.ts` is the only module aware of them. Absolute URLs pass through
+untouched, so a post can point at a third-party asset.
 
 ```mdx
 <Image src="blog/halftone.png" alt="Diagram breaking down the distance field" />
 ```
 
-`width`/`height` are optional: `components/Image` is an async Server Component that reads the
-image header at build time (ranged request + `image-size`, memoized with `cache()`) to reserve
-space and avoid CLS. Supplying both skips the lookup. **The source must exist on the CDN or the
-build fails by design** — a guessed dimension would ship as layout shift on every visit.
+**Prefer omitting `width`/`height`.** `components/Image` is an async Server Component
+that reads the image header at build time (ranged request + `image-size`, memoized with
+`cache()`) to reserve space and avoid CLS. Hand-written values tend to be the *displayed*
+size, not the intrinsic one, which skews the aspect ratio and the generated `srcset`.
+Supplying both skips the lookup.
 
-Prefer omitting them. Hand-written values tend to be the size the image is *displayed* at, not
-its intrinsic size, which skews the aspect ratio and the generated `srcset`.
+Markdown `![alt](src)` maps onto the same component. `remark-unwrap-images` lifts it out
+of the paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It is
+pinned to `4.0.1`: **5.0.0 is a broken publish whose npm tarball contains no code.**
 
-Cloudflare image transformations are *not* enabled on the zone, so optimization runs through
-Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to `next/image`: that
-makes Next bypass its optimizer and serve the loader's URL verbatim.
+Cloudflare image transformations are not enabled on the zone, so optimization runs
+through Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to
+`next/image`: that makes Next bypass its optimizer and serve the loader's URL verbatim.
 
-Markdown `![alt](src)` maps onto the same component. `remark-unwrap-images` lifts it out of the
-paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It is pinned to
-`4.0.1` — **5.0.0 is a broken publish whose npm tarball contains no code**.
+### Styling and tokens
 
-### Styling
+**Tailwind v4 + Shadcn/UI.** No style files, all styling is inline `className`. Use
+`cn()` from `@/lib/utils` for conditional merging. Token tables live in
+`.cursor/rules/tokens.mdc`; the definitions live in `app/globals.css`. Three rules
+that neither file makes obvious:
 
-**Tailwind CSS v4** with Shadcn/UI. No separate style files — all styling is inline `className`. Use `cn()` from `@/lib/utils` for conditional merging.
+- **`--base-hue: 262.04` is the only knob.** Every oklch token derives from it, syntax
+  highlighting included. Retheming the site is one line, so never hardcode a colour that
+  should follow it.
+- **`--primary` is the thematic accent** shared by every active state (primary buttons,
+  checked boxes, list markers, callout accents). Not `--link` (that is specifically the
+  hyperlink colour), not `--accent` (shadcn's muted hover surface).
+- **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
+  bare identifier tokenises as plain text in any grammar and highlighting only dimmed it
+  into the prose. Set in `next.config.ts` via `defaultLang`.
 
-The color system is oklch-based with a single `--base-hue: 262.04` root variable defined in `app/globals.css`. Semantic tokens (`--foreground`, `--primary`, `--muted-foreground`, etc.) map to Tailwind color utilities. **Retheming the whole site is one line** — change `--base-hue` and every oklch token shifts with it; that is the point of the shadcn token layer, so never hardcode a colour that should follow it.
+### Theming
 
-**`--primary` is the thematic accent** — the one bright blue every active/selected state shares (primary buttons, checked checkboxes, switched-on toggles, radio dots, list markers, callout accents). This is the shadcn model: components style their active state with `bg-primary`/`text-primary`/`border-primary`, so a new interactive component is coherent for free. Do **not** reach for `--link` (that is specifically the hyperlink colour) or `--accent` (shadcn's muted hover surface) for an accent — use `primary`.
+`next-themes` writes `light`/`dark` as a class on `<html>` (`attribute="class"`,
+`defaultTheme="dark"`, `enableSystem`). **Never hardcode `dark` on `<body>` or any
+element** — that force-applies dark and breaks the toggle. It was a bug once; don't
+reintroduce it. `:root` is light, `.dark` overrides, both in `app/globals.css`.
 
-### Theming (light / dark)
-
-`next-themes` owns the theme, writing `light`/`dark` as a class on `<html>` (`attribute="class"`, `defaultTheme="dark"`, `enableSystem`). **Never hardcode `dark` on `<body>` or any element** — that force-applies dark and breaks the toggle (it was a bug once; don't reintroduce it). Both palettes live in `app/globals.css`: `:root` is light, `.dark` overrides. Because every component styles with tokens, supporting both modes is automatic — verify new work in *both* before calling it done.
-
-`components/ModeToggle` (Light / Dark / System) is the switcher, mounted in the Dock (`app/_components/Dock.tsx`). `<html suppressHydrationWarning>` plus next-themes' injected script avoids the theme flash. Mobile chrome colour follows the OS via the `themeColor` viewport export in `app/layout.tsx`.
-
-Font CSS variables are injected by Next.js font optimization in `app/layout.tsx`: `--font-display` (Geist), `--font-serif` (Instrument Serif), `--font-mono-code` (Fira Code), `--font-mono` (Departure Mono), `--font-signature`.
+`components/ModeToggle` is the switcher, mounted in the Dock. `<html
+suppressHydrationWarning>` plus next-themes' injected script avoids the flash. Mobile
+chrome colour follows the OS via the `themeColor` viewport export, not the toggle.
 
 ### Component layout
 
-- `app/_components/` — page-shell components only (Header, Dock, IndexSection). Not reused outside the app shell.
-- `components/` — reusable components. Shadcn primitives in `components/ui/` (generated by CLI, avoid manual edits). Custom components as `ComponentName/index.ts` + `ComponentName/ComponentName.tsx` or a single flat file.
-- Shadcn config is in `components.json`; add primitives with `bunx shadcn@latest add <component>`.
+- `app/_components/` — page-shell only (Header, Dock, IndexSection). Not reused outside it.
+- `components/` — reusable. Shadcn primitives in `components/ui/` (CLI-generated, avoid
+  manual edits). Custom components as `ComponentName/index.ts` + `ComponentName.tsx`,
+  or a single flat file.
+- Add primitives with `bunx shadcn@latest add <component>`; config in `components.json`.
 
-### Key utilities
+### Key modules
 
-- `lib/post-utils.ts` — `getPosts()`: reads and sorts all MDX posts
-- `lib/url-utils.ts` — `isInternalLink()`, `getLinkTypeIcon()`: maps URLs to HugeIcons
-- `lib/utils.ts` — `cn()`: clsx + tailwind-merge
-- `config/site.ts` — all site metadata, SEO, and `getRootMetadata()` for `app/layout.tsx`
+| Path | What it owns |
+|---|---|
+| `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
+| `lib/cdn.ts` | The only module that knows the CDN layout |
+| `lib/image-utils.ts` | Build-time intrinsic dimensions; throws rather than guessing |
+| `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
+| `lib/utils.ts` | `cn()` |
+| `config/site.ts` | All site metadata, SEO, `getRootMetadata()` |
+| `config/code-theme.ts` | Shiki theme, inlined as serializable data |
 
-### Path alias
+### Conventions
 
-`@/` resolves to the project root. Use it for all non-relative imports.
+- **Path alias**: `@/` resolves to the project root. Use it for all non-relative imports.
+- **Icons**: `@hugeicons/react` exclusively. Icon data comes from
+  `@hugeicons/core-free-icons`; render it with `<HugeiconsIcon icon={SomeIcon} />`.
+  Not lucide, not heroicons.
+- **Animation**: always `from 'motion/react'`, never `from 'framer-motion'`. Same
+  package, but `motion/react` is the canonical alias. `AnimatePresence` is required for
+  exit animations. OGL canvases must be `'use client'` and initialize in `useEffect`
+  with cleanup.
+- **State**: Zustand stores live in `hooks/` (`use-cmdk-store.ts`,
+  `use-splashScreen-store.tsx`).
 
-### Icons
+## Testing
 
-Use `@hugeicons/react` exclusively. For inline SVG elements use `@hugeicons/core-free-icons` with `IconSvgElement` type from `@hugeicons/react`.
+Vitest + React Testing Library, colocated as `Component.test.tsx`. Two constraints
+shape almost every test here:
 
-### Animations
+- **jsdom gives every element a zero-sized box**, so Motion's layout projection never
+  settles and a subtree animating out via a shared `layoutId` never unmounts. Assert
+  dismissal on the component that owns the dialog, not the one that owns the morph.
+  Animation fidelity belongs in a real browser.
+- **`server-only` is aliased to a stub** (`test/stubs/`) because Vitest does not set the
+  react-server condition. The guard still holds in the real build.
 
-`motion` (framer-motion successor). Import always from `motion/react` — never from `framer-motion`. `AnimatePresence` is required for exit animations. OGL canvas components must be `'use client'` and initialize inside `useEffect` with cleanup.
+`vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
+determinism. jsdom is pinned to v26: v29 needs `require(ESM)`, which lands in Node 22.12.
 
-### State
+## Known intentional patterns
 
-Zustand stores live in `hooks/`. Current stores: `use-cmdk-store.ts`, `use-splashScreen-store.tsx`.
+Each of these looks like a mistake and is not. Read before "fixing" one.
 
----
+**Two Separator components.** `components/Separator.tsx` is a custom dashed decorative
+rule (between post sections); `components/ui/separator.tsx` is the Radix primitive (nav,
+layout). Do not consolidate.
 
-## Design Token Reference
+**Two text-reveal components.** Prefer `components/ScrambledText.tsx`, the
+accessibility-first version with `useReducedMotion()` and an sr-only fallback.
+`TextScramble.tsx` is kept for reference only.
 
-All tokens are CSS custom properties defined in `app/globals.css` and mapped to Tailwind utilities via `@theme inline`.
+**`components/Image/Lightbox.tsx` uses no dialog primitive** — not `ui/dialog.tsx`, not
+Radix, not Base UI. Radix ties its scroll lock to the layer's mount, and the layer must
+outlive a dismiss to animate out, so the page is frozen for the whole exit animation by
+construction. The surface holds one decorative image, so a focus trap has nothing to
+trap. What remains is a portal, Escape, focus restoration and two ARIA attributes.
+Colocated on purpose; do not promote it until a second consumer exists.
 
-### Color tokens
+**`@base-ui/react` is a real dependency, used by exactly one component**:
+`components/ui/combobox.tsx`, since Radix ships no combobox. Radix is the primitive layer
+for everything else. Do not add Base UI components without a reason that specific.
 
-| Token | Tailwind utility | Usage |
-|-------|-----------------|-------|
-| `--background` | `bg-background` | Page background |
-| `--foreground` | `text-foreground` | Primary text |
-| `--card` | `bg-card` | Card / panel surfaces |
-| `--primary` | `bg-primary`, `text-primary` | Brand violet, CTAs |
-| `--muted` | `bg-muted` | Subtle backgrounds |
-| `--muted-foreground` | `text-muted-foreground` | Secondary / hint text |
-| `--border` | `border-border` | Borders, dividers |
-| `--link` | `text-link` | Hyperlink color |
-| `--secondary-background` | `bg-secondary-background` | Darker surface variant |
+**`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
+`>` maps to it. It uses `font-display` (Geist), **not** `font-serif`: the ported design's
+own `var(--font-serif)` is undefined and falls through to its default sans, so the sans
+is the faithful match. The inner `<p>` is the globally MDX-mapped paragraph, hence the
+`[&>p]:` overrides.
 
-### Typography tokens
+**Math (`$…$`, `$$…$$`) renders at build time** via `remark-math` + `rehype-mathjax`
+(SVG output): vector glyphs, so zero client JS, no CLS, no web-font loading. MathJax over
+KaTeX because it handles a deeply-nested radical (a `bmatrix` of `\sqrt{\dfrac…}`)
+without the superscript collision KaTeX produces. **It must run before
+`rehype-pretty-code`**, which would otherwise try to highlight the `language-math` nodes.
+Two `globals.css` rules fight Tailwind preflight's `svg { display: block }`, which
+otherwise decentres display math and breaks inline math onto its own line. Array cells are
+textstyle by LaTeX rule, so use `\dfrac` for displaystyle fractions.
 
-| Token | Tailwind utility | Font |
-|-------|-----------------|------|
-| `--font-display` | `font-display` | Geist — headings |
-| `--font-serif` | `font-serif` | Instrument Serif — prose body |
-| `--font-mono-code` | `font-mono-code` | Fira Code — code blocks |
-| `--font-mono` | `font-mono` | Departure Mono — UI mono |
-| `--font-signature` | `font-signature` | Signature December — decorative |
+**`components/ui/badge.tsx` is customized beyond the CLI output** — the "Pill" family.
+Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status variants
+(`info` / `success` / `warning` / `danger`), each a ~10% wash of its colour. shadcn's stock
+`destructive` is kept alongside `danger`. Because the file is CLI-generated, update it
+with `bunx shadcn@latest add badge --diff` and re-apply the edits; do not overwrite.
 
-### Motion tokens
+**Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
+ordered lists hide it via CSS and show a counter instead. Those counter rules live in
+`app/globals.css` under `ol[data-list='ordered']` — a deliberate exception to the
+inline-className rule, because `content: counter(...)` cannot be a Tailwind class. Nesting
+needs no depth logic: each nested list carries its own `data-list`.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--duration-instant` | 50ms | Imperceptible state changes |
-| `--duration-fast` | 150ms | Micro-interactions, hover |
-| `--duration-moderate` | 300ms | Standard transitions |
-| `--duration-slow` | 500ms | Deliberate reveals |
-| `--duration-deliberate` | 700ms | Splash screen, dramatic exits |
-| `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Default |
-| `--ease-enter` | `cubic-bezier(0, 0, 0.2, 1)` | Elements entering |
-| `--ease-exit` | `cubic-bezier(0.4, 0, 1, 1)` | Elements leaving |
-| `--ease-bounce` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Springy reveals |
+**`components/Details` is built on the shadcn Accordion primitive**, not a hand-rolled
+disclosure, so Radix owns the open state and the ARIA wiring. It composes
+`AccordionPrimitive.Header/Trigger` and `.Content` directly, because the generated
+wrappers bring a chevron we don't want and an inner `h-(--radix-…-height)` div that
+clipped the bottom padding. All open-state styling reads Radix's `data-state` through a
+`group`, so there is no client state of our own. Three traps live here:
 
-### Elevation tokens
+- The `details-open` / `details-close` `@keyframes` **must have unique names**. Reusing
+  `accordion-down/up` silently fails: the bundler dedupes same-named keyframes and keeps
+  `tw-animate-css`'s height-only copy.
+- Put the animation on the `className`, not a separate `[data-state]` CSS rule. A
+  separate rule races Radix's unmount check and the exit never plays.
+- Write `filter: none`, not `filter: blur(0)`. Lightning CSS minifies the latter to the
+  invalid `blur()`.
 
-| Token | Usage |
-|-------|-------|
-| `--shadow-sm` | Subtle card lift |
-| `--shadow-md` | Dropdowns, floating panels |
-| `--shadow-lg` | Modals, sheets |
+## New component checklist
 
-### Glassmorphism pattern
+- [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`
+- [ ] **Accessibility**: keyboard navigable, visible focus ring, `aria-label` on icon-only
+      elements, `useReducedMotion()` for animations
+- [ ] **Both themes** verified visually
+- [ ] **Server/client** correctly classified: no unnecessary `'use client'`
+- [ ] **Tokens only**: no hardcoded colour, spacing or font value
+- [ ] **Import order** per `.cursor/rules/typescript.mdc`
+- [ ] **MDX registration** in `mdx-components.tsx` if usable in posts, plus a section in
+      `content/design-system.mdx`
+- [ ] **Verification gate** run, output pasted
 
-```tsx
-<div
-  className="rounded-xl border border-muted bg-card/50 px-3 py-2"
-  style={{ backdropFilter: 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))' }}
-/>
-```
+## Where the rest lives
 
----
-
-## New Component Checklist
-
-Before marking any component done:
-
-- [ ] **TypeScript**: explicit prop interface, `strict` mode clean, no `any`
-- [ ] **Accessibility**: keyboard navigable, visible focus ring, `aria-label` on icon-only elements, `useReducedMotion()` for animations
-- [ ] **Dark mode**: verified visually in both `.dark` and light mode
-- [ ] **Server/client**: correctly classified — no unnecessary `'use client'`
-- [ ] **Token usage**: no hardcoded colors, spacing, or font values
-- [ ] **Import order**: follows `.cursor/rules/typescript.mdc` ordering (framework → third-party → lib → config → ui → components → relative → types)
-- [ ] **MDX registration**: if usable in posts, registered in `mdx-components.tsx`
-- [ ] **Docs**: any new pattern worth documenting is added to this file
-
----
-
-## Known Intentional Patterns
-
-**Two Separator components**: `components/Separator.tsx` is a custom dashed/decorative separator (used between post sections). `components/ui/separator.tsx` is the Radix-based primitive (used in nav/layout). Both are intentional — do not consolidate.
-
-**Two text-reveal components**: `components/ScrambledText.tsx` is the accessibility-first version with `useReducedMotion()` and sr-only fallback — prefer this one. `components/TextScramble.tsx` uses the Motion library directly and is kept for reference but not preferred for new usage.
-
-**`components/Image/Lightbox.tsx` uses no dialog primitive** — not `ui/dialog.tsx`, not Radix, not Base UI. This is deliberate and hard-won; do not "fix" it by reaching for one.
-
-A dialog primitive brings a focus trap, a scroll lock and layer management. That surface holds one decorative image, so the trap has nothing to trap, and **Radix's scroll lock is tied to its layer's mount** — the layer must outlive a dismiss to animate out, so the page is frozen for the whole exit animation, by construction. Base UI ties the same lock to `open` and does not have the problem. Neither is needed: the surface covers the viewport and `overscroll-contain` keeps the page still, then drops pointer events on exit so it scrolls again mid-animation. What remains is a portal, Escape, focus restoration and two ARIA attributes.
-
-Colocated on purpose — do not promote it to a shared primitive until a second consumer exists.
-
-**`@base-ui/react` is a real dependency**, not dead weight: `components/ui/combobox.tsx` needs it, since Radix ships no combobox. Radix remains the primitive layer for everything else — do not add Base UI components without a reason that specific.
-
-**Animation import**: Always `from 'motion/react'`. Never `from 'framer-motion'` — the package is the same (Motion v12 re-exports from `motion/react`), but `motion/react` is the canonical alias going forward.
-
-**`components/Blockquote` is a centred pull-quote**, not a left-border aside — markdown `>` maps to it. Large fluid italic (`clamp(1.5rem,4vw,2rem)`), centred, brighter than the muted body (`text-foreground`). It uses `font-display` (Geist), **not** `font-serif`: this ports Maxime Heckel's Blockquote, whose `var(--font-serif)` is an undefined token that falls through to his default sans (Inter) — so the sans is the faithful match, chosen over our Instrument Serif. The inner `<p>` is the MDX-mapped paragraph, so its font/size/colour are overridden with `[&>p]:` on the wrapper.
-
-**Math (`$…$` inline, `$$…$$` display)** is rendered at **build time** by `remark-math` + `rehype-mathjax` (MathJax, **SVG output** — `rehype-mathjax`'s default export). The glyphs are vector paths, so it's fully static: zero client JS, no CLS, and **no web-font loading** (which KaTeX made painful). MathJax was chosen over KaTeX specifically because its typography handles a **deeply-nested radical** — a `bmatrix` of `\sqrt{\dfrac…}` — without the superscript-hits-the-vinculum collision KaTeX produces (verified: KaTeX's cramped render was its native behaviour, not our CSS). Wired in `next.config.ts`; **it must run before `rehype-pretty-code`** so it consumes the `language-math` nodes before pretty-code tries to highlight them (inline math would otherwise be lexed as TS). Two `globals.css` rules matter, both fighting Tailwind preflight: `mjx-container[display='true']` is centred (MathJax's own style) with `overflow-x: auto` (wide equations scroll, never break the column), `color: var(--foreground)` (the SVG fills with `currentColor`, so it's theme-aware), and a `margin … !important` to beat MathJax's injected style; and `mjx-container:not([display='true'])` is forced to `inline-block`, because preflight's `svg { display: block }` otherwise breaks inline math onto its own line. Matrix note: array cells are **textstyle** by default (LaTeX rule), so use `\dfrac` for the airy displaystyle fractions Maxime's example shows, plus `\\[…]` row spacing for the taller rows.
-
-**`components/ui/badge.tsx` is intentionally customized** beyond the CLI output — the "Pill" family. Its base is sized for prose (`text-sm px-3 py-1 rounded-lg`, not the stock compact `text-xs h-5 rounded-4xl`), and it carries four tinted status variants — `info` / `success` / `warning` / `danger` — each `bg-<colour>/10 text-<colour>` (a ~10% wash), ported from Maxime Heckel's Pill. Colours: info → `--primary`, danger → `--destructive`, and success/warning → the fixed-hue `--success` / `--warning` tokens in `app/globals.css` (per-theme: darker on light for legibility, Maxime's green-900/orange-900 on dark). shadcn's stock `destructive` variant is kept alongside `danger` (`danger` is the pill, at 10% both themes; `destructive` keeps the stock `dark:/20`). Because the file is CLI-generated, update it with `bunx shadcn@latest add badge --diff` and re-apply these edits — don't overwrite.
-
-**Prose lists (`components/List`)**: `ul`/`ol`/`li` map to `<List variant>` / `<ListItem>`. Every item renders the same decorative arrow marker (`aria-hidden`, `data-list-marker`); ordered lists **hide it via CSS and show a counter instead**. The counter rules live in `app/globals.css` under `ol[data-list='ordered']` — a deliberate exception to the inline-className rule, because a CSS counter (`content: counter(...)`) cannot be a Tailwind class. Nesting needs no depth logic: each nested list is its own `data-list` element, so an ordered list inside an unordered one just carries its own counter. This mirrors Maxime Heckel's design-system list, adapted to Radix/Tailwind + `ArrowRight02Icon`.
-
-**`components/Details` is built on the shadcn Accordion primitive** (`components/ui/accordion.tsx`, Radix `Accordion` — a single `type="single" collapsible` item), not a hand-rolled disclosure. The primitive owns the open state and the ARIA wiring. The trigger is composed from `AccordionPrimitive.Header/Trigger` directly (not the generated `AccordionTrigger`, whose baked-in chevron we don't want), and the panel from `AccordionPrimitive.Content` directly (not the generated `AccordionContent`, whose inner `h-(--radix-…-height)` div clipped our bottom padding). All open-state styling is driven off Radix's `data-state` via a `group` on the item — no client state of our own: the `+` icon rotates 45° into a `×`, and a 2px `--primary` accent bar at the card's left edge fades in.
-
-The card uses the semantic shadcn surface tokens (`bg-card border-border`) — the recommended approach, not a raw/isolated colour. **The accent bar's glow is a constant `box-shadow` on the bar** (not a background gradient) — fading the bar's `opacity` fades the halo with it, and the card's `overflow-hidden` clips it to bleed only inward. Dimensions are ported verbatim from Maxime Heckel's Details (1px border, 12px radius, 16px summary padding, `0 16 24 16` content padding, 2px×24px bar).
-
-The delightful reveal (height + fade + 8px slide + blur, 350ms ease-out) rides on the content's `className` via `data-[state=open]:animate-[details-open_…]` / `data-[state=closed]:animate-[details-close_…]`, with the `details-open`/`details-close` `@keyframes` in `app/globals.css`. **The keyframes must have unique names** — reusing `accordion-down/up` silently fails, because the bundler dedupes same-named `@keyframes` and keeps `tw-animate-css`'s height-only copy. Two more traps learned here: put the animation on the className, not a separate `[data-state]` CSS rule (that races Radix's unmount check and the exit never plays); and write `filter: none`, not `filter: blur(0)` (Lightning CSS minifies the latter to the invalid `blur()`). `motion-reduce:animate-none` drops the reveal under `prefers-reduced-motion`.
+| File | Scope | Covers |
+|---|---|---|
+| `.cursor/rules/typescript.mdc` | `*.ts`, `*.tsx` | TS conventions, **import order**, ESLint |
+| `.cursor/rules/tokens.mdc` | `*.ts`, `*.tsx`, `*.css` | Full design-token tables, Tailwind v4 |
+| `.cursor/rules/react.mdc` | `*.ts`, `*.tsx` | Component conventions, MDX widgets, animation |
+| `.cursor/rules/testing.mdc` | `*.test.*` | Testing patterns |
+| `.cursor/commands/create-article.md` | — | `/create-article` scaffold |

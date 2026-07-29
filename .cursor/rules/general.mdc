@@ -3,4 +3,4 @@ description: General project guidelines and conventions for blog.lenysauzet.com
 alwaysApply: true
 ---
 
-Observe the rules specified in: [AGENTS.md](/AGENTS.md)
+Observe the rules specified in: [CLAUDE.md](/CLAUDE.md)

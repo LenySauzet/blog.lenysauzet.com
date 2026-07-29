@@ -101,11 +101,18 @@ import { Dialog } from '@/components/ui/dialog';
 
 Use `@hugeicons/react` exclusively. Do not use lucide-react or heroicons.
 
-```tsx
-import { Home01Icon, SearchIcon } from '@hugeicons/react';
+The icon data and the renderer come from two different packages: `@hugeicons/react`
+exports the `HugeiconsIcon` component, and the icons themselves live in
+`@hugeicons/core-free-icons`.
 
-<Home01Icon size={20} strokeWidth={1.5} />
+```tsx
+import { Home01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+
+<HugeiconsIcon icon={Home01Icon} size={20} strokeWidth={1.5} />
 ```
+
+For an inline SVG element, type the icon as `IconSvgElement` from `@hugeicons/react`.
 
 ## MDX Components
 
