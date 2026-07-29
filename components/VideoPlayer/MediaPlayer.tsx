@@ -305,9 +305,9 @@ const MediaPlayerRoot = ({
     }
   };
 
-  // Hover is folded into the state that drives `animate` (rather than a separate
-  // whileHover) so that while paused — when controls are already visible —
-  // hovering never re-triggers the animation, which flashed the backdrop-filter.
+  // Folded into the state that drives `animate` rather than a separate
+  // whileHover: hovering already-visible controls re-triggered the animation and
+  // flashed the backdrop-filter.
   const controlsHidden = isPlaying && !isFocusWithin && !isHovered && !isMobileDevice();
 
   return (
@@ -447,9 +447,8 @@ const MediaPlayerVideoOverlay = ({
   children: React.ReactNode;
 }) => (
   <div className="relative w-full px-5 pt-4">
-    {/* A dark gradient at the top for title contrast — a plain colour gradient
-        (no backdrop blur), so it fades cleanly with the controls and stays
-        simple. rounded-t-xl matches the player's rounded top corners. */}
+    {/* Title contrast. A plain colour gradient, not a backdrop blur, so it fades
+        cleanly with the controls. */}
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-t-xl"

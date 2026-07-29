@@ -1,20 +1,17 @@
 import type { Metadata } from 'next'
 
-// urls and identity
 const url = 'https://blog.lenysauzet.com'
 const authorUrl = 'https://lenysauzet.com'
 
-// media cdn: assets referenced from posts resolve against this origin
 const cdnUrl = 'https://cdn.lenysauzet.com'
 
-// bucket layout: relative paths in posts are namespaced by media kind, so
-// `blog/halftone.png` resolves to `{cdnUrl}/images/blog/halftone.png`
+// Relative paths in posts are namespaced by media kind, so `blog/halftone.png`
+// resolves to `{cdnUrl}/images/blog/halftone.png`.
 const cdnPaths = {
   images: 'images',
   videos: 'videos',
 }
 
-// text content
 const title = {
   template: '%s - The Blog of Lény Sauzet',
   default: 'The Blog of Lény Sauzet',
@@ -23,11 +20,9 @@ const title = {
 const description =
   "Hi I'm Lény, and this is my blog. In here, you'll find all the articles I wished I had when I was learning about web development, shaders, real-time 3D on the web, and more.  Each piece I write aims to dive deep into the topics I'm passionate about, while also making complex topics more accessible through interactive playgrounds, visualization, and well detailed walkthroughs. My goal is to give you the tools and intuition to explore further on your own."
 
-// short version for rss and meta
 const descriptionShort =
   "Hi I'm Lény, and this is my blog. Articles about web development, shaders, real-time 3D, creative coding, and software engineering."
 
-// author and social
 const author = {
   name: 'Lény Sauzet',
   url: authorUrl,
@@ -38,7 +33,6 @@ const twitter = {
   card: 'summary_large_image' as const,
 }
 
-// seo keywords and settings
 const keywords = [
   'Lény Sauzet',
   'Innovation Engineer',
@@ -82,7 +76,6 @@ const robots = {
   },
 }
 
-// default open graph and twitter
 const openGraph = {
   siteName: title.default,
   locale: 'en_US' as const,
@@ -99,7 +92,6 @@ const openGraph = {
 
 const twitterImages = ['/twitter-image.png']
 
-// specific pages
 const pages = {
   // home: {
   //   title: 'Latest Posts',
@@ -109,7 +101,6 @@ const pages = {
   // },
 }
 
-// manifest for pwa
 const manifest = {
   name: title.default,
   short_name: 'Blog',
@@ -124,14 +115,12 @@ const manifest = {
   ],
 }
 
-// rss feed
 const rss = {
   channelTitle: title.default,
   channelDescription: descriptionShort,
   language: 'en-US',
 }
 
-// site config object
 const siteConfig = {
   url,
   authorUrl,
@@ -151,14 +140,12 @@ const siteConfig = {
   pages,
   manifest,
   rss,
-  // for article metadata
   authorName: author.name,
   siteName: title.default,
 }
 
 export default siteConfig
 
-// root metadata helper for Next.js layout
 export function getRootMetadata(): Metadata {
   return {
     title: {

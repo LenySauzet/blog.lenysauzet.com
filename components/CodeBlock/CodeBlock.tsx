@@ -20,8 +20,8 @@ function isTitle(child: ReactNode): child is TitleElement {
   return isValidElement(child) && 'data-rehype-pretty-code-title' in (child.props as object);
 }
 
-// rehype-pretty-code wraps every fenced block in this figure; any other
-// <figure> passes straight through, so only real code blocks pay for the hooks.
+// Any other <figure> passes straight through, so only real code blocks pay for
+// the hooks below.
 export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   if (!('data-rehype-pretty-code-figure' in props)) {
     return <figure {...props}>{children}</figure>;
@@ -36,9 +36,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const figureRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fade the horizontal-overflow shadows with the scroll position. Written as
-  // CSS custom properties via ref so scrolling never re-renders React — the
-  // overlays read `opacity: var(--edge-*)`.
+  // Written as CSS custom properties via ref so scrolling never re-renders React.
   useEffect(() => {
     const container = scrollRef.current;
     const pre = container?.querySelector('pre');
@@ -68,8 +66,8 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
 
   const getText = () => {
     const lines = figureRef.current?.querySelectorAll('pre [data-line]');
-    // Rebuild newlines from the line elements — CSS line-number counters live in
-    // ::before and never enter textContent, so the copy stays clean.
+    // Rebuilt from the line elements so the CSS line-number counters, which live
+    // in ::before, stay out of the copied text.
     return lines?.length
       ? Array.from(lines, (line) => line.textContent).join('\n')
       : (figureRef.current?.querySelector('pre')?.textContent ?? '');
@@ -85,8 +83,8 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       {...props}
     >
       {title ? (
-        // Own the header so the copy button sits centered in the flex row,
-        // rather than floating over a rehype-rendered figcaption.
+        // Our own header, so the copy button sits in the flex row instead of
+        // floating over rehype's figcaption.
         <div className="flex items-center justify-between gap-3 border-b border-[var(--code-border)] py-2 pr-2 pl-4">
           <span className="font-display text-sm font-medium text-foreground">
             {title.props.children}
@@ -99,9 +97,8 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
         />
       )}
-      {/* Names the scrollable region; the <pre> itself is already tab-focusable
-          (rehype-pretty-code sets tabindex), so overflowing code stays keyboard
-          reachable. */}
+      {/* Names the scrollable region. The <pre> is already tab-focusable
+          (rehype-pretty-code sets tabindex). */}
       <div ref={scrollRef} role="region" aria-label={label ?? 'Code'} className="relative">
         {body}
         <div

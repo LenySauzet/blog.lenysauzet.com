@@ -5,22 +5,17 @@ import { useEffect, useRef } from 'react';
 
 import { FADE } from './constants';
 
-// The editor card: the themed CodeMirror plus the chrome that can't be expressed
-// in the shared theme — the horizontal-overflow edge fades and the file-switch
-// mask. Lives inside SandpackProvider so it can react to the active file.
+// Carries the chrome the shared theme cannot express: the overflow edge fades
+// and the file-switch mask.
 export function CodeEditorPane({ height }: { height: string }) {
   const { sandpack } = useSandpack();
   const activeFile = sandpack.activeFile;
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Drive the edge fades from the scroll position. The work is split so the
-  // scroll path stays cheap: geometry (tab-bar offset, scrollbar thicknesses)
-  // only shifts on resize/overflow-toggle, while the edge opacities track every
-  // scroll frame. A single ResizeObserver watches the scroller (viewport size)
-  // and the content (its width grows the moment a line overflows) — which is
-  // exactly when the fades must update, and never on a no-op keystroke. Sandpack
-  // recreates the CodeMirror DOM per file, so the effect re-runs on activeFile
-  // to re-acquire and re-observe; the async mount is awaited with one rAF.
+  // Split so the scroll path stays cheap: geometry only shifts on resize, while
+  // the edge opacities track every scroll frame. Sandpack recreates the
+  // CodeMirror DOM per file, hence the activeFile dependency and the rAF that
+  // waits for the new mount.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -82,8 +77,8 @@ export function CodeEditorPane({ height }: { height: string }) {
       observer.observe(content);
     };
     attach();
-    // Capture-phase: scroll doesn't bubble, and this survives the scroller being
-    // torn down and rebuilt on file switch since it's bound to the stable wrapper.
+    // Capture-phase: scroll doesn't bubble, and binding to the stable wrapper
+    // survives the scroller being rebuilt on file switch.
     wrap.addEventListener('scroll', scheduleEdges, { capture: true, passive: true });
 
     return () => {
@@ -103,15 +98,15 @@ export function CodeEditorPane({ height }: { height: string }) {
       style={{ height }}
     >
       <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
-      {/* Masks CodeMirror's mount reflow on file switch (its DOM is recreated per
-          file). Keyed on the file so it remounts and replays its CSS fade-out. */}
+      {/* Masks CodeMirror's mount reflow on file switch. Keyed on the file so it
+          remounts and replays its CSS fade-out. */}
       <div
         key={activeFile}
         aria-hidden="true"
         className="sp-switch-mask pointer-events-none absolute inset-x-0 z-[4] bg-[var(--code-bg)]"
         style={{ top: 'var(--code-top, 3rem)', bottom: 0 }}
       />
-      {/* Right edge fade. The left fade lives on `.cm-gutters::after` in CSS so it
+      {/* Right edge fade only. The left one lives on `.cm-gutters::after` so it
           stays glued to the sticky line-number column through macOS overscroll. */}
       <div
         aria-hidden="true"

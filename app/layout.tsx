@@ -37,9 +37,8 @@ const SignatureDecember = localFont({
 
 export const metadata = getRootMetadata();
 
-// Mobile browser chrome. Static media queries track the OS preference; a manual
-// theme toggle away from it is an accepted trade-off for not shipping a client
-// effect just for the chrome.
+// The mobile chrome follows the OS, not the toggle: an accepted trade-off for
+// not shipping a client effect just for it.
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },

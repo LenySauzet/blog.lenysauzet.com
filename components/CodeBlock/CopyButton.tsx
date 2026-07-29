@@ -8,8 +8,6 @@ import { cn } from '@/lib/utils';
 const DURATION = 0.275;
 const RESET_DELAY = 2500;
 
-// The two clipboard paths fade+blur out while the checkmark draws itself in via
-// pathLength — ported from Maxime Heckel's CopyToClipboardButton.
 const boxVariants = {
   checked: { opacity: 0, filter: 'blur(2px)' },
   unchecked: { opacity: 1, filter: 'blur(0px)' },
@@ -43,15 +41,14 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // Clipboard can be unavailable (insecure context, denied permission);
-      // still confirm the gesture so the feedback never silently stalls.
+      // Clipboard can be unavailable (insecure context, denied permission).
+      // Confirm the gesture anyway, so the feedback never silently stalls.
     }
     setCopied(true);
   };
 
   const transition = { duration: reduce ? 0 : DURATION };
   const state = copied ? 'checked' : 'unchecked';
-  // Shared by all three ported paths.
   const stroke = {
     stroke: 'currentColor',
     strokeWidth: 2,

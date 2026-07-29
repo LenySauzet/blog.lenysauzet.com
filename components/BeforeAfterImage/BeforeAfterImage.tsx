@@ -16,9 +16,9 @@ export interface BeforeAfterImageProps {
   height?: number;
 }
 
-// Server component: URL resolution and the dimension lookup run at build time,
-// so only the interactive slider crosses to the client. Both images share the
-// same intrinsic size (they're overlaid), so one lookup covers both.
+// URL resolution and the dimension lookup run at build time, so only the slider
+// crosses to the client. One lookup covers both images: overlaid, they share an
+// intrinsic size.
 export default async function BeforeAfterImage({
   beforeSrc,
   afterSrc,

@@ -4,13 +4,10 @@ interface BlockquoteProps {
   children?: ReactNode;
 }
 
-// Ported from Maxime Heckel's Blockquote: a centred pull-quote, larger and
-// brighter than the muted body. Maxime's `var(--font-serif)` is an undefined
-// token, so his renders in the default sans (Inter) italic — the display sans
-// (Geist) matches that. The inner <p> is the MDX-mapped paragraph, so its type
-// (font, size, colour) is overridden here rather than at the global mapping.
-// Fluid 24→32px so it never overflows a narrow screen (Maxime uses a JS --vw
-// helper for the same intent; a clamp needs no client code).
+// A centred pull-quote, not a left-border aside. `font-display`, not our serif:
+// the ported design's own `var(--font-serif)` is undefined and falls through to
+// its default sans, so the sans is the faithful match. The `[&>p]:` overrides
+// exist because the inner <p> is the globally MDX-mapped paragraph.
 export default function Blockquote({ children }: BlockquoteProps) {
   return (
     <blockquote className="my-8 w-full text-center">
