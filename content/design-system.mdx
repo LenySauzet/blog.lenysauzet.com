@@ -7,11 +7,14 @@ export const metadata = {
   draft: true,
 };
 
+This article renders every content component the blog offers, so each one can be
+seen live and its pattern copied. It is not documentation — it is a visual index.
+
 ## Typography
 
-### Headings
-
-Posts nest levels two through four; level one is reserved for the title.
+Body copy is a paragraph. It carries **strong emphasis** for the load-bearing
+words, _italic emphasis_ for a lighter touch, and `inline code` for identifiers,
+file names and anything typed verbatim.
 
 ## Heading level two
 
@@ -19,11 +22,8 @@ Posts nest levels two through four; level one is reserved for the title.
 
 #### Heading level four
 
-### Emphasis
-
-Body copy carries **strong emphasis** for the load-bearing words, _italic
-emphasis_ for a lighter touch, and `inline code` for identifiers, file names and
-anything you would type verbatim.
+Headings nest from level two (`##`) downward; level one is reserved for the
+article title.
 
 ## Anchor
 
@@ -32,26 +32,26 @@ anything you would type verbatim.
   <Anchor href="https://youtube.com">YouTube</Anchor>
   <Anchor href="https://developer.mozilla.org">MDN Web Docs</Anchor>
   <Anchor href="/">Home</Anchor>
-  <Anchor href="https://github.com/LenySauzet" discreet>@LenySauzet</Anchor>
-  <Anchor href="/" direction="left">Back</Anchor>
+  <Anchor href="https://github.com/LenySauzet" discreet>
+    @LenySauzet
+  </Anchor>
+  <Anchor href="/" direction="left">
+    Back
+  </Anchor>
+</div>
+
+## Badge
+
+<div className="flex gap-2 flex-wrap">
+  <Badge variant="info">Info</Badge>
+  <Badge variant="success">Success</Badge>
+  <Badge variant="warning">Warning</Badge>
+  <Badge variant="danger">Danger</Badge>
 </div>
 
 ## Blockquote
 
 > Almost before we knew it, we had left the ground.
-
-## Math Equations
-
-Inline math flows in a sentence — Euler's identity $e^{i\pi} + 1 = 0$ — while a
-display equation centres on its own line and scrolls if it runs wide:
-
-$$
-v_o = \begin{bmatrix}
-x\sqrt{1 - \dfrac{y^2}{2} - \dfrac{z^2}{2} + \dfrac{y^2 z^2}{3}} \\[0.5em]
-y\sqrt{1 - \dfrac{x^2}{2} - \dfrac{z^2}{2} + \dfrac{x^2 z^2}{3}} \\[0.5em]
-z\sqrt{1 - \dfrac{x^2}{2} - \dfrac{y^2}{2} + \dfrac{x^2 y^2}{3}}
-\end{bmatrix}
-$$
 
 ## Callouts
 
@@ -71,12 +71,13 @@ $$
   Danger callout with a labelled corner.
 </Callout>
 
-## Pill
+## Details/Summary
 
-<Badge variant="info">Info Pill</Badge>
-<Badge variant="success">Success Pill</Badge>
-<Badge variant="warning">Warning Pill</Badge>
-<Badge variant="danger">Danger Pill</Badge>
+<Details summary="Summary: Some short text">
+  Content. Some long text nested inside the component. Useful to avoid long,
+  optional content. It can take some simple strings or some other custom React
+  components. As you want!
+</Details>
 
 ## Lists
 
@@ -95,27 +96,9 @@ $$
   - Nested arrow one
   - Nested arrow two
 
-## Inline Code
-
-`const foo = () => 'bar'`
-
 ## Code Block
 
-### Basic
-
-```tsx
-console.log('hello world');
-
-/**
- * Some comments
- */
-function sayHi(name) {
-  const message = `hi ${name}`;
-  return message;
-}
-```
-
-### With title and highlighting
+A fenced block with a title bar (copy button included) and highlighted lines:
 
 ```tsx title="greet.ts" {6-8}
 console.log('hello world');
@@ -175,9 +158,22 @@ font-weight: 600;
 }}
 />
 
+## Math Equations
+
+Inline math flows in a sentence — Euler's identity $e^{i\pi} + 1 = 0$ — while a
+display equation centres on its own line and scrolls if it runs wide:
+
+$$
+v_o = \begin{bmatrix}
+x\sqrt{1 - \dfrac{y^2}{2} - \dfrac{z^2}{2} + \dfrac{y^2 z^2}{3}} \\[0.5em]
+y\sqrt{1 - \dfrac{x^2}{2} - \dfrac{z^2}{2} + \dfrac{x^2 z^2}{3}} \\[0.5em]
+z\sqrt{1 - \dfrac{x^2}{2} - \dfrac{y^2}{2} + \dfrac{x^2 y^2}{3}}
+\end{bmatrix}
+$$
+
 ## Images
 
-<Image src="blog/halftone.png" alt="A classic halftone gradient" />
+<Image src="blog/Monet_Meadow-with-Poplars.jpg" alt="Monet's Meadow with Poplars" />
 
 ## Before / After Image
 
@@ -189,14 +185,6 @@ font-weight: 600;
     defaultPosition={50}
   />
 </Fullbleed>
-
-## Details/Summary
-
-<Details summary="Summary: Some short text">
-  Content. Some long text nested inside the component. Useful to avoid long,
-  optional content. It can take some simple strings or some other custom React
-  components. As you want!
-</Details>
 
 ## Video
 

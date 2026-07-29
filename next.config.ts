@@ -31,11 +31,13 @@ const withMDX = createMDX({
       // `\sqrt{\dfrac…}`) more gracefully than KaTeX. Its default export is the
       // SVG output. It MUST run before rehype-pretty-code so it consumes the
       // `language-math` nodes remark-math emits — otherwise pretty-code would try
-      // to highlight them (inline math lexed as TS via defaultLang).
+      // to highlight them.
       'rehype-mathjax',
-      // Highlight fenced blocks and inline code as TS by default (MDX parses
-      // the `{:lang}` annotation's braces as JSX, so per-inline opt-in is out).
-      ['rehype-pretty-code', { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext', inline: 'ts' } }],
+      // Fenced blocks only. Inline code is deliberately left unhighlighted: most
+      // of it is a bare identifier or a file name, which any grammar tokenises as
+      // plain text, so it rendered in the dim --shiki-foreground and disappeared
+      // into the prose. It now takes one flat thematic colour (--code-inline).
+      ['rehype-pretty-code', { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
     ],
   },
 });
