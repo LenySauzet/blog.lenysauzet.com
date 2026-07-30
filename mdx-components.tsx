@@ -3,6 +3,7 @@ import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Badge } from '@/components/ui/badge';
 import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
+import Card from '@/components/Card';
 import Details from '@/components/Details';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -28,6 +29,7 @@ const components = {
   Badge,
   BeforeAfterImage,
   Callout,
+  Card,
   Details,
   Fullbleed,
   Image,
