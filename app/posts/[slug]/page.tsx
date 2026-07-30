@@ -66,7 +66,7 @@ export default async function Page({
                 delay={0.5}
                 speed={0.8}
                 windowSize={3}
-                className="font-mono text-sm uppercase text-muted-foreground/75"
+                className="font-mono text-sm uppercase text-subtle-foreground"
               >
                 {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
               </ScrambledText>

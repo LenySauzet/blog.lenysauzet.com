@@ -36,6 +36,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
@@ -89,6 +90,13 @@
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
   --muted: oklch(0.967 0.001 var(--base-hue));
   --muted-foreground: oklch(0.552 0.016 var(--base-hue));
+  /* A third text tier below --muted-foreground, for the dimmest copy: the
+     article date, discreet links, card titles, italic emphasis. shadcn ships no
+     tertiary text token, and an opacity step cannot stand in for one — it
+     composites against whatever surface is behind it, so the same tier drifts
+     between the page and a card. Added per the "Adding Custom Colors" recipe,
+     as --success and --warning already are. */
+  --subtle-foreground: oklch(0.5013 0.047 var(--base-hue));
   --accent: oklch(0.967 0.001 var(--base-hue));
   --accent-foreground: oklch(0.21 0.006 var(--base-hue));
   --destructive: oklch(64.4% 0.204 21.9);
@@ -153,6 +161,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 var(--base-hue));
   --muted-foreground: oklch(77.16% 0.028 var(--base-hue));
+  --subtle-foreground: oklch(66.65% 0.04 var(--base-hue));
   --accent: oklch(0.274 0.006 var(--base-hue));
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(64.4% 0.204 21.9);

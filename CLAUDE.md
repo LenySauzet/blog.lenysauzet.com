@@ -124,6 +124,13 @@ that neither file makes obvious:
 - **`--base-hue: 262.04` is the only knob.** Every oklch token derives from it, syntax
   highlighting included. Retheming the site is one line, so never hardcode a colour that
   should follow it.
+- **Text runs on three tiers**: `--foreground` (headings, `strong`), `--muted-foreground`
+  (body copy, `h4`), `--subtle-foreground` (article date, discreet links, card titles,
+  `em`). The third is ours, not shadcn's — added per its "Adding Custom Colors" recipe, as
+  `--success` and `--warning` were. **Do not substitute an opacity step for it**: an alpha
+  composites against whatever surface sits behind the text, so the same tier would drift
+  between the page and a card, and it can neither darken past `--muted-foreground` in
+  light mode nor change chroma.
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
   checked boxes, list markers, callout accents). Not `--link` (that is specifically the
   hyperlink colour), not `--accent` (shadcn's muted hover surface).
@@ -282,8 +289,8 @@ type posts use. Because the file is CLI-generated, update it with
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
 implies. The separator is `border-b` on `CardHeader`: the primitive's `[.border-b]:pb-*`
 supplies the padding and preflight's `* { @apply border-border }` supplies the colour, so
-neither is named. The title sits at `text-muted-foreground/75`, the same step `Anchor`'s
-discreet variant uses, which keeps it a shade under the body rather than level with it.
+neither is named. The title sits on `text-subtle-foreground`, the third text tier, which
+keeps it a shade under the body rather than level with it.
 `CardFooter` and `CardAction` are deliberately not re-exported; import them from
 `@/components/ui/card` if a post ever needs them.
 

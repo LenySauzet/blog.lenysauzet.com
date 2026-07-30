@@ -23,7 +23,7 @@ const anchorVariants = cva(
         success: '',
       },
       discreet: {
-        true: 'text-muted-foreground/75 hover:text-foreground transition-colors duration-200',
+        true: 'text-subtle-foreground hover:text-foreground transition-colors duration-200',
       },
       underline: {
         true: 'underline underline-offset-[3px] decoration-transparent hover:decoration-current transition-colors duration-200',

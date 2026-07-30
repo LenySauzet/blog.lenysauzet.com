@@ -62,11 +62,11 @@ const components = {
   strong: ({ children }) => (
     <strong className="font-medium text-foreground">{children}</strong>
   ),
-  // The dimmest text tier, shared with Anchor's discreet variant and the Card
-  // title. Carries a touch more weight than the body so the italic keeps its
-  // presence at a lower contrast.
+  // The dimmest text tier, shared with Anchor's discreet variant, the Card
+  // title and the article date. Carries a touch more weight than the body so
+  // the italic keeps its presence at a lower contrast.
   em: ({ children }) => (
-    <span className="italic font-medium text-muted-foreground/75">{children}</span>
+    <span className="italic font-medium text-subtle-foreground">{children}</span>
   ),
   blockquote: Blockquote,
   figure: CodeBlock,
