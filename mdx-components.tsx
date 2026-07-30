@@ -42,13 +42,15 @@ const components = {
     </h1>
   ),
   h2: ({ children }) => <PostH2>{children}</PostH2>,
+  // h3 and h4 are both body size; weight and colour carry the hierarchy, not
+  // scale. h4 keeping text-lg would have made it larger than its own parent.
   h3: ({ children }) => (
-    <h3 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
+    <h3 className="font-display text-base font-medium mt-8 mb-3 text-foreground">
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="font-display text-lg font-medium mt-6 mb-2 text-foreground">
+    <h4 className="font-display text-base font-bold mt-6 mb-2 text-muted-foreground">
       {children}
     </h4>
   ),
@@ -60,8 +62,11 @@ const components = {
   strong: ({ children }) => (
     <strong className="font-medium text-foreground">{children}</strong>
   ),
+  // The dimmest text tier, shared with Anchor's discreet variant and the Card
+  // title. Carries a touch more weight than the body so the italic keeps its
+  // presence at a lower contrast.
   em: ({ children }) => (
-    <span className="italic text-muted-foreground/75">{children}</span>
+    <span className="italic font-medium text-muted-foreground/75">{children}</span>
   ),
   blockquote: Blockquote,
   figure: CodeBlock,

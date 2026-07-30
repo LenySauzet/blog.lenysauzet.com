@@ -73,7 +73,10 @@ export default async function Page({
             </time>
           </div>
 
-          <div className="flex flex-col gap-5 font-medium">
+          {/* No font-weight here. The prose scale is built on a 400 body, so
+              `strong`, `em` and `h3` can step up to 500 and read as emphasis; a
+              blanket font-medium put the body at 500 and flattened all three. */}
+          <div className="flex flex-col gap-5">
             <Post />
           </div>
         </div>
