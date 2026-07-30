@@ -2,7 +2,8 @@
 
 Date: 2026-07-30
 Branch: `feat/card`
-Status: approved, implementing.
+Status: implemented. See "Corrections found during implementation" for where reality
+differed from this design.
 
 ## Goal
 
@@ -100,4 +101,29 @@ design-system page in a browser, not asserted in a unit test.
 ## Delivery
 
 - register in `mdx-components.tsx`
-- add a `## Card` section to `content/design-system.mdx`
+- add a `## Card` section to `content/design-system.mdx`, after Lists
+
+## Corrections found during implementation
+
+**The style belongs in the primitive, not the wrapper.** This design put the surface
+override, the title colour and the body type on the wrapper. That splits one component's
+appearance across two files and lets them drift. `components/ui/card.tsx` now owns all of
+it, the way `badge.tsx` already does, and the wrapper holds only `my-6` — article rhythm,
+not a description of the card. The cost is that a regeneration must re-apply those edits;
+that is documented in CLAUDE.md alongside Badge's.
+
+**`size="sm"` became the primitive's default** rather than a prop the wrapper passes.
+Choosing a size is a style decision, so it does not belong in the wrapper either.
+
+**The title needed its own colour.** Both title and body were `--muted-foreground`, so the
+title read as merely smaller. Pixel-scanning the reference gives a card background of 15,
+a title of 148 and a body of 187, a ratio of 0.79 — the title is genuinely dimmer.
+`text-muted-foreground/75`, the step `Anchor`'s discreet variant already uses, renders at
+139 against a body of 188, a ratio of 0.74. Maxime's own value is a solid
+`oklch(66.65% 0.04 var(--base-hue))`, which happens to equal our `--shiki-foreground`;
+reusing that token here would have been semantically wrong, and minting a new one for a
+single title is the duplication this refactor exists to avoid.
+
+**Header rhythm deviates deliberately.** The reference's header band is 43.5px against
+55px here, because it uses a tighter header (~12px) than its own body (16px). 16px was
+kept so Card and Details stay level.

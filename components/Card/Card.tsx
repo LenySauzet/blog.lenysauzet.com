@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import {
-  Card as CardSurface,
+  Card as CardRoot,
   CardContent,
   CardHeader,
   CardTitle,
@@ -13,28 +13,22 @@ export interface CardProps {
   children: ReactNode;
 }
 
+/**
+ * Prose wrapper over the Card primitive, which owns every style decision. All
+ * this adds is the article's block rhythm and the header/separator that a
+ * `title` implies.
+ */
 export default function Card({ title, children }: CardProps) {
   return (
-    // size="sm" is the primitive's own 16px scale, matching Details. Only the
-    // edge is overridden: the primitive draws it with a ring, Details with a
-    // border, and the two surfaces must not drift apart.
-    <CardSurface
-      size="sm"
-      className="my-6 border border-border shadow-none ring-0"
-    >
+    <CardRoot className="my-6">
       {title ? (
         // `border-b` draws the separator and triggers the primitive's own
-        // bottom padding. It picks up --border from the preflight rule in
-        // globals.css, so no colour is named here.
+        // bottom padding; preflight's `* { @apply border-border }` colours it.
         <CardHeader className="border-b">
-          <CardTitle className="font-display text-muted-foreground">
-            {title}
-          </CardTitle>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
       ) : null}
-      <CardContent className="flex flex-col gap-4 font-display text-base leading-7 text-muted-foreground [&>*]:my-0">
-        {children}
-      </CardContent>
-    </CardSurface>
+      <CardContent>{children}</CardContent>
+    </CardRoot>
   );
 }
