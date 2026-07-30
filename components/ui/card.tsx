@@ -2,16 +2,20 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Customized beyond the CLI output; see CLAUDE.md. Three edits: the edge is a
+// border rather than a ring so it resolves from --border like every other inset
+// surface, `sm` is the default size because 16px is this site's rhythm, and the
+// title and content carry the prose type the posts use.
 function Card({
   className,
-  size = "default",
+  size = "sm",
   ...props
 }: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
   return (
     <div
       data-slot="card"
       data-size={size}
-      className={cn("ring-foreground/10 bg-card text-card-foreground gap-6 overflow-hidden rounded-xl py-6 text-sm shadow-xs ring-1 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl group/card flex flex-col", className)}
+      className={cn("border-border bg-card text-card-foreground gap-6 overflow-hidden rounded-xl border py-6 text-sm has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl group/card flex flex-col", className)}
       {...props}
     />
   )
@@ -34,7 +38,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("text-base leading-normal font-medium group-data-[size=sm]/card:text-sm", className)}
+      className={cn("font-display text-muted-foreground/75 text-base leading-normal font-medium group-data-[size=sm]/card:text-sm", className)}
       {...props}
     />
   )
@@ -67,7 +71,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-6 group-data-[size=sm]/card:px-4", className)}
+      className={cn("font-display text-muted-foreground flex flex-col gap-4 px-6 text-base leading-7 group-data-[size=sm]/card:px-4 [&>*]:my-0", className)}
       {...props}
     />
   )
