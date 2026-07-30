@@ -199,6 +199,28 @@ unpinned runner tests against a different runtime than anyone develops on: a jsd
 bump went green in CI while failing locally. If you change `.nvmrc`, the workflow follows
 it automatically, but re-run the suite locally.
 
+## The MDX paragraph trap
+
+MDX wraps a component's children in a `<p>` **as soon as they sit on their own line**:
+
+```mdx
+<Anchor href="/">Back</Anchor>          → <a>Back</a>
+<Anchor href="/">
+  Back                                   → <a><p>Back</p></a>
+</Anchor>
+```
+
+`p` is globally mapped to muted prose type in `mdx-components.tsx`, so that paragraph
+drags `text-muted-foreground`, `font-display` and `leading-7` into whatever contains it.
+In an inline component the result is one element rendered in two colours: the label takes
+the paragraph's, any icon sibling keeps the component's.
+
+**A reformat is enough to trigger it**, which is what makes it nasty: wrapping a long line
+silently changes the rendering. Any component that can receive MDX children and styles its
+own text must neutralise the paragraph, as `Anchor` does with
+`[&>p]:m-0 [&>p]:[font:inherit] [&>p]:text-inherit`, or as `Blockquote`, `Callout` and
+`Details` do with their own `[&>p]:` / `[&>*]:` overrides.
+
 ## Known intentional patterns
 
 Each of these looks like a mistake and is not. Read before "fixing" one.

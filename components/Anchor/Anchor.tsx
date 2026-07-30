@@ -9,8 +9,13 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { cva, VariantProps } from 'class-variance-authority';
 import Link from 'next/link';
 
+// MDX wraps a component's children in a paragraph as soon as they sit on their
+// own line, and `p` is globally mapped to muted prose type. Left alone, the
+// label would take that colour and font while the icon, a direct child, keeps
+// the anchor's, splitting one link across two colours. The `[&>p]:` overrides
+// make that paragraph typographically transparent.
 const anchorVariants = cva(
-  'text-primary inline-flex gap-1 items-baseline leading-none cursor-pointer group w-fit no-underline',
+  'text-primary inline-flex gap-1 items-baseline leading-none cursor-pointer group w-fit no-underline [&>p]:m-0 [&>p]:[font:inherit] [&>p]:text-inherit',
   {
     variants: {
       variant: {
