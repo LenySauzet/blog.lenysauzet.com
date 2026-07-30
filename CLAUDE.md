@@ -271,6 +271,16 @@ ordered lists hide it via CSS and show a counter instead. Those counter rules li
 inline-className rule, because `content: counter(...)` cannot be a Tailwind class. Nesting
 needs no depth logic: each nested list carries its own `data-list`.
 
+**`components/Card` wraps the shadcn Card primitive** rather than restyling it, the same
+relationship `Details` has with the Accordion. It passes `size="sm"`, which is the
+primitive's own 16px scale and matches Details, and it overrides exactly one thing: the
+primitive draws its edge with `ring-1 ring-foreground/10`, swapped for `border
+border-border` so both surfaces resolve from one token. The header separator is just
+`border-b` on `CardHeader` — the primitive's `[.border-b]:pb-*` supplies the padding, and
+preflight's `* { @apply border-border }` supplies the colour, so neither is named here.
+`CardFooter` and `CardAction` are deliberately not re-exported; import them from
+`@/components/ui/card` if a post ever needs them.
+
 **`components/Details` is built on the shadcn Accordion primitive**, not a hand-rolled
 disclosure, so Radix owns the open state and the ARIA wiring. It composes
 `AccordionPrimitive.Header/Trigger` and `.Content` directly, because the generated
