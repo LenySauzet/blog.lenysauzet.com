@@ -82,6 +82,11 @@
      list, and Tailwind cannot compose one from a JS constant. */
   --shadow-bevel: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
     inset 0 -1.5px 2px 0 rgb(0 0 0 / 0.3);
+  /* The accent, deepened. Interactive surfaces bloom in this colour: buttons on
+     hover, fields on focus. Plain --primary reads washed out at low alpha over
+     a large blur, so lightness and chroma are pinned while the hue keeps
+     following --base-hue. Only the spread differs per component. */
+  --glow: oklch(from var(--primary) 0.5319 0.212 h);
 
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --background: oklch(1 0 0);
