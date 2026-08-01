@@ -29,7 +29,7 @@ const GLOW_PRIMARY =
   "hover:shadow-[inset_0_1px_1px_0_rgb(255_255_255/0.3),inset_0_-1.5px_2px_0_rgb(0_0_0/0.3),0_2px_40px_-4px_oklch(from_var(--primary)_0.5319_0.212_h)]";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap cursor-pointer outline-none select-none [transition:background_.2s,scale_.2s,transform_.2s,color_.2s,box-shadow_.3s] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap cursor-pointer outline-none select-none [transition:background_.2s,scale_.2s,transform_.2s,color_.2s,box-shadow_.3s] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
