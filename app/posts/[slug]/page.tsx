@@ -66,14 +66,17 @@ export default async function Page({
                 delay={0.5}
                 speed={0.8}
                 windowSize={3}
-                className="font-mono text-sm uppercase text-muted-foreground/75"
+                className="font-mono text-sm uppercase text-subtle-foreground"
               >
                 {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
               </ScrambledText>
             </time>
           </div>
 
-          <div className="flex flex-col gap-5 font-medium">
+          {/* No font-weight here. The prose scale is built on a 400 body, so
+              `strong`, `em` and `h3` can step up to 500 and read as emphasis; a
+              blanket font-medium put the body at 500 and flattened all three. */}
+          <div className="flex flex-col gap-5">
             <Post />
           </div>
         </div>

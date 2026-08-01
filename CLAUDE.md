@@ -124,6 +124,13 @@ that neither file makes obvious:
 - **`--base-hue: 262.04` is the only knob.** Every oklch token derives from it, syntax
   highlighting included. Retheming the site is one line, so never hardcode a colour that
   should follow it.
+- **Text runs on three tiers**: `--foreground` (headings, `strong`), `--muted-foreground`
+  (body copy, `h4`), `--subtle-foreground` (article date, discreet links, card titles,
+  `em`). The third is ours, not shadcn's — added per its "Adding Custom Colors" recipe, as
+  `--success` and `--warning` were. **Do not substitute an opacity step for it**: an alpha
+  composites against whatever surface sits behind the text, so the same tier would drift
+  between the page and a card, and it can neither darken past `--muted-foreground` in
+  light mode nor change chroma.
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
   checked boxes, list markers, callout accents). Not `--link` (that is specifically the
   hyperlink colour), not `--accent` (shadcn's muted hover surface).
@@ -245,10 +252,11 @@ Colocated on purpose; do not promote it until a second consumer exists.
 for everything else. Do not add Base UI components without a reason that specific.
 
 **`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
-`>` maps to it. It uses `font-display` (Geist), **not** `font-serif`: the ported design's
-own `var(--font-serif)` is undefined and falls through to its default sans, so the sans
-is the faithful match. The inner `<p>` is the globally MDX-mapped paragraph, hence the
-`[&>p]:` overrides.
+`>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
+the reference**, which renders its pull-quote in the default sans because its own
+`var(--font-serif)` is undefined. This is the one place the blog knowingly diverges, so
+don't "correct" it back to match. The inner `<p>` is the globally MDX-mapped paragraph,
+hence the `[&>p]:` overrides.
 
 **Math (`$…$`, `$$…$$`) renders at build time** via `remark-math` + `rehype-mathjax`
 (SVG output): vector glyphs, so zero client JS, no CLS, no web-font loading. MathJax over
@@ -282,8 +290,8 @@ type posts use. Because the file is CLI-generated, update it with
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
 implies. The separator is `border-b` on `CardHeader`: the primitive's `[.border-b]:pb-*`
 supplies the padding and preflight's `* { @apply border-border }` supplies the colour, so
-neither is named. The title sits at `text-muted-foreground/75`, the same step `Anchor`'s
-discreet variant uses, which keeps it a shade under the body rather than level with it.
+neither is named. The title sits on `text-subtle-foreground`, the third text tier, which
+keeps it a shade under the body rather than level with it.
 `CardFooter` and `CardAction` are deliberately not re-exported; import them from
 `@/components/ui/card` if a post ever needs them.
 
