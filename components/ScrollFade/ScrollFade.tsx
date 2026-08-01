@@ -1,37 +1,52 @@
+import { cn } from '@/lib/utils';
+
 export interface ScrollFadeProps {
+  /** Which edge of the viewport the band clings to. */
+  position?: 'top' | 'bottom';
   /** Height of the band. */
   height?: string;
-  /** Blur at the very bottom, ramping to none at the top. */
+  /** Blur at the edge, ramping to none at the inner side. */
   blur?: string;
 }
 
-// Two stacked effects rather than one: the mask ramps the blur, the gradient
-// ramps the colour, and keeping them apart lets each carry its own curve. The
-// colour stop fades to a transparent *--background* rather than `transparent`,
-// which resolves to rgba(0,0,0,0) and would draw a grey band on the way out.
-const FADE_TO_BACKGROUND =
-  'linear-gradient(to top, var(--background) 0%, oklch(from var(--background) l c h / 0.85) 35%, oklch(from var(--background) l c h / 0) 100%)';
+// The colour stop fades to a transparent *--background* rather than
+// `transparent`, which resolves to rgba(0,0,0,0) and would interpolate through
+// black, drawing a grey band across the gradient.
+const fadeToBackground = (direction: string) =>
+  `linear-gradient(${direction}, var(--background) 0%, oklch(from var(--background) l c h / 0.85) 35%, oklch(from var(--background) l c h / 0) 100%)`;
 
-const BLUR_RAMP =
-  'linear-gradient(to top, black 0%, black 25%, transparent 100%)';
+const blurRamp = (direction: string) =>
+  `linear-gradient(${direction}, black 0%, black 25%, transparent 100%)`;
 
 /**
- * Dissolves the foot of a scrolling article into the page. Fixed, because the
- * post layout is the scroll container and the body does not scroll; an absolute
- * band would ride away with the text.
+ * Dissolves an edge of a scrolling article into the page. Two stacked effects
+ * rather than one: the mask ramps the blur, the gradient ramps the colour, and
+ * keeping them apart lets each carry its own curve.
+ *
+ * Fixed, because the post layout is the scroll container and the body does not
+ * scroll; an absolute band would ride away with the text.
  *
  * Server Component: no state, no hooks. `z-40` keeps it under the Dock (z-50)
  * and the Lightbox (z-100).
  */
 export default function ScrollFade({
+  position = 'bottom',
   height = '8rem',
   blur = '8px',
 }: ScrollFadeProps) {
+  // The gradients run from the clinging edge inward, so they flip with it.
+  const direction = position === 'top' ? 'to bottom' : 'to top';
+  const mask = blurRamp(direction);
+
   return (
     <div
       data-slot="scroll-fade"
+      data-position={position}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40"
+      className={cn(
+        'pointer-events-none fixed inset-x-0 z-40',
+        position === 'top' ? 'top-0' : 'bottom-0'
+      )}
       style={{ height }}
     >
       <div
@@ -39,11 +54,14 @@ export default function ScrollFade({
         style={{
           backdropFilter: `blur(${blur})`,
           WebkitBackdropFilter: `blur(${blur})`,
-          maskImage: BLUR_RAMP,
-          WebkitMaskImage: BLUR_RAMP,
+          maskImage: mask,
+          WebkitMaskImage: mask,
         }}
       />
-      <div className="absolute inset-0" style={{ background: FADE_TO_BACKGROUND }} />
+      <div
+        className="absolute inset-0"
+        style={{ background: fadeToBackground(direction) }}
+      />
     </div>
   );
 }

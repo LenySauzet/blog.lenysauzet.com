@@ -48,4 +48,26 @@ describe('ScrollFade', () => {
     expect(root(container).style.height).toBe('12rem');
     expect(layers(container)[0].style.backdropFilter).toBe('blur(20px)');
   });
+
+  // Both gradients run from the clinging edge inward, so they have to flip
+  // together with it. Flipping one and not the other would blur the wrong end.
+  describe('position', () => {
+    it('clings to the bottom and runs upward by default', () => {
+      const { container } = render(<ScrollFade />);
+      const [blurLayer, colourLayer] = layers(container);
+
+      expect(root(container).className).toContain('bottom-0');
+      expect(blurLayer.style.maskImage).toContain('to top');
+      expect(colourLayer.style.background).toContain('to top');
+    });
+
+    it('clings to the top and runs downward', () => {
+      const { container } = render(<ScrollFade position="top" />);
+      const [blurLayer, colourLayer] = layers(container);
+
+      expect(root(container).className).toContain('top-0');
+      expect(blurLayer.style.maskImage).toContain('to bottom');
+      expect(colourLayer.style.background).toContain('to bottom');
+    });
+  });
 });
