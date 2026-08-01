@@ -79,9 +79,6 @@ export default function ButtonShowcase() {
 
       <Showcase label="Disabled">
         <Button disabled>Button</Button>
-        <Button variant="secondary" disabled>
-          Button
-        </Button>
         <Button variant="outline" disabled>
           Button
         </Button>
