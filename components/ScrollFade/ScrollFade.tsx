@@ -9,13 +9,10 @@ export interface ScrollFadeProps {
   blur?: string;
 }
 
-// Both ramps are plain and linear. An earlier version held the blur at full
-// strength for the first quarter and kept the colour at 85% a third of the way
-// up, which read as a heavy wash over anything it covered rather than a fade.
-//
-// The colour stop fades to a transparent *--background* rather than
-// `transparent`, which resolves to rgba(0,0,0,0) and would interpolate through
-// black, drawing a grey band across the gradient.
+// Fades to a transparent *--background* rather than `transparent`, which
+// resolves to rgba(0,0,0,0) and would interpolate through black, drawing a grey
+// band across the gradient. Both ramps stay linear: any hold at the edge reads
+// as a wash over whatever the band covers rather than a fade.
 const fadeToBackground = (direction: string) =>
   `linear-gradient(${direction}, var(--background) 0%, oklch(from var(--background) l c h / 0) 100%)`;
 
