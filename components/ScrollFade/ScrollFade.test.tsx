@@ -20,7 +20,7 @@ describe('ScrollFade', () => {
     const { container } = render(<ScrollFade />);
     const [blurLayer, colourLayer] = layers(container);
 
-    expect(blurLayer.style.backdropFilter).toBe('blur(8px)');
+    expect(blurLayer.style.backdropFilter).toBe('blur(4px)');
     expect(colourLayer.style.background).toContain('var(--background)');
   });
 

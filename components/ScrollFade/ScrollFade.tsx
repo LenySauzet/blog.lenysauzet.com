@@ -9,14 +9,18 @@ export interface ScrollFadeProps {
   blur?: string;
 }
 
+// Both ramps are plain and linear. An earlier version held the blur at full
+// strength for the first quarter and kept the colour at 85% a third of the way
+// up, which read as a heavy wash over anything it covered rather than a fade.
+//
 // The colour stop fades to a transparent *--background* rather than
 // `transparent`, which resolves to rgba(0,0,0,0) and would interpolate through
 // black, drawing a grey band across the gradient.
 const fadeToBackground = (direction: string) =>
-  `linear-gradient(${direction}, var(--background) 0%, oklch(from var(--background) l c h / 0.85) 35%, oklch(from var(--background) l c h / 0) 100%)`;
+  `linear-gradient(${direction}, var(--background) 0%, oklch(from var(--background) l c h / 0) 100%)`;
 
 const blurRamp = (direction: string) =>
-  `linear-gradient(${direction}, black 0%, black 25%, transparent 100%)`;
+  `linear-gradient(${direction}, black 0%, transparent 100%)`;
 
 /**
  * Dissolves an edge of a scrolling article into the page. Two stacked effects
@@ -31,8 +35,8 @@ const blurRamp = (direction: string) =>
  */
 export default function ScrollFade({
   position = 'bottom',
-  height = '8rem',
-  blur = '8px',
+  height = '6rem',
+  blur = '4px',
 }: ScrollFadeProps) {
   // The gradients run from the clinging edge inward, so they flip with it.
   const direction = position === 'top' ? 'to bottom' : 'to top';
