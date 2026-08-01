@@ -76,6 +76,12 @@
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 1px 3px oklch(0 0 0 / 0.06);
   --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);
+  /* Lit from above: a highlight along the top edge, a shade along the bottom.
+     Fixed rgba on purpose — this is lighting, not colour, so it must not rotate
+     with --base-hue. A token because the hover state restates the whole shadow
+     list, and Tailwind cannot compose one from a JS constant. */
+  --shadow-bevel: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
+    inset 0 -1.5px 2px 0 rgb(0 0 0 / 0.3);
 
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --background: oklch(1 0 0);
@@ -85,7 +91,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 var(--base-hue));
   --primary: oklch(0.615 0.168 var(--base-hue));
-  --primary-foreground: oklch(0.21 0.04 var(--base-hue));
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
   --muted: oklch(0.967 0.001 var(--base-hue));
@@ -156,7 +162,7 @@
   --popover: oklch(0.21 0.006 var(--base-hue));
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.615 0.168 var(--base-hue));
-  --primary-foreground: oklch(0.21 0.04 var(--base-hue));
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.274 0.006 var(--base-hue));
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 var(--base-hue));

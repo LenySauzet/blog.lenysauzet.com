@@ -3,6 +3,7 @@ import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Badge } from '@/components/ui/badge';
 import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
+import { ButtonShowcase } from '@/components/ComponentShowcase';
 import Card from '@/components/Card';
 import Details from '@/components/Details';
 import Fullbleed from '@/components/Fullbleed';
@@ -28,6 +29,7 @@ const components = {
   Anchor,
   Badge,
   BeforeAfterImage,
+  ButtonShowcase,
   Callout,
   Card,
   Details,
