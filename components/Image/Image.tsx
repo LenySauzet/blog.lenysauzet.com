@@ -32,7 +32,7 @@ export default async function Image({
   return (
     <figure className="my-6 flex w-full flex-col items-start gap-0">
       <ImageZoom src={url} alt={alt} quality={quality} {...dimensions} {...props} />
-      <figcaption className="pt-2.5 font-display text-sm leading-6 text-muted-foreground">
+      <figcaption className="pt-2.5 font-display text-sm leading-6 text-subtle-foreground">
         {alt}
       </figcaption>
     </figure>

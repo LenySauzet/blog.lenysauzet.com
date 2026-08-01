@@ -21,7 +21,7 @@ export function List({ variant, className, children }: ListProps) {
     <Tag
       data-list={variant}
       className={cn(
-        'my-4 flex flex-col gap-2 font-display text-foreground',
+        'my-4 flex flex-col gap-2 font-display text-muted-foreground',
         className
       )}
     >

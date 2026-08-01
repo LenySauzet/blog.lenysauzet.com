@@ -252,10 +252,11 @@ Colocated on purpose; do not promote it until a second consumer exists.
 for everything else. Do not add Base UI components without a reason that specific.
 
 **`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
-`>` maps to it. It uses `font-display` (Geist), **not** `font-serif`: the ported design's
-own `var(--font-serif)` is undefined and falls through to its default sans, so the sans
-is the faithful match. The inner `<p>` is the globally MDX-mapped paragraph, hence the
-`[&>p]:` overrides.
+`>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
+the reference**, which renders its pull-quote in the default sans because its own
+`var(--font-serif)` is undefined. This is the one place the blog knowingly diverges, so
+don't "correct" it back to match. The inner `<p>` is the globally MDX-mapped paragraph,
+hence the `[&>p]:` overrides.
 
 **Math (`$…$`, `$$…$$`) renders at build time** via `remark-math` + `rehype-mathjax`
 (SVG output): vector glyphs, so zero client JS, no CLS, no web-font loading. MathJax over

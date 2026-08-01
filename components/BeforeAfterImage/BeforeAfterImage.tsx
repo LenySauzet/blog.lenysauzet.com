@@ -41,7 +41,7 @@ export default async function BeforeAfterImage({
         defaultPosition={defaultPosition}
         {...dimensions}
       />
-      <figcaption className="pt-2.5 font-display text-sm leading-6 text-muted-foreground">
+      <figcaption className="pt-2.5 font-display text-sm leading-6 text-subtle-foreground">
         {alt}
       </figcaption>
     </figure>
