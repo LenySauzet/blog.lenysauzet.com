@@ -314,18 +314,23 @@ clipped the bottom padding. All open-state styling reads Radix's `data-state` th
 
 **Form fields are one surface, not a container plus parts.** `components/ui/input.tsx`
 exports `inputSurface`, the whole visual contract (edge, fill, radius, type, and every
-state), and `Textarea` reuses it so the two can never drift. Three consequences that
-look wrong until you know why:
+state), and `Textarea` reuses it so the two can never drift. Consequences that look
+wrong until you know why:
 
 - **`components/ui/input-group.tsx` is a positioning shell**, heavily cut down from the
   CLI output: no border, no background, no flex row. The addon floats over the control
   with `position: absolute`. Laid out as a flex sibling instead, the addon takes a box
   of its own and the focus glow visibly breaks across that seam. The addon **must follow
   the control in the DOM**, because every state colour on it reads the control through
-  `peer-*`, which only sees earlier siblings. Do not restore `add --diff` output here.
+  `peer-*`, which only sees earlier siblings. Do not restore `add --diff` output here,
+  and do not reach for it to build a plain icon-and-input row: `CommandInput` lays its
+  search box out inline for exactly that reason. It carries no `"use client"`, which is
+  what keeps `EmailInput` off the client bundle entirely.
 - **Hover applies the full focus treatment** (primary edge, glow, icon colour) and focus
   simply makes it persist. That is deliberate: the field advertises what focusing it will
-  do. Guard it with `enabled:` so a disabled field stays inert.
+  do. Guard it with `enabled:` so a disabled field stays inert. It lives **twice**: on the
+  control for a bare field, and on the group, because an addon overlays the control and
+  pointing at it would otherwise leave the field flat under the cursor.
 - **Disabled names its colours; it never fades the element.** The reference reaches its
   flat slab with `opacity`, and that is a trap: opacity drags the text down with the
   fill, so contrast cannot be raised at all. Stacked under our already-translucent

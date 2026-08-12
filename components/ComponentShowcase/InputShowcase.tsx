@@ -26,12 +26,7 @@ function Field({
   );
 }
 
-/**
- * Left column empty, right column filled and disabled, mirroring how the
- * reference presents these. The right-hand email needs `valid` spelled out:
- * disabling a control bars it from constraint validation, so `:valid` no
- * longer matches however well-formed the address is.
- */
+/** Left column empty, right column filled and disabled, as the reference does. */
 export default function InputShowcase() {
   return (
     <div className="my-6 flex flex-col gap-10">

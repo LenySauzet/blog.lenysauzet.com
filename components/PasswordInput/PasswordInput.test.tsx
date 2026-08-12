@@ -29,7 +29,8 @@ describe('PasswordInput', () => {
   });
 
   // The label names the action, not the state, so a screen reader hears what
-  // pressing will do; aria-pressed carries the state itself.
+  // pressing will do; aria-pressed carries the state, and is also what the
+  // stylesheet reads to redraw the eye.
   it('reports its state through aria-pressed', async () => {
     const user = userEvent.setup();
     render(<PasswordInput aria-label="Password" />);
@@ -55,18 +56,5 @@ describe('PasswordInput', () => {
 
     expect(screen.getByLabelText('Password')).toBeDisabled();
     expect(screen.getByRole('button')).toBeDisabled();
-  });
-
-  // The strike and pupil are driven by CSS custom properties, so the toggle has
-  // to carry the state as an attribute for the stylesheet to reach them.
-  it('exposes the revealed state to the stylesheet', async () => {
-    const user = userEvent.setup();
-    render(<PasswordInput aria-label="Password" />);
-
-    const toggle = screen.getByRole('button');
-    expect(toggle).toHaveAttribute('data-revealed', 'false');
-
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute('data-revealed', 'true');
   });
 });

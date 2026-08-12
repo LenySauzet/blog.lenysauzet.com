@@ -8,28 +8,21 @@ import { cn } from '@/lib/utils';
 export interface EmailInputProps
   extends Omit<React.ComponentProps<'input'>, 'type'> {
   /**
-   * Forces the tick. Only needed when the control is disabled or read only,
-   * since either bars it from constraint validation, at which point it matches
-   * neither `:valid` nor `:invalid` and the browser can no longer answer.
+   * Forces the tick. Only for a disabled or read-only control, which is barred
+   * from constraint validation and so matches neither `:valid` nor `:invalid`.
    */
   valid?: boolean;
 }
 
-/**
- * `type="email"` alone accepts `hello@a` and `hello@gmail.c`: the HTML spec
- * deliberately allows dotless and single-character hosts. Requiring a dot and a
- * two-letter top level domain is what most people mean by a valid address.
- * `pattern` feeds `:valid` like the type check does, so this costs no script.
- */
+// `type="email"` alone accepts `hello@a` and `hello@gmail.c`, both legal per
+// spec. `pattern` feeds `:valid` too, so narrowing it still costs no script.
 const EMAIL_PATTERN = '[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}';
 
 /**
  * An email field whose icon redraws into a tick once the address parses.
  *
- * Validity is read straight from the browser through `:valid`, so the whole
- * component stays server-rendered. The placeholder is load-bearing:
- * `:placeholder-shown` is what separates "empty" from "filled", and an email
- * input with no value is `:valid` on its own.
+ * The placeholder is load-bearing: `:placeholder-shown` separates empty from
+ * filled, and an empty optional email input is `:valid` on its own.
  */
 export default function EmailInput({
   className,

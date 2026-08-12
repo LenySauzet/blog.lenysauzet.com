@@ -89,6 +89,11 @@
      a large blur, so lightness and chroma are pinned while the hue keeps
      following --base-hue. Only the spread differs per component. */
   --glow: oklch(from var(--primary) 0.5319 0.212 h);
+  /* A field's bloom, tighter than a button's. Tokens for the same reason
+     --shadow-bevel is one: four states restate the whole shadow, and Tailwind
+     cannot compose a class name from a JS constant. */
+  --shadow-field: 0 2px 20px -2px var(--glow);
+  --shadow-field-invalid: 0 2px 20px -2px var(--destructive);
 
   --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --background: oklch(1 0 0);

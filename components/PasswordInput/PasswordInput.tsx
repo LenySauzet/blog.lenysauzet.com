@@ -19,9 +19,8 @@ export interface PasswordInputProps
  * A password field whose eye redraws between its two states: the pupil draws in
  * as the strike retracts.
  *
- * The toggle reports its state through `aria-pressed`, and its label follows
- * the action rather than the state, so a screen reader hears what pressing it
- * will do.
+ * The toggle's label names the action rather than the state, so a screen reader
+ * hears what pressing it will do; `aria-pressed` carries the state.
  */
 export default function PasswordInput({
   className,
@@ -41,11 +40,10 @@ export default function PasswordInput({
       <InputGroupAddon align="inline-end">
         <InputGroupButton
           disabled={disabled}
-          data-revealed={revealed}
           aria-pressed={revealed}
           aria-label={revealed ? `Hide ${revealLabel}` : `Show ${revealLabel}`}
           onClick={() => setRevealed((shown) => !shown)}
-          className="[--eye:2] [--strike:0] data-[revealed=true]:[--eye:0] data-[revealed=true]:[--strike:2]"
+          className="[--eye:2] [--strike:0] aria-pressed:[--eye:0] aria-pressed:[--strike:2]"
         >
           <svg
             viewBox="0 0 24 24"
