@@ -381,6 +381,19 @@ state machine, so it cannot drift three ways — and add only their shape and ma
 - `--shadow-control` is the bloom, wider than `--shadow-field`, because a 24px control
   needs the glow to clear its own edge before it reads.
 
+**The slider is a bar, not a rail with a knob.** A 48px rounded surface whose filled
+part is the *same* wash laid over itself, so the boundary reads as depth rather than as
+a second colour; a 2px grip sits just inside its leading edge and the thumb is a bare
+20×44 drag target with nothing drawn on it. Two things this shape forces:
+
+- **`aria-label` belongs on the thumb.** Radix puts `role="slider"` there, so a label
+  left on the root is never announced. `components/ui/slider.tsx` forwards it.
+- **The label and readout sit over the bar, not inside the control**, so
+  `data-disabled:opacity-40` fades the surface without taking the caption with it.
+  `components/Slider` describes that readout with `unit` and `decimals` rather than a
+  formatter callback: a post is a Server Component, and React cannot pass a function
+  across that boundary — the callback version crashed the page.
+
 ## New component checklist
 
 - [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`

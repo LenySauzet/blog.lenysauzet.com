@@ -6,6 +6,7 @@ import { Callout } from '@/components/Callout';
 import {
   ButtonShowcase,
   InputShowcase,
+  SliderShowcase,
   ToggleShowcase,
 } from '@/components/ComponentShowcase';
 import Card from '@/components/Card';
@@ -38,6 +39,7 @@ const components = {
   Card,
   Details,
   InputShowcase,
+  SliderShowcase,
   ToggleShowcase,
   Fullbleed,
   Image,
