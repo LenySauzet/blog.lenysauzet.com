@@ -29,6 +29,7 @@
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-input-disabled: var(--input-disabled);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
@@ -116,6 +117,10 @@
   --warning: oklch(0.7412 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
+  /* The fill a disabled field collapses to, always under an opacity step. It
+     needs its own value per theme: --muted is too pale to darken a field in
+     dark mode, and --border is too dark to lighten one in light mode. */
+  --input-disabled: oklch(0.9594 0.004 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
@@ -180,6 +185,7 @@
   --warning: oklch(0.7093 0.18 60);
   --border: oklch(24.84% 0.018 var(--base-hue));
   --input: oklch(1 0 0 / 15%);
+  --input-disabled: oklch(24.84% 0.018 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));

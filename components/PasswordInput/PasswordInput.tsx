@@ -39,7 +39,7 @@ export default function PasswordInput({
           aria-pressed={revealed}
           aria-label={revealed ? `Hide ${revealLabel}` : `Show ${revealLabel}`}
           onClick={() => setRevealed((shown) => !shown)}
-          className="[--eye:1] [--strike:0] data-[revealed=true]:[--eye:0] data-[revealed=true]:[--strike:1]"
+          className="[--eye:2] [--strike:0] data-[revealed=true]:[--eye:0] data-[revealed=true]:[--strike:2]"
         >
           <svg
             viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ export default function PasswordInput({
               cy="12"
               r="3"
               pathLength={1}
-              className="[stroke-dasharray:1] [stroke-dashoffset:var(--eye)] [transition:stroke-dashoffset_.5s_ease] motion-reduce:transition-none"
+              className="[stroke-dasharray:2] [stroke-dashoffset:var(--eye)] [transition:stroke-dashoffset_.5s_ease] motion-reduce:transition-none"
             />
             <line
               x1="4"
@@ -66,7 +66,7 @@ export default function PasswordInput({
               x2="20"
               y2="20"
               pathLength={1}
-              className="[stroke-dasharray:1] [stroke-dashoffset:var(--strike)] [transition:stroke-dashoffset_.4s_ease] motion-reduce:transition-none"
+              className="[stroke-dasharray:2] [stroke-dashoffset:var(--strike)] [transition:stroke-dashoffset_.4s_ease] motion-reduce:transition-none"
             />
           </svg>
         </InputGroupButton>

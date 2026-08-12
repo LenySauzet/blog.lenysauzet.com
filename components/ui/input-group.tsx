@@ -28,7 +28,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const inputGroupAddonVariants = cva(
-  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-subtle-foreground/50 [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:hover]:text-primary peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
+  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-subtle-foreground [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:hover]:text-primary peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
   {
     variants: {
       align: {
@@ -71,7 +71,9 @@ function InputGroupButton({
       type={type}
       data-slot="input-group-button"
       className={cn(
-        "flex size-[22px] cursor-pointer items-center justify-center rounded-full outline-none [transition:box-shadow_.2s] focus-visible:shadow-[0_0_0_2px_var(--primary)] disabled:cursor-not-allowed motion-reduce:transition-none",
+        // The inner ring is the field's own fill: without that gap the focus
+        // ring hugs the glyph and reads as part of the icon.
+        "flex size-[22px] cursor-pointer items-center justify-center rounded-full outline-none [transition:box-shadow_.2s] focus-visible:shadow-[0_0_0_3px_var(--background),0_0_0_5px_var(--primary)] disabled:cursor-not-allowed motion-reduce:transition-none",
         className
       )}
       {...props}

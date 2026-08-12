@@ -326,17 +326,29 @@ look wrong until you know why:
 - **Hover applies the full focus treatment** (primary edge, glow, icon colour) and focus
   simply makes it persist. That is deliberate: the field advertises what focusing it will
   do. Guard it with `enabled:` so a disabled field stays inert.
-- **Disabled fades the whole field** (`disabled:bg-muted disabled:opacity-40`) rather
-  than swapping in a flat surface. The opacity is the point: the fill composites toward
-  the page until the edge disappears and the field reads as one slab. Dropping the
-  opacity for an opaque token makes it a *lighter* panel, which reads as raised, not off.
+- **Disabled fades the whole field** (`disabled:bg-input-disabled disabled:opacity-50`)
+  rather than swapping in a flat surface. The opacity is the point: the fill composites
+  toward the page until the edge disappears and the field reads as one slab. Dropping it
+  for an opaque token makes a *lighter* panel, which reads as raised, not off. The
+  opacity is also the only real lever on legibility here, since it fades text and fill
+  together: 0.4 gives 3.39:1, 0.5 gives 4.59:1. `--input-disabled` exists because no
+  other token works in both themes, `--muted` being too pale to darken a dark field and
+  `--border` too dark to lighten a light one.
 
 **`EmailInput` validates without JavaScript.** `:valid:not(:placeholder-shown)` on a
 `type="email"` control is the browser's own parse, so the component stays a Server
 Component. **The placeholder is load-bearing** — it is what separates empty from filled,
-since an empty non-required email input is already `:valid`. The `@` and the tick are two
-paths in one SVG, each carrying its own colour, so the valid green never has to win a
-specificity fight against the hover blue.
+since an empty non-required email input is already `:valid`. `type="email"` on its own
+accepts `hello@a` and `hello@gmail.c`, both legal per spec, so a `pattern` narrows it to
+a dotted host with a two-letter TLD; `pattern` feeds `:valid` too, so this stays scriptless.
+The `@` and the tick are two paths in one SVG, each carrying its own colour, so the valid
+green never has to win a specificity fight against the hover blue.
+
+**Drawn icons need `stroke-dasharray` longer than the path.** Every animated glyph sets
+`pathLength={1}` and then dashes at `2`, hiding at offset `2` rather than `1`. At
+`dasharray: 1` the gap starts exactly on the path's first point, and a round `linecap`
+paints that zero-length dash as a **visible dot** in the middle of the glyph. Overshooting
+the array puts the whole path inside one gap, so nothing is painted at all.
 
 ## New component checklist
 
