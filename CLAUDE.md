@@ -334,6 +334,11 @@ look wrong until you know why:
   together: 0.4 gives 3.39:1, 0.5 gives 4.59:1. `--input-disabled` exists because no
   other token works in both themes, `--muted` being too pale to darken a dark field and
   `--border` too dark to lighten a light one.
+- **The idle icon is `--input-icon`, not a text tier.** It is an affordance, so it sits
+  a quarter of the way from `--border` toward `--subtle-foreground` and stays clearly
+  under the placeholder beside it. Putting it on `--subtle-foreground` makes it read as
+  copy and it visibly outshines the field. Its paths also carry `strokeWidth={2}`, not
+  the 1.6 the SVG root inherits, or the glyph renders a third thinner than it should.
 
 **`EmailInput` validates without JavaScript.** `:valid:not(:placeholder-shown)` on a
 `type="email"` control is the browser's own parse, so the component stays a Server

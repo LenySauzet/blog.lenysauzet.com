@@ -30,6 +30,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-input-disabled: var(--input-disabled);
+  --color-input-icon: var(--input-icon);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
@@ -121,6 +122,10 @@
      needs its own value per theme: --muted is too pale to darken a field in
      dark mode, and --border is too dark to lighten one in light mode. */
   --input-disabled: oklch(0.9594 0.004 var(--base-hue));
+  /* A field's idle icon: an affordance, not copy. It sits a quarter of the way
+     from --border toward --subtle-foreground, so it stays clearly under the
+     placeholder it sits beside. */
+  --input-icon: oklch(0.8094 0.019 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
@@ -186,6 +191,7 @@
   --border: oklch(24.84% 0.018 var(--base-hue));
   --input: oklch(1 0 0 / 15%);
   --input-disabled: oklch(24.84% 0.018 var(--base-hue));
+  --input-icon: oklch(35.33% 0.028 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));

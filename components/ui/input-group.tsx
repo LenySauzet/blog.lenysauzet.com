@@ -28,7 +28,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const inputGroupAddonVariants = cva(
-  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-subtle-foreground [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:hover]:text-primary peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
+  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-input-icon [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:hover]:text-primary peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
   {
     variants: {
       align: {
