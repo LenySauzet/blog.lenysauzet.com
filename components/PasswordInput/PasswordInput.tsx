@@ -26,15 +26,21 @@ export interface PasswordInputProps
 export default function PasswordInput({
   className,
   revealLabel = 'password',
+  disabled,
   ...props
 }: PasswordInputProps) {
   const [revealed, setRevealed] = useState(false);
 
   return (
     <InputGroup className={className}>
-      <InputGroupInput type={revealed ? 'text' : 'password'} {...props} />
+      <InputGroupInput
+        type={revealed ? 'text' : 'password'}
+        disabled={disabled}
+        {...props}
+      />
       <InputGroupAddon align="inline-end">
         <InputGroupButton
+          disabled={disabled}
           data-revealed={revealed}
           aria-pressed={revealed}
           aria-label={revealed ? `Hide ${revealLabel}` : `Show ${revealLabel}`}

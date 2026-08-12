@@ -49,6 +49,14 @@ describe('PasswordInput', () => {
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
+  // A live toggle on a dead field would reveal a value nobody can edit.
+  it('disables the toggle along with the field', () => {
+    render(<PasswordInput aria-label="Password" defaultValue="hunter2" disabled />);
+
+    expect(screen.getByLabelText('Password')).toBeDisabled();
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
   // The strike and pupil are driven by CSS custom properties, so the toggle has
   // to carry the state as an attribute for the stylesheet to reach them.
   it('exposes the revealed state to the stylesheet', async () => {

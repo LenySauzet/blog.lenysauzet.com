@@ -5,7 +5,15 @@ import {
 } from '@/components/ui/input-group';
 import { cn } from '@/lib/utils';
 
-export type EmailInputProps = Omit<React.ComponentProps<'input'>, 'type'>;
+export interface EmailInputProps
+  extends Omit<React.ComponentProps<'input'>, 'type'> {
+  /**
+   * Forces the tick. Only needed when the control is disabled or read only,
+   * since either bars it from constraint validation, at which point it matches
+   * neither `:valid` nor `:invalid` and the browser can no longer answer.
+   */
+  valid?: boolean;
+}
 
 /**
  * `type="email"` alone accepts `hello@a` and `hello@gmail.c`: the HTML spec
@@ -26,6 +34,7 @@ const EMAIL_PATTERN = '[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}';
 export default function EmailInput({
   className,
   placeholder = 'hello@lenysauzet.com',
+  valid,
   ...props
 }: EmailInputProps) {
   return (
@@ -37,12 +46,14 @@ export default function EmailInput({
         {...props}
       />
       <InputGroupAddon
+        data-valid={valid || undefined}
         className={cn(
           '[--at-delay:.35s] [--at:0] [--tick-delay:0s] [--tick:2]',
           'peer-[:valid:not(:placeholder-shown)]:[--at-delay:0s]',
           'peer-[:valid:not(:placeholder-shown)]:[--at:2]',
           'peer-[:valid:not(:placeholder-shown)]:[--tick-delay:.35s]',
-          'peer-[:valid:not(:placeholder-shown)]:[--tick:0]'
+          'peer-[:valid:not(:placeholder-shown)]:[--tick:0]',
+          'data-[valid]:[--at:2] data-[valid]:[--tick:0]'
         )}
       >
         <svg

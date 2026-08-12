@@ -5,88 +5,71 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-import Showcase from './ComponentShowcase';
-
 const SAMPLE = `Here's to the crazy ones.
 The misfits.
 The rebels.`;
 
-/** Two columns, empty then filled, mirroring how the reference presents these. */
-function Pair({ children }: { children: React.ReactNode }) {
-  return <div className="grid w-full gap-4 sm:grid-cols-2">{children}</div>;
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </div>
+  );
 }
 
+/**
+ * Left column empty, right column filled and disabled, mirroring how the
+ * reference presents these. The right-hand email needs `valid` spelled out:
+ * disabling a control bars it from constraint validation, so `:valid` no
+ * longer matches however well-formed the address is.
+ */
 export default function InputShowcase() {
   return (
-    <>
-      <Showcase label="Subscribe">
-        <div className="flex w-full items-center gap-2">
-          <EmailInput aria-label="Email address" />
-          <Button>Subscribe</Button>
-        </div>
-      </Showcase>
+    <div className="my-6 flex flex-col gap-10">
+      <div className="flex items-center gap-2">
+        <EmailInput aria-label="Email address" />
+        <Button>Subscribe</Button>
+      </div>
 
-      <Showcase label="Labelled">
-        <Pair>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="name-empty">Name</Label>
-            <Input id="name-empty" placeholder="Name" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="name-filled">Name</Label>
-            <Input id="name-filled" defaultValue="Lény Sauzet" />
-          </div>
-        </Pair>
-      </Showcase>
+      <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2">
+        <Field label="Name" htmlFor="name-empty">
+          <Input id="name-empty" placeholder="Name" />
+        </Field>
+        <Field label="Name" htmlFor="name-filled">
+          <Input id="name-filled" defaultValue="Lény Sauzet" disabled />
+        </Field>
 
-      <Showcase label="Email, empty then valid">
-        <Pair>
-          <EmailInput aria-label="Email address" />
-          <EmailInput
-            aria-label="Email address, valid"
-            defaultValue="hello@lenysauzet.com"
-          />
-        </Pair>
-      </Showcase>
+        <EmailInput aria-label="Email address" />
+        <EmailInput
+          aria-label="Email address, valid"
+          defaultValue="hello@lenysauzet.com"
+          valid
+          disabled
+        />
 
-      <Showcase label="Password">
-        <Pair>
-          <PasswordInput placeholder="Password" aria-label="Password" />
-          <PasswordInput
-            placeholder="Password"
-            aria-label="Password"
-            defaultValue="correct horse battery"
-          />
-        </Pair>
-      </Showcase>
+        <PasswordInput placeholder="Password" aria-label="Password" />
+        <PasswordInput
+          aria-label="Password"
+          defaultValue="supersecretpassword"
+          disabled
+        />
 
-      <Showcase label="Textarea">
-        <Pair>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="text-empty">Example text</Label>
-            <Textarea
-              id="text-empty"
-              rows={6}
-              placeholder="Type some text here"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="text-filled">Example text</Label>
-            <Textarea id="text-filled" rows={6} defaultValue={SAMPLE} />
-          </div>
-        </Pair>
-      </Showcase>
-
-      <Showcase label="Disabled">
-        <Pair>
-          <Input placeholder="Name" disabled />
-          <Input defaultValue="Lény Sauzet" disabled />
-        </Pair>
-        <Pair>
-          <Textarea rows={4} placeholder="Type some text here" disabled />
-          <Textarea rows={4} defaultValue={SAMPLE} disabled />
-        </Pair>
-      </Showcase>
-    </>
+        <Field label="Example Text" htmlFor="text-empty">
+          <Textarea id="text-empty" rows={6} placeholder="Type some text here" />
+        </Field>
+        <Field label="Example Text" htmlFor="text-filled">
+          <Textarea id="text-filled" rows={6} defaultValue={SAMPLE} disabled />
+        </Field>
+      </div>
+    </div>
   );
 }
