@@ -83,8 +83,8 @@ export default function InputShowcase() {
           <Input defaultValue="Lény Sauzet" disabled />
         </Pair>
         <Pair>
-          <Textarea rows={2} placeholder="Type some text here" disabled />
-          <Textarea rows={2} defaultValue={SAMPLE} disabled />
+          <Textarea rows={4} placeholder="Type some text here" disabled />
+          <Textarea rows={4} defaultValue={SAMPLE} disabled />
         </Pair>
       </Showcase>
     </>
