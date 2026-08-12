@@ -326,14 +326,15 @@ look wrong until you know why:
 - **Hover applies the full focus treatment** (primary edge, glow, icon colour) and focus
   simply makes it persist. That is deliberate: the field advertises what focusing it will
   do. Guard it with `enabled:` so a disabled field stays inert.
-- **Disabled fades the whole field** (`disabled:bg-input-disabled disabled:opacity-50`)
-  rather than swapping in a flat surface. The opacity is the point: the fill composites
-  toward the page until the edge disappears and the field reads as one slab. Dropping it
-  for an opaque token makes a *lighter* panel, which reads as raised, not off. The
-  opacity is also the only real lever on legibility here, since it fades text and fill
-  together: 0.4 gives 3.39:1, 0.5 gives 4.59:1. `--input-disabled` exists because no
-  other token works in both themes, `--muted` being too pale to darken a dark field and
-  `--border` too dark to lighten a light one.
+- **Disabled names its colours; it never fades the element.** The reference reaches its
+  flat slab with `opacity`, and that is a trap: opacity drags the text down with the
+  fill, so contrast cannot be raised at all. Stacked under our already-translucent
+  placeholder it bottomed out at **1.43:1**. Naming `disabled:bg-input-disabled`,
+  `disabled:border-input-disabled` (the edge has to match the fill or the slab keeps a
+  rim) and `disabled:text-subtle-foreground` paints the identical surface and reaches
+  6.1:1. `--input-disabled` carries the reference's *already composited* value in dark,
+  and exists at all because no other token works in both themes: `--muted` is too pale
+  to darken a dark field, `--border` too dark to lighten a light one.
 - **The idle icon is `--input-icon`, not a text tier.** It is an affordance, so it sits
   a quarter of the way from `--border` toward `--subtle-foreground` and stays clearly
   under the placeholder beside it. Putting it on `--subtle-foreground` makes it read as

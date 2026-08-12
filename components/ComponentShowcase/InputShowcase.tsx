@@ -80,7 +80,11 @@ export default function InputShowcase() {
       <Showcase label="Disabled">
         <Pair>
           <Input placeholder="Name" disabled />
+          <Input defaultValue="Lény Sauzet" disabled />
+        </Pair>
+        <Pair>
           <Textarea rows={2} placeholder="Type some text here" disabled />
+          <Textarea rows={2} defaultValue={SAMPLE} disabled />
         </Pair>
       </Showcase>
     </>

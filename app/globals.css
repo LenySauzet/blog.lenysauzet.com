@@ -118,9 +118,10 @@
   --warning: oklch(0.7412 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
-  /* The fill a disabled field collapses to, always under an opacity step. It
-     needs its own value per theme: --muted is too pale to darken a field in
-     dark mode, and --border is too dark to lighten one in light mode. */
+  /* The fill a disabled field collapses to, borrowed by its border so the edge
+     disappears and the field reads as one slab. It needs its own value per
+     theme: --muted is too pale to darken a field in dark mode, and --border is
+     too dark to lighten one in light mode. */
   --input-disabled: oklch(0.9594 0.004 var(--base-hue));
   /* A field's idle icon: an affordance, not copy. It sits a quarter of the way
      from --border toward --subtle-foreground, so it stays clearly under the
@@ -190,7 +191,14 @@
   --warning: oklch(0.7093 0.18 60);
   --border: oklch(24.84% 0.018 var(--base-hue));
   --input: oklch(1 0 0 / 15%);
-  --input-disabled: oklch(24.84% 0.018 var(--base-hue));
+  /* Pre-composited: what the reference's fill resolves to once its opacity step
+     has flattened against the page. Fading the element instead would drag the
+     text down with the fill, which caps legibility at 1.43:1. */
+  --input-disabled: color-mix(
+    in oklab,
+    oklch(24.84% 0.018 var(--base-hue)) 40%,
+    var(--background)
+  );
   --input-icon: oklch(35.33% 0.028 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
