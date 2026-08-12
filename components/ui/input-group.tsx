@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input"
  * A positioning shell, not a bordered container: the control keeps its own
  * surface and the addon floats over it. Laying the addon out as a flex sibling
  * would give it a box of its own, which breaks the focus glow across the edge.
+ *
+ * It is also the hover surface. `Input` reacts to its own `:hover` so a bare
+ * field needs no wrapper, but an addon overlays the control as a sibling, so
+ * pointing at it leaves the control unhovered. The group closes that gap.
  */
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -17,7 +21,9 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="input-group"
       role="group"
       className={cn(
-        "relative block w-full",
+        "group/input-group relative block w-full",
+        "[&:hover_[data-slot=input-group-control]:enabled]:border-primary",
+        "[&:hover_[data-slot=input-group-control]:enabled]:shadow-[0_2px_20px_-2px_var(--glow)]",
         "has-[[data-align=inline-start]]:[&_[data-slot=input-group-control]]:pl-10",
         "has-[[data-align=inline-end]]:[&_[data-slot=input-group-control]]:pr-10",
         className
@@ -28,7 +34,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const inputGroupAddonVariants = cva(
-  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-input-icon [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:hover]:text-primary peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
+  "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center text-input-icon [transition:color_.3s] motion-reduce:transition-none peer-[:enabled:not(:placeholder-shown)]:text-primary peer-focus-visible:text-primary peer-[:enabled]:group-hover/input-group:text-primary [&_button]:pointer-events-auto [&>svg:not([class*='size-'])]:size-5",
   {
     variants: {
       align: {
