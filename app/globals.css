@@ -84,6 +84,9 @@
      cannot compose a class name from a JS constant. */
   --shadow-field: 0 2px 20px -2px var(--glow);
   --shadow-field-invalid: 0 2px 20px -2px var(--destructive);
+  /* Wider than a field's: a 24px control needs the bloom to reach past its own
+     edge before it reads as a bloom at all. */
+  --shadow-control: 0 2px 20px 3px var(--glow);
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 var(--base-hue));

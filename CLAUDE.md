@@ -361,6 +361,26 @@ green never has to win a specificity fight against the hover blue.
 paints that zero-length dash as a **visible dot** in the middle of the glyph. Overshooting
 the array puts the whole path inside one gap, so nothing is painted at all.
 
+**Toggle controls share one surface and draw their own marks.** Checkbox, Switch and
+RadioGroup all pull `controlSurface` from `components/ui/control-surface.ts` — the whole
+state machine, so it cannot drift three ways — and add only their shape and mark.
+
+- **The mark is a pseudo-element on the root, never a Radix `Indicator`.** Radix unmounts
+  the indicator the moment a control unchecks, which cuts the exit animation off at the
+  first frame. `before:` carries the mark, `after:` stays the touch-target expander.
+- **Each mark transitions the property it actually changes**: `rotate` for the checkbox
+  tick, `scale` for the radio dot, `translate` for the switch thumb. Tailwind v4 sets
+  each of these as its own property rather than folding them into `transform`, so a
+  transition naming `transform` compiles cleanly and animates **nothing**. This has now
+  bitten three times here (Button's press, Sandpack's buttons, all three controls);
+  `control-surface.test.tsx` guards it.
+- **The tick is a bordered box, not a glyph** — 6×10 wearing only its right and bottom
+  borders, swung from 20° to 43°. It is knocked out in `--background`, except when
+  disabled: the disabled fill sits so near the page that a background-coloured mark
+  disappears into it, so it takes `--subtle-foreground` there.
+- `--shadow-control` is the bloom, wider than `--shadow-field`, because a 24px control
+  needs the glow to clear its own edge before it reads.
+
 ## New component checklist
 
 - [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`
