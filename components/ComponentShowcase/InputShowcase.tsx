@@ -1,18 +1,11 @@
-import { AtIcon, Tick02Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
-
+import EmailInput from '@/components/EmailInput';
+import PasswordInput from '@/components/PasswordInput';
 import { Button } from '@/components/ui/button';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 import Showcase from './ComponentShowcase';
-import PasswordInput from './PasswordInput';
 
 const SAMPLE = `Here's to the crazy ones.
 The misfits.
@@ -20,9 +13,7 @@ The rebels.`;
 
 /** Two columns, empty then filled, mirroring how the reference presents these. */
 function Pair({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid w-full gap-4 sm:grid-cols-2">{children}</div>
-  );
+  return <div className="grid w-full gap-4 sm:grid-cols-2">{children}</div>;
 }
 
 export default function InputShowcase() {
@@ -30,16 +21,7 @@ export default function InputShowcase() {
     <>
       <Showcase label="Subscribe">
         <div className="flex w-full items-center gap-2">
-          <InputGroup>
-            <InputGroupAddon>
-              <HugeiconsIcon icon={AtIcon} />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="email"
-              placeholder="hello@lenysauzet.com"
-              aria-label="Email address"
-            />
-          </InputGroup>
+          <EmailInput aria-label="Email address" />
           <Button>Subscribe</Button>
         </div>
       </Showcase>
@@ -57,35 +39,24 @@ export default function InputShowcase() {
         </Pair>
       </Showcase>
 
-      <Showcase label="With an icon, and a valid value">
+      <Showcase label="Email, empty then valid">
         <Pair>
-          <InputGroup>
-            <InputGroupAddon>
-              <HugeiconsIcon icon={AtIcon} />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="email"
-              placeholder="hello@lenysauzet.com"
-              aria-label="Email address"
-            />
-          </InputGroup>
-          <InputGroup>
-            <InputGroupAddon className="text-success">
-              <HugeiconsIcon icon={Tick02Icon} />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="email"
-              defaultValue="hello@lenysauzet.com"
-              aria-label="Email address, valid"
-            />
-          </InputGroup>
+          <EmailInput aria-label="Email address" />
+          <EmailInput
+            aria-label="Email address, valid"
+            defaultValue="hello@lenysauzet.com"
+          />
         </Pair>
       </Showcase>
 
       <Showcase label="Password">
         <Pair>
           <PasswordInput placeholder="Password" aria-label="Password" />
-          <PasswordInput defaultValue="correct horse battery" aria-label="Password" />
+          <PasswordInput
+            placeholder="Password"
+            aria-label="Password"
+            defaultValue="correct horse battery"
+          />
         </Pair>
       </Showcase>
 
@@ -93,7 +64,11 @@ export default function InputShowcase() {
         <Pair>
           <div className="flex flex-col gap-2">
             <Label htmlFor="text-empty">Example text</Label>
-            <Textarea id="text-empty" rows={6} placeholder="Type some text here" />
+            <Textarea
+              id="text-empty"
+              rows={6}
+              placeholder="Type some text here"
+            />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="text-filled">Example text</Label>

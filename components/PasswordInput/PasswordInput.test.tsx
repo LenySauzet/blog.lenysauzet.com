@@ -48,4 +48,17 @@ describe('PasswordInput', () => {
 
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
+
+  // The strike and pupil are driven by CSS custom properties, so the toggle has
+  // to carry the state as an attribute for the stylesheet to reach them.
+  it('exposes the revealed state to the stylesheet', async () => {
+    const user = userEvent.setup();
+    render(<PasswordInput aria-label="Password" />);
+
+    const toggle = screen.getByRole('button');
+    expect(toggle).toHaveAttribute('data-revealed', 'false');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('data-revealed', 'true');
+  });
 });

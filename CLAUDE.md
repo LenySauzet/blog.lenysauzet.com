@@ -174,7 +174,9 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 - **Path alias**: `@/` resolves to the project root. Use it for all non-relative imports.
 - **Icons**: `@hugeicons/react` exclusively. Icon data comes from
   `@hugeicons/core-free-icons`; render it with `<HugeiconsIcon icon={SomeIcon} />`.
-  Not lucide, not heroicons.
+  Not lucide, not heroicons. The one exception is a **line-drawing animation**: it
+  needs `pathLength` and a dash offset on each individual path, which the Hugeicons
+  renderer does not expose, so `EmailInput` and `PasswordInput` hand-author theirs.
 - **Animation**: always `from 'motion/react'`, never `from 'framer-motion'`. Same
   package, but `motion/react` is the canonical alias. `AnimatePresence` is required for
   exit animations. OGL canvases must be `'use client'` and initialize in `useEffect`
@@ -309,6 +311,32 @@ clipped the bottom padding. All open-state styling reads Radix's `data-state` th
   separate rule races Radix's unmount check and the exit never plays.
 - Write `filter: none`, not `filter: blur(0)`. Lightning CSS minifies the latter to the
   invalid `blur()`.
+
+**Form fields are one surface, not a container plus parts.** `components/ui/input.tsx`
+exports `inputSurface`, the whole visual contract (edge, fill, radius, type, and every
+state), and `Textarea` reuses it so the two can never drift. Three consequences that
+look wrong until you know why:
+
+- **`components/ui/input-group.tsx` is a positioning shell**, heavily cut down from the
+  CLI output: no border, no background, no flex row. The addon floats over the control
+  with `position: absolute`. Laid out as a flex sibling instead, the addon takes a box
+  of its own and the focus glow visibly breaks across that seam. The addon **must follow
+  the control in the DOM**, because every state colour on it reads the control through
+  `peer-*`, which only sees earlier siblings. Do not restore `add --diff` output here.
+- **Hover applies the full focus treatment** (primary edge, glow, icon colour) and focus
+  simply makes it persist. That is deliberate: the field advertises what focusing it will
+  do. Guard it with `enabled:` so a disabled field stays inert.
+- **Disabled fades the whole field** (`disabled:bg-muted disabled:opacity-40`) rather
+  than swapping in a flat surface. The opacity is the point: the fill composites toward
+  the page until the edge disappears and the field reads as one slab. Dropping the
+  opacity for an opaque token makes it a *lighter* panel, which reads as raised, not off.
+
+**`EmailInput` validates without JavaScript.** `:valid:not(:placeholder-shown)` on a
+`type="email"` control is the browser's own parse, so the component stays a Server
+Component. **The placeholder is load-bearing** — it is what separates empty from filled,
+since an empty non-required email input is already `:valid`. The `@` and the tick are two
+paths in one SVG, each carrying its own colour, so the valid green never has to win a
+specificity fight against the hover blue.
 
 ## New component checklist
 
