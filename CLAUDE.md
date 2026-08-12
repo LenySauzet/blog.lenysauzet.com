@@ -132,8 +132,8 @@ that neither file makes obvious:
   between the page and a card, and it can neither darken past `--muted-foreground` in
   light mode nor change chroma.
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
-  checked boxes, list markers, callout accents). Not `--link` (that is specifically the
-  hyperlink colour), not `--accent` (shadcn's muted hover surface).
+  checked boxes, list markers, callout accents) and by hyperlinks, which `Anchor` takes
+  straight from it. Not `--accent`, which is shadcn's muted hover *surface*.
 - **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
   bare identifier tokenises as plain text in any grammar and highlighting only dimmed it
   into the prose. Set in `next.config.ts` via `defaultLang`.

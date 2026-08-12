@@ -20,9 +20,7 @@ const ITEM_VALUE = 'details';
 // A box-shadow rather than a background gradient, so fading the bar's opacity
 // fades the halo with it.
 const ACCENT_GLOW =
-  '0 0 16px 4px oklch(0.53 0.21 var(--base-hue) / 0.95), 0 0 34px 13px oklch(0.53 0.21 var(--base-hue) / 0.5)';
-
-const GLASS_FILTER = 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))';
+  '0 0 16px 4px oklch(from var(--glow) l c h / 0.95), 0 0 34px 13px oklch(from var(--glow) l c h / 0.5)';
 
 export default function Details({ summary, children, defaultOpen = false }: DetailsProps) {
   return (
@@ -49,8 +47,7 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
             <span className="font-display text-base leading-6 text-foreground">{summary}</span>
 
             <span
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-muted/60 text-muted-foreground"
-              style={{ backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER }}
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-muted/60 text-muted-foreground backdrop-blur-md backdrop-saturate-[115%]"
             >
               <HugeiconsIcon
                 icon={PlusSignIcon}

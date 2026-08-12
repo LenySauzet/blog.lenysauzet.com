@@ -150,12 +150,10 @@ export function BeforeAfterSlider({
           style={{ backgroundColor: HANDLE_EDGE }}
         />
         <div
-          className="absolute top-1/2 left-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md"
+          className="absolute top-1/2 left-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md backdrop-blur-md backdrop-saturate-[115%]"
           style={{
             background: 'oklch(0.62 0.035 var(--base-hue) / 0.42)',
             border: `1px solid ${HANDLE_EDGE}`,
-            backdropFilter: 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))',
-            WebkitBackdropFilter: 'blur(var(--blur, 12px)) saturate(var(--saturate, 1.15))',
           }}
         >
           <HugeiconsIcon icon={ArrowLeft02Icon} size={14} strokeWidth={2.2} />
