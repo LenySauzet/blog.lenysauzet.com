@@ -385,6 +385,11 @@ state machine, so it cannot drift three ways — and add only their shape and ma
   fixed radius, drawing itself into a capsule; `scale-x` would stretch the radius with
   it and give an ellipse. Those 2px are exactly what the travel leaves free at the far
   end — widen further and a white knob pokes out past the pill's own edge.
+- **It spends that width inward, never always-rightward.** Growing in one direction eats
+  the gap the knob keeps from whichever wall it has travelled to, so the checked state
+  pulls its travel back by the 2px it gains and grows leftward instead. That pull needs
+  its own fast timing: left on the checked transition it would creep over `.35s` with an
+  overshoot while the width snapped in `.12s`, and the two would visibly disagree.
 - **The knob wears `--shadow-knob`, not `--shadow-bevel`.** Same lighting, but the
   button's 2px blur smears across a quarter of an 18px circle and turns the edge into a
   gradient. Held to 0.5px it stays an edge.

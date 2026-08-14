@@ -14,7 +14,7 @@ import { controlHitArea, controlSurface } from "@/components/ui/control-surface"
 // It lives directly under the root rather than in a Radix Indicator, which
 // unmounts on uncheck and would cut the exit off at its first frame.
 const TICK =
-  "[stroke-dasharray:2] [stroke-dashoffset:2] [transition:stroke-dashoffset_.25s_ease] group-data-checked/checkbox:[stroke-dashoffset:0] group-data-checked/checkbox:[transition:stroke-dashoffset_.4s_ease_.05s] motion-reduce:transition-none"
+  "[stroke-dasharray:2] [stroke-dashoffset:2] [transition:stroke-dashoffset_.3s_ease] group-data-checked/checkbox:[stroke-dashoffset:0] group-data-checked/checkbox:[transition:stroke-dashoffset_.6s_ease_.05s] motion-reduce:transition-none"
 
 function Checkbox({
   className,
