@@ -27,9 +27,10 @@ const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
 // A detent is a different motion from a travel. Overshoot scales with the
 // distance covered, so the setting that keeps a click across the whole bar calm
-// leaves a snap between two steps limp. Stiffer and looser: ~0.54, landing in
-// roughly a tenth of a second.
-const SNAP_SPRING = { stiffness: 700, damping: 20, mass: 0.5 };
+// leaves a snap between two steps limp. Stiffness carries the abruptness and
+// damping decides how far it rings past: ~0.70, so it arrives hard and barely
+// rebounds.
+const SNAP_SPRING = { stiffness: 700, damping: 26, mass: 0.5 };
 
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to
