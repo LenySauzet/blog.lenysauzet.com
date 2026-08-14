@@ -19,6 +19,13 @@ const sliderFill = "absolute h-full rounded-xl bg-wash/30 select-none"
 const sliderGrip =
   "pointer-events-none absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-full bg-foreground/50 [transition:opacity_.15s_ease-in-out] motion-reduce:transition-none"
 
+/**
+ * Marks a detent on a stepped bar. Sits above the fill rather than under it, so
+ * a step stays legible on the side already covered.
+ */
+const sliderDot =
+  "pointer-events-none absolute top-1/2 size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/25"
+
 /** Children are required: the fill and its grip are the consumer's to animate. */
 function Slider({
   className,
@@ -56,4 +63,4 @@ function Slider({
   )
 }
 
-export { Slider, sliderFill, sliderGrip }
+export { Slider, sliderDot, sliderFill, sliderGrip }

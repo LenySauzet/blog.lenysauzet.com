@@ -446,12 +446,15 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   which is why a fine step resists imperceptibly and a coarse one reads as a detent. Keep
   that fraction under a half: at a half the fill reaches the midpoint the step snaps on,
   and the snap starts reading as a correction rather than a release.
-- **The value and the strain go through one setter**, which is also where the strain is
-  suppressed at an end. They are two halves of the same target: setting the value alone
-  drops the strain on the exact frame the step changes, and suppressing the strain where
-  it is *measured* does nothing once the pointer stops, since the value can still change
-  underneath it. An end stop is absolute — reaching it fills the bar outright, which is
-  the only reading of having reached it.
+- **The strain is recomputed, never remembered.** It is a function of where the pointer
+  is *and* which step the value has landed on, and Radix moves the value on its own
+  mid-drag. Storing it leaves the bar holding a figure measured against the previous
+  step: held near the top it read 102% of itself, saved only by a clamp. The live drag
+  is kept instead, and the target is assembled from it in one place.
+- **Dots mark the detents, up to a point.** Past twenty steps they stop being countable
+  and read as texture, so the bar draws none — a continuous slider is stepped by 1 and
+  would otherwise draw one per unit. They are filtered against the caption at measure
+  time, like the grip.
 
 ## New component checklist
 

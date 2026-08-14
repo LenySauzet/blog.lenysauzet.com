@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   Slider as SliderRoot,
+  sliderDot,
   sliderFill,
   sliderGrip,
 } from '@/components/ui/slider';
@@ -43,6 +44,11 @@ const STEP_RESISTANCE = 0.2;
 const GRIP_INSET = 8;
 const GRIP_MARGIN = 6;
 const GRIP_CLEARANCE = 8;
+
+// Past this many steps the detents stop being countable and read as texture, so
+// the bar shows none: a continuous slider is stepped by 1 and would draw one
+// dot per unit.
+const MAX_DOTS = 20;
 
 export interface SliderProps
   extends Omit<
@@ -78,6 +84,9 @@ export default function Slider({
 }: SliderProps) {
   const [value, setValue] = useState(defaultValue);
   const [gripClear, setGripClear] = useState(true);
+  // Held as state rather than derived at render: which detents are drawn
+  // depends on how wide the caption measures, which is only known after layout.
+  const [dots, setDots] = useState<number[]>([]);
   const reduceMotion = useReducedMotion();
 
   const frameRef = useRef<HTMLDivElement>(null);
@@ -93,7 +102,10 @@ export default function Slider({
   // reads as a detent, with no separate prop to keep in sync.
   const strainLimit = ((step / (max - min)) * 100) * STEP_RESISTANCE;
   const percentRef = useRef(percent);
-  const strainRef = useRef(0);
+  // The live drag, so the strain can be recomputed rather than remembered: it
+  // is a function of where the pointer is *and* which step the value has landed
+  // on, and the value changes on its own as Radix snaps.
+  const dragRef = useRef<{ rect: DOMRect; x: number } | null>(null);
 
   const fill = useSpring(percent, TRAVEL_SPRING);
   const width = useTransform(fill, (v) => `${v}%`);
@@ -150,20 +162,25 @@ export default function Slider({
   // value alone would drop the strain on the frame the step changes.
   const applyFill = useCallback(() => {
     const at = percentRef.current;
-    // An end stop is absolute: there is no next step to strain toward, and the
-    // strain left over from the drag that arrived here would otherwise hold the
-    // bar off full until the pointer moved again. Decided here rather than
-    // where the strain is measured, because the value can change on its own.
-    const ended = at <= 0 || at >= 100;
-    const target = Math.min(
-      Math.max(ended ? at : at + strainRef.current, 0),
-      100
-    );
+    const drag = dragRef.current;
+    // tanh, because it leaves the detent at slope 1 and only firms up near the
+    // limit: the bar tracks the pointer exactly for the first pixels, which is
+    // what makes the resistance feel like resistance rather than like lag. A
+    // ratio damps from the very first pixel and never tracks.
+    const strain =
+      drag && strainLimit
+        ? strainLimit *
+          Math.tanh(
+            (((drag.x - drag.rect.left) / drag.rect.width) * 100 - at) /
+              strainLimit
+          )
+        : 0;
+    const target = Math.min(Math.max(at + strain, 0), 100);
     // `jump` lands without running the spring, which is the whole point of it
     // under a reduced-motion preference.
     if (reduceMotion) fill.jump(target);
     else fill.set(target);
-  }, [fill, reduceMotion]);
+  }, [fill, reduceMotion, strainLimit]);
 
   useEffect(() => {
     percentRef.current = percent;
@@ -188,12 +205,31 @@ export default function Slider({
       };
       trackWidth.set(box.width);
       settleGrip(fill.get());
+
+      const { label: labelBounds, readout } = metrics.current;
+      const hits = (x: number, [from, to]: number[]) =>
+        x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
+      const steps = Math.round((max - min) / step);
+      const next =
+        steps >= 2 && steps <= MAX_DOTS
+          ? Array.from({ length: steps - 1 }, (_, i) => ((i + 1) / steps) * 100).filter(
+              (pct) => {
+                const x = (pct / 100) * box.width;
+                return !hits(x, labelBounds) && !hits(x, readout);
+              }
+            )
+          : [];
+      setDots((prev) =>
+        prev.length === next.length && prev.every((v, i) => v === next[i])
+          ? prev
+          : next
+      );
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [fill, settleGrip, trackWidth]);
+  }, [fill, max, min, settleGrip, step, trackWidth]);
 
   // Radix clamps the value at the ends, so the overshoot has to be read from
   // the pointer itself. The rect is captured once: the frame is being scaled by
@@ -202,8 +238,10 @@ export default function Slider({
     (event: React.PointerEvent) => {
       if (disabled || reduceMotion || !frameRef.current) return;
       const rect = frameRef.current.getBoundingClientRect();
+      dragRef.current = { rect, x: event.clientX };
 
       const onMove = (moveEvent: PointerEvent) => {
+        dragRef.current = { rect, x: moveEvent.clientX };
         const past =
           moveEvent.clientX > rect.right
             ? moveEvent.clientX - rect.right
@@ -216,20 +254,11 @@ export default function Slider({
           Math.sign(past) * ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
         );
 
-        // tanh, because it leaves the detent at slope 1 and only firms up near
-        // the limit: the bar tracks the pointer exactly for the first pixels,
-        // which is what makes the resistance feel like resistance rather than
-        // like lag. A ratio damps from the very first pixel and never tracks.
-        const pointed = ((moveEvent.clientX - rect.left) / rect.width) * 100;
-        const off = pointed - percentRef.current;
-        strainRef.current = strainLimit
-          ? strainLimit * Math.tanh(off / strainLimit)
-          : 0;
         applyFill();
       };
       const onRelease = () => {
         give.set(0);
-        strainRef.current = 0;
+        dragRef.current = null;
         applyFill();
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onRelease);
@@ -241,7 +270,7 @@ export default function Slider({
       window.addEventListener('pointerup', onRelease);
       window.addEventListener('pointercancel', onRelease);
     },
-    [applyFill, disabled, give, reduceMotion, strainLimit]
+    [applyFill, disabled, give, reduceMotion]
   );
 
   return (
@@ -267,6 +296,15 @@ export default function Slider({
             className={sliderFill}
             style={{ width }}
           />
+          {dots.map((pct) => (
+            <span
+              key={pct}
+              aria-hidden
+              data-slot="slider-dot"
+              className={sliderDot}
+              style={{ left: `${pct}%` }}
+            />
+          ))}
           <motion.div
             data-slot="slider-grip"
             className={cn(sliderGrip, gripClear ? 'opacity-100' : 'opacity-0')}
