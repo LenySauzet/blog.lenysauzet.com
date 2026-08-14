@@ -423,8 +423,16 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   than follow the fill's edge out of the track.
 - **Springs must be under-damped to read as springs.** Damping ratio is
   `damping / (2 * sqrt(stiffness * mass))`; at or above 1 there is no overshoot at all
-  and the motion is merely smooth. `ELASTIC` sits near 0.6, which measures as ~20px of
-  overshoot on a 570px travel.
+  and the motion is merely smooth. Travel sits near 0.84 (~2px of overshoot on a 570px
+  move); the give is looser, since it only ever springs back to rest.
+- **Never `Math.abs` a spring you want to see settle.** A spring settles by crossing
+  zero, so an absolute value turns the rebound back into a second push: the bar bumps
+  outward twice instead of recoiling. The give is signed against the side that was
+  pulled, and that side is *latched*, because reading it live flips the anchor mid-bounce.
+- **Anything a transform reads has to be a motion value, not a ref.** Widths land after
+  mount via `ResizeObserver`, and `useTransform` only recomputes when one of its inputs
+  changes — a transform reading `ref.current` keeps whatever it resolved to at mount,
+  which is how the grip ended up parked at the far left.
 - **Dragging past an end gives.** The overshoot has to be read from the pointer, because
   Radix has already clamped the value. The frame's rect is captured once at pointer
   down: it is being scaled by what we are about to set, so re-reading it would feed back

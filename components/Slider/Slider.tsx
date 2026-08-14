@@ -2,6 +2,7 @@
 
 import {
   motion,
+  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useSpring,
@@ -16,9 +17,12 @@ import {
 } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
-// Damping ratio ~0.6, so the bar overshoots and settles rather than easing in.
-// Anything at or above 1 is critically damped: smooth, and never elastic.
-const ELASTIC = { stiffness: 340, damping: 18, mass: 0.65 };
+// Damping ratio is damping / (2 * sqrt(stiffness * mass)); at or above 1 there
+// is no overshoot at all and the motion is merely smooth. Travel sits near 0.84,
+// enough to be felt without the bar visibly bouncing past the pointer. The give
+// is free to be looser, since it only ever springs back to rest.
+const TRAVEL_SPRING = { stiffness: 340, damping: 25, mass: 0.65 };
+const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to
@@ -78,24 +82,36 @@ export default function Slider({
   const clearRef = useRef(true);
 
   const percent = ((value - min) / (max - min)) * 100;
-  const fill = useSpring(percent, ELASTIC);
+  const fill = useSpring(percent, TRAVEL_SPRING);
   const width = useTransform(fill, (v) => `${v}%`);
+
+  // A motion value rather than a ref, because the width lands after mount: a
+  // transform reading a ref would keep whatever it resolved to before the
+  // measurement, and the grip would sit wherever it first fell.
+  const trackWidth = useMotionValue(0);
 
   // Pinned inside the bar at both ends: at the bottom of the range the fill has
   // no width to hang the grip off, and it would otherwise sit outside the track.
-  const gripX = useTransform(fill, (v) => {
-    const w = metrics.current.width;
-    if (!w) return GRIP_MARGIN;
-    return Math.min(Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN), w - GRIP_MARGIN);
-  });
+  const gripX = useTransform([fill, trackWidth], ([v, w]: number[]) =>
+    w
+      ? Math.min(Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN), w - GRIP_MARGIN)
+      : GRIP_MARGIN
+  );
 
-  const give = useSpring(0, ELASTIC);
-  const scaleX = useTransform(give, (px) =>
-    metrics.current.width ? 1 + Math.abs(px) / metrics.current.width : 1
+  // Latched at the side the drag ran out of, not read live: the give springs
+  // back through zero, and a live sign would flip the anchor mid-bounce.
+  const givenSide = useRef(1);
+
+  const give = useSpring(0, GIVE_SPRING);
+  // Signed against the side that was pulled, never `Math.abs`. The spring
+  // settles by crossing zero, and an absolute value turns that rebound back
+  // into a second stretch: the bar bumps outward twice instead of recoiling.
+  const scaleX = useTransform([give, trackWidth], ([px, w]: number[]) =>
+    w ? 1 + (px * givenSide.current) / w : 1
   );
   const scaleY = useTransform(scaleX, (s) => 1 - (s - 1) * SQUASH_RATIO);
-  const transformOrigin = useTransform(give, (px) =>
-    px < 0 ? 'right center' : 'left center'
+  const transformOrigin = useTransform(give, () =>
+    givenSide.current < 0 ? 'right center' : 'left center'
   );
 
   // The grip hides only where it would collide with the caption, so it stays
@@ -139,13 +155,14 @@ export default function Slider({
           ? [readoutBox.left - box.left, readoutBox.right - box.left]
           : [box.width, box.width],
       };
+      trackWidth.set(box.width);
       settleGrip(fill.get());
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [fill, settleGrip]);
+  }, [fill, settleGrip, trackWidth]);
 
   // Radix clamps the value at the ends, so the overshoot has to be read from
   // the pointer itself. The rect is captured once: the frame is being scaled by
@@ -163,6 +180,7 @@ export default function Slider({
               ? moveEvent.clientX - rect.left
               : 0;
         const magnitude = Math.abs(past);
+        if (past !== 0) givenSide.current = Math.sign(past);
         give.set(
           Math.sign(past) * ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
         );
