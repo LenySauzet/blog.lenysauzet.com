@@ -33,6 +33,11 @@ const GIVE_FALLOFF = 180;
 // reading as the whole bar simply growing.
 const SQUASH_RATIO = 1.5;
 
+// The fraction of a step the fill can be dragged off its detent. Below a half
+// it can never overtake the step it is leaving, so the snap always reads as a
+// release rather than a correction.
+const STEP_RESISTANCE = 0.38;
+
 // Where the grip rides relative to the fill's leading edge, and how close it is
 // allowed to get to either end and to the caption before it gets out of the way.
 const GRIP_INSET = 8;
@@ -64,6 +69,7 @@ export default function Slider({
   defaultValue = 50,
   min = 0,
   max = 100,
+  step = 1,
   unit = '',
   decimals = 0,
   disabled,
@@ -82,6 +88,13 @@ export default function Slider({
   const clearRef = useRef(true);
 
   const percent = ((value - min) / (max - min)) * 100;
+  // How far the fill may be pulled off a step before the step gives way. Read
+  // from the step itself, so a fine step resists imperceptibly and a coarse one
+  // reads as a detent, with no separate prop to keep in sync.
+  const strainLimit = ((step / (max - min)) * 100) * STEP_RESISTANCE;
+  const percentRef = useRef(percent);
+  const strainRef = useRef(0);
+
   const fill = useSpring(percent, TRAVEL_SPRING);
   const width = useTransform(fill, (v) => `${v}%`);
 
@@ -132,12 +145,21 @@ export default function Slider({
     setGripClear(clear);
   }, []);
 
-  useEffect(() => {
+  // The fill answers to the step it sits on plus whatever the drag is currently
+  // straining against it, so both have to go through one place: setting the
+  // value alone would drop the strain on the frame the step changes.
+  const applyFill = useCallback(() => {
+    const target = percentRef.current + strainRef.current;
     // `jump` lands without running the spring, which is the whole point of it
     // under a reduced-motion preference.
-    if (reduceMotion) fill.jump(percent);
-    else fill.set(percent);
-  }, [fill, percent, reduceMotion]);
+    if (reduceMotion) fill.jump(target);
+    else fill.set(target);
+  }, [fill, reduceMotion]);
+
+  useEffect(() => {
+    percentRef.current = percent;
+    applyFill();
+  }, [applyFill, percent]);
 
   useMotionValueEvent(fill, 'change', settleGrip);
 
@@ -184,9 +206,20 @@ export default function Slider({
         give.set(
           Math.sign(past) * ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
         );
+
+        // Saturating rather than linear: the pull eases off as it approaches the
+        // limit, so the step lets go instead of arriving already stretched.
+        const pointed = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+        const off = pointed - percentRef.current;
+        strainRef.current = strainLimit
+          ? (strainLimit * off) / (Math.abs(off) + strainLimit)
+          : 0;
+        applyFill();
       };
       const onRelease = () => {
         give.set(0);
+        strainRef.current = 0;
+        applyFill();
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onRelease);
         window.removeEventListener('pointercancel', onRelease);
@@ -197,7 +230,7 @@ export default function Slider({
       window.addEventListener('pointerup', onRelease);
       window.addEventListener('pointercancel', onRelease);
     },
-    [disabled, give, reduceMotion]
+    [applyFill, disabled, give, reduceMotion, strainLimit]
   );
 
   return (
@@ -213,6 +246,7 @@ export default function Slider({
           onValueChange={([next]) => setValue(next)}
           min={min}
           max={max}
+          step={step}
           disabled={disabled}
           aria-label={label}
           {...props}

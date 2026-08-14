@@ -437,6 +437,15 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   Radix has already clamped the value. The frame's rect is captured once at pointer
   down: it is being scaled by what we are about to set, so re-reading it would feed back
   into itself.
+- **A step resists before it gives way.** The fill is dragged off its detent by a
+  saturating pull, so it strains ahead of the value and springs across when Radix finally
+  flips. The pull is a fraction of the step itself rather than a prop of its own, which
+  is why a fine step resists imperceptibly and a coarse one reads as a detent. Keep that
+  fraction under a half: at a half the fill reaches the midpoint the step snaps on, and
+  the snap starts reading as a correction rather than a release.
+- **The value and the strain go through one setter.** They are two halves of the same
+  target, and setting the value alone drops the strain on the exact frame the step
+  changes — the one frame anybody would notice.
 
 ## New component checklist
 
