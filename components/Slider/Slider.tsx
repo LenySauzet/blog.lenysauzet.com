@@ -149,7 +149,16 @@ export default function Slider({
   // straining against it, so both have to go through one place: setting the
   // value alone would drop the strain on the frame the step changes.
   const applyFill = useCallback(() => {
-    const target = percentRef.current + strainRef.current;
+    const at = percentRef.current;
+    // An end stop is absolute: there is no next step to strain toward, and the
+    // strain left over from the drag that arrived here would otherwise hold the
+    // bar off full until the pointer moved again. Decided here rather than
+    // where the strain is measured, because the value can change on its own.
+    const ended = at <= 0 || at >= 100;
+    const target = Math.min(
+      Math.max(ended ? at : at + strainRef.current, 0),
+      100
+    );
     // `jump` lands without running the spring, which is the whole point of it
     // under a reduced-motion preference.
     if (reduceMotion) fill.jump(target);

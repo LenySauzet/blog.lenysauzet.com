@@ -443,9 +443,12 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   is why a fine step resists imperceptibly and a coarse one reads as a detent. Keep that
   fraction under a half: at a half the fill reaches the midpoint the step snaps on, and
   the snap starts reading as a correction rather than a release.
-- **The value and the strain go through one setter.** They are two halves of the same
-  target, and setting the value alone drops the strain on the exact frame the step
-  changes — the one frame anybody would notice.
+- **The value and the strain go through one setter**, which is also where the strain is
+  suppressed at an end. They are two halves of the same target: setting the value alone
+  drops the strain on the exact frame the step changes, and suppressing the strain where
+  it is *measured* does nothing once the pointer stops, since the value can still change
+  underneath it. An end stop is absolute — reaching it fills the bar outright, which is
+  the only reading of having reached it.
 
 ## New component checklist
 
