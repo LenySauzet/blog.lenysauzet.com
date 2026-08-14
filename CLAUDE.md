@@ -425,6 +425,10 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   `damping / (2 * sqrt(stiffness * mass))`; at or above 1 there is no overshoot at all
   and the motion is merely smooth. Travel sits near 0.84 (~2px of overshoot on a 570px
   move); the give is looser, since it only ever springs back to rest.
+- **A detent snaps on its own spring.** Overshoot scales with the distance covered, so
+  one setting cannot serve both: calm enough for a click across the whole bar leaves a
+  step-to-step snap limp. The stepped case is stiffer and looser, measuring 1.69 points
+  of overshoot on a 12.5-point step against 0.008 for a continuous move.
 - **Never `Math.abs` a spring you want to see settle.** A spring settles by crossing
   zero, so an absolute value turns the rebound back into a second push: the bar bumps
   outward twice instead of recoiling. The give is signed against the side that was

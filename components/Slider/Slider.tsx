@@ -25,6 +25,12 @@ import { cn } from '@/lib/utils';
 const TRAVEL_SPRING = { stiffness: 340, damping: 25, mass: 0.65 };
 const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
+// A detent is a different motion from a travel. Overshoot scales with the
+// distance covered, so the setting that keeps a click across the whole bar calm
+// leaves a snap between two steps limp. Stiffer and looser: ~0.54, landing in
+// roughly a tenth of a second.
+const SNAP_SPRING = { stiffness: 700, damping: 20, mass: 0.5 };
+
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to
 // let the bar be pulled around.
@@ -97,6 +103,10 @@ export default function Slider({
   const clearRef = useRef(true);
 
   const percent = ((value - min) / (max - min)) * 100;
+  // One definition of "stepped" for everything that keys off it: the dots, and
+  // the spring that lands on them.
+  const steps = Math.round((max - min) / step);
+  const stepped = steps >= 2 && steps <= MAX_DOTS;
   // How far the fill may be pulled off a step before the step gives way. Read
   // from the step itself, so a fine step resists imperceptibly and a coarse one
   // reads as a detent, with no separate prop to keep in sync.
@@ -107,7 +117,7 @@ export default function Slider({
   // on, and the value changes on its own as Radix snaps.
   const dragRef = useRef<{ rect: DOMRect; x: number } | null>(null);
 
-  const fill = useSpring(percent, TRAVEL_SPRING);
+  const fill = useSpring(percent, stepped ? SNAP_SPRING : TRAVEL_SPRING);
   const width = useTransform(fill, (v) => `${v}%`);
 
   // A motion value rather than a ref, because the width lands after mount: a
@@ -209,16 +219,14 @@ export default function Slider({
       const { label: labelBounds, readout } = metrics.current;
       const hits = (x: number, [from, to]: number[]) =>
         x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
-      const steps = Math.round((max - min) / step);
-      const next =
-        steps >= 2 && steps <= MAX_DOTS
-          ? Array.from({ length: steps - 1 }, (_, i) => ((i + 1) / steps) * 100).filter(
-              (pct) => {
-                const x = (pct / 100) * box.width;
-                return !hits(x, labelBounds) && !hits(x, readout);
-              }
-            )
-          : [];
+      const next = stepped
+        ? Array.from({ length: steps - 1 }, (_, i) => ((i + 1) / steps) * 100).filter(
+            (pct) => {
+              const x = (pct / 100) * box.width;
+              return !hits(x, labelBounds) && !hits(x, readout);
+            }
+          )
+        : [];
       setDots((prev) =>
         prev.length === next.length && prev.every((v, i) => v === next[i])
           ? prev
@@ -229,7 +237,7 @@ export default function Slider({
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [fill, max, min, settleGrip, step, trackWidth]);
+  }, [fill, settleGrip, stepped, steps, trackWidth]);
 
   // Radix clamps the value at the ends, so the overshoot has to be read from
   // the pointer itself. The rect is captured once: the frame is being scaled by
