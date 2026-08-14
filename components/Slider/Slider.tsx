@@ -36,7 +36,7 @@ const SQUASH_RATIO = 1.5;
 // The fraction of a step the fill can be dragged off its detent. Below a half
 // it can never overtake the step it is leaving, so the snap always reads as a
 // release rather than a correction.
-const STEP_RESISTANCE = 0.38;
+const STEP_RESISTANCE = 0.2;
 
 // Where the grip rides relative to the fill's leading edge, and how close it is
 // allowed to get to either end and to the caption before it gets out of the way.
@@ -216,12 +216,14 @@ export default function Slider({
           Math.sign(past) * ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
         );
 
-        // Saturating rather than linear: the pull eases off as it approaches the
-        // limit, so the step lets go instead of arriving already stretched.
+        // tanh, because it leaves the detent at slope 1 and only firms up near
+        // the limit: the bar tracks the pointer exactly for the first pixels,
+        // which is what makes the resistance feel like resistance rather than
+        // like lag. A ratio damps from the very first pixel and never tracks.
         const pointed = ((moveEvent.clientX - rect.left) / rect.width) * 100;
         const off = pointed - percentRef.current;
         strainRef.current = strainLimit
-          ? (strainLimit * off) / (Math.abs(off) + strainLimit)
+          ? strainLimit * Math.tanh(off / strainLimit)
           : 0;
         applyFill();
       };

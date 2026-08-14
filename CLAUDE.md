@@ -437,12 +437,15 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   Radix has already clamped the value. The frame's rect is captured once at pointer
   down: it is being scaled by what we are about to set, so re-reading it would feed back
   into itself.
-- **A step resists before it gives way.** The fill is dragged off its detent by a
-  saturating pull, so it strains ahead of the value and springs across when Radix finally
-  flips. The pull is a fraction of the step itself rather than a prop of its own, which
-  is why a fine step resists imperceptibly and a coarse one reads as a detent. Keep that
-  fraction under a half: at a half the fill reaches the midpoint the step snaps on, and
-  the snap starts reading as a correction rather than a release.
+- **A step resists before it gives way.** The fill is dragged off its detent by a `tanh`
+  pull, so it strains ahead of the value and springs across when Radix finally flips.
+  `tanh` leaves the detent at slope 1 and only firms up near the limit — the bar tracks
+  the pointer exactly for the first pixels, which is what makes the resistance read as
+  resistance rather than as lag. A ratio curve damps from the very first pixel and never
+  tracks at all. The pull is a fraction of the step itself rather than a prop of its own,
+  which is why a fine step resists imperceptibly and a coarse one reads as a detent. Keep
+  that fraction under a half: at a half the fill reaches the midpoint the step snaps on,
+  and the snap starts reading as a correction rather than a release.
 - **The value and the strain go through one setter**, which is also where the strain is
   suppressed at an end. They are two halves of the same target: setting the value alone
   drops the strain on the exact frame the step changes, and suppressing the strain where
