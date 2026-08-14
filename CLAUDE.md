@@ -397,9 +397,9 @@ state machine, so it cannot drift three ways — and add only their shape and ma
   needs the glow to clear its own edge before it reads.
 
 **The slider is a bar, not a rail with a knob.** A 48px rounded surface whose filled
-part is the *same* wash laid over itself, so the boundary reads as depth rather than as
-a second colour; a 2px grip sits just inside its leading edge and the thumb is a bare
-20×44 drag target with nothing drawn on it. Two things this shape forces:
+part is the *same* `--wash` laid over itself, so the boundary reads as depth rather than
+as a second colour; a 2px grip sits just inside its leading edge and the thumb is a bare
+20×44 drag target with nothing drawn on it. What that shape forces:
 
 - **`aria-label` belongs on the thumb.** Radix puts `role="slider"` there, so a label
   left on the root is never announced. `components/ui/slider.tsx` forwards it.
@@ -408,6 +408,19 @@ a second colour; a 2px grip sits just inside its leading edge and the thumb is a
   `components/Slider` describes that readout with `unit` and `decimals` rather than a
   formatter callback: a post is a Server Component, and React cannot pass a function
   across that boundary — the callback version crashed the page.
+- **The fill is ours, not `SliderPrimitive.Range`.** Radix drives Range's width from the
+  value directly, which cannot be sprung; a `motion.div` on a spring can, so a click
+  anywhere on the bar travels rather than jumps. Radix still owns the pointer, keyboard
+  and ARIA — only the painting moved. `ui/slider.tsx` falls back to `Range` when given
+  no child, so a bare `<Slider>` still renders.
+- **The grip fades on collision, not on a percentage.** It disappears as it reaches the
+  label or the readout, so the threshold depends on how wide those actually are and is
+  measured through a `ResizeObserver`. `--grip-opacity` is set straight onto the element
+  rather than through a motion value, since the fade itself is a CSS transition.
+- **Dragging past an end gives.** The overshoot has to be read from the pointer, because
+  Radix has already clamped the value. The frame's rect is captured once at pointer
+  down: it is being scaled by what we are about to set, so re-reading it would feed back
+  into itself.
 
 ## New component checklist
 

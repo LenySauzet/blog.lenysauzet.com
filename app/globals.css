@@ -39,6 +39,7 @@
   --color-input: var(--input);
   --color-input-disabled: var(--input-disabled);
   --color-input-icon: var(--input-icon);
+  --color-wash: var(--wash);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
@@ -129,6 +130,11 @@
      from --border toward --subtle-foreground, so it stays clearly under the
      placeholder it sits beside. */
   --input-icon: oklch(0.8094 0.019 var(--base-hue));
+  /* A translucent grey carrying more of --base-hue than any text tier does, for
+     surfaces that sit on the page rather than in it. Always used under an alpha:
+     laying it over itself is what separates a slider's filled part from its
+     track without introducing a second colour. */
+  --wash: oklch(0.6257 0.038 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
@@ -201,6 +207,7 @@
     var(--background)
   );
   --input-icon: oklch(35.33% 0.028 var(--base-hue));
+  --wash: oklch(56.78% 0.05 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
