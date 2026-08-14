@@ -21,10 +21,11 @@ const sliderGrip =
 
 /**
  * Marks a detent on a stepped bar. Sits above the fill rather than under it, so
- * a step stays legible on the side already covered.
+ * a step stays legible on the side already covered, and gets out of the way once
+ * the bar is resting on it: the grip already marks where that is.
  */
 const sliderDot =
-  "pointer-events-none absolute top-1/2 size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/25"
+  "pointer-events-none absolute top-1/2 size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/25 [transition:opacity_.15s_ease-in-out] motion-reduce:transition-none"
 
 /** Children are required: the fill and its grip are the consumer's to animate. */
 function Slider({

@@ -454,7 +454,9 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
 - **Dots mark the detents, up to a point.** Past twenty steps they stop being countable
   and read as texture, so the bar draws none — a continuous slider is stepped by 1 and
   would otherwise draw one per unit. They are filtered against the caption at measure
-  time, like the grip.
+  time, like the grip, and the one the bar is resting on fades out, since the grip
+  already marks that spot. Match it with a tolerance rather than an equality: both sides
+  are a division reduced to a percentage, and thirds do not land on the same last digit.
 
 ## New component checklist
 

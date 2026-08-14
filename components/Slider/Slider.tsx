@@ -301,7 +301,13 @@ export default function Slider({
               key={pct}
               aria-hidden
               data-slot="slider-dot"
-              className={sliderDot}
+              // Compared with a tolerance rather than for equality: both sides
+              // are a division reduced to a percentage, and thirds do not land
+              // on the same last digit.
+              className={cn(
+                sliderDot,
+                Math.abs(pct - percent) < 0.01 ? 'opacity-0' : 'opacity-100'
+              )}
               style={{ left: `${pct}%` }}
             />
           ))}
