@@ -1,12 +1,14 @@
 'use client';
 
 import {
+  animate,
   motion,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useSpring,
   useTransform,
+  type AnimationPlaybackControls,
 } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -19,18 +21,33 @@ import {
 import { cn } from '@/lib/utils';
 
 // Damping ratio is damping / (2 * sqrt(stiffness * mass)); at or above 1 there
-// is no overshoot at all and the motion is merely smooth. Travel sits near 0.84,
-// enough to be felt without the bar visibly bouncing past the pointer. The give
-// is free to be looser, since it only ever springs back to rest.
-const TRAVEL_SPRING = { stiffness: 340, damping: 25, mass: 0.65 };
+// is no overshoot at all and the motion is merely smooth. The give is free to be
+// loose, since it only ever springs back to rest.
 const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
-// A detent is a different motion from a travel. Overshoot scales with the
-// distance covered, so the setting that keeps a click across the whole bar calm
-// leaves a snap between two steps limp. Stiffness carries the abruptness and
-// damping decides how far it rings past: ~0.70, so it arrives hard and barely
-// rebounds.
-const SNAP_SPRING = { stiffness: 700, damping: 26, mass: 0.5 };
+const FILL_MASS = 0.5;
+
+/**
+ * A spring's peak speed and its overshoot both scale with the distance covered,
+ * so one setting cannot serve a nudge between two steps and a click across the
+ * whole bar: tuned for the nudge, the long throw arrives violently.
+ *
+ * Reach is squared so the correction stays out of the way of short moves, which
+ * are the common case and already feel right, and only takes hold on the long
+ * ones. At full reach the spring is critically damped and does not overshoot at
+ * all — the distance alone is enough weight.
+ */
+function fillSpring(distance: number) {
+  const reach = Math.min(Math.max(distance, 0), 100) / 100;
+  const eased = reach * reach;
+  const stiffness = 700 - 460 * eased;
+  const ratio = 0.7 + 0.3 * eased;
+  return {
+    stiffness,
+    mass: FILL_MASS,
+    damping: ratio * 2 * Math.sqrt(stiffness * FILL_MASS),
+  };
+}
 
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to
@@ -104,8 +121,7 @@ export default function Slider({
   const clearRef = useRef(true);
 
   const percent = ((value - min) / (max - min)) * 100;
-  // One definition of "stepped" for everything that keys off it: the dots, and
-  // the spring that lands on them.
+  // Coarse enough for its detents to be worth drawing.
   const steps = Math.round((max - min) / step);
   const stepped = steps >= 2 && steps <= MAX_DOTS;
   // How far the fill may be pulled off a step before the step gives way. Read
@@ -118,7 +134,10 @@ export default function Slider({
   // on, and the value changes on its own as Radix snaps.
   const dragRef = useRef<{ rect: DOMRect; x: number } | null>(null);
 
-  const fill = useSpring(percent, stepped ? SNAP_SPRING : TRAVEL_SPRING);
+  // Animated by hand rather than through useSpring, because the spring has to be
+  // chosen from the distance each move covers, and useSpring is configured once.
+  const fill = useMotionValue(percent);
+  const fillAnimation = useRef<AnimationPlaybackControls | null>(null);
   const width = useTransform(fill, (v) => `${v}%`);
 
   // A motion value rather than a ref, because the width lands after mount: a
@@ -189,8 +208,18 @@ export default function Slider({
     const target = Math.min(Math.max(at + strain, 0), 100);
     // `jump` lands without running the spring, which is the whole point of it
     // under a reduced-motion preference.
-    if (reduceMotion) fill.jump(target);
-    else fill.set(target);
+    if (reduceMotion) {
+      fill.jump(target);
+      return;
+    }
+    fillAnimation.current?.stop();
+    // Carrying the velocity over is what keeps a re-target mid-flight from
+    // reading as a stop and a restart, which is every frame of a drag.
+    fillAnimation.current = animate(fill, target, {
+      type: 'spring',
+      velocity: fill.getVelocity(),
+      ...fillSpring(Math.abs(target - fill.get())),
+    });
   }, [fill, reduceMotion, strainLimit]);
 
   useEffect(() => {
