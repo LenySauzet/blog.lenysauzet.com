@@ -7,16 +7,19 @@ import { cn } from "@/lib/utils"
 
 /**
  * The filled part: the track's own wash laid over itself, so the boundary reads
- * as depth rather than as a second colour. Exported because the fill is often
- * animated, and a motion element has to wear these classes itself.
- *
- * The grip sits inside the leading edge and fades on `--grip-opacity`, which the
- * consumer drives: it has to disappear as it reaches the label or the readout,
- * and only they know where those sit.
+ * as depth rather than as a second colour.
  */
-const sliderFill =
-  "absolute h-full rounded-xl bg-wash/30 select-none after:absolute after:top-1/2 after:right-2 after:h-5 after:w-0.5 after:-translate-y-1/2 after:rounded-full after:bg-foreground/50 after:opacity-[var(--grip-opacity,1)] after:content-[''] after:[transition:opacity_.15s_ease-in-out] motion-reduce:after:transition-none"
+const sliderFill = "absolute h-full rounded-xl bg-wash/30 select-none"
 
+/**
+ * The grip rides near the fill's leading edge but is not part of it: at the
+ * bottom of the range the fill has no width left to hang it off, and it has to
+ * stay in the bar rather than follow the edge out of it.
+ */
+const sliderGrip =
+  "pointer-events-none absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-full bg-foreground/50 [transition:opacity_.15s_ease-in-out] motion-reduce:transition-none"
+
+/** Children are required: the fill and its grip are the consumer's to animate. */
 function Slider({
   className,
   children,
@@ -24,7 +27,9 @@ function Slider({
   // role="slider", so a label anywhere else is never announced.
   "aria-label": ariaLabel,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+}: React.ComponentProps<typeof SliderPrimitive.Root> & {
+  children: React.ReactNode
+}) {
   return (
     <SliderPrimitive.Root
       data-slot="slider"
@@ -40,12 +45,7 @@ function Slider({
         data-slot="slider-track"
         className="relative h-full grow"
       >
-        {children ?? (
-          <SliderPrimitive.Range
-            data-slot="slider-range"
-            className={sliderFill}
-          />
-        )}
+        {children}
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb
         data-slot="slider-thumb"
@@ -56,4 +56,4 @@ function Slider({
   )
 }
 
-export { Slider, sliderFill }
+export { Slider, sliderFill, sliderGrip }

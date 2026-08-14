@@ -413,10 +413,18 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   anywhere on the bar travels rather than jumps. Radix still owns the pointer, keyboard
   and ARIA — only the painting moved. `ui/slider.tsx` falls back to `Range` when given
   no child, so a bare `<Slider>` still renders.
-- **The grip fades on collision, not on a percentage.** It disappears as it reaches the
-  label or the readout, so the threshold depends on how wide those actually are and is
-  measured through a `ResizeObserver`. `--grip-opacity` is set straight onto the element
-  rather than through a motion value, since the fade itself is a CSS transition.
+- **The grip fades on collision, not on a percentage.** It hides where it would run into
+  the label or the readout, so it stays visible *past* either of them: before the label
+  at the bottom of the range, past the readout at the top. The threshold depends on how
+  wide the caption happens to be, so it is measured through a `ResizeObserver`. A
+  between-the-two test looks equivalent and is not — it blanks both extremes.
+- **The grip is its own element, not the fill's `::after`.** At the bottom of the range
+  the fill has no width to hang it off, and it has to stay pinned inside the bar rather
+  than follow the fill's edge out of the track.
+- **Springs must be under-damped to read as springs.** Damping ratio is
+  `damping / (2 * sqrt(stiffness * mass))`; at or above 1 there is no overshoot at all
+  and the motion is merely smooth. `ELASTIC` sits near 0.6, which measures as ~20px of
+  overshoot on a 570px travel.
 - **Dragging past an end gives.** The overshoot has to be read from the pointer, because
   Radix has already clamped the value. The frame's rect is captured once at pointer
   down: it is being scaled by what we are about to set, so re-reading it would feed back

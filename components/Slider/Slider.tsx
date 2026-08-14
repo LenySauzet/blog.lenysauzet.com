@@ -9,9 +9,16 @@ import {
 } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Slider as SliderRoot, sliderFill } from '@/components/ui/slider';
+import {
+  Slider as SliderRoot,
+  sliderFill,
+  sliderGrip,
+} from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
 
-const SPRING = { stiffness: 320, damping: 30, mass: 0.6 };
+// Damping ratio ~0.6, so the bar overshoots and settles rather than easing in.
+// Anything at or above 1 is critically damped: smooth, and never elastic.
+const ELASTIC = { stiffness: 340, damping: 18, mass: 0.65 };
 
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to
@@ -22,9 +29,11 @@ const GIVE_FALLOFF = 180;
 // reading as the whole bar simply growing.
 const SQUASH_RATIO = 1.5;
 
-// Matches the grip's own inset inside the fill's leading edge.
+// Where the grip rides relative to the fill's leading edge, and how close it is
+// allowed to get to either end and to the caption before it gets out of the way.
 const GRIP_INSET = 8;
-const GRIP_CLEARANCE = 10;
+const GRIP_MARGIN = 6;
+const GRIP_CLEARANCE = 8;
 
 export interface SliderProps
   extends Omit<
@@ -58,20 +67,29 @@ export default function Slider({
   ...props
 }: SliderProps) {
   const [value, setValue] = useState(defaultValue);
+  const [gripClear, setGripClear] = useState(true);
   const reduceMotion = useReducedMotion();
 
   const frameRef = useRef<HTMLDivElement>(null);
-  const rangeRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
-  // Where the caption sits, so the grip knows when it is about to run into it.
-  const metrics = useRef({ width: 0, labelEnd: 0, readoutStart: 0 });
+  // Where the caption sits, so the grip knows what it is about to run into.
+  const metrics = useRef({ width: 0, label: [0, 0], readout: [0, 0] });
+  const clearRef = useRef(true);
 
   const percent = ((value - min) / (max - min)) * 100;
-  const fill = useSpring(percent, SPRING);
+  const fill = useSpring(percent, ELASTIC);
   const width = useTransform(fill, (v) => `${v}%`);
 
-  const give = useSpring(0, SPRING);
+  // Pinned inside the bar at both ends: at the bottom of the range the fill has
+  // no width to hang the grip off, and it would otherwise sit outside the track.
+  const gripX = useTransform(fill, (v) => {
+    const w = metrics.current.width;
+    if (!w) return GRIP_MARGIN;
+    return Math.min(Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN), w - GRIP_MARGIN);
+  });
+
+  const give = useSpring(0, ELASTIC);
   const scaleX = useTransform(give, (px) =>
     metrics.current.width ? 1 + Math.abs(px) / metrics.current.width : 1
   );
@@ -80,15 +98,22 @@ export default function Slider({
     px < 0 ? 'right center' : 'left center'
   );
 
-  // Set on the element rather than through a motion value: the fade itself is a
-  // CSS transition, so all this has to carry is the target.
+  // The grip hides only where it would collide with the caption, so it stays
+  // visible past either end of it: before the label at the bottom of the range,
+  // past the readout at the top.
   const settleGrip = useCallback((v: number) => {
-    const { width: w, labelEnd, readoutStart } = metrics.current;
-    if (!w || !rangeRef.current) return;
-    const x = (v / 100) * w - GRIP_INSET;
-    const clear =
-      x > labelEnd + GRIP_CLEARANCE && x < readoutStart - GRIP_CLEARANCE;
-    rangeRef.current.style.setProperty('--grip-opacity', clear ? '1' : '0');
+    const { width: w, label: labelBox, readout } = metrics.current;
+    if (!w) return;
+    const x = Math.min(
+      Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN),
+      w - GRIP_MARGIN
+    );
+    const hits = ([from, to]: number[]) =>
+      x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
+    const clear = !hits(labelBox) && !hits(readout);
+    if (clear === clearRef.current) return;
+    clearRef.current = clear;
+    setGripClear(clear);
   }, []);
 
   useEffect(() => {
@@ -109,8 +134,10 @@ export default function Slider({
       const readoutBox = readoutRef.current?.getBoundingClientRect();
       metrics.current = {
         width: box.width,
-        labelEnd: labelBox ? labelBox.right - box.left : 0,
-        readoutStart: readoutBox ? readoutBox.left - box.left : box.width,
+        label: labelBox ? [labelBox.left - box.left, labelBox.right - box.left] : [0, 0],
+        readout: readoutBox
+          ? [readoutBox.left - box.left, readoutBox.right - box.left]
+          : [box.width, box.width],
       };
       settleGrip(fill.get());
     };
@@ -137,8 +164,7 @@ export default function Slider({
               : 0;
         const magnitude = Math.abs(past);
         give.set(
-          Math.sign(past) *
-            ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
+          Math.sign(past) * ((GIVE_MAX * magnitude) / (magnitude + GIVE_FALLOFF))
         );
       };
       const onRelease = () => {
@@ -174,10 +200,14 @@ export default function Slider({
           {...props}
         >
           <motion.div
-            ref={rangeRef}
             data-slot="slider-range"
             className={sliderFill}
             style={{ width }}
+          />
+          <motion.div
+            data-slot="slider-grip"
+            className={cn(sliderGrip, gripClear ? 'opacity-100' : 'opacity-0')}
+            style={{ x: gripX }}
           />
         </SliderRoot>
         <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-4 font-display text-sm font-semibold">
