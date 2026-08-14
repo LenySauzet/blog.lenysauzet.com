@@ -40,7 +40,7 @@ function RadioGroupItem({
       className={cn(
         controlSurface,
         controlHitArea,
-        "size-6 rounded-full",
+        "size-5 rounded-full",
         DOT,
         DOT_CHECKED,
         className

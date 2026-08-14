@@ -26,14 +26,14 @@ function Checkbox({
       className={cn(
         controlSurface,
         controlHitArea,
-        "group/checkbox grid size-6 place-items-center rounded-lg text-background disabled:text-subtle-foreground",
+        "group/checkbox grid size-5 place-items-center rounded-lg text-background disabled:text-subtle-foreground",
         className
       )}
       {...props}
     >
       <svg
         viewBox="0 0 24 24"
-        className="size-3.5"
+        className="size-3"
         fill="none"
         stroke="currentColor"
         strokeWidth={3}

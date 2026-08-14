@@ -379,10 +379,12 @@ state machine, so it cannot drift three ways — and add only their shape and ma
   dashed past the path length so the hidden state falls inside a gap. It is knocked out
   in `--background`, except when disabled: the disabled fill sits so near the page that a
   background-coloured mark disappears into it, so it takes `--subtle-foreground` there.
-- **Every control answers the pointer before it answers the click**: `scale-110` on
-  hover, `scale-95` held down, guarded by `enabled:` and dropped under
-  `motion-reduce`. The switch adds `scale-x-125` on its thumb, which reads as the knob
-  stretching along the axis it is about to travel.
+- **Every control answers the pointer before it answers the click**: `scale-105` on
+  hover, `0.97` held down, guarded by `enabled:` and dropped under `motion-reduce`.
+- **The switch knob widens rather than scales.** Held down it goes 18px to 20px at a
+  fixed radius, drawing itself into a capsule; `scale-x` would stretch the radius with
+  it and give an ellipse. Those 2px are exactly what the travel leaves free at the far
+  end — widen further and a white knob pokes out past the pill's own edge.
 - **The knob wears `--shadow-knob`, not `--shadow-bevel`.** Same lighting, but the
   button's 2px blur smears across a quarter of an 18px circle and turns the edge into a
   gradient. Held to 0.5px it stays an edge.

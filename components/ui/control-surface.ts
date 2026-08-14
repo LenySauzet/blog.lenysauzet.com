@@ -7,7 +7,7 @@
  * a name assembled by interpolation is never seen and never generated.
  */
 export const controlSurface =
-  "peer relative shrink-0 cursor-pointer border border-border bg-background outline-none [transition:background_.3s,border-color_.3s,scale_.2s_ease,box-shadow_.2s] motion-reduce:transition-none enabled:hover:border-primary enabled:hover:shadow-[var(--shadow-control)] enabled:hover:scale-110 enabled:active:scale-95 motion-reduce:enabled:hover:scale-100 motion-reduce:enabled:active:scale-100 focus-visible:border-primary focus-visible:shadow-[var(--shadow-control)] data-checked:border-primary data-checked:bg-primary disabled:cursor-not-allowed disabled:border-input-disabled disabled:bg-input-disabled aria-invalid:border-destructive"
+  "peer relative shrink-0 cursor-pointer border border-border bg-background outline-none [transition:background_.3s,border-color_.3s,scale_.2s_ease,box-shadow_.2s] motion-reduce:transition-none enabled:hover:border-primary enabled:hover:shadow-[var(--shadow-control)] enabled:hover:scale-105 enabled:active:scale-[0.97] motion-reduce:enabled:hover:scale-100 motion-reduce:enabled:active:scale-100 focus-visible:border-primary focus-visible:shadow-[var(--shadow-control)] data-checked:border-primary data-checked:bg-primary disabled:cursor-not-allowed disabled:border-input-disabled disabled:bg-input-disabled aria-invalid:border-destructive"
 
 /**
  * Widens the pointer target past the 24px box without moving it, so a control
