@@ -7,26 +7,29 @@ import { RadioGroup, RadioGroupItem } from './radio-group';
 import { Switch } from './switch';
 
 // jsdom applies no Tailwind, so these assert which classes reach the element,
-// not what they paint. The marks below animate rotate, scale and translate,
-// each of which Tailwind v4 sets as its own property rather than folding into
-// `transform`; a transition naming `transform` compiles fine and animates
-// nothing, which is exactly how this shipped the first time.
+// not what they paint. Each mark animates a property Tailwind v4 sets on its
+// own rather than folding into `transform`; a transition naming `transform`
+// compiles fine and animates nothing, which is how this shipped the first time.
+//
+// The expectation matches the mark's whole transition declaration, since the
+// shared surface animates `scale` too for its hover feedback and a bare
+// property name would pass on that alone.
 const MARKS = [
   {
     name: 'Checkbox',
-    property: 'rotate',
+    transition: '[transition:stroke-dashoffset_',
     role: 'checkbox',
     render: () => <Checkbox />,
   },
   {
     name: 'Switch',
-    property: 'translate',
+    transition: '[transition:translate_',
     role: 'switch',
     render: () => <Switch />,
   },
   {
     name: 'RadioGroupItem',
-    property: 'scale',
+    transition: 'before:[transition:scale_',
     role: 'radio',
     render: () => (
       <RadioGroup>
@@ -36,15 +39,14 @@ const MARKS = [
   },
 ] as const;
 
-describe.each(MARKS)('$name', ({ property, role, render: renderControl }) => {
-  it(`transitions ${property}, the property its mark actually changes`, () => {
+describe.each(MARKS)('$name', ({ transition, role, render: renderControl }) => {
+  it('transitions the property its mark actually changes', () => {
     const { container } = render(renderControl());
-    // The switch animates its thumb, the other two a pseudo-element on the root.
     const classes = [...container.querySelectorAll('*')]
-      .map((el) => el.className)
+      .map((el) => el.getAttribute('class') ?? '')
       .join(' ');
 
-    expect(classes).toContain(`${property}_`);
+    expect(classes).toContain(transition);
     expect(classes).not.toMatch(/\[transition:[^\]]*transform_/);
   });
 

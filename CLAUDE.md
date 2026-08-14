@@ -368,16 +368,24 @@ state machine, so it cannot drift three ways — and add only their shape and ma
 - **The mark is a pseudo-element on the root, never a Radix `Indicator`.** Radix unmounts
   the indicator the moment a control unchecks, which cuts the exit animation off at the
   first frame. `before:` carries the mark, `after:` stays the touch-target expander.
-- **Each mark transitions the property it actually changes**: `rotate` for the checkbox
-  tick, `scale` for the radio dot, `translate` for the switch thumb. Tailwind v4 sets
-  each of these as its own property rather than folding them into `transform`, so a
-  transition naming `transform` compiles cleanly and animates **nothing**. This has now
-  bitten three times here (Button's press, Sandpack's buttons, all three controls);
-  `control-surface.test.tsx` guards it.
-- **The tick is a bordered box, not a glyph** — 6×10 wearing only its right and bottom
-  borders, swung from 20° to 43°. It is knocked out in `--background`, except when
-  disabled: the disabled fill sits so near the page that a background-coloured mark
-  disappears into it, so it takes `--subtle-foreground` there.
+- **Each mark transitions the property it actually changes**: `stroke-dashoffset` for the
+  checkbox tick, `scale` for the radio dot, `translate` for the switch thumb. Tailwind v4
+  sets `rotate`, `scale` and `translate` as their own properties rather than folding them
+  into `transform`, so a transition naming `transform` compiles cleanly and animates
+  **nothing**. This has now bitten three times here (Button's press, Sandpack's buttons,
+  all three controls); `control-surface.test.tsx` guards it, matching the mark's whole
+  transition declaration because the shared surface animates `scale` too.
+- **The tick draws itself on**, the same `stroke-dashoffset` technique `EmailInput` uses,
+  dashed past the path length so the hidden state falls inside a gap. It is knocked out
+  in `--background`, except when disabled: the disabled fill sits so near the page that a
+  background-coloured mark disappears into it, so it takes `--subtle-foreground` there.
+- **Every control answers the pointer before it answers the click**: `scale-110` on
+  hover, `scale-95` held down, guarded by `enabled:` and dropped under
+  `motion-reduce`. The switch adds `scale-x-125` on its thumb, which reads as the knob
+  stretching along the axis it is about to travel.
+- **The knob wears `--shadow-knob`, not `--shadow-bevel`.** Same lighting, but the
+  button's 2px blur smears across a quarter of an 18px circle and turns the edge into a
+  gradient. Held to 0.5px it stays an edge.
 - `--shadow-control` is the bloom, wider than `--shadow-field`, because a 24px control
   needs the glow to clear its own edge before it reads.
 

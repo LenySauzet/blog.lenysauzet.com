@@ -74,6 +74,11 @@
      list, and Tailwind cannot compose one from a JS constant. */
   --shadow-bevel: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
     inset 0 -1.5px 2px 0 rgb(0 0 0 / 0.3);
+  /* The same lighting on a 18px knob, where --shadow-bevel's 2px blur smears
+     across a quarter of the surface and reads as a gradient. Held to 0.5px it
+     stays an edge. */
+  --shadow-knob: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
+    inset 0 -1px 0.5px 0 rgb(0 0 0 / 0.3);
   /* The accent, deepened. Interactive surfaces bloom in this colour: buttons on
      hover, fields on focus. Plain --primary reads washed out at low alpha over
      a large blur, so lightness and chroma are pinned while the hue keeps
