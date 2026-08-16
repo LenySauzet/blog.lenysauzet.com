@@ -34,16 +34,9 @@ const SETTLE_SHARE = 0.35;
 // The fraction of the run spent reaching, the rest easing back.
 const SETTLE_AT = 0.78;
 
-const TRAVEL_MIN = 0.05;
-const TRAVEL_PER_ROOT = 0.05;
-const TRAVEL_MAX = 0.5;
-
-// Under the pointer the bar is tracking rather than travelling, and a timed
-// curve cannot track: restarted every move it begins again from rest, which
-// reads as easing off and then lurching. A spring carries its velocity across a
-// re-target. Damping ratio ~0.65, which puts a step snap taken mid-drag on the
-// same 0.9 the settle uses.
-const DRAG_SPRING = { stiffness: 520, damping: 21, mass: 0.5 };
+const TRAVEL_MIN = 0.09;
+const TRAVEL_PER_ROOT = 0.055;
+const TRAVEL_MAX = 0.6;
 
 /**
  * An eased run to the mark, overshot by a fixed amount and eased back: the
@@ -53,11 +46,16 @@ const DRAG_SPRING = { stiffness: 520, damping: 21, mass: 0.5 };
  * Duration grows on the square root of the distance rather than with it, so a
  * long throw takes longer without dragging its feet.
  */
-function fillTravel(from: number, to: number) {
+function fillTravel(from: number, to: number, letGo = 0) {
   const distance = Math.abs(to - from);
-  const past = Math.min(SETTLE_PAST, distance * SETTLE_SHARE);
+  // Letting go spends the whole flourish whichever way the hand was going, even
+  // from a standstill: the bar was already on its mark, and carrying past it is
+  // the only thing left to read as momentum. Clamped, so an end does not push
+  // the bar out of its own track.
+  const way = letGo || Math.sign(to - from);
+  const past = letGo ? SETTLE_PAST : Math.min(SETTLE_PAST, distance * SETTLE_SHARE);
   return {
-    keyframes: [from, to + Math.sign(to - from) * past, to],
+    keyframes: [from, Math.min(Math.max(to + way * past, 0), 100), to],
     duration: Math.min(
       TRAVEL_MAX,
       TRAVEL_MIN + Math.sqrt(distance) * TRAVEL_PER_ROOT
@@ -140,15 +138,20 @@ export default function Slider({
   // Coarse enough for its detents to be worth drawing.
   const steps = Math.round((max - min) / step);
   const stepped = steps >= 2 && steps <= MAX_DOTS;
+  const stepSpan = (step / (max - min)) * 100;
   // How far the fill may be pulled off a step before the step gives way. Read
   // from the step itself, so a fine step resists imperceptibly and a coarse one
   // reads as a detent, with no separate prop to keep in sync.
-  const strainLimit = ((step / (max - min)) * 100) * STEP_RESISTANCE;
+  const strainLimit = stepSpan * STEP_RESISTANCE;
   const percentRef = useRef(percent);
+  // Set for the single call that follows letting go, so the bar carries a
+  // little past where it stops even when it was already sitting on the mark.
+  const releaseWay = useRef(0);
   // The live drag, so the strain can be recomputed rather than remembered: it
   // is a function of where the pointer is *and* which step the value has landed
-  // on, and the value changes on its own as Radix snaps.
-  const dragRef = useRef<{ rect: DOMRect; x: number } | null>(null);
+  // on, and the value changes on its own as Radix snaps. `way` is the direction
+  // the hand was last going, which is all the release flourish needs.
+  const dragRef = useRef<{ rect: DOMRect; x: number; way: number } | null>(null);
 
   // Animated by hand rather than through useSpring, because the spring has to be
   // chosen from the distance each move covers, and useSpring is configured once.
@@ -229,25 +232,27 @@ export default function Slider({
       return;
     }
     const current = fill.get();
-    if (current === target) return;
+    const letGo = releaseWay.current;
+    if (current === target && !letGo) return;
     fillAnimation.current?.stop();
 
-    if (drag) {
-      fillAnimation.current = animate(fill, target, {
-        type: 'spring',
-        velocity: fill.getVelocity(),
-        ...DRAG_SPRING,
-      });
+    // Under the pointer the bar simply is where the pointer put it. Anything
+    // between the two is lag the hand did not ask for, and the hand is already
+    // supplying the smoothness. The exception is a detent letting go, which
+    // moves the bar on its own and needs covering.
+    const gaveWay = stepped && Math.abs(target - current) >= stepSpan / 2;
+    if (drag && !gaveWay) {
+      fill.jump(target);
       return;
     }
 
-    const { keyframes, duration } = fillTravel(current, target);
+    const { keyframes, duration } = fillTravel(current, target, letGo);
     fillAnimation.current = animate(fill, keyframes, {
       duration,
       times: [0, SETTLE_AT, 1],
       ease: ['easeOut', 'easeInOut'],
     });
-  }, [fill, reduceMotion, strainLimit]);
+  }, [fill, reduceMotion, stepSpan, stepped, strainLimit]);
 
   useEffect(() => {
     percentRef.current = percent;
@@ -303,10 +308,15 @@ export default function Slider({
     (event: React.PointerEvent) => {
       if (disabled || reduceMotion || !frameRef.current) return;
       const rect = frameRef.current.getBoundingClientRect();
-      dragRef.current = { rect, x: event.clientX };
+      dragRef.current = { rect, x: event.clientX, way: 0 };
 
       const onMove = (moveEvent: PointerEvent) => {
-        dragRef.current = { rect, x: moveEvent.clientX };
+        const from = dragRef.current?.x ?? moveEvent.clientX;
+        dragRef.current = {
+          rect,
+          x: moveEvent.clientX,
+          way: Math.sign(moveEvent.clientX - from) || (dragRef.current?.way ?? 0),
+        };
         const past =
           moveEvent.clientX > rect.right
             ? moveEvent.clientX - rect.right
@@ -323,8 +333,11 @@ export default function Slider({
       };
       const onRelease = () => {
         give.set(0);
+        const way = dragRef.current?.way ?? 0;
         dragRef.current = null;
+        releaseWay.current = way;
         applyFill();
+        releaseWay.current = 0;
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onRelease);
         window.removeEventListener('pointercancel', onRelease);

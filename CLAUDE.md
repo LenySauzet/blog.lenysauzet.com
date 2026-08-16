@@ -426,14 +426,20 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   and the motion is merely smooth. Stiffness is what makes an arrival abrupt, damping is
   what decides how far it rings past — reach for damping when something is too springy,
   or the arrival goes soft along with the rebound.
-- **The fill glides and settles; it is not sprung.** A spring's overshoot is a *share* of
-  the distance by construction, so a throw across the bar rings ten times as far as a
-  nudge between two steps however it is tuned — which is what makes a long move feel
-  violent. `fillTravel` eases to a mark overshot by a fixed *amount* and eases back, so
-  the settle weighs the same either way: 0.89 over 10 points, 0.90 over 93. Duration
-  grows on the square root of the distance, so a long throw takes longer without
-  dragging its feet. Driven through `animate()` rather than `useSpring`, which is
-  configured once and cannot be shaped per move.
+- **Under the pointer the bar is not animated at all.** It is set straight to where the
+  pointer put it — measured lag 0.001 — because the hand is already supplying the
+  smoothness and anything in between is lag it did not ask for. Every attempt at easing
+  or springing this was rejected on feel: a timed curve restarted each move begins again
+  from rest and reads as easing off then lurching, and a spring wobbles. The one
+  exception is a detent letting go, which moves the bar on its own and needs covering.
+- **The flourish is a fixed amount, spent on release.** Letting go carries the bar 0.9
+  past its mark the way the hand was going and eases it back — 0.89 releasing rightward,
+  0.90 leftward — including from a standstill, since the bar is usually already on its
+  mark and carrying past it is the only thing left to read as momentum. Never scale it
+  with velocity or distance: a share of the distance is exactly what made a long throw
+  feel violent next to a nudge.
+- **`animate()` rather than `useSpring`**, which is configured once and cannot be shaped
+  per move.
 - **Sample an animation from inside the page**, through `requestAnimationFrame`, not by
   polling over the Playwright wire. Each round trip costs 15-20ms, which is enough to
   step over a peak: the same 93-point move read 0.50 polled and 0.90 sampled in-page.
