@@ -207,6 +207,10 @@ unpinned runner tests against a different runtime than anyone develops on: a jsd
 once went green in CI while failing locally. If you change `.nvmrc`, the workflow follows
 it automatically, but run `nvm install` and re-run the suite before trusting it.
 
+**`@types/node` tracks the runtime, never the registry.** It stays on the major
+`.nvmrc` names, currently 24. Types describing APIs the runtime has not got will
+happily typecheck code that crashes, so a bump here waits for the floor to move first.
+
 **Do not assert on serialised CSS.** A parser may rewrite what it stores: jsdom 30 drops
 `to bottom` from a gradient, being the default direction, so a test looking for it broke
 on a component that had not changed. Assert the non-default direction, or its absence.
