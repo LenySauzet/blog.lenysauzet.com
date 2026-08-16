@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -41,7 +40,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
   return (
     <ComboboxPrimitive.Clear
       data-slot="combobox-clear"
-      render={<InputGroupButton variant="ghost" size="icon-xs" />}
+      render={<Button variant="ghost" size="icon-xs" />}
       className={cn(className)}
       {...props}
     >
@@ -69,7 +68,7 @@ function ComboboxInput({
       />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
-          <InputGroupButton
+          <Button
             size="icon-xs"
             variant="ghost"
             asChild
@@ -78,7 +77,7 @@ function ComboboxInput({
             disabled={disabled}
           >
             <ComboboxTrigger />
-          </InputGroupButton>
+          </Button>
         )}
         {showClear && <ComboboxClear disabled={disabled} />}
       </InputGroupAddon>

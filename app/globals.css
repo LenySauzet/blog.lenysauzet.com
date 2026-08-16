@@ -4,9 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Static values, so a plain @theme: these have to live here rather than in
+   :root, because Tailwind resolves shadow-* from the theme namespace at build
+   time. Declared in :root they are inert and the utilities silently fall back
+   to Tailwind's stock ramp. */
+@theme {
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 1px 3px oklch(0 0 0 / 0.06);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);
+}
+
 @theme inline {
-  
-  --color-secondary-background: var(--secondary-background);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-display: var(--font-display);
@@ -29,6 +37,9 @@
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-input-disabled: var(--input-disabled);
+  --color-input-icon: var(--input-icon);
+  --color-wash: var(--wash);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
@@ -57,33 +68,32 @@
 
 :root {
   --base-hue: 262.04;
-  --opacity: 0.3;
-  --blur: 12px;
-  --saturate: 1.15;
 
-  /* Motion */
-  --duration-instant: 50ms;
-  --duration-fast: 150ms;
-  --duration-moderate: 300ms;
-  --duration-slow: 500ms;
-  --duration-deliberate: 700ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
-  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Elevation */
-  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
-  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 1px 3px oklch(0 0 0 / 0.06);
-  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);
   /* Lit from above: a highlight along the top edge, a shade along the bottom.
      Fixed rgba on purpose — this is lighting, not colour, so it must not rotate
      with --base-hue. A token because the hover state restates the whole shadow
      list, and Tailwind cannot compose one from a JS constant. */
   --shadow-bevel: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
     inset 0 -1.5px 2px 0 rgb(0 0 0 / 0.3);
+  /* The same lighting on a 18px knob, where --shadow-bevel's 2px blur smears
+     across a quarter of the surface and reads as a gradient. Held to 0.5px it
+     stays an edge. */
+  --shadow-knob: inset 0 1px 1px 0 rgb(255 255 255 / 0.3),
+    inset 0 -1px 0.5px 0 rgb(0 0 0 / 0.3);
+  /* The accent, deepened. Interactive surfaces bloom in this colour: buttons on
+     hover, fields on focus. Plain --primary reads washed out at low alpha over
+     a large blur, so lightness and chroma are pinned while the hue keeps
+     following --base-hue. Only the spread differs per component. */
+  --glow: oklch(from var(--primary) 0.5319 0.212 h);
+  /* A field's bloom, tighter than a button's. Tokens for the same reason
+     --shadow-bevel is one: four states restate the whole shadow, and Tailwind
+     cannot compose a class name from a JS constant. */
+  --shadow-field: 0 2px 20px -2px var(--glow);
+  --shadow-field-invalid: 0 2px 20px -2px var(--destructive);
+  /* Wider than a field's: a 24px control needs the bloom to reach past its own
+     edge before it reads as a bloom at all. */
+  --shadow-control: 0 2px 20px 3px var(--glow);
 
-  --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 var(--base-hue));
   --card: oklch(0.98 0.004 var(--base-hue));
@@ -111,6 +121,20 @@
   --warning: oklch(0.7412 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
+  /* The fill a disabled field collapses to, borrowed by its border so the edge
+     disappears and the field reads as one slab. It needs its own value per
+     theme: --muted is too pale to darken a field in dark mode, and --border is
+     too dark to lighten one in light mode. */
+  --input-disabled: oklch(0.9594 0.004 var(--base-hue));
+  /* A field's idle icon: an affordance, not copy. It sits a quarter of the way
+     from --border toward --subtle-foreground, so it stays clearly under the
+     placeholder it sits beside. */
+  --input-icon: oklch(0.8094 0.019 var(--base-hue));
+  /* A translucent grey carrying more of --base-hue than any text tier does, for
+     surfaces that sit on the page rather than in it. Always used under an alpha:
+     laying it over itself is what separates a slider's filled part from its
+     track without introducing a second colour. */
+  --wash: oklch(0.6257 0.038 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
@@ -154,7 +178,6 @@
 }
 
 .dark {
-  --secondary-background: oklch(0.134 0.0051 var(--base-hue));
   --background: oklch(14.68% 0.01 var(--base-hue));
   --foreground: oklch(93.66% 0.027 var(--base-hue));
   --card: oklch(0.1675 0.011 var(--base-hue));
@@ -175,6 +198,16 @@
   --warning: oklch(0.7093 0.18 60);
   --border: oklch(24.84% 0.018 var(--base-hue));
   --input: oklch(1 0 0 / 15%);
+  /* Pre-composited: what the reference's fill resolves to once its opacity step
+     has flattened against the page. Fading the element instead would drag the
+     text down with the fill, which caps legibility at 1.43:1. */
+  --input-disabled: color-mix(
+    in oklab,
+    oklch(24.84% 0.018 var(--base-hue)) 40%,
+    var(--background)
+  );
+  --input-icon: oklch(35.33% 0.028 var(--base-hue));
+  --wash: oklch(56.78% 0.05 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
@@ -217,11 +250,6 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-::selection {
-  background-color: oklch(from oklch(61.53% 0.1675 var(--base-hue)) l c h / 7%);
-  color: oklch(61.53% 0.1675 var(--base-hue));
 }
 
 /* CSS counters have no Tailwind equivalent. Scoped to direct children so nested
@@ -549,13 +577,4 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 .sandpack-root.sandpack-fullscreen .sp-layout iframe {
   height: 100dvh !important;
-}
-
-.badge-border {
-  border: 1.5px solid oklch(77.16% 0.028 var(--base-hue) / 15%);
-}
-
-.badge-background {
-  background-color: oklch(56.78% 0.05 var(--base-hue) / var(--opacity, 0.3));
-  backdrop-filter: blur(12px) saturate(1.15);
 }

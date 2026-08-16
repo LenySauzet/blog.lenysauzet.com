@@ -33,6 +33,15 @@ if (!window.PointerEvent) {
   window.PointerEvent = PointerEventPolyfill as unknown as typeof PointerEvent;
 }
 
+// Radix reaches for pointer capture the moment a control is pressed. jsdom
+// implements none of it, and the throw surfaces as an unhandled error rather
+// than a failure, so a test can pass while the interaction never happened.
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+  Element.prototype.setPointerCapture = () => {};
+  Element.prototype.releasePointerCapture = () => {};
+}
+
 if (!window.IntersectionObserver) {
   window.IntersectionObserver = class {
     observe() {}

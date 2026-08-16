@@ -3,7 +3,13 @@ import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Badge } from '@/components/ui/badge';
 import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
-import { ButtonShowcase } from '@/components/ComponentShowcase';
+import {
+  ButtonShowcase,
+  InputShowcase,
+  SelectShowcase,
+  SliderShowcase,
+  ToggleShowcase,
+} from '@/components/ComponentShowcase';
 import Card from '@/components/Card';
 import Details from '@/components/Details';
 import Fullbleed from '@/components/Fullbleed';
@@ -33,6 +39,10 @@ const components = {
   Callout,
   Card,
   Details,
+  InputShowcase,
+  SelectShowcase,
+  SliderShowcase,
+  ToggleShowcase,
   Fullbleed,
   Image,
   Sandpack,
