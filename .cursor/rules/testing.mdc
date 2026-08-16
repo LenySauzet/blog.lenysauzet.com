@@ -37,7 +37,8 @@ Two settings there are load-bearing:
   react-server condition. The guard still holds in the real build.
 
 `vitest-setup.ts` polyfills `PointerEvent` (Motion's press gesture constructs them) and
-forces `prefers-reduced-motion`. jsdom is pinned to v26; v29 needs `require(ESM)`.
+forces `prefers-reduced-motion`, and stubs pointer capture, which Radix reaches for on
+any press and jsdom does not implement. jsdom needs the Node floor `.nvmrc` sets.
 
 ## The jsdom constraint that shapes most tests here
 
