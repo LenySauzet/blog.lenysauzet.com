@@ -244,7 +244,8 @@ const MediaPlayerRoot = ({
     setIsPlaying(true);
   };
   const togglePlay = () => {
-    isPlaying ? pause() : resume();
+    if (isPlaying) pause();
+    else resume();
   };
 
   const seek = (time: number) => {
@@ -284,10 +285,9 @@ const MediaPlayerRoot = ({
     const video = videoRef.current;
     if (!video) return;
     try {
-      document.pictureInPictureElement
-        ? await document.exitPictureInPicture()
-        : document.pictureInPictureEnabled &&
-          (await video.requestPictureInPicture());
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+      else if (document.pictureInPictureEnabled)
+        await video.requestPictureInPicture();
     } catch {
       /* unavailable */
     }
@@ -297,9 +297,8 @@ const MediaPlayerRoot = ({
     const el = containerRef.current;
     if (!el) return;
     try {
-      document.fullscreenElement
-        ? await document.exitFullscreen()
-        : await el.requestFullscreen();
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await el.requestFullscreen();
     } catch {
       /* unavailable */
     }

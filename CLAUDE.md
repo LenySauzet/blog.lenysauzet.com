@@ -181,8 +181,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
   package, but `motion/react` is the canonical alias. `AnimatePresence` is required for
   exit animations. OGL canvases must be `'use client'` and initialize in `useEffect`
   with cleanup.
-- **State**: Zustand stores live in `hooks/` (`use-cmdk-store.ts`,
-  `use-splashScreen-store.tsx`).
+- **State**: Zustand stores live in `hooks/` (`use-cmdk-store.ts`).
 
 ## Testing
 
@@ -237,10 +236,6 @@ Each of these looks like a mistake and is not. Read before "fixing" one.
 **Two Separator components.** `components/Separator.tsx` is a custom dashed decorative
 rule (between post sections); `components/ui/separator.tsx` is the Radix primitive (nav,
 layout). Do not consolidate.
-
-**Two text-reveal components.** Prefer `components/ScrambledText.tsx`, the
-accessibility-first version with `useReducedMotion()` and an sr-only fallback.
-`TextScramble.tsx` is kept for reference only.
 
 **`components/Image/Lightbox.tsx` uses no dialog primitive** — not `ui/dialog.tsx`, not
 Radix, not Base UI. Radix ties its scroll lock to the layer's mount, and the layer must

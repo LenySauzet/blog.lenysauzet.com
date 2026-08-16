@@ -63,6 +63,21 @@ const GRIP_CLEARANCE = 8;
 // dot per unit.
 const MAX_DOTS = 20;
 
+/**
+ * Where the grip rides for a given fill, pinned inside the bar at both ends: at
+ * the bottom of the range the fill has no width to hang it off, and it would
+ * otherwise sit outside the track.
+ */
+const gripAt = (percent: number, width: number) =>
+  Math.min(
+    Math.max((percent / 100) * width - GRIP_INSET, GRIP_MARGIN),
+    width - GRIP_MARGIN
+  );
+
+/** Whether a mark at `x` would run into a stretch of caption. */
+const collides = (x: number, [from, to]: number[]) =>
+  x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
+
 export interface SliderProps
   extends Omit<
     React.ComponentProps<typeof SliderRoot>,
@@ -132,12 +147,8 @@ export default function Slider({
   // measurement, and the grip would sit wherever it first fell.
   const trackWidth = useMotionValue(0);
 
-  // Pinned inside the bar at both ends: at the bottom of the range the fill has
-  // no width to hang the grip off, and it would otherwise sit outside the track.
   const gripX = useTransform([fill, trackWidth], ([v, w]: number[]) =>
-    w
-      ? Math.min(Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN), w - GRIP_MARGIN)
-      : GRIP_MARGIN
+    w ? gripAt(v, w) : GRIP_MARGIN
   );
 
   // Latched at the side the drag ran out of, not read live: the give springs
@@ -160,15 +171,10 @@ export default function Slider({
   // visible past either end of it: before the label at the bottom of the range,
   // past the readout at the top.
   const settleGrip = useCallback((v: number) => {
-    const { width: w, label: labelBox, readout } = metrics.current;
-    if (!w) return;
-    const x = Math.min(
-      Math.max((v / 100) * w - GRIP_INSET, GRIP_MARGIN),
-      w - GRIP_MARGIN
-    );
-    const hits = ([from, to]: number[]) =>
-      x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
-    const clear = !hits(labelBox) && !hits(readout);
+    const { width, label: labelBox, readout } = metrics.current;
+    if (!width) return;
+    const x = gripAt(v, width);
+    const clear = !collides(x, labelBox) && !collides(x, readout);
     if (clear === clearRef.current) return;
     clearRef.current = clear;
     setGripClear(clear);
@@ -228,13 +234,11 @@ export default function Slider({
       settleGrip(fill.get());
 
       const { label: labelBounds, readout } = metrics.current;
-      const hits = (x: number, [from, to]: number[]) =>
-        x > from - GRIP_CLEARANCE && x < to + GRIP_CLEARANCE;
       const next = stepped
         ? Array.from({ length: steps - 1 }, (_, i) => ((i + 1) / steps) * 100).filter(
             (pct) => {
               const x = (pct / 100) * box.width;
-              return !hits(x, labelBounds) && !hits(x, readout);
+              return !collides(x, labelBounds) && !collides(x, readout);
             }
           )
         : [];
