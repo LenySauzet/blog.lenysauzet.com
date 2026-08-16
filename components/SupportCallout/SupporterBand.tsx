@@ -9,7 +9,11 @@ import {
 } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
-import type { Supporter, SupportersResponse } from '@/lib/supporters';
+import {
+  formatAmount,
+  type Supporter,
+  type SupportersResponse,
+} from '@/lib/supporters';
 import { cn } from '@/lib/utils';
 
 // Slow enough to read a name in passing, which is the whole point of the band.
@@ -116,7 +120,7 @@ export default function SupporterBand() {
                 >
                   <span className="text-muted-foreground">{supporter.name}</span>
                   <span className="text-primary tabular-nums">
-                    ${supporter.amount}
+                    {formatAmount(supporter)}
                   </span>
                 </li>
               ))

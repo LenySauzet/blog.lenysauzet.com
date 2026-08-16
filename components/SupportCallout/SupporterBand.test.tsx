@@ -15,18 +15,21 @@ afterEach(() => vi.unstubAllGlobals());
 describe('SupporterBand', () => {
   it('lists the supporters it was given', async () => {
     answer({
-      supporters: [{ name: 'Mateo Rossi', amount: 33 }],
+      supporters: [{ name: 'Mateo Rossi', amount: 33, currency: 'EUR' }],
       total: 1284,
     });
     render(<SupporterBand />);
 
     expect(await screen.findAllByText('Mateo Rossi')).not.toHaveLength(0);
-    expect(screen.getAllByText('$33')).not.toHaveLength(0);
+    expect(screen.getAllByText('€33')).not.toHaveLength(0);
   });
 
   // The count is everyone who ever gave, not the handful on screen.
   it('shows the reported total, not the number of rows', async () => {
-    answer({ supporters: [{ name: 'Ingrid Holm', amount: 18 }], total: 1284 });
+    answer({
+      supporters: [{ name: 'Ingrid Holm', amount: 18, currency: 'EUR' }],
+      total: 1284,
+    });
     render(<SupporterBand />);
 
     await screen.findAllByText('Ingrid Holm');
@@ -52,13 +55,14 @@ describe('SupporterBand', () => {
   // The second copy exists so the list can wrap without a gap; a screen reader should
   // hear the names once.
   it('hides the duplicated copy from assistive tech', async () => {
-    answer({ supporters: [{ name: 'Amara Okafor', amount: 48 }], total: 3 });
+    answer({
+      supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
+      total: 3,
+    });
     render(<SupporterBand />);
 
     expect(await screen.findAllByText('Amara Okafor')).toHaveLength(2);
-    expect(
-      document.querySelectorAll('li[aria-hidden="true"]')
-    ).toHaveLength(1);
+    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(1);
   });
 
   // The stop itself is a spring settling over time, and jsdom animates nothing. What
@@ -66,7 +70,10 @@ describe('SupporterBand', () => {
   // to resume.
   it('asks the scroll to stop while the pointer is over it', async () => {
     const user = userEvent.setup();
-    answer({ supporters: [{ name: 'Leo Marchetti', amount: 12 }], total: 9 });
+    answer({
+      supporters: [{ name: 'Leo Marchetti', amount: 12, currency: 'EUR' }],
+      total: 9,
+    });
     render(<SupporterBand />);
 
     await screen.findAllByText('Leo Marchetti');

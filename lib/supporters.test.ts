@@ -1,52 +1,87 @@
 import { describe, expect, it } from 'vitest';
 
-import { normaliseSupporters, readTotal } from './supporters';
+import { formatAmount, normaliseSupporters, readTotal } from './supporters';
 
-// This layer exists because Buy Me a Coffee's payload is not documented publicly, so
-// these cases are the contract: whatever shape arrives, the band gets rows it can draw
-// or nothing at all. Never a crash, and never a half-built row.
+// Lifted from Buy Me a Coffee's own /v1/supporters example, trimmed to the fields this
+// reads. Their reference is marked no longer maintained, so pinning a real row is what
+// stops the reads drifting back to guesswork.
+const ROW = {
+  support_id: 245731,
+  support_note: null,
+  support_coffees: 1,
+  support_visibility: 1,
+  supporter_name: null,
+  support_coffee_price: '3.0000',
+  is_refunded: null,
+  support_currency: 'GBP',
+  payer_name: 'Quip Fora',
+};
+
 describe('normaliseSupporters', () => {
-  it('reads a paged payload', () => {
-    const rows = normaliseSupporters({
-      data: [{ supporter_name: 'Mateo Rossi', support_coffees: 33 }],
-    });
-
-    expect(rows).toEqual([{ name: 'Mateo Rossi', amount: 33 }]);
-  });
-
-  it('reads a bare array just as well', () => {
-    const rows = normaliseSupporters([
-      { supporter_name: 'Ingrid Holm', support_coffees: 18 },
+  it('reads their documented page', () => {
+    expect(normaliseSupporters({ current_page: 1, data: [ROW] })).toEqual([
+      { name: 'Quip Fora', amount: 3, currency: 'GBP' },
     ]);
-
-    expect(rows).toEqual([{ name: 'Ingrid Holm', amount: 18 }]);
   });
 
-  it('accepts an amount that arrived as a string', () => {
+  // The whole reason two fields are read instead of one: coffees counts them, price
+  // prices one. A single 5 EUR coffee is 5, not 1.
+  it('multiplies the coffees by their price', () => {
     const [row] = normaliseSupporters([
-      { supporter_name: 'Amara Okafor', support_coffees: '48' },
+      { ...ROW, support_coffees: 3, support_coffee_price: '5.0000' },
     ]);
 
-    expect(row.amount).toBe(48);
+    expect(row.amount).toBe(15);
   });
 
-  // Buy Me a Coffee lets people give without naming themselves.
-  it('names an unnamed supporter rather than dropping them', () => {
-    const [row] = normaliseSupporters([{ support_coffees: 5 }]);
-
-    expect(row).toEqual({ name: 'Anonymous', amount: 5 });
-  });
-
-  it('falls back to zero rather than rendering NaN', () => {
+  it('assumes one coffee when the count is missing', () => {
     const [row] = normaliseSupporters([
-      { supporter_name: 'Leo Marchetti', support_coffees: 'nope' },
+      { ...ROW, support_coffees: null, support_coffee_price: '5.0000' },
     ]);
 
-    expect(row.amount).toBe(0);
+    expect(row.amount).toBe(5);
   });
 
-  it.each([null, undefined, {}, { data: 'nope' }, 42])(
-    'returns nothing for %s rather than throwing',
+  // `supporter_name` is null on every row of their own example.
+  it('falls back to the payer when the supporter did not name themselves', () => {
+    const [row] = normaliseSupporters([
+      { ...ROW, supporter_name: 'Ingrid Holm' },
+    ]);
+
+    expect(row.name).toBe('Ingrid Holm');
+  });
+
+  it.each([null, '', '   '])(
+    'names a supporter with %p as Anonymous',
+    (name) => {
+      const [row] = normaliseSupporters([
+        { ...ROW, supporter_name: name, payer_name: name },
+      ]);
+
+      expect(row.name).toBe('Anonymous');
+    }
+  );
+
+  it('drops a refunded support rather than thanking someone twice', () => {
+    expect(normaliseSupporters([{ ...ROW, is_refunded: 1 }])).toEqual([]);
+  });
+
+  // Publishing a name against someone's wishes is the one failure that cannot be undone,
+  // so this errs towards showing nobody.
+  it('drops a support marked not visible', () => {
+    expect(normaliseSupporters([{ ...ROW, support_visibility: 0 }])).toEqual(
+      []
+    );
+  });
+
+  it('drops a row with no price rather than showing a free coffee', () => {
+    expect(
+      normaliseSupporters([{ ...ROW, support_coffee_price: null }])
+    ).toEqual([]);
+  });
+
+  it.each([null, undefined, {}, { data: 'nope' }, 42, 'nope'])(
+    'returns nothing for %p rather than throwing',
     (payload) => {
       expect(normaliseSupporters(payload)).toEqual([]);
     }
@@ -55,15 +90,28 @@ describe('normaliseSupporters', () => {
 
 describe('readTotal', () => {
   it('prefers the count the API reports', () => {
-    expect(readTotal({ total: 1284, data: [{}] }, 1)).toBe(1284);
+    expect(readTotal({ total: 1284, data: [ROW] }, 1)).toBe(1284);
   });
 
-  // The endpoint pages, so the rows in hand are only ever the most recent few.
   it('falls back to what actually arrived', () => {
-    expect(readTotal({ data: [{}, {}] }, 2)).toBe(2);
+    expect(readTotal({ data: [ROW, ROW] }, 2)).toBe(2);
   });
 
   it('survives a payload that is not an object', () => {
     expect(readTotal('nope', 7)).toBe(7);
   });
+});
+
+describe('formatAmount', () => {
+  it('renders the row in the currency it was given', () => {
+    expect(formatAmount({ name: 'x', amount: 5, currency: 'EUR' })).toBe('€5');
+  });
+
+  // An unrecognised code would make Intl throw and take the whole band down.
+  it.each(['nope', '', 'E€R'])(
+    'falls back rather than throwing on %p',
+    (currency) => {
+      expect(formatAmount({ name: 'x', amount: 5, currency })).toBe('$5');
+    }
+  );
 });
