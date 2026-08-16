@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils';
 // Slow enough to read a name in passing, which is the whole point of the band.
 const PIXELS_PER_SECOND = 18;
 
-// The window the list scrolls behind. A number rather than `h-44` because the decision
-// to scroll at all is a comparison against it, and the two must not drift apart.
+// The window the list scrolls behind. A number rather than `h-44` because the repeat
+// count is computed against it, and the two must not drift apart.
 const BAND_HEIGHT = 176;
 
 // Hovering sends the speed to 0 and leaving sends it back to 1. Under-damped would
@@ -50,17 +50,18 @@ export default function SupporterBand() {
   // Mirrors the spring's target onto the element so the intent is readable from the
   // DOM. It changes twice per visit, not per frame, so the render costs nothing.
   const [paused, setPaused] = useState(false);
-  const [listHeight, setListHeight] = useState(0);
+  // How many times the list repeats inside one copy. The band always scrolls, so a copy
+  // shorter than the window would tear a gap open on every wrap: with a single supporter
+  // that gap is most of the band. The repeat is what keeps the loop seamless from the
+  // very first donation, at the cost of showing a short list more than once.
+  const [passes, setPasses] = useState(1);
   const reduceMotion = useReducedMotion();
 
   const listRef = useRef<HTMLUListElement>(null);
+  const rowRef = useRef<HTMLLIElement>(null);
   const offset = useMotionValue(0);
+  const count = supporters.length;
   const speed = useSpring(1, SPEED_SPRING);
-
-  // A list that already fits is not scrolled at all. Looping it would mean repeating the
-  // names to fill the window, and three copies of the same supporter reads as a bug
-  // rather than as a wall of thanks. This is the ordinary case early on: one supporter.
-  const scrolls = listHeight > BAND_HEIGHT;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,12 +77,25 @@ export default function SupporterBand() {
     return () => controller.abort();
   }, []);
 
-  // Measures one pass whichever mode it is in, so the answer is the same either way and
-  // the second run asks for what is already rendered.
+  // Measures one row, never the list. Dividing the list's height by the repeat count
+  // would feed the answer back into its own input, and any error there compounds instead
+  // of settling: a fixed reading once asked for 317 repeats of 18. A row's height does
+  // not move when the list grows, so this reads the same however many are drawn.
+  //
+  // The observer is what does the measuring, including the first one, since it fires on
+  // observe. Measuring inline here instead would be a render feeding a render.
   useEffect(() => {
-    const list = listRef.current;
-    if (list) setListHeight(list.scrollHeight / (scrolls ? 2 : 1));
-  }, [supporters, scrolls]);
+    const row = rowRef.current;
+    if (!row) return;
+
+    const observer = new ResizeObserver(() => {
+      const rowHeight = row.offsetHeight;
+      if (!rowHeight) return;
+      setPasses(Math.max(1, Math.ceil(BAND_HEIGHT / (rowHeight * count))));
+    });
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [count]);
 
   const pause = (next: boolean) => {
     setPaused(next);
@@ -91,16 +105,22 @@ export default function SupporterBand() {
   // Wrapped against one copy's height rather than the window's, so the seam between the
   // two copies lands exactly where the first one ended.
   useAnimationFrame((_, delta) => {
-    if (!scrolls || reduceMotion) return;
+    const list = listRef.current;
+    if (!list || reduceMotion) return;
+    const copy = list.scrollHeight / 2;
+    if (!copy) return;
     const next = offset.get() - (speed.get() * PIXELS_PER_SECOND * delta) / 1000;
-    offset.set(next <= -listHeight ? next + listHeight : next);
+    offset.set(next <= -copy ? next + copy : next);
   });
 
   if (!supporters.length) return null;
 
   return (
     <div data-slot="supporter-band" className="border-t border-border">
-      <div className="flex items-center justify-between px-5 py-3 font-mono text-xs tracking-widest text-muted-foreground uppercase">
+      {/* The only two rules that cross the whole card, framing the heading. Every rule
+          below is inset to the text, so the list reads as a column rather than as the
+          card being sliced into bands. */}
+      <div className="flex items-center justify-between border-b border-border px-5 py-3 font-mono text-xs tracking-widest text-muted-foreground uppercase">
         <span className="flex items-center gap-2.5">
           <PulseDot />
           Recent supporters
@@ -113,30 +133,29 @@ export default function SupporterBand() {
 
       <div
         data-slot="supporter-scroller"
-        data-paused={(scrolls && paused) || undefined}
+        data-paused={paused || undefined}
         className="relative"
-        style={scrolls ? { height: BAND_HEIGHT } : undefined}
+        style={{ height: BAND_HEIGHT }}
         onPointerEnter={() => pause(true)}
         onPointerLeave={() => pause(false)}
       >
         <div
-          className={cn('overflow-hidden', scrolls && 'absolute inset-0')}
-          style={
-            scrolls
-              ? { maskImage: EDGE_MASK, WebkitMaskImage: EDGE_MASK }
-              : undefined
-          }
+          className="absolute inset-0 overflow-hidden"
+          style={{ maskImage: EDGE_MASK, WebkitMaskImage: EDGE_MASK }}
         >
-          <motion.ul ref={listRef} style={{ y: scrolls ? offset : 0 }}>
-            {/* Drawn twice when scrolling, so the list can run off the bottom and
-                arrive at the top without a gap. Only the first copy is announced: the
-                second is the same names again. */}
-            {Array.from({ length: scrolls ? 2 : 1 }, (_, copy) =>
+          <motion.ul ref={listRef} style={{ y: offset }}>
+            {/* Drawn twice so the list can run off the bottom and arrive at the top
+                without a gap, each copy repeated until it outruns the window. Only the
+                very first pass is announced: the rest are the same names again. */}
+            {Array.from({ length: 2 * passes }, (_, pass) =>
               supporters.map((supporter, index) => (
                 <li
-                  key={`${copy}-${index}`}
-                  aria-hidden={copy > 0 || undefined}
-                  className="flex items-center justify-between border-b border-border/60 px-5 py-3 font-mono text-sm"
+                  key={`${pass}-${index}`}
+                  ref={pass === 0 && index === 0 ? rowRef : undefined}
+                  aria-hidden={pass > 0 || undefined}
+                  // `mx-5` rather than `px-5`: the margin insets the rule with the box,
+                  // where padding would leave it spanning the card.
+                  className="flex items-center justify-between border-b border-border/60 mx-5 py-3 font-mono text-sm"
                 >
                   <span className="text-muted-foreground">{supporter.name}</span>
                   <span className="text-primary tabular-nums">
@@ -150,12 +169,8 @@ export default function SupporterBand() {
 
         {/* Siblings of the masked list rather than children of it: a child would be
             erased by the very mask that is supposed to shape it. */}
-        {scrolls && (
-          <>
-            <EdgeBlur edge="top" />
-            <EdgeBlur edge="bottom" />
-          </>
-        )}
+        <EdgeBlur edge="top" />
+        <EdgeBlur edge="bottom" />
       </div>
     </div>
   );

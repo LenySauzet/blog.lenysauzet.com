@@ -11,11 +11,25 @@ const answer = (body: unknown) =>
   );
 
 /**
- * The only way to reach the scrolling branch here: jsdom reports 0 for every measured
- * box, so the list can never outgrow the window on its own.
+ * jsdom reports 0 for every measured box, so the repeat count can only be exercised by
+ * feeding it a row height.
  */
-const withListHeight = (height: number) =>
-  vi.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(height);
+const withRowHeight = (height: number) => {
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(height);
+  // The shared setup stubs ResizeObserver as an inert no-op, so the band would never be
+  // told to measure at all. This one calls back, which is what `observe` really does.
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(private readonly notify: () => void) {}
+      observe() {
+        this.notify();
+      }
+      unobserve() {}
+      disconnect() {}
+    }
+  );
+};
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -62,47 +76,43 @@ describe('SupporterBand', () => {
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
-  // jsdom gives every element a zero-sized box, so the list never outgrows the window
-  // and this is the branch it lands in by default. It is also the ordinary early case:
-  // a single supporter, drawn once and left alone.
-  it('does not loop a list that already fits', async () => {
+  // The band loops from the first donation on, so the list is always drawn twice even
+  // when a single name is all there is.
+  it('always draws a second copy, and announces only the first', async () => {
     answer({
       supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
       total: 3,
     });
     render(<SupporterBand />);
 
-    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(1);
-    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(0);
-    expect(
-      document.querySelector('[data-slot=supporter-scroller]')
-    ).not.toHaveStyle({ height: '176px' });
+    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(2);
+    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(1);
   });
 
-  // Repeating the names to fill the window would read as a bug rather than as a wall of
-  // thanks, so the loop only starts once there are enough of them to fill it.
-  it('draws a second copy once the list outgrows the window', async () => {
-    withListHeight(500);
+  // A copy shorter than the window would tear a gap open on every wrap, so a short list
+  // repeats inside each copy until it covers.
+  it('repeats a short list until a copy covers the window', async () => {
+    // One 20px row against a 176px window: 9 repeats, drawn twice.
+    withRowHeight(20);
     answer({
       supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
       total: 3,
     });
     render(<SupporterBand />);
 
-    // The second copy arrives on the render after the measurement, so this waits for it
+    // The repeats arrive on the render after the measurement, so this waits for them
     // rather than for the first name to appear.
     await waitFor(() =>
-      expect(screen.getAllByText('Amara Okafor')).toHaveLength(2)
+      expect(screen.getAllByText('Amara Okafor')).toHaveLength(18)
     );
-    // A screen reader still hears the name once.
-    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(1);
+    // However many times it is drawn, a screen reader hears the name once.
+    expect(document.querySelectorAll('li:not([aria-hidden])')).toHaveLength(1);
   });
 
   // The stop itself is a spring settling over time, and jsdom animates nothing. What
   // is assertable is the intent: pointing at the band asks it to stop, leaving asks it
-  // to resume. A list that does not scroll has nothing to stop, hence the height.
+  // to resume.
   it('asks the scroll to stop while the pointer is over it', async () => {
-    withListHeight(500);
     const user = userEvent.setup();
     answer({
       supporters: [{ name: 'Leo Marchetti', amount: 12, currency: 'EUR' }],

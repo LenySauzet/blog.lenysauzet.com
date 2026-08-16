@@ -12,8 +12,11 @@ const MEMBERSHIP_URL = 'https://buymeacoffee.com/lenysauzet/membership';
  * Component and ships no JavaScript. Only the band below needs the network.
  */
 export default function SupportCallout() {
+  // The size variant has to be answered in kind: `p-0` and `gap-0` lose to the
+  // primitive's own `data-[size=sm]:` rules, which would leave the band floating 16px
+  // clear of the card's bottom edge instead of running into it.
   return (
-    <CardRoot className="my-8 gap-0 overflow-hidden p-0">
+    <CardRoot className="my-8 overflow-hidden data-[size=sm]:gap-0 data-[size=sm]:py-0">
       <CardContent className="flex flex-col gap-5 p-6">
         <h3 className="font-display text-lg font-semibold text-foreground">
           Support this work
