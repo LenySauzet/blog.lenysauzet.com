@@ -10,7 +10,17 @@ const answer = (body: unknown) =>
     vi.fn().mockResolvedValue({ ok: true, json: async () => body })
   );
 
-afterEach(() => vi.unstubAllGlobals());
+/**
+ * The only way to reach the scrolling branch here: jsdom reports 0 for every measured
+ * box, so the list can never outgrow the window on its own.
+ */
+const withListHeight = (height: number) =>
+  vi.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(height);
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe('SupporterBand', () => {
   it('lists the supporters it was given', async () => {
@@ -52,23 +62,47 @@ describe('SupporterBand', () => {
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
-  // The second copy exists so the list can wrap without a gap; a screen reader should
-  // hear the names once.
-  it('hides the duplicated copy from assistive tech', async () => {
+  // jsdom gives every element a zero-sized box, so the list never outgrows the window
+  // and this is the branch it lands in by default. It is also the ordinary early case:
+  // a single supporter, drawn once and left alone.
+  it('does not loop a list that already fits', async () => {
     answer({
       supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
       total: 3,
     });
     render(<SupporterBand />);
 
-    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(2);
+    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(1);
+    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(0);
+    expect(
+      document.querySelector('[data-slot=supporter-scroller]')
+    ).not.toHaveStyle({ height: '176px' });
+  });
+
+  // Repeating the names to fill the window would read as a bug rather than as a wall of
+  // thanks, so the loop only starts once there are enough of them to fill it.
+  it('draws a second copy once the list outgrows the window', async () => {
+    withListHeight(500);
+    answer({
+      supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
+      total: 3,
+    });
+    render(<SupporterBand />);
+
+    // The second copy arrives on the render after the measurement, so this waits for it
+    // rather than for the first name to appear.
+    await waitFor(() =>
+      expect(screen.getAllByText('Amara Okafor')).toHaveLength(2)
+    );
+    // A screen reader still hears the name once.
     expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(1);
   });
 
   // The stop itself is a spring settling over time, and jsdom animates nothing. What
   // is assertable is the intent: pointing at the band asks it to stop, leaving asks it
-  // to resume.
+  // to resume. A list that does not scroll has nothing to stop, hence the height.
   it('asks the scroll to stop while the pointer is over it', async () => {
+    withListHeight(500);
     const user = userEvent.setup();
     answer({
       supporters: [{ name: 'Leo Marchetti', amount: 12, currency: 'EUR' }],
