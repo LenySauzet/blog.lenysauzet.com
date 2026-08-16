@@ -29,7 +29,7 @@ export default function SelectShowcase() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="quality-empty">Quality, unset</Label>
+        <Label htmlFor="quality-empty">Quality, with a placeholder</Label>
         <Select>
           <SelectTrigger id="quality-empty" className="w-full">
             <SelectValue placeholder="Pick one" />
