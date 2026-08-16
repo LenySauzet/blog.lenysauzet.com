@@ -426,20 +426,21 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   and the motion is merely smooth. Stiffness is what makes an arrival abrupt, damping is
   what decides how far it rings past — reach for damping when something is too springy,
   or the arrival goes soft along with the rebound.
-- **Under the pointer the bar is not animated at all.** It is set straight to where the
-  pointer put it — measured lag 0.001 — because the hand is already supplying the
-  smoothness and anything in between is lag it did not ask for. Every attempt at easing
-  or springing this was rejected on feel: a timed curve restarted each move begins again
-  from rest and reads as easing off then lurching, and a spring wobbles. The one
-  exception is a detent letting go, which moves the bar on its own and needs covering.
-- **The flourish is a fixed amount, spent on release.** Letting go carries the bar 0.9
-  past its mark the way the hand was going and eases it back — 0.89 releasing rightward,
-  0.90 leftward — including from a standstill, since the bar is usually already on its
-  mark and carrying past it is the only thing left to read as momentum. Never scale it
-  with velocity or distance: a share of the distance is exactly what made a long throw
-  feel violent next to a nudge.
-- **`animate()` rather than `useSpring`**, which is configured once and cannot be shaped
-  per move.
+- **One spring runs for the life of the component and the fill chases it.** Nothing is
+  triggered, staged or branched: setting the value only moves the mark, and a chase lags
+  while its mark is moving then catches up once it stops. That single behaviour *is* the
+  softness under a drag and the settle at the end of one. Several rounds were lost
+  reaching for something more elaborate — a timed curve, keyframes, a release flourish,
+  a spring picked per distance — and every one of them was rejected on feel. A timed
+  curve restarted on each pointer move begins again from rest and reads as easing off
+  then lurching; a flourish fired on release lands after the hand has already stopped,
+  which is a beat too late.
+- **Its constants were derived from the reference, not guessed.** Measured there: 6.35
+  points of lag behind a pointer moving at 125 points a second, converging to 0.001 the
+  moment it holds still, and clicks overshooting 1.2% of whatever they cover. Lag is
+  `2 * ratio * speed / frequency` and overshoot is `exp(-pi * ratio / sqrt(1 - ratio^2))`,
+  which solves to a ratio of 0.81 and a frequency of 25 rad/s. Ours then measures 6.21,
+  0.001, and 0.12 / 1.02 against its 0.12 / 1.00.
 - **Sample an animation from inside the page**, through `requestAnimationFrame`, not by
   polling over the Playwright wire. Each round trip costs 15-20ms, which is enough to
   step over a peak: the same 93-point move read 0.50 polled and 0.90 sampled in-page.
