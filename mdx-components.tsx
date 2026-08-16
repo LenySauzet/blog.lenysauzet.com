@@ -6,6 +6,7 @@ import { Callout } from '@/components/Callout';
 import {
   ButtonShowcase,
   InputShowcase,
+  SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
 } from '@/components/ComponentShowcase';
@@ -39,6 +40,7 @@ const components = {
   Card,
   Details,
   InputShowcase,
+  SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
   Fullbleed,

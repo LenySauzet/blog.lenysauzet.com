@@ -477,6 +477,13 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   already marks that spot. Match it with a tolerance rather than an equality: both sides
   are a division reduced to a percentage, and thirds do not land on the same last digit.
 
+**Select is a raised surface, not an inset field.** Where `Input` is cut into the page,
+the trigger sits *on* it — on `--wash/30`, the slider's own wash — and answers a hover by
+lifting to `/40` rather than taking an edge. The panel wears the same wash over
+`backdrop-blur-md backdrop-saturate-[115%]`, so what it covers stays readable through it,
+and its items are inset by `mx-1` so a highlight reads as a card lifting out of the list
+rather than a band across it.
+
 ## New component checklist
 
 - [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`
