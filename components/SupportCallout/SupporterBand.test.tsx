@@ -1,35 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import SupporterBand from './SupporterBand';
+import SupporterBand, { repeatsToFill } from './SupporterBand';
 
 const answer = (body: unknown) =>
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue({ ok: true, json: async () => body })
   );
-
-/**
- * jsdom reports 0 for every measured box, so the repeat count can only be exercised by
- * feeding it a row height.
- */
-const withRowHeight = (height: number) => {
-  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(height);
-  // The shared setup stubs ResizeObserver as an inert no-op, so the band would never be
-  // told to measure at all. This one calls back, which is what `observe` really does.
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      constructor(private readonly notify: () => void) {}
-      observe() {
-        this.notify();
-      }
-      unobserve() {}
-      disconnect() {}
-    }
-  );
-};
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -76,60 +54,66 @@ describe('SupporterBand', () => {
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
-  // The band loops from the first donation on, so the list is always drawn twice even
-  // when a single name is all there is.
-  it('always draws a second copy, and announces only the first', async () => {
+  // Freezing the loop alone would leave its machinery on show: a fixed window, faded
+  // edges, and the list repeated to fill a scroll that never happens, which reads as a
+  // duplication bug. The whole apparatus goes, leaving the plain list.
+  it('drops the loop and its apparatus under reduced motion', async () => {
     answer({
       supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
       total: 3,
     });
     render(<SupporterBand />);
 
-    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(2);
-    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(1);
-  });
-
-  // A copy shorter than the window would tear a gap open on every wrap, so a short list
-  // repeats inside each copy until it covers.
-  it('repeats a short list until a copy covers the window', async () => {
-    // One 20px row against a 176px window: 9 repeats, drawn twice.
-    withRowHeight(20);
-    answer({
-      supporters: [{ name: 'Amara Okafor', amount: 48, currency: 'EUR' }],
-      total: 3,
-    });
-    render(<SupporterBand />);
-
-    // The repeats arrive on the render after the measurement, so this waits for them
-    // rather than for the first name to appear.
-    await waitFor(() =>
-      expect(screen.getAllByText('Amara Okafor')).toHaveLength(18)
-    );
-    // However many times it is drawn, a screen reader hears the name once.
-    expect(document.querySelectorAll('li:not([aria-hidden])')).toHaveLength(1);
-  });
-
-  // The stop itself is a spring settling over time, and jsdom animates nothing. What
-  // is assertable is the intent: pointing at the band asks it to stop, leaving asks it
-  // to resume.
-  it('asks the scroll to stop while the pointer is over it', async () => {
-    const user = userEvent.setup();
-    answer({
-      supporters: [{ name: 'Leo Marchetti', amount: 12, currency: 'EUR' }],
-      total: 9,
-    });
-    render(<SupporterBand />);
-
-    await screen.findAllByText('Leo Marchetti');
+    expect(await screen.findAllByText('Amara Okafor')).toHaveLength(1);
     const scroller = document.querySelector<HTMLElement>(
       '[data-slot=supporter-scroller]'
     )!;
-    expect(scroller).not.toHaveAttribute('data-paused');
+    expect(scroller).toHaveAttribute('data-still');
+    expect(scroller).not.toHaveStyle({ height: '176px' });
+    // Nothing hidden from a screen reader, because nothing is a duplicate.
+    expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(0);
+  });
 
-    await user.hover(scroller);
-    expect(scroller).toHaveAttribute('data-paused');
+});
 
-    await user.unhover(scroller);
-    expect(scroller).not.toHaveAttribute('data-paused');
+/**
+ * The scrolling half cannot be reached from here at all: `vitest-setup` forces
+ * `prefers-reduced-motion`, and Motion caches that answer at module scope, so no stub
+ * applied per test can undo it. The loop, the pause and the wrap are checked in a real
+ * browser, as this repo already does for animation. What survives as a unit is the
+ * arithmetic, which is also the part that has actually broken.
+ */
+describe('repeatsToFill', () => {
+  // A 45px row against a 176px window.
+  it('repeats a lone supporter until the window is covered', () => {
+    expect(repeatsToFill(45, 1)).toBe(4);
+  });
+
+  it('leaves a list that already covers alone', () => {
+    expect(repeatsToFill(45, 5)).toBe(1);
+  });
+
+  it('scales with how short the rows are', () => {
+    expect(repeatsToFill(20, 1)).toBe(9);
+  });
+
+  // The failure that started this: an input derived from the output ran away to 317.
+  it('never asks for more than the window needs', () => {
+    for (const rows of [1, 2, 3, 7, 40]) {
+      for (const height of [12, 20, 45, 88, 200]) {
+        const repeats = repeatsToFill(height, rows);
+        expect(repeats * rows * height).toBeGreaterThanOrEqual(176);
+        // One repeat less would not cover, so nothing is drawn needlessly.
+        expect((repeats - 1) * rows * height).toBeLessThan(176);
+      }
+    }
+  });
+
+  it.each([
+    [0, 1],
+    [45, 0],
+    [Number.NaN, 1],
+  ])('falls back to a single pass for (%p, %p)', (height, rows) => {
+    expect(repeatsToFill(height, rows)).toBe(1);
   });
 });

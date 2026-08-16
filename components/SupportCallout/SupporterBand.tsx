@@ -39,6 +39,18 @@ const blurRamp = (direction: string) =>
 
 const EDGE_BLUR = '3px';
 
+/**
+ * How many times the list must repeat for one copy to cover the window. Exported
+ * because it is the one piece of this that can be checked without a browser, and it is
+ * the piece that has already gone wrong: an earlier version divided the list's height by
+ * the repeat count, feeding an answer back into its own input, and asked for 317 repeats
+ * where 18 was right. Taking a row's height instead leaves nothing to compound.
+ */
+export const repeatsToFill = (rowHeight: number, count: number) =>
+  rowHeight > 0 && count > 0
+    ? Math.max(1, Math.ceil(BAND_HEIGHT / (rowHeight * count)))
+    : 1;
+
 // Space-grouped rather than comma-grouped: the row is monospace and a comma next to
 // "total" reads as punctuation rather than as a separator.
 const groupThousands = (value: number) =>
@@ -50,10 +62,10 @@ export default function SupporterBand() {
   // Mirrors the spring's target onto the element so the intent is readable from the
   // DOM. It changes twice per visit, not per frame, so the render costs nothing.
   const [paused, setPaused] = useState(false);
-  // How many times the list repeats inside one copy. The band always scrolls, so a copy
-  // shorter than the window would tear a gap open on every wrap: with a single supporter
-  // that gap is most of the band. The repeat is what keeps the loop seamless from the
-  // very first donation, at the cost of showing a short list more than once.
+  // How many times the list repeats inside one copy. A copy shorter than the window
+  // would tear a gap open on every wrap: with a single supporter that gap is most of the
+  // band. The repeat is what keeps the loop seamless from the very first donation, at
+  // the cost of showing a short list more than once.
   const [passes, setPasses] = useState(1);
   const reduceMotion = useReducedMotion();
 
@@ -62,6 +74,13 @@ export default function SupporterBand() {
   const offset = useMotionValue(0);
   const count = supporters.length;
   const speed = useSpring(1, SPEED_SPRING);
+
+  // Reduced motion drops the whole scrolling apparatus, not just the movement. Freezing
+  // the loop on its own leaves the machinery it needs on screen: a fixed window, faded
+  // edges, and the same names repeated to fill it, which without the scroll reads as a
+  // duplication bug. What is left is the plain list it was always standing in for.
+  const scrolls = !reduceMotion;
+  const copies = scrolls ? 2 * passes : 1;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -86,16 +105,14 @@ export default function SupporterBand() {
   // observe. Measuring inline here instead would be a render feeding a render.
   useEffect(() => {
     const row = rowRef.current;
-    if (!row) return;
+    if (!row || !scrolls) return;
 
-    const observer = new ResizeObserver(() => {
-      const rowHeight = row.offsetHeight;
-      if (!rowHeight) return;
-      setPasses(Math.max(1, Math.ceil(BAND_HEIGHT / (rowHeight * count))));
-    });
+    const observer = new ResizeObserver(() =>
+      setPasses(repeatsToFill(row.offsetHeight, count))
+    );
     observer.observe(row);
     return () => observer.disconnect();
-  }, [count]);
+  }, [count, scrolls]);
 
   const pause = (next: boolean) => {
     setPaused(next);
@@ -106,7 +123,7 @@ export default function SupporterBand() {
   // two copies lands exactly where the first one ended.
   useAnimationFrame((_, delta) => {
     const list = listRef.current;
-    if (!list || reduceMotion) return;
+    if (!list || !scrolls) return;
     const copy = list.scrollHeight / 2;
     if (!copy) return;
     const next = offset.get() - (speed.get() * PIXELS_PER_SECOND * delta) / 1000;
@@ -133,21 +150,27 @@ export default function SupporterBand() {
 
       <div
         data-slot="supporter-scroller"
-        data-paused={paused || undefined}
+        data-paused={(scrolls && paused) || undefined}
+        data-still={!scrolls || undefined}
         className="relative"
-        style={{ height: BAND_HEIGHT }}
+        style={scrolls ? { height: BAND_HEIGHT } : undefined}
         onPointerEnter={() => pause(true)}
         onPointerLeave={() => pause(false)}
       >
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ maskImage: EDGE_MASK, WebkitMaskImage: EDGE_MASK }}
+          className={cn('overflow-hidden', scrolls && 'absolute inset-0')}
+          style={
+            scrolls
+              ? { maskImage: EDGE_MASK, WebkitMaskImage: EDGE_MASK }
+              : undefined
+          }
         >
-          <motion.ul ref={listRef} style={{ y: offset }}>
-            {/* Drawn twice so the list can run off the bottom and arrive at the top
-                without a gap, each copy repeated until it outruns the window. Only the
-                very first pass is announced: the rest are the same names again. */}
-            {Array.from({ length: 2 * passes }, (_, pass) =>
+          <motion.ul ref={listRef} style={{ y: scrolls ? offset : 0 }}>
+            {/* Drawn twice when it scrolls, so the list can run off the bottom and
+                arrive at the top without a gap, each copy repeated until it outruns the
+                window. Only the very first pass is announced: the rest are the same
+                names again. */}
+            {Array.from({ length: copies }, (_, pass) =>
               supporters.map((supporter, index) => (
                 <li
                   key={`${pass}-${index}`}
@@ -169,8 +192,12 @@ export default function SupporterBand() {
 
         {/* Siblings of the masked list rather than children of it: a child would be
             erased by the very mask that is supposed to shape it. */}
-        <EdgeBlur edge="top" />
-        <EdgeBlur edge="bottom" />
+        {scrolls && (
+          <>
+            <EdgeBlur edge="top" />
+            <EdgeBlur edge="bottom" />
+          </>
+        )}
       </div>
     </div>
   );
