@@ -25,27 +25,43 @@ import { cn } from '@/lib/utils';
 // loose, since it only ever springs back to rest.
 const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
-const FILL_MASS = 0.5;
+// How far the bar runs past before settling back, in percentage points. An
+// amount rather than a share: a spring's overshoot is a share of the distance by
+// construction, which is what makes a long throw feel violent next to a nudge.
+const SETTLE_PAST = 0.9;
+// Small moves cannot spend the whole of it without the settle swamping them.
+const SETTLE_SHARE = 0.35;
+// The fraction of the run spent reaching, the rest easing back.
+const SETTLE_AT = 0.78;
+
+const TRAVEL_MIN = 0.05;
+const TRAVEL_PER_ROOT = 0.05;
+const TRAVEL_MAX = 0.5;
+
+// Under the pointer the bar is tracking rather than travelling, and a timed
+// curve cannot track: restarted every move it begins again from rest, which
+// reads as easing off and then lurching. A spring carries its velocity across a
+// re-target. Damping ratio ~0.65, which puts a step snap taken mid-drag on the
+// same 0.9 the settle uses.
+const DRAG_SPRING = { stiffness: 520, damping: 21, mass: 0.5 };
 
 /**
- * A spring's peak speed and its overshoot both scale with the distance covered,
- * so one setting cannot serve a nudge between two steps and a click across the
- * whole bar: tuned for the nudge, the long throw arrives violently.
+ * An eased run to the mark, overshot by a fixed amount and eased back: the
+ * travel reads as a glide and the settle is the same weight whether the bar
+ * crossed a step or the whole track.
  *
- * Reach is squared so the correction stays out of the way of short moves, which
- * are the common case and already feel right, and only takes hold on the long
- * ones. At full reach the spring is critically damped and does not overshoot at
- * all — the distance alone is enough weight.
+ * Duration grows on the square root of the distance rather than with it, so a
+ * long throw takes longer without dragging its feet.
  */
-function fillSpring(distance: number) {
-  const reach = Math.min(Math.max(distance, 0), 100) / 100;
-  const eased = reach * reach;
-  const stiffness = 700 - 460 * eased;
-  const ratio = 0.7 + 0.3 * eased;
+function fillTravel(from: number, to: number) {
+  const distance = Math.abs(to - from);
+  const past = Math.min(SETTLE_PAST, distance * SETTLE_SHARE);
   return {
-    stiffness,
-    mass: FILL_MASS,
-    damping: ratio * 2 * Math.sqrt(stiffness * FILL_MASS),
+    keyframes: [from, to + Math.sign(to - from) * past, to],
+    duration: Math.min(
+      TRAVEL_MAX,
+      TRAVEL_MIN + Math.sqrt(distance) * TRAVEL_PER_ROOT
+    ),
   };
 }
 
@@ -212,13 +228,24 @@ export default function Slider({
       fill.jump(target);
       return;
     }
+    const current = fill.get();
+    if (current === target) return;
     fillAnimation.current?.stop();
-    // Carrying the velocity over is what keeps a re-target mid-flight from
-    // reading as a stop and a restart, which is every frame of a drag.
-    fillAnimation.current = animate(fill, target, {
-      type: 'spring',
-      velocity: fill.getVelocity(),
-      ...fillSpring(Math.abs(target - fill.get())),
+
+    if (drag) {
+      fillAnimation.current = animate(fill, target, {
+        type: 'spring',
+        velocity: fill.getVelocity(),
+        ...DRAG_SPRING,
+      });
+      return;
+    }
+
+    const { keyframes, duration } = fillTravel(current, target);
+    fillAnimation.current = animate(fill, keyframes, {
+      duration,
+      times: [0, SETTLE_AT, 1],
+      ease: ['easeOut', 'easeInOut'],
     });
   }, [fill, reduceMotion, strainLimit]);
 

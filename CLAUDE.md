@@ -426,13 +426,17 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   and the motion is merely smooth. Stiffness is what makes an arrival abrupt, damping is
   what decides how far it rings past — reach for damping when something is too springy,
   or the arrival goes soft along with the rebound.
-- **The fill's spring is chosen per move, from the distance it covers.** Both a spring's
-  peak speed and its overshoot scale with that distance, so no single setting serves a
-  nudge between two steps *and* a click across the whole bar: tuned for the nudge, the
-  long throw arrives violently. `fillSpring` softens and damps as the reach grows,
-  squared so short moves — the common case, and the one already tuned — are left alone.
-  A 10-point move overshoots 0.43, a 93-point one lands dead at 0. That is also why the
-  fill is driven by `animate()` rather than `useSpring`, which is configured once.
+- **The fill glides and settles; it is not sprung.** A spring's overshoot is a *share* of
+  the distance by construction, so a throw across the bar rings ten times as far as a
+  nudge between two steps however it is tuned — which is what makes a long move feel
+  violent. `fillTravel` eases to a mark overshot by a fixed *amount* and eases back, so
+  the settle weighs the same either way: 0.89 over 10 points, 0.90 over 93. Duration
+  grows on the square root of the distance, so a long throw takes longer without
+  dragging its feet. Driven through `animate()` rather than `useSpring`, which is
+  configured once and cannot be shaped per move.
+- **Sample an animation from inside the page**, through `requestAnimationFrame`, not by
+  polling over the Playwright wire. Each round trip costs 15-20ms, which is enough to
+  step over a peak: the same 93-point move read 0.50 polled and 0.90 sampled in-page.
 - **Never `Math.abs` a spring you want to see settle.** A spring settles by crossing
   zero, so an absolute value turns the rebound back into a second push: the bar bumps
   outward twice instead of recoiling. The give is signed against the side that was
