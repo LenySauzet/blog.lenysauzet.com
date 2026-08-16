@@ -198,14 +198,18 @@ shape almost every test here:
 `vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
 determinism.
 
-**jsdom is pinned to v26** and must stay there while the Node floor is 22.9: v29+ needs
-`require(ESM)`, which lands in 22.12. jsdom 30 fails every test file with
-`ERR_REQUIRE_ESM`. To lift the pin, raise `engines.node` and `.nvmrc` first.
+**jsdom tracks the Node floor**, which `.nvmrc` and `engines.node` set to 24. jsdom 30
+declares `^22.22.2 || ^24.15.0 || >=26.0.0`, so dropping below any of those brings back
+the `ERR_REQUIRE_ESM` that every test file threw under the old 22.9 floor.
 
-That pin is also why **CI pins Node via `.nvmrc`**. Vitest spawns Node, not bun, so an
-unpinned runner tests against a different runtime than anyone develops on: a jsdom 30
-bump went green in CI while failing locally. If you change `.nvmrc`, the workflow follows
-it automatically, but re-run the suite locally.
+That coupling is why **CI pins Node via `.nvmrc`**. Vitest spawns Node, not bun, so an
+unpinned runner tests against a different runtime than anyone develops on: a jsdom bump
+once went green in CI while failing locally. If you change `.nvmrc`, the workflow follows
+it automatically, but run `nvm install` and re-run the suite before trusting it.
+
+**Do not assert on serialised CSS.** A parser may rewrite what it stores: jsdom 30 drops
+`to bottom` from a gradient, being the default direction, so a test looking for it broke
+on a component that had not changed. Assert the non-default direction, or its absence.
 
 ## The MDX paragraph trap
 

@@ -51,6 +51,11 @@ describe('ScrollFade', () => {
 
   // Both gradients run from the clinging edge inward, so they have to flip
   // together with it. Flipping one and not the other would blur the wrong end.
+  //
+  // Asserted against `to top` in both directions rather than against each
+  // keyword in turn: `to bottom` is a gradient's default direction, and a CSS
+  // parser is free to drop it when serialising, which is what jsdom 30 started
+  // doing. Its absence is the only reading of "downward" that survives that.
   describe('position', () => {
     it('clings to the bottom and runs upward by default', () => {
       const { container } = render(<ScrollFade />);
@@ -66,8 +71,8 @@ describe('ScrollFade', () => {
       const [blurLayer, colourLayer] = layers(container);
 
       expect(root(container).className).toContain('top-0');
-      expect(blurLayer.style.maskImage).toContain('to bottom');
-      expect(colourLayer.style.background).toContain('to bottom');
+      expect(blurLayer.style.maskImage).not.toContain('to top');
+      expect(colourLayer.style.background).not.toContain('to top');
     });
   });
 });
