@@ -84,36 +84,29 @@ describe('SupporterBand', () => {
  * arithmetic, which is also the part that has actually broken.
  */
 describe('repeatsToFill', () => {
-  // A 45px row against a 176px window.
-  it('repeats a lone supporter until the window is covered', () => {
-    expect(repeatsToFill(45, 1)).toBe(4);
+  it('repeats a lone supporter until the six-name window is covered', () => {
+    expect(repeatsToFill(1)).toBe(6);
+  });
+
+  it('rounds up rather than leaving a sliver uncovered', () => {
+    expect(repeatsToFill(4)).toBe(2);
   });
 
   it('leaves a list that already covers alone', () => {
-    expect(repeatsToFill(45, 5)).toBe(1);
-  });
-
-  it('scales with how short the rows are', () => {
-    expect(repeatsToFill(20, 1)).toBe(9);
+    expect(repeatsToFill(6)).toBe(1);
+    expect(repeatsToFill(40)).toBe(1);
   });
 
   // The failure that started this: an input derived from the output ran away to 317.
-  it('never asks for more than the window needs', () => {
-    for (const rows of [1, 2, 3, 7, 40]) {
-      for (const height of [12, 20, 45, 88, 200]) {
-        const repeats = repeatsToFill(height, rows);
-        expect(repeats * rows * height).toBeGreaterThanOrEqual(176);
-        // One repeat less would not cover, so nothing is drawn needlessly.
-        expect((repeats - 1) * rows * height).toBeLessThan(176);
-      }
+  it('covers the window without ever drawing a repeat too many', () => {
+    for (const count of [1, 2, 3, 4, 5, 6, 7, 40]) {
+      const repeats = repeatsToFill(count);
+      expect(repeats * count).toBeGreaterThanOrEqual(6);
+      expect((repeats - 1) * count).toBeLessThan(6);
     }
   });
 
-  it.each([
-    [0, 1],
-    [45, 0],
-    [Number.NaN, 1],
-  ])('falls back to a single pass for (%p, %p)', (height, rows) => {
-    expect(repeatsToFill(height, rows)).toBe(1);
+  it.each([0, -3, Number.NaN])('falls back to a single pass for %p', (count) => {
+    expect(repeatsToFill(count)).toBe(1);
   });
 });

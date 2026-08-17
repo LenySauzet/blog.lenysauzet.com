@@ -16,13 +16,17 @@ import {
 } from '@/lib/supporters';
 import { cn } from '@/lib/utils';
 
-// Slow enough to read a name in passing, which is the whole point of the band. A 45px
-// row crosses the window in a touch over seven seconds at this rate.
-const PIXELS_PER_SECOND = 24;
+// Slow enough to read a name in passing, which is the whole point of the band.
+const PIXELS_PER_SECOND = 32;
 
-// The window the list scrolls behind. A number rather than `h-44` because the repeat
-// count is computed against it, and the two must not drift apart.
-const BAND_HEIGHT = 176;
+// The window is sized in names rather than pixels, and its height follows whatever a row
+// measures. Nothing here needs to know that a row is 41px, which is what keeps restyling
+// one from silently showing five and a sliver.
+const ROWS_IN_VIEW = 6;
+
+// Only for the first paint, before the row has been measured: `py-2.5` around `text-sm`'s
+// 20px line box, plus the rule.
+const ESTIMATED_ROW_HEIGHT = 41;
 
 // Hovering sends the speed to 0 and leaving sends it back to 1. Under-damped would
 // overshoot into running backwards, so this one is critically damped: the stop is
@@ -33,7 +37,7 @@ const SPEED_SPRING = { stiffness: 120, damping: 22, mass: 1 };
 // bands ramp the focus. A mask rather than a colour gradient, so the band needs to know
 // nothing about the surface it sits on.
 const EDGE_MASK =
-  'linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)';
+  'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)';
 
 const blurRamp = (direction: string) =>
   `linear-gradient(${direction}, black 0%, transparent 100%)`;
@@ -41,16 +45,16 @@ const blurRamp = (direction: string) =>
 const EDGE_BLUR = '3px';
 
 /**
- * How many times the list must repeat for one copy to cover the window. Exported
- * because it is the one piece of this that can be checked without a browser, and it is
- * the piece that has already gone wrong: an earlier version divided the list's height by
- * the repeat count, feeding an answer back into its own input, and asked for 317 repeats
- * where 18 was right. Taking a row's height instead leaves nothing to compound.
+ * How many times the list must repeat for one copy to cover the window.
+ *
+ * A row's height cancels out: the window is `ROWS_IN_VIEW` rows tall and a repeat is
+ * `count` rows tall, so this is a ratio of names and needs no measurement at all. The
+ * version that did measure divided the list's height by the repeat count already
+ * rendered, feeding an answer back into its own input, and asked for 317 repeats where
+ * 18 was right.
  */
-export const repeatsToFill = (rowHeight: number, count: number) =>
-  rowHeight > 0 && count > 0
-    ? Math.max(1, Math.ceil(BAND_HEIGHT / (rowHeight * count)))
-    : 1;
+export const repeatsToFill = (count: number) =>
+  count > 0 ? Math.max(1, Math.ceil(ROWS_IN_VIEW / count)) : 1;
 
 // Space-grouped rather than comma-grouped: the row is monospace and a comma next to
 // "total" reads as punctuation rather than as a separator.
@@ -63,11 +67,9 @@ export default function SupporterBand() {
   // Mirrors the spring's target onto the element so the intent is readable from the
   // DOM. It changes twice per visit, not per frame, so the render costs nothing.
   const [paused, setPaused] = useState(false);
-  // How many times the list repeats inside one copy. A copy shorter than the window
-  // would tear a gap open on every wrap: with a single supporter that gap is most of the
-  // band. The repeat is what keeps the loop seamless from the very first donation, at
-  // the cost of showing a short list more than once.
-  const [passes, setPasses] = useState(1);
+  // The window follows the row rather than a hardcoded height, so `ROWS_IN_VIEW` stays
+  // literally true when the row's padding changes.
+  const [rowHeight, setRowHeight] = useState(ESTIMATED_ROW_HEIGHT);
   const reduceMotion = useReducedMotion();
 
   const listRef = useRef<HTMLUListElement>(null);
@@ -81,7 +83,11 @@ export default function SupporterBand() {
   // edges, and the same names repeated to fill it, which without the scroll reads as a
   // duplication bug. What is left is the plain list it was always standing in for.
   const scrolls = !reduceMotion;
-  const copies = scrolls ? 2 * passes : 1;
+  // A copy shorter than the window would tear a gap open on every wrap: with a single
+  // supporter that gap is most of the band. Repeating is what keeps the loop seamless
+  // from the very first donation, at the cost of showing a short list more than once.
+  const copies = scrolls ? 2 * repeatsToFill(count) : 1;
+  const bandHeight = rowHeight * ROWS_IN_VIEW;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -97,23 +103,18 @@ export default function SupporterBand() {
     return () => controller.abort();
   }, []);
 
-  // Measures one row, never the list. Dividing the list's height by the repeat count
-  // would feed the answer back into its own input, and any error there compounds instead
-  // of settling: a fixed reading once asked for 317 repeats of 18. A row's height does
-  // not move when the list grows, so this reads the same however many are drawn.
-  //
-  // The observer is what does the measuring, including the first one, since it fires on
-  // observe. Measuring inline here instead would be a render feeding a render.
+  // The observer does the measuring, including the first one since it fires on observe.
+  // Reading the row inline here instead would be a render feeding a render.
   useEffect(() => {
     const row = rowRef.current;
     if (!row || !scrolls) return;
 
-    const observer = new ResizeObserver(() =>
-      setPasses(repeatsToFill(row.offsetHeight, count))
-    );
+    const observer = new ResizeObserver(() => {
+      if (row.offsetHeight) setRowHeight(row.offsetHeight);
+    });
     observer.observe(row);
     return () => observer.disconnect();
-  }, [count, scrolls]);
+  }, [scrolls]);
 
   const pause = (next: boolean) => {
     setPaused(next);
@@ -154,7 +155,7 @@ export default function SupporterBand() {
         data-paused={(scrolls && paused) || undefined}
         data-still={!scrolls || undefined}
         className="relative"
-        style={scrolls ? { height: BAND_HEIGHT } : undefined}
+        style={scrolls ? { height: bandHeight } : undefined}
         onPointerEnter={() => pause(true)}
         onPointerLeave={() => pause(false)}
       >
@@ -179,7 +180,7 @@ export default function SupporterBand() {
                   aria-hidden={pass > 0 || undefined}
                   // `mx-5` rather than `px-5`: the margin insets the rule with the box,
                   // where padding would leave it spanning the card.
-                  className="flex items-center justify-between border-b border-border/60 mx-5 py-3 font-mono text-sm"
+                  className="flex items-center justify-between border-b border-border/60 mx-5 py-2.5 font-mono text-sm"
                 >
                   <span className="text-muted-foreground">{supporter.name}</span>
                   <span className="text-primary tabular-nums">
@@ -211,7 +212,7 @@ function EdgeBlur({ edge }: { edge: 'top' | 'bottom' }) {
     <div
       aria-hidden="true"
       className={cn(
-        'pointer-events-none absolute inset-x-0 h-10',
+        'pointer-events-none absolute inset-x-0 h-20',
         edge === 'top' ? 'top-0' : 'bottom-0'
       )}
       style={{
