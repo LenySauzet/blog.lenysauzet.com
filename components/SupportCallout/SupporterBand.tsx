@@ -22,7 +22,7 @@ const PIXELS_PER_SECOND = 32;
 // The window is sized in names rather than pixels, and its height follows whatever a row
 // measures. Nothing here needs to know that a row is 41px, which is what keeps restyling
 // one from silently showing five and a sliver.
-const ROWS_IN_VIEW = 6;
+const ROWS_IN_VIEW = 5;
 
 // Only for the first paint, before the row has been measured: `py-2.5` around `text-sm`'s
 // 20px line box, plus the rule.

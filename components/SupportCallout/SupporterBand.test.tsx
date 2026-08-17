@@ -69,7 +69,8 @@ describe('SupporterBand', () => {
       '[data-slot=supporter-scroller]'
     )!;
     expect(scroller).toHaveAttribute('data-still');
-    expect(scroller).not.toHaveStyle({ height: '176px' });
+    // No window at all, rather than a window of some particular height.
+    expect(scroller.style.height).toBe('');
     // Nothing hidden from a screen reader, because nothing is a duplicate.
     expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(0);
   });
@@ -84,25 +85,25 @@ describe('SupporterBand', () => {
  * arithmetic, which is also the part that has actually broken.
  */
 describe('repeatsToFill', () => {
-  it('repeats a lone supporter until the six-name window is covered', () => {
-    expect(repeatsToFill(1)).toBe(6);
+  it('repeats a lone supporter until the five-name window is covered', () => {
+    expect(repeatsToFill(1)).toBe(5);
   });
 
   it('rounds up rather than leaving a sliver uncovered', () => {
-    expect(repeatsToFill(4)).toBe(2);
+    expect(repeatsToFill(3)).toBe(2);
   });
 
   it('leaves a list that already covers alone', () => {
-    expect(repeatsToFill(6)).toBe(1);
+    expect(repeatsToFill(5)).toBe(1);
     expect(repeatsToFill(40)).toBe(1);
   });
 
   // The failure that started this: an input derived from the output ran away to 317.
   it('covers the window without ever drawing a repeat too many', () => {
-    for (const count of [1, 2, 3, 4, 5, 6, 7, 40]) {
+    for (const count of [1, 2, 3, 4, 5, 6, 40]) {
       const repeats = repeatsToFill(count);
-      expect(repeats * count).toBeGreaterThanOrEqual(6);
-      expect((repeats - 1) * count).toBeLessThan(6);
+      expect(repeats * count).toBeGreaterThanOrEqual(5);
+      expect((repeats - 1) * count).toBeLessThan(5);
     }
   });
 
