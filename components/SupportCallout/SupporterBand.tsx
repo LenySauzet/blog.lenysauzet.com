@@ -16,8 +16,9 @@ import {
 } from '@/lib/supporters';
 import { cn } from '@/lib/utils';
 
-// Slow enough to read a name in passing, which is the whole point of the band.
-const PIXELS_PER_SECOND = 18;
+// Slow enough to read a name in passing, which is the whole point of the band. A 45px
+// row crosses the window in a touch over seven seconds at this rate.
+const PIXELS_PER_SECOND = 24;
 
 // The window the list scrolls behind. A number rather than `h-44` because the repeat
 // count is computed against it, and the two must not drift apart.
