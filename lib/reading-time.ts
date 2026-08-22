@@ -3,15 +3,12 @@ import path from 'path';
 
 const WORDS_PER_MINUTE = 200;
 
-/**
- * Code counts. It is a quarter of the words on the longest post here, and skimming a
- * listing still takes time, so dropping it would under-report those posts badly.
- */
+/** Code counts towards the total: skimming a listing still takes time. */
 export function readingTime(source: string): number {
   const words = source
     .replace(/export const metadata[\s\S]*?\n};?\n/, '')
     .replace(/^import .*$/gm, '')
-    .replace(/```(\w+)?/g, ' ')
+    .replace(/```\w*/g, ' ')
     .replace(/\$\$[\s\S]*?\$\$/g, ' ')
     .replace(/\$[^$\n]*\$/g, ' ')
     .replace(/<[^>]+>/g, ' ')

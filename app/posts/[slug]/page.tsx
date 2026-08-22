@@ -63,8 +63,7 @@ export default async function Page({
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
             </h1>
-            {/* One string, so the decode crosses the whole line once instead of
-                running twice side by side. */}
+            {/* One string, so a single decode crosses the whole line. */}
             <time
               itemProp="datepublished"
               dateTime={metadata.date}
