@@ -85,8 +85,19 @@ describe('normaliseSupporters', () => {
     expect(normaliseSupporters([{ ...COFFEE, ...override }])).toEqual([]);
   });
 
-  it('drops a row with no price rather than showing a free coffee', () => {
-    expect(normaliseSupporters([{ ...COFFEE, support_coffee_price: null }])).toEqual([]);
+  // `Number('')` is 0 and a negative is finite, so neither is caught by "is it a number".
+  it.each([null, '', '0', 0, '-5', -5])(
+    'drops a row priced %p rather than publishing it',
+    (price) => {
+      expect(
+        normaliseSupporters([{ ...COFFEE, support_coffee_price: price }])
+      ).toEqual([]);
+    }
+  );
+
+  it.each(['', 0, -3])('ignores a coffee count of %p and assumes one', (count) => {
+    const [row] = normaliseSupporters([{ ...COFFEE, support_coffees: count }]);
+    expect(row.amount).toBe(5);
   });
 
   // All real answers from their API, every one served as HTTP 200.
@@ -129,6 +140,12 @@ describe('normaliseMembers', () => {
       },
     ]);
     expect(rows).toHaveLength(1);
+  });
+
+  it.each([null, '', '0', -5])('drops a member priced %p', (price) => {
+    expect(
+      normaliseMembers([{ ...MEMBER, subscription_coffee_price: price }])
+    ).toEqual([]);
   });
 
   it('drops one cancelled outright', () => {
@@ -177,6 +194,10 @@ describe('readTotal', () => {
 
   it('survives a payload that is not an object', () => {
     expect(readTotal('nope', 7)).toBe(7);
+  });
+
+  it('keeps a reported zero, which is a real answer', () => {
+    expect(readTotal({ total: 0 }, 9)).toBe(0);
   });
 });
 

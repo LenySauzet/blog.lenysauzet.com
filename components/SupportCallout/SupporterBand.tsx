@@ -49,7 +49,10 @@ const groupThousands = (value: number) =>
 export default function SupporterBand() {
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [total, setTotal] = useState(0);
-  const [paused, setPaused] = useState(false);
+  // Hover and focus are tracked apart, then combined. One flag lets a pointer leaving
+  // resume a band that still has focus, and a blur resume one still under the pointer.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [rowHeight, setRowHeight] = useState(ESTIMATED_ROW_HEIGHT);
   const reduceMotion = useReducedMotion();
 
@@ -61,6 +64,7 @@ export default function SupporterBand() {
 
   // Reduced motion drops the apparatus, not just the movement: a frozen window of
   // repeated names reads as a duplication bug.
+  const paused = hovered || focused;
   const scrolls = !reduceMotion;
   const copies = scrolls ? 2 * repeatsToFill(count) : 1;
   const bandHeight = rowHeight * ROWS_IN_VIEW;
@@ -93,10 +97,9 @@ export default function SupporterBand() {
     return () => observer.disconnect();
   }, [scrolls]);
 
-  const pause = (next: boolean) => {
-    setPaused(next);
-    speed.set(next ? 0 : 1);
-  };
+  useEffect(() => {
+    speed.set(paused ? 0 : 1);
+  }, [paused, speed]);
 
   // Wrapped against one copy, not the window, so the seam lands where the copy ended.
   useAnimationFrame((_, delta) => {
@@ -138,10 +141,10 @@ export default function SupporterBand() {
         })}
         className="relative focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
         style={scrolls ? { height: bandHeight } : undefined}
-        onPointerEnter={() => pause(true)}
-        onPointerLeave={() => pause(false)}
-        onFocus={() => pause(true)}
-        onBlur={() => pause(false)}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
       >
         <div
           className={cn('overflow-hidden', scrolls && 'absolute inset-0')}

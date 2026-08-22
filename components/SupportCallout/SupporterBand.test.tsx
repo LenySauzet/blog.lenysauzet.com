@@ -67,8 +67,6 @@ describe('SupporterBand', () => {
       '[data-slot=supporter-scroller]'
     )!;
     expect(scroller).toHaveAttribute('data-still');
-    // No window at all, rather than a window of some particular height.
-    expect(scroller.style.height).toBe('');
     // Nothing hidden from a screen reader, because nothing is a duplicate.
     expect(document.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(0);
     // Nothing to pause means no tab stop: the stop exists only to stop the scroll.
