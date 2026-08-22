@@ -139,10 +139,13 @@ that neither file makes obvious:
   it now sets `outline-style: none` for that element, and the width utilities resolve
   their style from the same variable. `outline-none focus-visible:outline-2` therefore
   computes to `2px none` and paints nothing. Drop it: the browser only draws its default
-  ring when `:focus-visible` matches anyway, which is where ours takes over. Harmless
-  when the ring lives on a different element (`ui/slider.tsx` puts it on the root and
-  `outline-none` on the thumb) or when focus is shown by border and shadow instead
-  (`ui/input.tsx`).
+  ring when `:focus-visible` matches anyway, which is where ours takes over. **It only
+  bites an actual `outline`** — `ring-*` is a box-shadow and is untouched by it, which is
+  why `MediaPlayer`, `ImageZoom`, `BeforeAfterSlider` and the Sandpack buttons are fine
+  as written. Also harmless when the ring lives on a different element (`ui/slider.tsx`
+  puts it on the root, `outline-none` on the thumb) or when focus is shown some other way
+  (`ui/input.tsx` uses border and shadow, `CopyButton` a background). Grep for it with
+  care: `focus-visible:outline-` matches `focus-visible:outline-none` itself.
 - **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
   bare identifier tokenises as plain text in any grammar and highlighting only dimmed it
   into the prose. Set in `next.config.ts` via `defaultLang`.
