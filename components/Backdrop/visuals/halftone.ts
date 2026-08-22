@@ -64,14 +64,14 @@ void main() {
   // The sharp region is bounded by a line climbing left to right; everything
   // below it softens with distance from that line.
   float below = (0.34 + 0.56 * vUv.x) - vUv.y;
-  float soften = smoothstep(-0.04, 0.5, below);
+  float soften = smoothstep(-0.08, 0.34, below);
 
   // One device pixel in cell space. Derivatives are an extension here, and the
   // cell size already says what a pixel is worth.
-  float edge = (1.0 / CELL) * (1.0 + soften * 6.0);
+  float edge = (1.0 / CELL) * (1.0 + soften * 11.0);
   float ink = 1.0 - smoothstep(radius - edge, radius + edge, length(within));
 
-  gl_FragColor = vec4(mix(uBackground, uColor, ink * field * (1.0 - soften * 0.35)), 1.0);
+  gl_FragColor = vec4(mix(uBackground, uColor, ink * field * (1.0 - soften * 0.45)), 1.0);
 }
 `,
 };

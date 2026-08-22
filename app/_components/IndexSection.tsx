@@ -2,6 +2,8 @@ import { Backdrop } from '@/components/Backdrop';
 import { halftone } from '@/components/Backdrop/visuals/halftone';
 import Logo from '@/components/Logo';
 
+import { PanelReveal } from './PanelReveal';
+
 export function IndexSection() {
   return (
     <div className="relative hidden overflow-hidden lg:block">
@@ -13,6 +15,8 @@ export function IndexSection() {
           Essays &amp; Experiments at the frontier of the web
         </h1>
       </div>
+
+      <PanelReveal />
     </div>
   );
 }
