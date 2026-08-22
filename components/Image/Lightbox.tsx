@@ -24,8 +24,6 @@ interface LightboxProps {
   onOpenChange: (open: boolean) => void;
   /** Names the surface for screen readers. */
   title: string;
-  /** Fires once the exit animation has finished. */
-  onExitComplete?: () => void;
   children: ReactNode;
 }
 
@@ -39,7 +37,6 @@ export function Lightbox({
   open,
   onOpenChange,
   title,
-  onExitComplete,
   children,
 }: LightboxProps) {
   const isHydrated = useIsHydrated();
@@ -77,7 +74,7 @@ export function Lightbox({
   if (!isHydrated) return null;
 
   return createPortal(
-    <AnimatePresence onExitComplete={onExitComplete}>
+    <AnimatePresence>
       {open ? (
         <motion.div
           key="lightbox"

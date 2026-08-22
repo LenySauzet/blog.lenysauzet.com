@@ -32,8 +32,9 @@ function PostImage({
   return <NextImage {...props} sizes={IMAGE_SIZES} className={className} />;
 }
 
-// Both copies share one `layoutId`, so Motion tweens one bounding box into the
-// other instead of cross-fading.
+// Both copies share one `layoutId`: Motion morphs one bounding box into the other
+// and crossfades between them, which is why the source has to stay visible for the
+// length of each transition.
 export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const [open, setOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
@@ -49,10 +50,8 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform' }}
-        // Only once the copy has landed: Motion crossfades the two while the box
-        // travels, and restores this one to full opacity when it is done, which
-        // leaves it showing through the scrim. Hiding it any earlier would cancel
-        // the crossfade and the copy would pop instead.
+        // Hidden only between the two transitions, where the copy has left this box
+        // behind and Motion has handed its opacity back.
         className={cn(
           'block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
           zoomed && 'invisible'
