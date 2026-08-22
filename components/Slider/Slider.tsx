@@ -375,7 +375,7 @@ export default function Slider({
             className={cn(
               sliderGrip,
               !gripClear && 'opacity-0',
-              gripClear && (engaged ? 'scale-y-100 opacity-100' : 'scale-y-50 opacity-40')
+              gripClear && (engaged ? 'scale-y-100 opacity-100' : 'scale-y-75 opacity-40')
             )}
             style={{ x: gripX }}
           />
