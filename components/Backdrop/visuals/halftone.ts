@@ -1,6 +1,5 @@
 import type { Visual } from '../types';
 
-// Two octaves drifting apart, so the field evolves instead of sliding past.
 const NOISE = /* glsl */ `
 vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
 
@@ -52,14 +51,13 @@ void main() {
   vec2 cell = floor(vUv * grid);
   vec2 within = fract(vUv * grid) - 0.5;
 
+  // One octave: the shapes should read as broad drifts, not as texture, and it is
+  // the only per-pixel cost worth counting here.
   vec2 p = (cell / grid) * aspect * SCALE;
-  float field =
-    snoise(p + vec2(uTime * 0.05, uTime * -0.03)) * 0.6 +
-    snoise(p * 2.1 + vec2(uTime * -0.02, uTime * 0.04)) * 0.4;
-  field = field * 0.5 + 0.5;
+  float field = snoise(p + vec2(uTime * 0.03, uTime * -0.02)) * 0.5 + 0.5;
 
   // The cell is a unit square, so a radius past 0.5 would touch its neighbours.
-  float radius = smoothstep(0.15, 1.0, field) * 0.46;
+  float radius = (0.12 + 0.88 * smoothstep(0.05, 0.95, field)) * 0.46;
   // One device pixel in cell space. Derivatives are an extension here, and the
   // cell size already says what a pixel is worth.
   float edge = 1.0 / CELL;

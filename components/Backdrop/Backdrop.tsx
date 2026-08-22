@@ -12,6 +12,18 @@ import type { Visual } from './types';
 // extra ones are not visible enough to pay for.
 const MAX_DPR = 2;
 
+// Sharp in the middle, blurred everywhere else, so the blur ramps outward.
+const EDGE_BLUR =
+  'radial-gradient(58% 52% at 50% 50%, transparent 0%, black 100%)';
+
+// Nothing of the visual survives the frame, in the page's own colour.
+const EDGE_FADE =
+  'radial-gradient(62% 58% at 50% 50%, transparent 30%, oklch(from var(--background) l c h / 0.55) 72%, var(--background) 100%)';
+
+// Broad and heavily tinted through the middle, which is what sits the type on it.
+const CENTRE_WASH =
+  'radial-gradient(75% 60% at 42% 68%, oklch(from var(--background) l c h / 0.9) 0%, oklch(from var(--background) l c h / 0.5) 48%, transparent 85%)';
+
 const VERTEX = /* glsl */ `
 attribute vec2 uv;
 attribute vec2 position;
@@ -49,7 +61,16 @@ export interface BackdropProps {
 
 export function Backdrop({ visual, className }: BackdropProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const colors = useRef<Program | null>(null);
   const { resolvedTheme } = useTheme();
+
+  // A theme change is two numbers, not a reason to throw the context away.
+  useEffect(() => {
+    const program = colors.current;
+    if (!program) return;
+    program.uniforms.uColor.value = readColor('--primary');
+    program.uniforms.uBackground.value = readColor('--background');
+  }, [resolvedTheme]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -75,6 +96,7 @@ export function Backdrop({ visual, className }: BackdropProps) {
       },
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+    colors.current = program;
 
     const draw = (seconds: number) => {
       program.uniforms.uTime.value = seconds;
@@ -131,14 +153,25 @@ export function Backdrop({ visual, className }: BackdropProps) {
       document.removeEventListener('visibilitychange', onVisibility);
       gl.canvas.remove();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
+      colors.current = null;
     };
-  }, [visual, resolvedTheme]);
+  }, [visual]);
 
   return (
     <div
-      ref={hostRef}
       aria-hidden
       className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}
-    />
+    >
+      <div ref={hostRef} className="absolute inset-0" />
+
+      {/* Framing, held here so a visual never draws its own: the edges dissolve,
+          and a wide wash sinks the middle back toward the page. */}
+      <div
+        className="absolute inset-0 backdrop-blur-lg"
+        style={{ maskImage: EDGE_BLUR, WebkitMaskImage: EDGE_BLUR }}
+      />
+      <div className="absolute inset-0" style={{ background: EDGE_FADE }} />
+      <div className="absolute inset-0" style={{ background: CENTRE_WASH }} />
+    </div>
   );
 }
