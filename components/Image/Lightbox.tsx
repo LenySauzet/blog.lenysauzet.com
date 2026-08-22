@@ -84,16 +84,20 @@ export function Lightbox({
           aria-label={title}
           tabIndex={-1}
           // z-100, not z-50: the site header already claims z-50.
-          className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
+          className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
           // Fading a custom property rather than opacity keeps the morphing
           // image out of the fade.
           style={{
             backgroundColor:
               'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',
           }}
-          initial={{ '--scrim-opacity': 0 }}
-          animate={{ '--scrim-opacity': 0.8 }}
-          exit={{ '--scrim-opacity': 0, pointerEvents: 'none' }}
+          initial={{ '--scrim-opacity': 0, backdropFilter: 'blur(0px)' }}
+          animate={{ '--scrim-opacity': 0.7, backdropFilter: 'blur(12px)' }}
+          exit={{
+            '--scrim-opacity': 0,
+            backdropFilter: 'blur(0px)',
+            pointerEvents: 'none',
+          }}
           onClick={() => onOpenChange(false)}
         >
           {children}
