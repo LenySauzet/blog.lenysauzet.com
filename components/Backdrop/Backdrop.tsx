@@ -12,17 +12,16 @@ import type { Visual } from './types';
 // extra ones are not visible enough to pay for.
 const MAX_DPR = 2;
 
-// Sharp in the middle, blurred everywhere else, so the blur ramps outward.
-const EDGE_BLUR =
-  'radial-gradient(58% 52% at 50% 50%, transparent 0%, black 100%)';
+// Per edge, not radial: the frame is a rectangle and the visual has to leave by its
+// sides. Two gradients, one per axis, each fading its own pair.
+const EDGE_FADE = [
+  'linear-gradient(to right, var(--background) 0%, transparent 16%, transparent 84%, var(--background) 100%)',
+  'linear-gradient(to bottom, var(--background) 0%, transparent 16%, transparent 84%, var(--background) 100%)',
+].join(', ');
 
-// Nothing of the visual survives the frame, in the page's own colour.
-const EDGE_FADE =
-  'radial-gradient(62% 58% at 50% 50%, transparent 30%, oklch(from var(--background) l c h / 0.55) 72%, var(--background) 100%)';
-
-// Broad and heavily tinted through the middle, which is what sits the type on it.
+// What sits the type on something quiet.
 const CENTRE_WASH =
-  'radial-gradient(75% 60% at 42% 68%, oklch(from var(--background) l c h / 0.9) 0%, oklch(from var(--background) l c h / 0.5) 48%, transparent 85%)';
+  'radial-gradient(75% 55% at 38% 78%, oklch(from var(--background) l c h / 0.88) 0%, oklch(from var(--background) l c h / 0.45) 50%, transparent 85%)';
 
 const VERTEX = /* glsl */ `
 attribute vec2 uv;
@@ -164,12 +163,9 @@ export function Backdrop({ visual, className }: BackdropProps) {
     >
       <div ref={hostRef} className="absolute inset-0" />
 
-      {/* Framing, held here so a visual never draws its own: the edges dissolve,
-          and a wide wash sinks the middle back toward the page. */}
-      <div
-        className="absolute inset-0 backdrop-blur-lg"
-        style={{ maskImage: EDGE_BLUR, WebkitMaskImage: EDGE_BLUR }}
-      />
+      {/* Framing, held here so a visual never draws its own. No backdrop-filter:
+          over a canvas that redraws every frame the compositor re-blurs it every
+          frame too, which costs whole frames. Softness belongs in the shader. */}
       <div className="absolute inset-0" style={{ background: EDGE_FADE }} />
       <div className="absolute inset-0" style={{ background: CENTRE_WASH }} />
     </div>
