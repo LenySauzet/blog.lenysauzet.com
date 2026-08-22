@@ -25,10 +25,11 @@ export interface ImageZoomProps {
   quality?: number;
 }
 
-function PostImage({
-  className,
-  ...props
-}: ImageZoomProps & { className: string }) {
+interface PostImageProps extends ImageZoomProps {
+  className: string;
+}
+
+function PostImage({ className, ...props }: PostImageProps) {
   return <NextImage {...props} sizes={IMAGE_SIZES} className={className} />;
 }
 

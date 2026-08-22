@@ -18,8 +18,8 @@ describe('ZoomCaption', () => {
     expect(container.querySelectorAll('span')).toHaveLength(0);
   });
 
-  // The lightbox is already named by the same text, so announcing it again — and in
-  // pieces, once it is split into words — would only repeat it.
+  // The lightbox is already named by the same text, so announcing it again, in
+  // pieces once it is split into words, would only repeat it.
   it('is hidden from assistive tech', () => {
     const { container } = render(<ZoomCaption start>A caption</ZoomCaption>);
 

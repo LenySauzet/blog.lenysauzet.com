@@ -19,14 +19,14 @@ const REVEAL = {
 const CLASS =
   'pointer-events-none shrink-0 pt-4 text-center font-display text-sm leading-6 text-subtle-foreground';
 
-/** Hidden from assistive tech: the lightbox is already named by this same text. */
-export function ZoomCaption({
-  children,
-  start,
-}: {
+export interface ZoomCaptionProps {
   children: string;
+  /** The zoom morph has landed. */
   start: boolean;
-}) {
+}
+
+/** Hidden from assistive tech: the lightbox is already named by this same text. */
+export function ZoomCaption({ children, start }: ZoomCaptionProps) {
   const reduceMotion = useReducedMotion();
 
   if (reduceMotion) {
