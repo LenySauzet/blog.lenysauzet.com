@@ -9,17 +9,31 @@ import { useState } from 'react';
 // arc from flattening as it crosses and makes the sweep a transform rather than a
 // gradient the compositor repaints every frame.
 //
-// It sits on the layer's top edge, so only its lower arc exists: centred inside, the
-// upper arc would follow the sweep down and cover the panel it had just revealed.
-// Everything above the layer is therefore revealed for good, which is why the layer
-// runs to twice the panel and starts well above it.
-const ELLIPSE = '75% 35% at 50% 0%';
-const TRAVEL = { from: '-28%', to: '42%' };
+// The ellipse sits on the layer's top edge, so only its lower arc exists: centred
+// inside, the upper arc would follow the sweep down and cover what it had just
+// revealed. That edge is a discontinuity, so the travel ends with it still above the
+// panel. Letting it land inside drew a visible rectangular seam.
+const ELLIPSE = '95% 56% at 50% 0%';
 
-const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 72%, oklch(from var(--background) l c h / 0.88) 88%, var(--background) 100%)`;
+// Starts with the rim already on the panel's top edge. Any earlier and the opening
+// of the sweep is a covered panel holding still.
+const TRAVEL = { from: '-53%', to: '0%' };
+
+const DURATION = 2.2;
+
+// Near linear while the rim crosses, easing only once it is off the bottom. The
+// previous curve put the crossing in the first 46% and stalled for the rest.
+const EASE = [0.35, 0.08, 0.6, 1] as const;
+
+// The rim clears the panel here, which is where the blur has nothing left to reveal.
+const SETTLE = 0.55;
+
+const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 94%, var(--background) 100%)`;
 
 // Ramps in well ahead of the wash, so a band emerges blurred before it is uncovered.
-const BLUR_MASK = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 38%, black 70%, black 100%)`;
+// Its first stop clears the layer's top edge, where the mask would otherwise be
+// opaque along a straight line and cut the blur off square.
+const BLUR_MASK = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 58%, black 115%)`;
 
 const BLUR = '20px';
 
@@ -31,21 +45,30 @@ export function PanelReveal() {
   return (
     <motion.div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[200%]"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[250%]"
       initial={{ y: TRAVEL.from }}
       animate={{ y: TRAVEL.to }}
-      transition={{ duration: 2.8, ease: [0.3, 0.2, 0.35, 1] }}
+      transition={{ duration: DURATION, ease: EASE }}
       onAnimationComplete={() => setSwept(true)}
     >
-      {/* A backdrop filter re-blurs its backdrop every frame for as long as it is
-          mounted, so it leaves with the sweep rather than lingering transparent. */}
-      <div
+      {/* The rim leaves the corners last, so the mask still holds blur there when the
+          travel ends. Fading it out is what keeps the layer from vanishing on a
+          frame. A backdrop filter also re-blurs its backdrop for as long as it is
+          mounted, which is why the whole component goes once the sweep is over. */}
+      <motion.div
         className="absolute inset-0"
         style={{
           backdropFilter: `blur(${BLUR})`,
           WebkitBackdropFilter: `blur(${BLUR})`,
           maskImage: BLUR_MASK,
           WebkitMaskImage: BLUR_MASK,
+        }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{
+          duration: DURATION * (1 - SETTLE),
+          delay: DURATION * SETTLE,
+          ease: 'easeInOut',
         }}
       />
       <div className="absolute inset-0" style={{ background: WASH }} />
