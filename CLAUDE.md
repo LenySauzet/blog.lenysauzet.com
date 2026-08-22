@@ -525,6 +525,21 @@ reads as a duplication bug. **jsdom cannot reach any of this**: `vitest-setup` f
 reduced motion and Motion caches it at module scope, so the loop and the ramps are
 verified in a browser and only the arithmetic is a unit test.
 
+**`components/Backdrop` draws onto transparency, and the page supplies the ground.**
+The shader outputs the accent with the ink as alpha, so `--background` is never copied
+into the frame. It used to be a uniform, and a theme flip left the old one baked in
+until the next mount: light mode with a black blob over it. Do not reintroduce it. The
+framing gradients stay in CSS for the same reason, and cost nothing extra: measured
+under 6x CPU throttling, opaque and transparent both delivered 961 frames over 8s.
+
+**A CSS token read from a React effect races next-themes.** Child effects run before
+the provider's, and the provider's is what writes the class on `<html>`, so the read
+lands one theme behind. `--primary` is theme-invariant today, which hid it. The accent
+is re-read from a `MutationObserver` instead: `class` and `style` on `<html>` for the
+toggle and for an inline override, and `childList` on `document.head`, because the dev
+server swaps the stylesheet in place and nothing remounts. Without that last one the
+visual keeps the old `--base-hue` while the rest of the site rethemes.
+
 ## New component checklist
 
 - [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`

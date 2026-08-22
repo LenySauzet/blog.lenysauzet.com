@@ -35,7 +35,6 @@ precision highp float;
 uniform float uTime;
 uniform vec2 uResolution;
 uniform vec3 uColor;
-uniform vec3 uBackground;
 
 varying vec2 vUv;
 
@@ -71,7 +70,7 @@ void main() {
   float edge = (1.0 / CELL) * (1.0 + soften * 11.0);
   float ink = 1.0 - smoothstep(radius - edge, radius + edge, length(within));
 
-  gl_FragColor = vec4(mix(uBackground, uColor, ink * field * (1.0 - soften * 0.45)), 1.0);
+  gl_FragColor = vec4(uColor, ink * field * (1.0 - soften * 0.45));
 }
 `,
 };

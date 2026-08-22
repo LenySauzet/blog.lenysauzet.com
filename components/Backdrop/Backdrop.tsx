@@ -1,6 +1,5 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import { useEffect, useRef } from 'react';
 
@@ -60,16 +59,6 @@ export interface BackdropProps {
 
 export function Backdrop({ visual, className }: BackdropProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const colors = useRef<Program | null>(null);
-  const { resolvedTheme } = useTheme();
-
-  // A theme change is two numbers, not a reason to throw the context away.
-  useEffect(() => {
-    const program = colors.current;
-    if (!program) return;
-    program.uniforms.uColor.value = readColor('--primary');
-    program.uniforms.uBackground.value = readColor('--background');
-  }, [resolvedTheme]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -78,7 +67,9 @@ export function Backdrop({ visual, className }: BackdropProps) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const renderer = new Renderer({
       dpr: Math.min(window.devicePixelRatio, MAX_DPR),
-      alpha: false,
+      // The page shows through, so the theme's background is never copied into the
+      // frame and can never go stale there. Costs one composite blend per pixel.
+      alpha: true,
     });
     const gl = renderer.gl;
     host.appendChild(gl.canvas);
@@ -91,16 +82,27 @@ export function Backdrop({ visual, className }: BackdropProps) {
         uTime: { value: 0 },
         uResolution: { value: [1, 1] },
         uColor: { value: readColor('--primary') },
-        uBackground: { value: readColor('--background') },
       },
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
-    colors.current = program;
 
     const draw = (seconds: number) => {
       program.uniforms.uTime.value = seconds;
       renderer.render({ scene: mesh });
     };
+
+    // The accent is read out of CSS once, so everything that can change what CSS
+    // resolves has to invalidate it: the theme class, an inline override, and the
+    // stylesheet itself, which the dev server swaps in place without remounting.
+    // Reading it on a React effect instead raced the theme provider, whose own
+    // effect writes that class after its children have already run.
+    const rereadAccent = () => {
+      program.uniforms.uColor.value = readColor('--primary');
+      draw(program.uniforms.uTime.value);
+    };
+    const restyled = new MutationObserver(rereadAccent);
+    restyled.observe(document.documentElement, { attributeFilter: ['class', 'style'] });
+    restyled.observe(document.head, { childList: true });
 
     const resize = () => {
       const { clientWidth, clientHeight } = host;
@@ -114,7 +116,12 @@ export function Backdrop({ visual, className }: BackdropProps) {
     resize();
 
     // Reduced motion gets the field, just not its movement.
-    if (reduced) return () => { observer.disconnect(); gl.canvas.remove(); };
+    if (reduced)
+      return () => {
+        observer.disconnect();
+        restyled.disconnect();
+        gl.canvas.remove();
+      };
 
     let frame = 0;
     let start = performance.now();
@@ -148,11 +155,11 @@ export function Backdrop({ visual, className }: BackdropProps) {
     return () => {
       pause();
       observer.disconnect();
+      restyled.disconnect();
       onScreen.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       gl.canvas.remove();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
-      colors.current = null;
     };
   }, [visual]);
 
@@ -163,9 +170,10 @@ export function Backdrop({ visual, className }: BackdropProps) {
     >
       <div ref={hostRef} className="absolute inset-0" />
 
-      {/* Framing, held here so a visual never draws its own. No backdrop-filter:
-          over a canvas that redraws every frame the compositor re-blurs it every
-          frame too, which costs whole frames. Softness belongs in the shader. */}
+      {/* Framing, held here so a visual never draws its own, and in CSS so it
+          follows the theme without anyone reading a token. No backdrop-filter: over
+          a canvas that redraws every frame the compositor re-blurs it every frame
+          too, which costs whole frames. Softness belongs in the shader. */}
       <div className="absolute inset-0" style={{ background: EDGE_FADE }} />
       <div className="absolute inset-0" style={{ background: CENTRE_WASH }} />
     </div>
