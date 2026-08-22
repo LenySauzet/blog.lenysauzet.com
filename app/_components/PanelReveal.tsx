@@ -19,14 +19,13 @@ const ELLIPSE = '95% 56% at 50% 0%';
 // of the sweep is a covered panel holding still.
 const TRAVEL = { from: '-53%', to: '0%' };
 
-const DURATION = 2.2;
+const DURATION = 1.8;
 
-// Near linear while the rim crosses, easing only once it is off the bottom. The
-// previous curve put the crossing in the first 46% and stalled for the rest.
-const EASE = [0.35, 0.08, 0.6, 1] as const;
+// Barely moving, then away: an accelerating rim reaches the corners at the very end
+// of its travel, which is why the blur outlives it rather than sharing its timing.
+const EASE = [0.4, 0, 0.7, 0.25] as const;
 
-// The rim clears the panel here, which is where the blur has nothing left to reveal.
-const SETTLE = 0.55;
+const SETTLE = { at: 0.9, tail: 0.45 };
 
 const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 94%, var(--background) 100%)`;
 
@@ -49,12 +48,11 @@ export function PanelReveal() {
       initial={{ y: TRAVEL.from }}
       animate={{ y: TRAVEL.to }}
       transition={{ duration: DURATION, ease: EASE }}
-      onAnimationComplete={() => setSwept(true)}
     >
-      {/* The rim leaves the corners last, so the mask still holds blur there when the
-          travel ends. Fading it out is what keeps the layer from vanishing on a
-          frame. A backdrop filter also re-blurs its backdrop for as long as it is
-          mounted, which is why the whole component goes once the sweep is over. */}
+      {/* The rim leaves the corners last, so the mask still holds blur there once the
+          travel is over. Fading it out is what keeps the layer from vanishing on a
+          frame, and it is the last thing to finish, so it owns the unmount. A
+          backdrop filter re-blurs its backdrop for as long as it is mounted. */}
       <motion.div
         className="absolute inset-0"
         style={{
@@ -66,10 +64,11 @@ export function PanelReveal() {
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
         transition={{
-          duration: DURATION * (1 - SETTLE),
-          delay: DURATION * SETTLE,
+          duration: DURATION * (1 - SETTLE.at) + SETTLE.tail,
+          delay: DURATION * SETTLE.at,
           ease: 'easeInOut',
         }}
+        onAnimationComplete={() => setSwept(true)}
       />
       <div className="absolute inset-0" style={{ background: WASH }} />
     </motion.div>
