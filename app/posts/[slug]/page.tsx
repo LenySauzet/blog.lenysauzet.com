@@ -2,6 +2,7 @@ import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
 import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/post-utils';
+import { readingTimeOf } from '@/lib/reading-time';
 import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -54,6 +55,7 @@ export default async function Page({
   const { slug } = await params;
   try {
     const { default: Post, metadata } = await import(`@/content/${slug}.mdx`);
+    const minutes = await readingTimeOf(slug);
     return (
       <article className="flex flex-col gap-8 pt-28 sm:pt-80 px-4">
         <div className="w-full min-w-0 max-w-2xl mx-auto">
@@ -61,16 +63,17 @@ export default async function Page({
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
             </h1>
-            <time itemProp="datepublished" dateTime={metadata.date}>
-              <ScrambledText
-                delay={0.5}
-                speed={0.8}
-                windowSize={3}
-                className="font-mono text-sm uppercase text-subtle-foreground"
-              >
-                {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
+            <div className="flex items-center gap-2 font-mono text-sm uppercase text-subtle-foreground">
+              <time itemProp="datepublished" dateTime={metadata.date}>
+                <ScrambledText delay={0.5} speed={0.8} windowSize={3}>
+                  {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
+                </ScrambledText>
+              </time>
+              <span aria-hidden>/</span>
+              <ScrambledText delay={0.6} speed={0.8} windowSize={3}>
+                {`${minutes} min read`}
               </ScrambledText>
-            </time>
+            </div>
           </div>
 
           {/* No font-weight here. The prose scale is built on a 400 body, so
