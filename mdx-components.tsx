@@ -18,6 +18,7 @@ import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
 import { Sandpack } from '@/components/Sandpack';
+import SupportCallout from '@/components/SupportCallout';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
@@ -46,6 +47,7 @@ const components = {
   Fullbleed,
   Image,
   Sandpack,
+  SupportCallout,
 
   a: Anchor,
   h1: ({ children }) => (

@@ -134,6 +134,15 @@ that neither file makes obvious:
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
   checked boxes, list markers, callout accents) and by hyperlinks, which `Anchor` takes
   straight from it. Not `--accent`, which is shadcn's muted hover *surface*.
+- **Never put `outline-none` on the element that draws its own focus ring.** Tailwind v4
+  renamed v3's `outline-none` to `outline-hidden` and gave the old name new behaviour:
+  it now sets `outline-style: none` for that element, and the width utilities resolve
+  their style from the same variable. `outline-none focus-visible:outline-2` therefore
+  computes to `2px none` and paints nothing. Drop it: the browser only draws its default
+  ring when `:focus-visible` matches anyway, which is where ours takes over. Harmless
+  when the ring lives on a different element (`ui/slider.tsx` puts it on the root and
+  `outline-none` on the thumb) or when focus is shown by border and shadow instead
+  (`ui/input.tsx`).
 - **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
   bare identifier tokenises as plain text in any grammar and highlighting only dimmed it
   into the prose. Set in `next.config.ts` via `defaultLang`.
@@ -486,6 +495,32 @@ lifting to `/40` rather than taking an edge. The panel wears the same wash over
 `backdrop-blur-md backdrop-saturate-[115%]`, so what it covers stays readable through it,
 and its items are inset by `mx-1` so a highlight reads as a card lifting out of the list
 rather than a band across it.
+
+**Buy Me a Coffee answers 200 to everything.** `lib/supporters.ts` and
+`app/api/supporters/route.ts` read their API, and `response.ok` proves nothing there: an
+empty result is `{ error: "No supporters" }` and a stale token is a 200 carrying their
+*login page*, so the route checks the content type instead. Their published reference is
+marked no longer maintained and is wrong in ways that matter — it omits `support_hidden`,
+which the live payload does send and which reads as a privacy flag, and it shows
+`supporter_name` null with the real name in `payer_name`. An amount is
+`support_coffees × support_coffee_price`; reading either alone turns a 5 EUR coffee into
+"1". `per_page` is fixed at 5 and ignored when passed, so more names means walking pages.
+**Never widen what the band shows on the strength of that reference alone** — verify
+against a live response first, and when a privacy field is ambiguous, exclude.
+
+**`components/SupportCallout` fetches from the browser on purpose.** Posts are statically
+generated, so reading the supporter list at build time would freeze the names until the
+next deploy. The card itself stays a Server Component; only the band is a client.
+
+**The band's repeat count is a ratio of names, never a measurement.** A window
+`ROWS_IN_VIEW` rows tall over a repeat of `count` rows is `ceil(ROWS_IN_VIEW / count)` —
+row height sits on both sides and cancels. Dividing the rendered list's height by the
+repeat count already drawn feeds an answer into its own input; that version asked for 317
+repeats where 18 was right and rendered 11,160 rows. Under `prefers-reduced-motion` the
+whole apparatus goes, not just the movement, because a frozen window of repeated names
+reads as a duplication bug. **jsdom cannot reach any of this**: `vitest-setup` forces
+reduced motion and Motion caches it at module scope, so the loop and the ramps are
+verified in a browser and only the arithmetic is a unit test.
 
 ## New component checklist
 
