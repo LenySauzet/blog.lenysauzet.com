@@ -21,7 +21,7 @@ every article, and a prop nobody varies is a prop nobody should have to pass.
 
 ## Shape
 
-```
+```text
 ┌────────────────────────────────────────────┐
 │ Support this work                          │
 │                                            │
@@ -54,14 +54,23 @@ the amounts.
 The route answers in **our** shape, not Buy Me a Coffee's:
 
 ```ts
+type Supporter = {
+  name: string;
+  amount: number;
+  currency: string;
+  recurring: boolean; // a monthly member rather than a one-off coffee
+};
+
 type SupportersResponse = {
-  supporters: { name: string; amount: number }[];
+  supporters: Supporter[];
   total: number;
 };
 ```
 
-Buy Me a Coffee's field names are not documented publicly — their developer portal sits
-behind a login. Normalising at the route puts that whole uncertainty in one pure
+Buy Me a Coffee's published reference is marked no longer maintained and is wrong in
+ways that matter: it omits `support_hidden`, which the live payload sends and which reads
+as a privacy flag, and it shows `supporter_name` null with the real name in `payer_name`.
+Normalising at the route puts that whole uncertainty in one pure
 function, adjustable against a real response without touching a component, and testable
 with no network.
 

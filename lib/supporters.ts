@@ -46,13 +46,13 @@ export function normaliseSupporters(payload: unknown): Dated<Supporter>[] {
     if (isPrivate(row)) return [];
     // `support_coffees` counts them, `support_coffee_price` prices one. Either alone
     // turns a 5 EUR coffee into "1".
-    const price = readNumber(row.support_coffee_price);
+    const price = readPositive(row.support_coffee_price);
     if (price === undefined) return [];
 
     return [
       {
         name: readName(row),
-        amount: (readNumber(row.support_coffees) ?? 1) * price,
+        amount: (readPositive(row.support_coffees) ?? 1) * price,
         currency: readString(row.support_currency) ?? FALLBACK_CURRENCY,
         recurring: false,
         at: readString(row.support_created_on) ?? '',
@@ -70,13 +70,13 @@ export function normaliseMembers(payload: unknown): Dated<Supporter>[] {
     if (row.subscription_is_cancelled && !row.subscription_is_cancelled_at_period_end)
       return [];
 
-    const price = readNumber(row.subscription_coffee_price);
+    const price = readPositive(row.subscription_coffee_price);
     if (price === undefined) return [];
 
     return [
       {
         name: readName(row),
-        amount: (readNumber(row.subscription_coffee_num) ?? 1) * price,
+        amount: (readPositive(row.subscription_coffee_num) ?? 1) * price,
         currency: readString(row.subscription_currency) ?? FALLBACK_CURRENCY,
         recurring: true,
         at: readString(row.subscription_created_on) ?? '',
@@ -120,6 +120,13 @@ export function formatAmount({
 
 function readString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+// `Number('')` is 0, and a negative is finite, so a malformed row would otherwise
+// publish "EUR 0" or a negative. Only amounts want this: `readTotal` reads a real 0.
+function readPositive(value: unknown) {
+  const parsed = readNumber(value);
+  return parsed !== undefined && parsed > 0 ? parsed : undefined;
 }
 
 function readNumber(value: unknown) {
