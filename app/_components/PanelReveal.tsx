@@ -3,45 +3,38 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 
-// One ellipse travelling down, read twice: the wash hides what its rim has not
-// reached, and the blur trails just inside that rim, so the panel surfaces out of
-// focus and settles. Its shape is fixed and only its centre moves, which keeps the
-// arc from flattening as it crosses and makes the sweep a transform rather than a
-// gradient the compositor repaints every frame.
+// An ellipse opening out of the top left corner: the wash hides what its rim has not
+// reached, while the whole panel resolves out of focus behind it. Its shape is fixed
+// and only its centre moves, which keeps the arc from flattening as it crosses and
+// makes the sweep a transform rather than a gradient the compositor repaints every
+// frame.
 //
-// The ellipse sits on the layer's top edge, so only its lower arc exists: centred
-// inside, the upper arc would follow the sweep down and cover what it had just
-// revealed. That edge is a discontinuity, so the travel ends with it still above the
-// panel. Letting it land inside drew a visible rectangular seam.
-const ELLIPSE = '95% 56% at 50% 0%';
+// The ellipse sits on the layer's own top left corner, so only the quarter arc
+// reaching into the panel exists: centred inside, the far arcs would follow the sweep
+// and cover what had just been revealed. Those two edges are discontinuities, so the
+// travel ends with them exactly on the panel's corner and never past it. Letting one
+// land inside drew a visible rectangular seam.
+const ELLIPSE = '74% 74% at 0% 0%';
 
-// Starts with the rim already on the panel's top edge. Any earlier and the opening
-// of the sweep is a covered panel holding still.
-const TRAVEL = { from: '-53%', to: '0%' };
+// Far enough up and left that the panel's near corner is still washed at the first
+// frame, and no further: the sweep should open, not wait.
+const TRAVEL = { from: '-56%', to: '0%' };
 
-// Scaled from the top edge, so the ellipse's centre stays where the travel puts it
-// and only its radii open up. The arc is at its sharpest while it still has panel to
-// cross, and softens into the landing.
+// Scaled from that same corner, so the ellipse's centre stays where the travel puts
+// it and only its radii open up. The arc is at its sharpest while it still has panel
+// to cross, and softens into the landing.
 const SPREAD = { from: 1, to: 1.3 };
 
-const DURATION = 1.45;
+const DURATION = 1.15;
 
-// Held back, then away, then set down. An accelerating curve alone arrives at nearly
-// its top speed and stops dead, which is what reads as mechanical: this one lands at
-// a fiftieth of it. The rim is off the corners well before the travel ends, so the
-// blur has room to fade rather than being cut off.
-const EASE = [0.76, 0, 0.24, 1] as const;
-
-const SETTLE = { at: 0.72, tail: 0.28 };
+// Even the whole way. Shaping it either way was worse: accelerating, the rim arrived
+// at nearly its top speed and stopped dead. At constant speed the stop lands after
+// the rim has left the panel, so there is nothing left on screen to see it happen.
+const EASE = 'linear' as const;
 
 const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 94%, var(--background) 100%)`;
 
-// Ramps in well ahead of the wash, so a band emerges blurred before it is uncovered.
-// Its first stop clears the layer's top edge, where the mask would otherwise be
-// opaque along a straight line and cut the blur off square.
-const BLUR_MASK = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 58%, black 115%)`;
-
-const BLUR = '20px';
+const DEFOCUS = '14px';
 
 export function PanelReveal() {
   const reduceMotion = useReducedMotion();
@@ -49,35 +42,33 @@ export function PanelReveal() {
   if (reduceMotion || swept) return null;
 
   return (
-    <motion.div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[250%] origin-top"
-      initial={{ y: TRAVEL.from, scale: SPREAD.from }}
-      animate={{ y: TRAVEL.to, scale: SPREAD.to }}
-      transition={{ duration: DURATION, ease: EASE }}
-    >
-      {/* The rim leaves the corners last, so the mask still holds blur there once the
-          travel is over. Fading it out is what keeps the layer from vanishing on a
-          frame, and it is the last thing to finish, so it owns the unmount. A
-          backdrop filter re-blurs its backdrop for as long as it is mounted. */}
+    <>
+      {/* Over the panel rather than inside the travelling layer, which is two and a
+          half panels tall and scaling: blurring that much surface would cost several
+          times what this does. A backdrop filter re-blurs its backdrop every frame
+          for as long as it is mounted, which is why the whole component goes once
+          the sweep is over. */}
       <motion.div
-        className="absolute inset-0"
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10"
         style={{
-          backdropFilter: `blur(${BLUR})`,
-          WebkitBackdropFilter: `blur(${BLUR})`,
-          maskImage: BLUR_MASK,
-          WebkitMaskImage: BLUR_MASK,
+          backdropFilter: `blur(${DEFOCUS})`,
+          WebkitBackdropFilter: `blur(${DEFOCUS})`,
         }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{
-          duration: DURATION * (1 - SETTLE.at) + SETTLE.tail,
-          delay: DURATION * SETTLE.at,
-          ease: 'easeInOut',
-        }}
+        transition={{ duration: DURATION, ease: EASE }}
         onAnimationComplete={() => setSwept(true)}
       />
-      <div className="absolute inset-0" style={{ background: WASH }} />
-    </motion.div>
+
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 z-10 h-[235%] w-[235%] origin-top-left"
+        style={{ background: WASH }}
+        initial={{ x: TRAVEL.from, y: TRAVEL.from, scale: SPREAD.from }}
+        animate={{ x: TRAVEL.to, y: TRAVEL.to, scale: SPREAD.to }}
+        transition={{ duration: DURATION, ease: EASE }}
+      />
+    </>
   );
 }
