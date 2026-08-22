@@ -41,8 +41,8 @@ varying vec2 vUv;
 
 ${NOISE}
 
-const float CELL = 14.0;
-const float SCALE = 1.6;
+const float CELL = 27.0;
+const float SCALE = 0.7;
 
 void main() {
   // Square cells whatever the frame's shape.
@@ -57,12 +57,12 @@ void main() {
   float field = snoise(p + vec2(uTime * 0.03, uTime * -0.02)) * 0.5 + 0.5;
 
   // The cell is a unit square, so a radius past 0.5 would touch its neighbours.
-  float radius = (0.42 + 0.58 * smoothstep(0.05, 0.95, field)) * 0.52;
+  float radius = (0.05 + 0.95 * smoothstep(0.02, 0.98, field)) * 0.52;
   // Blur, without blurring: a halftone going soft is its dots losing their edge
   // and their weight. Costs nothing, where a backdrop-filter over an animating
   // canvas costs a recomposite every frame.
-  float away = clamp((vUv.x + (1.0 - vUv.y)) * 0.5, 0.0, 1.0);
-  float soften = smoothstep(0.35, 1.0, away);
+  float away = clamp((1.0 - vUv.y) * 0.78 + vUv.x * 0.22, 0.0, 1.0);
+  float soften = smoothstep(0.3, 1.0, away);
 
   // One device pixel in cell space. Derivatives are an extension here, and the
   // cell size already says what a pixel is worth.
