@@ -185,6 +185,11 @@ export default function SupporterBand() {
                   <span className="text-muted-foreground">{supporter.name}</span>
                   <span className="text-primary tabular-nums">
                     {formatAmount(supporter)}
+                    {/* A member gives this every month; a coffee is given once. Without
+                        the suffix the two render as the same number. */}
+                    {supporter.recurring && (
+                      <span className="text-subtle-foreground"> / mo</span>
+                    )}
                   </span>
                 </li>
               ))
