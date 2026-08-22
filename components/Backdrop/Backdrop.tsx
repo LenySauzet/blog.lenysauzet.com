@@ -21,7 +21,7 @@ const EDGE_FADE = [
 
 // What sits the type on something quiet.
 const CENTRE_WASH =
-  'radial-gradient(75% 55% at 38% 78%, oklch(from var(--background) l c h / 0.88) 0%, oklch(from var(--background) l c h / 0.45) 50%, transparent 85%)';
+  'radial-gradient(95% 58% at 32% 104%, var(--background) 0%, oklch(from var(--background) l c h / 0.82) 38%, oklch(from var(--background) l c h / 0.35) 68%, transparent 92%)';
 
 const VERTEX = /* glsl */ `
 attribute vec2 uv;

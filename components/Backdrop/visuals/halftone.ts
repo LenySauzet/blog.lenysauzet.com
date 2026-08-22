@@ -61,8 +61,10 @@ void main() {
   // Blur, without blurring: a halftone going soft is its dots losing their edge
   // and their weight. Costs nothing, where a backdrop-filter over an animating
   // canvas costs a recomposite every frame.
-  float away = clamp((1.0 - vUv.y) * 0.78 + vUv.x * 0.22, 0.0, 1.0);
-  float soften = smoothstep(0.3, 1.0, away);
+  // The sharp region is bounded by a line climbing left to right; everything
+  // below it softens with distance from that line.
+  float below = (0.34 + 0.56 * vUv.x) - vUv.y;
+  float soften = smoothstep(-0.04, 0.5, below);
 
   // One device pixel in cell space. Derivatives are an extension here, and the
   // cell size already says what a pixel is worth.
