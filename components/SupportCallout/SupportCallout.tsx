@@ -1,11 +1,9 @@
 import Anchor from '@/components/Anchor/Anchor';
 import { Button } from '@/components/ui/button';
 import { Card as CardRoot, CardContent } from '@/components/ui/card';
+import siteConfig from '@/config/site';
 
 import SupporterBand from './SupporterBand';
-
-const COFFEE_URL = 'https://buymeacoffee.com/lenysauzet';
-const MEMBERSHIP_URL = 'https://buymeacoffee.com/lenysauzet/membership';
 
 /**
  * The copy and the links are the same on every article, so this half stays a Server
@@ -25,7 +23,7 @@ export default function SupportCallout() {
         <p className="font-display text-base leading-7 text-muted-foreground">
           Enjoying my writing and feeling like supporting my work? You can show
           your appreciation by{' '}
-          <Anchor href={COFFEE_URL}>buying me a coffee</Anchor> (I really really{' '}
+          <Anchor href={siteConfig.supportUrl}>buying me a coffee</Anchor> (I really really{' '}
           <span className="font-medium text-subtle-foreground italic">really</span>{' '}
           do like coffee), which gives me the energy to take on more ambitious
           articles and projects.
@@ -38,11 +36,11 @@ export default function SupportCallout() {
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <Button asChild>
-            <a href={COFFEE_URL} target="_blank" rel="noreferrer noopener">
+            <a href={siteConfig.supportUrl} target="_blank" rel="noreferrer noopener">
               Buy me a coffee
             </a>
           </Button>
-          <Anchor href={MEMBERSHIP_URL}>Become a monthly sponsor</Anchor>
+          <Anchor href={siteConfig.membershipUrl}>Become a monthly sponsor</Anchor>
         </div>
       </CardContent>
 

@@ -73,8 +73,13 @@ Coffee.
 
 ## The band
 
-The list renders twice, end to end. A frame loop advances the offset by
+The list renders twice, end to end, each copy repeated until it outruns the window so a
+short list cannot tear a gap open on the wrap. A frame loop advances the offset by
 `speed × delta`, wrapped modulo one copy's height, so the seam never shows.
+
+The window is five names tall and follows the measured row height. Both one-off coffees
+and monthly members appear, newest first; a member carries a `/ mo` suffix, since the
+same figure means something different for each.
 
 **Speed is a spring, not a switch.** Hovering sends it to 0, leaving sends it to 1. The
 gradual stop the design calls for is then a property of the spring rather than a special
@@ -84,7 +89,10 @@ this.
 Both edges fade through a linear mask plus a masked blur layer, the technique
 `ScrollFade` already uses.
 
-Under `prefers-reduced-motion` the loop never starts and the list renders still.
+Under `prefers-reduced-motion` the whole apparatus goes, not just the movement: no fixed
+window, no fades, no repeats. A frozen window of repeated names reads as a duplication
+bug. Because endless motion also needs a stop that is not the mouse, the moving band is
+focusable and pauses on focus (WCAG 2.2.2).
 
 ## The pulse
 
@@ -94,7 +102,8 @@ the dot and drops the ring.
 ## When it fails
 
 No token, or Buy Me a Coffee unreachable: the route answers with an empty list and the
-band does not mount. The card keeps its copy and its buttons, so a fork of the repo or a
+band does not mount. Their API answers 200 to everything, including a login page for a
+stale token, so the route trusts the content type rather than the status. The card keeps its copy and its buttons, so a fork of the repo or a
 `bun dev` with no token shows a complete, working card rather than a broken strip.
 
 ## Testing
@@ -102,11 +111,12 @@ band does not mount. The card keeps its copy and its buttons, so a fork of the r
 - The normaliser, as a pure function: the real logic, and the part most likely to be
   wrong first.
 - The band renders the names it is given, and renders nothing when the list is empty.
-- Hovering sets the speed target to 0. The target is asserted, not the movement: jsdom
-  animates nothing.
+- The repeat arithmetic, as a pure function.
+- The scroll itself is unreachable from jsdom, which forces `prefers-reduced-motion`;
+  the loop, the ramps and the wrap are measured in a browser.
 
 ## Assumptions to confirm against reality
 
-- The secondary link points at a Buy Me a Coffee membership page. Only Buy Me a Coffee
-  was named; GitHub Sponsors would be a different link.
+- ~~The secondary link points at a Buy Me a Coffee membership page.~~ Confirmed: the
+  membership level is live and the link resolves.
 - The supporter count is a number of people, not an amount and not a number of coffees.

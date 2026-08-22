@@ -5,6 +5,11 @@ const authorUrl = 'https://lenysauzet.com'
 
 const cdnUrl = 'https://cdn.lenysauzet.com'
 
+// Where SupportCallout sends readers. The API the band reads is a different origin
+// entirely and needs no username, since the token already identifies the account.
+const supportUrl = 'https://buymeacoffee.com/lenysauzet'
+const membershipUrl = `${supportUrl}/membership`
+
 // Relative paths in posts are namespaced by media kind, so `blog/halftone.png`
 // resolves to `{cdnUrl}/images/blog/halftone.png`.
 const cdnPaths = {
@@ -117,6 +122,8 @@ const siteConfig = {
   authorUrl,
   cdnUrl,
   cdnPaths,
+  supportUrl,
+  membershipUrl,
   title,
   description,
   descriptionShort,

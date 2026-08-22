@@ -8,10 +8,8 @@ import {
   readTotal,
 } from './supporters';
 
-// Lifted from the live /v1/supporters response, trimmed to the fields this reads and
-// with the personal ones replaced. Their published reference omits `support_hidden`
-// entirely and shows `supporter_name` null on every row, so a real payload is the only
-// trustworthy fixture.
+// From the live /v1/supporters response, personal fields replaced. Their reference
+// omits `support_hidden` entirely, so only a real payload can be trusted as a fixture.
 const COFFEE = {
   support_id: 10030855,
   support_coffees: 1,
@@ -25,7 +23,7 @@ const COFFEE = {
   payer_name: 'Louis Yvelin',
 };
 
-// Shaped from their reference, since no member exists yet to read one from.
+// From their reference: no real member exists yet to read one from.
 const MEMBER = {
   subscription_id: 10647,
   subscription_coffee_price: '5.000',
@@ -50,7 +48,6 @@ describe('normaliseSupporters', () => {
     ]);
   });
 
-  // The whole reason two fields are read instead of one.
   it('multiplies the coffees by their price', () => {
     const [row] = normaliseSupporters([
       { ...COFFEE, support_coffees: 3, support_coffee_price: '5.0000' },
@@ -58,8 +55,6 @@ describe('normaliseSupporters', () => {
     expect(row.amount).toBe(15);
   });
 
-  // Their reference shows `supporter_name` null on every row of its own example, with
-  // the name in `payer_name`, so neither field alone is enough.
   it('falls back to the payer when the supporter did not name themselves', () => {
     const [row] = normaliseSupporters([
       { ...COFFEE, supporter_name: null, payer_name: 'Yuki Tanaka' },
@@ -81,8 +76,7 @@ describe('normaliseSupporters', () => {
     expect(row.name).toBe('Anonymous');
   });
 
-  // Publishing a name against someone's wishes is the one failure here that cannot be
-  // undone, so each of these errs towards showing nobody.
+  // The one failure here that cannot be undone, so each errs towards showing nobody.
   it.each([
     ['refunded', { is_refunded: 1 }],
     ['marked not visible', { support_visibility: 0 }],
@@ -95,7 +89,7 @@ describe('normaliseSupporters', () => {
     expect(normaliseSupporters([{ ...COFFEE, support_coffee_price: null }])).toEqual([]);
   });
 
-  // Every one of these is a real answer from their API, all of them served as HTTP 200.
+  // All real answers from their API, every one served as HTTP 200.
   it.each([
     ['no supporters', { error: 'No supporters' }],
     ['a page past the end', { error: 'No supporters' }],
@@ -126,7 +120,6 @@ describe('normaliseMembers', () => {
     expect(row.amount).toBe(15);
   });
 
-  // A cancelled membership is paid to the end of its period, so it is still support.
   it('keeps a membership cancelled at period end', () => {
     const rows = normaliseMembers([
       {
@@ -144,8 +137,7 @@ describe('normaliseMembers', () => {
     ).toEqual([]);
   });
 
-  // Their reference lists no privacy field for a member, but it also omitted
-  // `support_hidden` on the endpoint it does document, so these are honoured if present.
+  // Their reference lists no privacy field for a member, and has been wrong before.
   it.each(['support_hidden', 'is_refunded'])('honours %s if it is present', (field) => {
     expect(normaliseMembers([{ ...MEMBER, [field]: 1 }])).toEqual([]);
   });
@@ -164,7 +156,6 @@ describe('mergeRecent', () => {
     expect(merged.map((s) => s.name)).toEqual(['Ingrid Holm', 'Louis Yvelin']);
   });
 
-  // The timestamp is a sorting key, not something the browser needs.
   it('does not leak the timestamp to the client', () => {
     const [row] = mergeRecent(normaliseSupporters([COFFEE]));
     expect(row).not.toHaveProperty('at');
@@ -194,7 +185,6 @@ describe('formatAmount', () => {
     expect(formatAmount({ amount: 5, currency: 'EUR' })).toBe('€5');
   });
 
-  // An unrecognised code would make Intl throw and take the whole band down.
   it.each(['nope', '', 'E€R'])('falls back rather than throwing on %p', (currency) => {
     expect(formatAmount({ amount: 5, currency })).toBe('$5');
   });
