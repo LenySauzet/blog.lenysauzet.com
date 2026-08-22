@@ -65,7 +65,6 @@ export default async function Page({
             </h1>
             {/* One string, so a single decode crosses the whole line. */}
             <time
-              itemProp="datepublished"
               dateTime={metadata.date}
               className="mt-4 block font-mono text-sm uppercase text-subtle-foreground"
             >
