@@ -4,6 +4,8 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import { Lightbox } from './Lightbox';
 import { ZoomCaption } from './ZoomCaption';
 
@@ -47,7 +49,14 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform' }}
-        className="block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        // Only once the copy has landed: Motion crossfades the two while the box
+        // travels, and restores this one to full opacity when it is done, which
+        // leaves it showing through the scrim. Hiding it any earlier would cancel
+        // the crossfade and the copy would pop instead.
+        className={cn(
+          'block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+          zoomed && 'invisible'
+        )}
       >
         <PostImage
           alt={alt}
