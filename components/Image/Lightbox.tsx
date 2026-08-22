@@ -24,6 +24,8 @@ interface LightboxProps {
   onOpenChange: (open: boolean) => void;
   /** Names the surface for screen readers. */
   title: string;
+  /** Fires once the exit animation has finished. */
+  onExitComplete?: () => void;
   children: ReactNode;
 }
 
@@ -37,6 +39,7 @@ export function Lightbox({
   open,
   onOpenChange,
   title,
+  onExitComplete,
   children,
 }: LightboxProps) {
   const isHydrated = useIsHydrated();
@@ -74,7 +77,7 @@ export function Lightbox({
   if (!isHydrated) return null;
 
   return createPortal(
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={onExitComplete}>
       {open ? (
         <motion.div
           key="lightbox"
@@ -84,7 +87,7 @@ export function Lightbox({
           aria-label={title}
           tabIndex={-1}
           // z-100, not z-50: the site header already claims z-50.
-          className="fixed inset-0 z-100 grid cursor-zoom-out place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
+          className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
           // Fading a custom property rather than opacity keeps the morphing
           // image out of the fade.
           style={{

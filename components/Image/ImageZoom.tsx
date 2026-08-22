@@ -4,6 +4,8 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import { Lightbox } from './Lightbox';
 import { ZoomCaption } from './ZoomCaption';
 
@@ -11,17 +13,7 @@ import { ZoomCaption } from './ZoomCaption';
 // lingers past its last visible frame.
 const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
-// Sized for the zoomed rendering, so the shared file is never upscaled.
 const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
-
-// The caption's own box: `pt-4` over one `leading-6` line. Held apart from the
-// image's budget below, since the image has to give up exactly this much room.
-// A caption long enough to wrap takes a second line and the surface scrolls.
-const ZOOM_CAPTION_BLOCK_SIZE = '2.5rem';
-
-// Mirrors the surface's p-8, less the caption. Absolute, since a ratio would
-// under-reserve on short viewports.
-const ZOOM_MAX_BLOCK_SIZE = `calc(100dvh - 4rem - ${ZOOM_CAPTION_BLOCK_SIZE})`;
 
 export interface ImageZoomProps {
   /** Fully resolved URL. Resolution happens on the server. */
@@ -33,14 +25,11 @@ export interface ImageZoomProps {
   quality?: number;
 }
 
-function PostImage(props: ImageZoomProps) {
-  return (
-    <NextImage
-      {...props}
-      sizes={IMAGE_SIZES}
-      className="h-auto w-full rounded-lg border-2 border-border object-cover"
-    />
-  );
+function PostImage({
+  className,
+  ...props
+}: ImageZoomProps & { className: string }) {
+  return <NextImage {...props} sizes={IMAGE_SIZES} className={className} />;
 }
 
 // Both copies share one `layoutId`, so Motion tweens one bounding box into the
@@ -48,6 +37,8 @@ function PostImage(props: ImageZoomProps) {
 export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const [open, setOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  const [sourceHidden, setSourceHidden] = useState(false);
+
   const layoutId = `image-zoom-${useId()}`;
 
   return (
@@ -55,13 +46,26 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
       <motion.button
         type="button"
         layoutId={layoutId}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          setSourceHidden(true);
+        }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform' }}
-        className="block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        // Hidden through a class, not `style`: Motion owns the style object here.
+        // The source stays hidden until its copy has travelled back onto it, or the
+        // two read as the image duplicating rather than moving.
+        className={cn(
+          'block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+          sourceHidden && 'invisible'
+        )}
       >
-        <PostImage alt={alt} {...props} />
+        <PostImage
+          alt={alt}
+          {...props}
+          className="h-auto w-full rounded-lg border-2 border-border object-cover"
+        />
       </motion.button>
 
       <Lightbox
@@ -70,26 +74,31 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
           setOpen(next);
           if (!next) setZoomed(false);
         }}
+        onExitComplete={() => setSourceHidden(false)}
         title={alt}
       >
-        {/* The width sits on the wrapper so the caption matches the image, and the
-            caption stays outside the morphing element, which would distort it. */}
-        <div
-          style={{
-            // Solved through the aspect ratio; capping both axes would letterbox.
-            width: `min(var(--zoom-max-inline-size), calc(${ZOOM_MAX_BLOCK_SIZE} * ${props.width} / ${props.height}))`,
-          }}
-          className="[--zoom-max-inline-size:calc(100dvw_-_4rem)] md:[--zoom-max-inline-size:80dvw]"
-        >
-          {/* Decorative copy: the surface is already named by `alt`. */}
-          <motion.div
-            layoutId={layoutId}
-            whileTap={{ scale: 0.98 }}
-            style={{ willChange: 'transform' }}
-            onLayoutAnimationComplete={() => setZoomed(true)}
-          >
-            <PostImage alt="" {...props} />
-          </motion.div>
+        <div className="flex h-full w-full flex-col items-center md:w-[80dvw]">
+          {/* The image takes what the caption leaves, and `aspect-ratio` fits it to
+              whichever axis runs out first. */}
+          <div className="flex min-h-0 w-full flex-1 items-end justify-center">
+            {/* Decorative copy: the surface is already named by `alt`. */}
+            <motion.div
+              layoutId={layoutId}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                aspectRatio: `${props.width} / ${props.height}`,
+                willChange: 'transform',
+              }}
+              className="max-h-full max-w-full"
+              onLayoutAnimationComplete={() => setZoomed(true)}
+            >
+              <PostImage
+                alt=""
+                {...props}
+                className="h-full w-full rounded-lg border-2 border-border object-contain"
+              />
+            </motion.div>
+          </div>
           <ZoomCaption start={zoomed}>{alt}</ZoomCaption>
         </div>
       </Lightbox>
