@@ -8,7 +8,13 @@ import {
   useSpring,
   useTransform,
 } from 'motion/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   Slider as SliderRoot,
@@ -111,7 +117,10 @@ export default function Slider({
   ...props
 }: SliderProps) {
   const [value, setValue] = useState(defaultValue);
-  const [gripClear, setGripClear] = useState(true);
+  // Starts hidden: the grip's position is in measured pixels, so it has none until
+  // the track is measured, and the server cannot measure. Its own opacity
+  // transition then fades it in where it belongs.
+  const [gripClear, setGripClear] = useState(false);
   // Held as state rather than derived at render: which detents are drawn
   // depends on how wide the caption measures, which is only known after layout.
   const [dots, setDots] = useState<number[]>([]);
@@ -122,7 +131,7 @@ export default function Slider({
   const readoutRef = useRef<HTMLSpanElement>(null);
   // Where the caption sits, so the grip knows what it is about to run into.
   const metrics = useRef({ width: 0, label: [0, 0], readout: [0, 0] });
-  const clearRef = useRef(true);
+  const clearRef = useRef(false);
 
   const percent = ((value - min) / (max - min)) * 100;
   // Coarse enough for its detents to be worth drawing.
@@ -216,7 +225,9 @@ export default function Slider({
 
   useMotionValueEvent(fill, 'change', settleGrip);
 
-  useEffect(() => {
+  // Before paint, not after: the grip has no position until the track is measured,
+  // and an effect would leave it parked at the left edge for the first frames.
+  useLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
     const measure = () => {
