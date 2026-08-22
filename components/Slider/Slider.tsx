@@ -121,6 +121,10 @@ export default function Slider({
   // the track is measured, and the server cannot measure. Its own opacity
   // transition then fades it in where it belongs.
   const [gripClear, setGripClear] = useState(false);
+  // Dragging counts as engaged, and is tracked apart from `trackGive`, which
+  // returns early under reduced motion and would leave a drag looking idle.
+  const [hovered, setHovered] = useState(false);
+  const [dragging, setDragging] = useState(false);
   // Held as state rather than derived at render: which detents are drawn
   // depends on how wide the caption measures, which is only known after layout.
   const [dots, setDots] = useState<number[]>([]);
@@ -307,13 +311,34 @@ export default function Slider({
     [applyFill, disabled, give, reduceMotion]
   );
 
+  const engaged = !disabled && (hovered || dragging);
+
+  const beginDrag = useCallback(() => {
+    setDragging(true);
+    const end = () => {
+      setDragging(false);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+    };
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  }, []);
+
   return (
     <div className={className}>
       <motion.div
         ref={frameRef}
-        className="relative"
+        className={cn(
+          'relative [transition:opacity_.2s_ease-in-out] motion-reduce:transition-none',
+          !disabled && !engaged && 'opacity-85'
+        )}
         style={{ scaleX, scaleY, transformOrigin }}
-        onPointerDown={trackGive}
+        onPointerDown={(event) => {
+          beginDrag();
+          trackGive(event);
+        }}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
       >
         <SliderRoot
           value={[value]}
@@ -347,7 +372,11 @@ export default function Slider({
           ))}
           <motion.div
             data-slot="slider-grip"
-            className={cn(sliderGrip, gripClear ? 'opacity-100' : 'opacity-0')}
+            className={cn(
+              sliderGrip,
+              !gripClear && 'opacity-0',
+              gripClear && (engaged ? 'scale-y-100 opacity-100' : 'scale-y-75 opacity-40')
+            )}
             style={{ x: gripX }}
           />
         </SliderRoot>

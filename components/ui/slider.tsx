@@ -17,7 +17,7 @@ const sliderFill = "absolute h-full rounded-xl bg-wash/30 select-none"
  * stay in the bar rather than follow the edge out of it.
  */
 const sliderGrip =
-  "pointer-events-none absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-full bg-foreground/50 [transition:opacity_.15s_ease-in-out] motion-reduce:transition-none"
+  "pointer-events-none absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-full bg-foreground/50 [transition:opacity_.2s_ease-in-out,scale_.2s_ease-in-out] motion-reduce:transition-none"
 
 /**
  * Marks a detent on a stepped bar. Sits above the fill rather than under it, so
