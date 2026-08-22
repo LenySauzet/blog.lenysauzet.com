@@ -26,11 +26,13 @@ const SPREAD = { from: 1, to: 1.3 };
 
 const DURATION = 1.45;
 
-// Barely moving, then away: an accelerating rim reaches the corners at the very end
-// of its travel, which is why the blur outlives it rather than sharing its timing.
-const EASE = [0.4, 0, 0.7, 0.25] as const;
+// Held back, then away, then set down. An accelerating curve alone arrives at nearly
+// its top speed and stops dead, which is what reads as mechanical: this one lands at
+// a fiftieth of it. The rim is off the corners well before the travel ends, so the
+// blur has room to fade rather than being cut off.
+const EASE = [0.76, 0, 0.24, 1] as const;
 
-const SETTLE = { at: 0.9, tail: 0.36 };
+const SETTLE = { at: 0.72, tail: 0.28 };
 
 const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 94%, var(--background) 100%)`;
 
