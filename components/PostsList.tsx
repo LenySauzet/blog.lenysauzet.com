@@ -14,9 +14,10 @@ type Post = {
   };
 };
 
-// Staggered by position in the year rather than in the whole list, so a row that
-// scrolls into view after fifty others still starts promptly.
-const STAGGER = 0.06;
+// Staggered by position in the list, so the cascade runs down it once instead of
+// restarting at every year. Capped, or a row far down would sit blank for seconds
+// after it finally comes into view.
+const STAGGER = 0.1;
 const MAX_STAGGER = 0.6;
 
 function PostRow({
@@ -90,9 +91,11 @@ export function PostsList({ posts }: { posts: Post[] }) {
         className="flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l"
       >
         {uniqueYears.map((year) => {
-          const postsForYear = posts.filter(
-            (post) => new Date(post.metadata.date).getFullYear() === year,
-          );
+          const postsForYear = posts
+            .map((post, index) => ({ ...post, index }))
+            .filter(
+              (post) => new Date(post.metadata.date).getFullYear() === year,
+            );
 
           return (
             <div className="flex flex-col gap-4 px-8 lg:px-0" key={year}>
@@ -100,11 +103,11 @@ export function PostsList({ posts }: { posts: Post[] }) {
                 {year}
               </span>
               <ul>
-                {postsForYear.map((post, index) => (
+                {postsForYear.map((post) => (
                   <PostRow
                     key={post.slug}
                     post={post}
-                    index={index}
+                    index={post.index}
                     scrollRoot={scrollRoot}
                   />
                 ))}
