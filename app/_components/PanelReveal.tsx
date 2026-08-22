@@ -19,13 +19,18 @@ const ELLIPSE = '95% 56% at 50% 0%';
 // of the sweep is a covered panel holding still.
 const TRAVEL = { from: '-53%', to: '0%' };
 
-const DURATION = 1.8;
+// Scaled from the top edge, so the ellipse's centre stays where the travel puts it
+// and only its radii open up. The arc is at its sharpest while it still has panel to
+// cross, and softens into the landing.
+const SPREAD = { from: 1, to: 1.3 };
+
+const DURATION = 1.45;
 
 // Barely moving, then away: an accelerating rim reaches the corners at the very end
 // of its travel, which is why the blur outlives it rather than sharing its timing.
 const EASE = [0.4, 0, 0.7, 0.25] as const;
 
-const SETTLE = { at: 0.9, tail: 0.45 };
+const SETTLE = { at: 0.9, tail: 0.36 };
 
 const WASH = `radial-gradient(${ELLIPSE}, transparent 0%, transparent 94%, var(--background) 100%)`;
 
@@ -44,9 +49,9 @@ export function PanelReveal() {
   return (
     <motion.div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[250%]"
-      initial={{ y: TRAVEL.from }}
-      animate={{ y: TRAVEL.to }}
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[250%] origin-top"
+      initial={{ y: TRAVEL.from, scale: SPREAD.from }}
+      animate={{ y: TRAVEL.to, scale: SPREAD.to }}
       transition={{ duration: DURATION, ease: EASE }}
     >
       {/* The rim leaves the corners last, so the mask still holds blur there once the
