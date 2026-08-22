@@ -4,8 +4,6 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
-import { cn } from '@/lib/utils';
-
 import { Lightbox } from './Lightbox';
 import { ZoomCaption } from './ZoomCaption';
 
@@ -37,7 +35,6 @@ function PostImage({
 export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const [open, setOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
-  const [sourceHidden, setSourceHidden] = useState(false);
 
   const layoutId = `image-zoom-${useId()}`;
 
@@ -46,20 +43,11 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
       <motion.button
         type="button"
         layoutId={layoutId}
-        onClick={() => {
-          setOpen(true);
-          setSourceHidden(true);
-        }}
+        onClick={() => setOpen(true)}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
         style={{ willChange: 'transform' }}
-        // Hidden through a class, not `style`: Motion owns the style object here.
-        // The source stays hidden until its copy has travelled back onto it, or the
-        // two read as the image duplicating rather than moving.
-        className={cn(
-          'block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
-          sourceHidden && 'invisible'
-        )}
+        className="block w-full cursor-zoom-in rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
       >
         <PostImage
           alt={alt}
@@ -74,31 +62,27 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
           setOpen(next);
           if (!next) setZoomed(false);
         }}
-        onExitComplete={() => setSourceHidden(false)}
         title={alt}
       >
-        <div className="flex h-full w-full flex-col items-center md:w-[80dvw]">
-          {/* The image takes what the caption leaves, and `aspect-ratio` fits it to
-              whichever axis runs out first. */}
-          <div className="flex min-h-0 w-full flex-1 items-end justify-center">
-            {/* Decorative copy: the surface is already named by `alt`. */}
-            <motion.div
-              layoutId={layoutId}
-              whileTap={{ scale: 0.98 }}
-              style={{
-                aspectRatio: `${props.width} / ${props.height}`,
-                willChange: 'transform',
-              }}
-              className="max-h-full max-w-full"
-              onLayoutAnimationComplete={() => setZoomed(true)}
-            >
-              <PostImage
-                alt=""
-                {...props}
-                className="h-full w-full rounded-lg border-2 border-border object-contain"
-              />
-            </motion.div>
-          </div>
+        <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
+          {/* Decorative copy: the surface is already named by `alt`. `aspect-ratio`
+              with a shrinkable box lets flex give the caption its room. */}
+          <motion.div
+            layoutId={layoutId}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              aspectRatio: `${props.width} / ${props.height}`,
+              willChange: 'transform',
+            }}
+            className="min-h-0 max-h-full max-w-full"
+            onLayoutAnimationComplete={() => setZoomed(true)}
+          >
+            <PostImage
+              alt=""
+              {...props}
+              className="h-full w-full rounded-lg object-contain"
+            />
+          </motion.div>
           <ZoomCaption start={zoomed}>{alt}</ZoomCaption>
         </div>
       </Lightbox>

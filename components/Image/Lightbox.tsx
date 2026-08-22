@@ -94,9 +94,13 @@ export function Lightbox({
             backgroundColor:
               'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',
           }}
-          initial={{ '--scrim-opacity': 0 }}
-          animate={{ '--scrim-opacity': 0.8 }}
-          exit={{ '--scrim-opacity': 0, pointerEvents: 'none' }}
+          initial={{ '--scrim-opacity': 0, backdropFilter: 'blur(0px)' }}
+          animate={{ '--scrim-opacity': 0.7, backdropFilter: 'blur(12px)' }}
+          exit={{
+            '--scrim-opacity': 0,
+            backdropFilter: 'blur(0px)',
+            pointerEvents: 'none',
+          }}
           onClick={() => onOpenChange(false)}
         >
           {children}

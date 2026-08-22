@@ -17,7 +17,7 @@ const REVEAL = {
 };
 
 const CLASS =
-  'pointer-events-none pt-4 text-center font-display text-sm leading-6 text-subtle-foreground';
+  'pointer-events-none shrink-0 pt-4 text-center font-display text-sm leading-6 text-subtle-foreground';
 
 /** Hidden from assistive tech: the lightbox is already named by this same text. */
 export function ZoomCaption({
