@@ -63,17 +63,17 @@ export default async function Page({
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
             </h1>
-            <div className="flex items-center gap-2 font-mono text-sm uppercase text-subtle-foreground">
-              <time itemProp="datepublished" dateTime={metadata.date}>
-                <ScrambledText delay={0.5} speed={0.8} windowSize={3}>
-                  {format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')}
-                </ScrambledText>
-              </time>
-              <span aria-hidden>/</span>
-              <ScrambledText delay={0.6} speed={0.8} windowSize={3}>
-                {`${minutes} min read`}
+            {/* One string, so the decode crosses the whole line once instead of
+                running twice side by side. */}
+            <time
+              itemProp="datepublished"
+              dateTime={metadata.date}
+              className="mt-4 block font-mono text-sm uppercase text-subtle-foreground"
+            >
+              <ScrambledText delay={0.5} speed={1.6} windowSize={3}>
+                {`${format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')} · ${minutes} min read`}
               </ScrambledText>
-            </div>
+            </time>
           </div>
 
           {/* No font-weight here. The prose scale is built on a 400 body, so
