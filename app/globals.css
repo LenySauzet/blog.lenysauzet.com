@@ -304,6 +304,19 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
+/* The caret on a hovered post title. Not `caret-blink`: tw-animate-css defines that
+   name and the bundler would keep its copy, the same trap the `details-*` names above
+   sidestep. 530ms a phase is the rate terminals have blinked at since the VT100, and
+   `step-end` is what makes it a caret rather than a pulse. */
+@keyframes terminal-caret {
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 /* Build-time math (rehype-mathjax, SVG output). A wide equation scrolls rather
    than breaking the column; the SVG fills with currentColor, so `color` is what
    makes it theme-aware. */

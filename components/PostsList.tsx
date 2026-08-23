@@ -71,7 +71,13 @@ export function PostsList({ posts }: { posts: Post[] }) {
                       href={`/posts/${post.slug}`}
                       className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
                     >
+                      {/* The caret holds its column whether or not it is showing, so
+                          arriving costs no reflow. The delay is the animation's own:
+                          with no fill mode the title keeps its resting state until
+                          the first keyframe lands, which is what makes the caret
+                          appear a beat after the pointer rather than with it. */}
                       <ScrambledText
+                        className="after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
                         delay={post.flatIndex * 0.1}
                         windowSize={7}
                         speed={1.75}
