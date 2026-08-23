@@ -13,17 +13,26 @@ const readOnly = () => () => {};
 // the badge 196px sideways. Arriving once that has settled is what holds it still.
 const HOLD = 1.2;
 
-const WORD = {
-  hidden: { opacity: 0, filter: 'blur(6px)' },
-  visible: { opacity: 1, filter: 'blur(0px)' },
-};
-
-const REVEAL = {
-  hidden: { opacity: 0 },
+// The pill arrives out of focus with its words, rather than appearing whole and
+// waiting to be filled: it is one object, so it resolves as one.
+const BADGE = {
+  hidden: { opacity: 0, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
-    transition: { delay: HOLD, delayChildren: HOLD, staggerChildren: 0.05 },
+    filter: 'blur(0px)',
+    transition: {
+      delay: HOLD,
+      duration: 0.5,
+      delayChildren: HOLD,
+      staggerChildren: 0.05,
+    },
   },
+};
+
+// Lighter than the pill's, since the two stack while the sweep crosses.
+const WORD = {
+  hidden: { opacity: 0, filter: 'blur(5px)' },
+  visible: { opacity: 1, filter: 'blur(0px)' },
 };
 
 // `overflow-visible` because the pill clips its own children, and a word arriving out
@@ -56,7 +65,7 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
     <Badge variant="info" asChild className={CLASS}>
       <motion.time
         dateTime={date}
-        variants={REVEAL}
+        variants={BADGE}
         initial="hidden"
         animate="visible"
       >
