@@ -32,24 +32,44 @@ void main() {
 }
 `;
 
-// Tokens are authored in oklch and `getComputedStyle` hands them back in oklch, so
-// there is nothing to parse. Painting one pixel is the conversion: a 2D canvas is
-// sRGB, so the byte it stores is the colour the page shows.
-function readColor(token: string): [number, number, number] {
+/**
+ * The accent, read out of CSS on every frame that draws.
+ *
+ * There is nothing to subscribe to: a theme class, an inline override and an edit to
+ * a rule in the stylesheet all change what CSS resolves, and only the first two are
+ * DOM mutations. Reading it each frame is the only way to be right in all three, and
+ * it is affordable because the conversion is skipped unless the string has moved.
+ *
+ * Tokens are authored in oklch and `getComputedStyle` hands them back in oklch, so
+ * there is nothing to parse. Painting one pixel is the conversion: a 2D canvas is
+ * sRGB, so the byte it stores is the colour the page shows.
+ */
+function accentReader(token: string) {
   const probe = document.createElement('span');
   probe.style.cssText = `position:fixed;width:0;height:0;opacity:0;color:var(${token})`;
   document.body.appendChild(probe);
-  const css = getComputedStyle(probe).color;
-  probe.remove();
 
   const surface = document.createElement('canvas');
   surface.width = surface.height = 1;
   const ctx = surface.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return [0, 0, 0];
-  ctx.fillStyle = css;
-  ctx.fillRect(0, 0, 1, 1);
-  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-  return [r / 255, g / 255, b / 255];
+
+  let last = '';
+  let value: [number, number, number] = [0, 0, 0];
+
+  return {
+    read(): [number, number, number] {
+      const css = getComputedStyle(probe).color;
+      if (css !== last && ctx) {
+        last = css;
+        ctx.fillStyle = css;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        value = [r / 255, g / 255, b / 255];
+      }
+      return value;
+    },
+    dispose: () => probe.remove(),
+  };
 }
 
 export interface BackdropProps {
@@ -75,34 +95,24 @@ export function Backdrop({ visual, className }: BackdropProps) {
     host.appendChild(gl.canvas);
     gl.canvas.className = 'block h-full w-full';
 
+    const accent = accentReader('--primary');
+
     const program = new Program(gl, {
       vertex: VERTEX,
       fragment: visual.fragment,
       uniforms: {
         uTime: { value: 0 },
         uResolution: { value: [1, 1] },
-        uColor: { value: readColor('--primary') },
+        uColor: { value: accent.read() },
       },
     });
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
 
     const draw = (seconds: number) => {
       program.uniforms.uTime.value = seconds;
+      program.uniforms.uColor.value = accent.read();
       renderer.render({ scene: mesh });
     };
-
-    // The accent is read out of CSS once, so everything that can change what CSS
-    // resolves has to invalidate it: the theme class, an inline override, and the
-    // stylesheet itself, which the dev server swaps in place without remounting.
-    // Reading it on a React effect instead raced the theme provider, whose own
-    // effect writes that class after its children have already run.
-    const rereadAccent = () => {
-      program.uniforms.uColor.value = readColor('--primary');
-      draw(program.uniforms.uTime.value);
-    };
-    const restyled = new MutationObserver(rereadAccent);
-    restyled.observe(document.documentElement, { attributeFilter: ['class', 'style'] });
-    restyled.observe(document.head, { childList: true });
 
     const resize = () => {
       const { clientWidth, clientHeight } = host;
@@ -115,11 +125,11 @@ export function Backdrop({ visual, className }: BackdropProps) {
     observer.observe(host);
     resize();
 
-    // Reduced motion gets the field, just not its movement.
+    // Reduced motion gets one frame, so the accent it reads is the one at mount.
     if (reduced)
       return () => {
         observer.disconnect();
-        restyled.disconnect();
+        accent.dispose();
         gl.canvas.remove();
       };
 
@@ -155,7 +165,7 @@ export function Backdrop({ visual, className }: BackdropProps) {
     return () => {
       pause();
       observer.disconnect();
-      restyled.disconnect();
+      accent.dispose();
       onScreen.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       gl.canvas.remove();
