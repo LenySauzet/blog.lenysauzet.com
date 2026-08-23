@@ -13,28 +13,10 @@ const readOnly = () => () => {};
 // the badge 196px sideways. Arriving once that has settled is what holds it still.
 const HOLD = 1.2;
 
-// The pill arrives out of focus with its text, rather than appearing whole and waiting
-// to be filled: it is one object, so it resolves as one.
-const BADGE = {
-  hidden: { opacity: 0, filter: 'blur(8px)' },
-  visible: {
-    opacity: 1,
-    filter: 'blur(0px)',
-    transition: { delay: HOLD, duration: 0.55 },
-  },
-};
-
-// Per letter rather than per word: four words is four arrivals, and the sweep has to
-// outlast the pill's own blur or there is nothing left to see travel.
-const SWEEP = {
-  hidden: {},
-  visible: { transition: { delayChildren: HOLD, staggerChildren: 0.035 } },
-};
-
-const LETTER = {
-  hidden: { opacity: 0, filter: 'blur(6px)' },
-  visible: { opacity: 1, filter: 'blur(0px)', transition: { duration: 0.45 } },
-};
+// Reduced motion changes the timing, never the markup. Rendering a second, simpler
+// tree for it was a hydration mismatch by construction: the server cannot know the
+// preference, so it always sent the animated one and the client threw it away.
+const AT_ONCE = { duration: 0, delay: 0 };
 
 // `overflow-visible` because the pill clips its own children, and a letter arriving
 // out of focus is wider than the letter it becomes.
@@ -47,7 +29,7 @@ const CLASS = 'overflow-visible font-display font-normal';
  * what hydration matches, and the reader's own clock is read from then on.
  */
 export function UpdatedBadge({ date, label }: { date: string; label: string }) {
-  const reduceMotion = useReducedMotion();
+  const still = useReducedMotion();
   const current = useSyncExternalStore(
     readOnly,
     () => relativeTime(date),
@@ -55,19 +37,42 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
   );
   const reading = `Updated ${current}`;
 
-  if (reduceMotion) {
-    return (
-      <Badge variant="info" asChild className={CLASS}>
-        <time dateTime={date}>{reading}</time>
-      </Badge>
-    );
-  }
+  // The pill arrives out of focus with its text, rather than appearing whole and
+  // waiting to be filled: it is one object, so it resolves as one.
+  const badge = {
+    hidden: { opacity: 0, filter: 'blur(8px)' },
+    visible: {
+      opacity: 1,
+      filter: 'blur(0px)',
+      transition: still ? AT_ONCE : { delay: HOLD, duration: 0.55 },
+    },
+  };
+
+  // Per letter rather than per word: four words is four arrivals, and the sweep has to
+  // outlast the pill's own blur or there is nothing left to see travel.
+  const sweep = {
+    hidden: {},
+    visible: {
+      transition: still
+        ? AT_ONCE
+        : { delayChildren: HOLD, staggerChildren: 0.035 },
+    },
+  };
+
+  const letter = {
+    hidden: { opacity: 0, filter: 'blur(6px)' },
+    visible: {
+      opacity: 1,
+      filter: 'blur(0px)',
+      transition: still ? AT_ONCE : { duration: 0.45 },
+    },
+  };
 
   return (
     <Badge variant="info" asChild className={CLASS}>
       <motion.time
         dateTime={date}
-        variants={BADGE}
+        variants={badge}
         initial="hidden"
         animate="visible"
       >
@@ -77,13 +82,13 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
         {/* One flex item, so inline flow resumes inside it. Loose in the pill, the
             letters were spaced by its `gap` and the spaces between them dropped,
             which is what a flex container does with whitespace. */}
-        <motion.span aria-hidden variants={SWEEP}>
-          {reading.split('').map((letter, index) =>
-            letter === ' ' ? (
+        <motion.span aria-hidden variants={sweep}>
+          {reading.split('').map((character, index) =>
+            character === ' ' ? (
               <Fragment key={index}> </Fragment>
             ) : (
-              <motion.span key={index} variants={LETTER} className="inline-block">
-                {letter}
+              <motion.span key={index} variants={letter} className="inline-block">
+                {character}
               </motion.span>
             )
           )}

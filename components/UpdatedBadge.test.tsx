@@ -6,6 +6,11 @@ import { UpdatedBadge } from './UpdatedBadge';
 const daysAgo = (days: number) =>
   new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
+/**
+ * `vitest-setup` forces reduced motion, which here only collapses the timing: the
+ * markup is the same either way, deliberately, since branching it on a preference the
+ * server cannot see is a hydration mismatch. The sweep itself is checked in a browser.
+ */
 describe('UpdatedBadge', () => {
   // The whole point of the component. Posts are static, so the label the build wrote
   // is only true the day it shipped; left alone it would still say "3 days ago" a
