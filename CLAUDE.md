@@ -219,6 +219,13 @@ shape almost every test here:
   Animation fidelity belongs in a real browser.
 - **`server-only` is aliased to a stub** (`test/stubs/`) because Vitest does not set the
   react-server condition. The guard still holds in the real build.
+- **Collapse Motion's transitions where a test waits for an unmount.** `vitest-setup`
+  forces reduced motion, but Motion caches that at module scope, so whether it takes
+  effect depends on import order: the Lightbox exit measured either 20ms or a full
+  300ms tween across runs, and on a loaded runner the tween outlived `waitFor`'s one
+  second default about one run in three. Wrapping the harness in
+  `<MotionConfig transition={{ duration: 0 }}>` settles it at 19-25ms. Raising the
+  timeout only widens the window the race runs in.
 
 `vitest-setup.ts` polyfills `PointerEvent` and forces `prefers-reduced-motion` for
 determinism.
