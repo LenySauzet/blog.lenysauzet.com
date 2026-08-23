@@ -40,7 +40,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
         }}
       />
 
-      <div className="flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l">
+      <div className="group/years flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l">
         {uniqueYears.map((year) => {
           const postsForYear = posts
             .map((post, i) => ({ ...post, flatIndex: i }))
@@ -49,7 +49,15 @@ export function PostsList({ posts }: { posts: Post[] }) {
             );
 
           return (
-            <div className="flex flex-col gap-4 px-8 lg:px-0" key={year}>
+            // Dimmed by not being the hovered year, rather than by the hovered one
+            // outranking a dim laid over everything: a `:has()` rule carries enough
+            // specificity to win that fight and leave the year under the pointer faded
+            // with the rest. `pointer-fine` because a touch hover sticks after a scroll.
+            <div
+              className="flex flex-col gap-4 px-8 transition-opacity duration-300 motion-reduce:transition-none lg:px-0 pointer-fine:group-has-[[data-year]:hover]/years:not-hover:opacity-40"
+              data-year={year}
+              key={year}
+            >
               <span className="text-sm uppercase font-mono text-foreground/50 pl-0 lg:pl-4">
                 {year}
               </span>
@@ -63,7 +71,13 @@ export function PostsList({ posts }: { posts: Post[] }) {
                       href={`/posts/${post.slug}`}
                       className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
                     >
+                      {/* The caret holds its column whether or not it is showing, so
+                          arriving costs no reflow. The delay is the animation's own:
+                          with no fill mode the title keeps its resting state until
+                          the first keyframe lands, which is what makes the caret
+                          appear a beat after the pointer rather than with it. */}
                       <ScrambledText
+                        className="after:ml-1 after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
                         delay={post.flatIndex * 0.1}
                         windowSize={7}
                         speed={1.75}
