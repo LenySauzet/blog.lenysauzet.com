@@ -13,30 +13,31 @@ const readOnly = () => () => {};
 // the badge 196px sideways. Arriving once that has settled is what holds it still.
 const HOLD = 1.2;
 
-// The pill arrives out of focus with its words, rather than appearing whole and
-// waiting to be filled: it is one object, so it resolves as one.
+// The pill arrives out of focus with its text, rather than appearing whole and waiting
+// to be filled: it is one object, so it resolves as one.
 const BADGE = {
   hidden: { opacity: 0, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
     filter: 'blur(0px)',
-    transition: {
-      delay: HOLD,
-      duration: 0.5,
-      delayChildren: HOLD,
-      staggerChildren: 0.05,
-    },
+    transition: { delay: HOLD, duration: 0.55 },
   },
 };
 
-// Lighter than the pill's, since the two stack while the sweep crosses.
-const WORD = {
-  hidden: { opacity: 0, filter: 'blur(5px)' },
-  visible: { opacity: 1, filter: 'blur(0px)' },
+// Per letter rather than per word: four words is four arrivals, and the sweep has to
+// outlast the pill's own blur or there is nothing left to see travel.
+const SWEEP = {
+  hidden: {},
+  visible: { transition: { delayChildren: HOLD, staggerChildren: 0.035 } },
 };
 
-// `overflow-visible` because the pill clips its own children, and a word arriving out
-// of focus is wider than the word it becomes.
+const LETTER = {
+  hidden: { opacity: 0, filter: 'blur(6px)' },
+  visible: { opacity: 1, filter: 'blur(0px)', transition: { duration: 0.45 } },
+};
+
+// `overflow-visible` because the pill clips its own children, and a letter arriving
+// out of focus is wider than the letter it becomes.
 const CLASS = 'overflow-visible font-display font-normal';
 
 /**
@@ -52,11 +53,12 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
     () => relativeTime(date),
     () => label
   );
+  const reading = `Updated ${current}`;
 
   if (reduceMotion) {
     return (
       <Badge variant="info" asChild className={CLASS}>
-        <time dateTime={date}>Updated {current}</time>
+        <time dateTime={date}>{reading}</time>
       </Badge>
     );
   }
@@ -69,15 +71,23 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
         initial="hidden"
         animate="visible"
       >
-        {`Updated ${current}`.split(' ').map((word, index) => (
-          <Fragment key={index}>
-            {index > 0 && ' '}
-            {/* `inline-block` keeps the blur off the space, so wrapping still works. */}
-            <motion.span variants={WORD} className="inline-block">
-              {word}
-            </motion.span>
-          </Fragment>
-        ))}
+        {/* Split for the sweep, so the sentence is spoken from here instead. */}
+        <span className="sr-only">{reading}</span>
+
+        {/* One flex item, so inline flow resumes inside it. Loose in the pill, the
+            letters were spaced by its `gap` and the spaces between them dropped,
+            which is what a flex container does with whitespace. */}
+        <motion.span aria-hidden variants={SWEEP}>
+          {reading.split('').map((letter, index) =>
+            letter === ' ' ? (
+              <Fragment key={index}> </Fragment>
+            ) : (
+              <motion.span key={index} variants={LETTER} className="inline-block">
+                {letter}
+              </motion.span>
+            )
+          )}
+        </motion.span>
       </motion.time>
     </Badge>
   );
