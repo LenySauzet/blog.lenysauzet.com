@@ -1,9 +1,24 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { MotionConfig } from 'motion/react';
+import { useState, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { Lightbox } from './Lightbox';
+
+/**
+ * Motion caches `prefers-reduced-motion` at module scope, so whether the value
+ * `vitest-setup` forces ever reaches it depends on import order. Measured across
+ * runs, the exit took either 20ms or a full 300ms tween, and on a loaded runner
+ * that tween outlived `waitFor`'s one second default: this file failed roughly
+ * one run in three, on whichever machine was busiest.
+ *
+ * Nothing here asserts an animated state, so the transitions are collapsed and
+ * dismissal stops being a race. Animation fidelity belongs in a browser.
+ */
+const Instantly = ({ children }: { children: ReactNode }) => (
+  <MotionConfig transition={{ duration: 0 }}>{children}</MotionConfig>
+);
 
 // Dismissal is asserted here, not on ImageZoom: this surface has no shared-layout
 // morph, so its exit completes under jsdom's zero-sized boxes.
@@ -11,7 +26,7 @@ function Harness() {
   const [open, setOpen] = useState(false);
 
   return (
-    <>
+    <Instantly>
       <button type="button" onClick={() => setOpen(true)}>
         Open
       </button>
@@ -22,19 +37,21 @@ function Harness() {
       >
         <div data-testid="zoomed-content">zoomed</div>
       </Lightbox>
-    </>
+    </Instantly>
   );
 }
 
 function Controlled({ open }: { open: boolean }) {
   return (
-    <Lightbox
-      open={open}
-      onOpenChange={() => {}}
-      title="Distance field breakdown"
-    >
-      <div>zoomed</div>
-    </Lightbox>
+    <Instantly>
+      <Lightbox
+        open={open}
+        onOpenChange={() => {}}
+        title="Distance field breakdown"
+      >
+        <div>zoomed</div>
+      </Lightbox>
+    </Instantly>
   );
 }
 
