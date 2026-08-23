@@ -525,6 +525,28 @@ reads as a duplication bug. **jsdom cannot reach any of this**: `vitest-setup` f
 reduced motion and Motion caches it at module scope, so the loop and the ramps are
 verified in a browser and only the arithmetic is a unit test.
 
+**`components/Backdrop` draws onto transparency, and the page supplies the ground.**
+The shader outputs the accent with the ink as alpha, so `--background` is never copied
+into the frame. It used to be a uniform, and a theme flip left the old one baked in
+until the next mount: light mode with a black blob over it. Do not reintroduce it. The
+framing gradients stay in CSS for the same reason, and cost nothing extra: measured
+under 6x CPU throttling, opaque and transparent both delivered 961 frames over 8s.
+
+**The accent is read on every frame, because CSS has no change event.** Three things
+change what a token resolves to and only two of them are DOM mutations: a theme class,
+an inline override, and an edit to a rule in the stylesheet. That third one is what
+devtools does and what a runtime `--base-hue` control would do, and no observer can
+see it. Watching `<html>` and `document.head` looked right and left the visual on the
+old hue while the rest of the site rethemed. Reading it from a React effect is worse
+still: child effects run before the theme provider's, which is what writes the class,
+so the read lands one theme behind.
+
+The read is affordable because the oklch-to-sRGB conversion is skipped unless the
+string has moved: `getComputedStyle` measured 8.1us under 6x CPU throttling, and three
+runs of one build spread p95 from 9.8 to 10.8 and the worst frame from 13.6 to 110.7,
+so a per-frame read is well under the noise. Reduced motion draws once, so it keeps
+whatever the accent was at mount.
+
 ## New component checklist
 
 - [ ] **TypeScript**: explicit prop interface, `strict` clean, no `any`
