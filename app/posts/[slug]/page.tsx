@@ -1,8 +1,10 @@
 import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
+import { UpdatedBadge } from '@/components/UpdatedBadge';
 import siteConfig from '@/config/site';
 import { getPosts } from '@/lib/post-utils';
 import { readingTimeOf } from '@/lib/reading-time';
+import { relativeTime } from '@/lib/relative-time';
 import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -32,6 +34,7 @@ export async function generateMetadata({
         url: postUrl,
         type: 'article',
         publishedTime: metadata.date,
+        modifiedTime: metadata.updated,
         authors: [authorName],
         siteName,
       },
@@ -63,15 +66,23 @@ export default async function Page({
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
             </h1>
-            {/* One string, so a single decode crosses the whole line. */}
-            <time
-              dateTime={metadata.date}
-              className="mt-4 block font-mono text-sm uppercase text-subtle-foreground"
-            >
-              <ScrambledText delay={0.5} speed={1.6} windowSize={3}>
-                {`${format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')} · ${minutes} min read`}
-              </ScrambledText>
-            </time>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {/* One string, so a single decode crosses the whole line. */}
+              <time
+                dateTime={metadata.date}
+                className="font-mono text-sm uppercase text-subtle-foreground"
+              >
+                <ScrambledText delay={0.5} speed={1.6} windowSize={3}>
+                  {`${format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')} · ${minutes} min read`}
+                </ScrambledText>
+              </time>
+              {metadata.updated && (
+                <UpdatedBadge
+                  date={metadata.updated}
+                  label={relativeTime(metadata.updated)}
+                />
+              )}
+            </div>
           </div>
 
           {/* No font-weight here. The prose scale is built on a 400 body, so

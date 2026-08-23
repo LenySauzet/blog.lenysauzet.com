@@ -83,6 +83,7 @@ export const metadata = {
   description: '...',
   tags: ['webgl'],
   date: 'YYYY-MM-DD',
+  updated: 'YYYY-MM-DD', // optional: shows a badge in the post header
   draft: true, // optional: reachable by URL, hidden from every listing
 };
 ```
@@ -91,6 +92,13 @@ The slug is the filename. Posts load via dynamic `import()` at build time
 (`generateStaticParams` + `dynamicParams = false` in `app/posts/[slug]/page.tsx`).
 `getPosts()` in `lib/post-utils.ts` reads `content/` and imports each file's metadata;
 it excludes drafts unless asked, so the feed, RSS and sitemap never leak them.
+
+`updated` is set by hand, so it means "changed in a way worth telling a reader
+about" rather than "touched". It feeds the header badge and OpenGraph's
+`modifiedTime`. **The badge's wording is read on the client**, through
+`useSyncExternalStore` with the build's value as the server snapshot: a post is
+static, so a relative label rendered at build time would still claim the post changed
+three days ago a year later.
 
 MDX components are registered globally in `mdx-components.tsx`.
 
