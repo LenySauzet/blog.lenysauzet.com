@@ -40,7 +40,10 @@ export function PostsList({ posts }: { posts: Post[] }) {
         }}
       />
 
-      <div className="group/years flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l">
+      <div
+        data-scroll-root
+        className="group/years flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l"
+      >
         {uniqueYears.map((year) => {
           const postsForYear = posts
             .map((post, i) => ({ ...post, flatIndex: i }))

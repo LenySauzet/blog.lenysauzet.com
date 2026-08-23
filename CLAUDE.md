@@ -323,6 +323,20 @@ needs no depth logic: each nested list carries its own `data-list`.
 type posts use. Because the file is CLI-generated, update it with
 `bunx shadcn@latest add card --diff` and re-apply these edits — don't overwrite.
 
+**The command palette is a registry, not a component full of items.**
+`lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
+and `components/CommandPalette` only renders it and hands each `run` the page's router
+and theme. Adding a command is one entry; nothing about the surface changes. `run`
+takes a context rather than reaching for hooks itself, which is what keeps the registry
+a plain module a test can read.
+
+`components/ui/command.tsx` is customized beyond the CLI output twice over: its
+`CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
+carries `--primary` rather than `--foreground`. Update it with
+`bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
+selected colour from a caller's `className` does not work: `cn()` drops it as a
+conflict with the primitive's own, silently.
+
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
 implies. The separator is `border-b` on `CardHeader`: the primitive's `[.border-b]:pb-*`

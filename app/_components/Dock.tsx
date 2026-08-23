@@ -1,13 +1,16 @@
 'use client';
 import Logo from '@/components/Logo';
 import { ModeToggle } from '@/components/ModeToggle';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { AnimatePresence, motion } from 'motion/react';
 import { redirect, RedirectType } from 'next/navigation';
 import { useState } from 'react';
 
 const Dock = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const setIsOpen = useCmdkStore((state) => state.setIsOpen);
 
   const navigations = [
     { label: 'Index', action: () => redirect('/', RedirectType.replace) },
@@ -46,6 +49,14 @@ const Dock = () => {
         ))}
       </ul>
       <Separator orientation="vertical" className="ml-2 mr-1 bg-border/60" />
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Open the command palette"
+        onClick={() => setIsOpen(true)}
+      >
+        <kbd className="font-mono text-[0.7rem] tracking-tight">⌘K</kbd>
+      </Button>
       <ModeToggle />
     </div>
   );

@@ -5,6 +5,7 @@ import type { Viewport } from 'next';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
+import { CommandPalette } from '@/components/CommandPalette';
 import Header from './_components/Header';
 
 const geistSans = Geist({
@@ -65,6 +66,7 @@ export default function RootLayout({
           <TooltipProvider delayDuration={400}>
             <Header />
             <main className="h-full">{children}</main>
+            <CommandPalette />
           </TooltipProvider>
         </ThemeProvider>
       </body>
