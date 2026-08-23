@@ -53,6 +53,11 @@ what deploys, so **never commit straight to it**.
 Squash-merging a stack after the fact is painful: deleting a base branch can *close*
 its dependent PRs.
 
+**Design specs and implementation plans are never committed.** `/docs/superpowers/` is
+gitignored: they are working notes for building the thing, not part of it, and one that
+ships alongside goes stale and starts contradicting what was actually built. Write them
+there, leave them on disk, and keep what outlives them in this file.
+
 ## Writing style
 
 Code, comments, and file names in **English**. Comments are for what the code cannot
