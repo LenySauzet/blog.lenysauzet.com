@@ -77,7 +77,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                           the first keyframe lands, which is what makes the caret
                           appear a beat after the pointer rather than with it. */}
                       <ScrambledText
-                        className="after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
+                        className="after:ml-1 after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
                         delay={post.flatIndex * 0.1}
                         windowSize={7}
                         speed={1.75}
