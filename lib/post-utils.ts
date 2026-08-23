@@ -7,6 +7,9 @@ type Post = {
         title: string
         description: string
         date: string
+        /** Optional, and only set by hand: the day the post last changed in a way
+            worth telling a reader about. */
+        updated?: string
         tags: string[]
         /** Reachable by URL but hidden from every public listing. */
         draft?: boolean
