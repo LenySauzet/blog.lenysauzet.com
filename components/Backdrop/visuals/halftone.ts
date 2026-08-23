@@ -28,7 +28,6 @@ float snoise(vec2 v) {
 `;
 
 export const halftone: Visual = {
-  name: 'halftone',
   fragment: /* glsl */ `
 precision highp float;
 
@@ -57,11 +56,9 @@ void main() {
 
   // The cell is a unit square, so a radius past 0.5 would touch its neighbours.
   float radius = (0.05 + 0.95 * smoothstep(0.02, 0.98, field)) * 0.52;
-  // Blur, without blurring: a halftone going soft is its dots losing their edge
-  // and their weight. Costs nothing, where a backdrop-filter over an animating
-  // canvas costs a recomposite every frame.
-  // The sharp region is bounded by a line climbing left to right; everything
-  // below it softens with distance from that line.
+  // The sharp region is bounded by a line climbing left to right; below it the dots
+  // lose their edge and their weight with distance from that line. A halftone going
+  // soft is exactly that, which is what makes it free where a filter would not be.
   float below = (0.34 + 0.56 * vUv.x) - vUv.y;
   float soften = smoothstep(-0.08, 0.34, below);
 

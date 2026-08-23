@@ -15,6 +15,5 @@
  * hand out here. Derive edge widths from the geometry instead.
  */
 export interface Visual {
-  name: string;
   fragment: string;
 }

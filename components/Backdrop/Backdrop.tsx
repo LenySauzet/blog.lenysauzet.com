@@ -3,12 +3,10 @@
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import { useEffect, useRef } from 'react';
 
-import { cn } from '@/lib/utils';
-
 import type { Visual } from './types';
 
-// A full-frame fragment shader costs every pixel it is given, and past two the
-// extra ones are not visible enough to pay for.
+// A full-frame fragment shader costs every pixel it is given, and past two the extra
+// ones are not visible enough to pay for.
 const MAX_DPR = 2;
 
 // Per edge, not radial: the frame is a rectangle and the visual has to leave by its
@@ -18,7 +16,7 @@ const EDGE_FADE = [
   'linear-gradient(to bottom, var(--background) 0%, transparent 16%, transparent 84%, var(--background) 100%)',
 ].join(', ');
 
-// What sits the type on something quiet.
+// Darkens the corner the type sits in, so the visual never has to be quiet everywhere.
 const CENTRE_WASH =
   'radial-gradient(105% 62% at 30% 100%, var(--background) 0%, oklch(from var(--background) l c h / 0.92) 42%, oklch(from var(--background) l c h / 0.5) 70%, transparent 95%)';
 
@@ -35,14 +33,14 @@ void main() {
 /**
  * The accent, read out of CSS on every frame that draws.
  *
- * There is nothing to subscribe to: a theme class, an inline override and an edit to
- * a rule in the stylesheet all change what CSS resolves, and only the first two are
- * DOM mutations. Reading it each frame is the only way to be right in all three, and
- * it is affordable because the conversion is skipped unless the string has moved.
+ * There is nothing to subscribe to: a theme class, an inline override and an edit to a
+ * rule in the stylesheet all change what CSS resolves, and only the first two are DOM
+ * mutations. Reading it each frame is the only way to be right in all three, and it is
+ * affordable because the conversion is skipped unless the string has moved.
  *
  * Tokens are authored in oklch and `getComputedStyle` hands them back in oklch, so
- * there is nothing to parse. Painting one pixel is the conversion: a 2D canvas is
- * sRGB, so the byte it stores is the colour the page shows.
+ * there is nothing to parse. Painting one pixel is the conversion: a 2D canvas is sRGB,
+ * so the byte it stores is the colour the page shows.
  */
 function accentReader(token: string) {
   const probe = document.createElement('span');
@@ -72,12 +70,11 @@ function accentReader(token: string) {
   };
 }
 
-export interface BackdropProps {
+interface BackdropProps {
   visual: Visual;
-  className?: string;
 }
 
-export function Backdrop({ visual, className }: BackdropProps) {
+export function Backdrop({ visual }: BackdropProps) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,15 +85,14 @@ export function Backdrop({ visual, className }: BackdropProps) {
     const renderer = new Renderer({
       dpr: Math.min(window.devicePixelRatio, MAX_DPR),
       // The page shows through, so the theme's background is never copied into the
-      // frame and can never go stale there. Costs one composite blend per pixel.
+      // frame and cannot go stale there when the theme flips.
       alpha: true,
     });
     const gl = renderer.gl;
-    host.appendChild(gl.canvas);
     gl.canvas.className = 'block h-full w-full';
+    host.appendChild(gl.canvas);
 
     const accent = accentReader('--primary');
-
     const program = new Program(gl, {
       vertex: VERTEX,
       fragment: visual.fragment,
@@ -121,69 +117,65 @@ export function Backdrop({ visual, className }: BackdropProps) {
       program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
       draw(program.uniforms.uTime.value);
     };
-    const observer = new ResizeObserver(resize);
-    observer.observe(host);
+    const sized = new ResizeObserver(resize);
+    sized.observe(host);
     resize();
 
-    // Reduced motion gets one frame, so the accent it reads is the one at mount.
-    if (reduced)
-      return () => {
-        observer.disconnect();
-        accent.dispose();
-        gl.canvas.remove();
-      };
-
     let frame = 0;
-    let start = performance.now();
+    let last = 0;
     let elapsed = 0;
     const loop = (now: number) => {
-      elapsed += (now - start) / 1000;
-      start = now;
+      elapsed += (now - last) / 1000;
+      last = now;
       draw(elapsed);
       frame = requestAnimationFrame(loop);
     };
-    const play = () => {
-      if (frame) return;
-      start = performance.now();
-      frame = requestAnimationFrame(loop);
-    };
-    const pause = () => {
-      cancelAnimationFrame(frame);
-      frame = 0;
+
+    // Every reason to stop resolved in one place. Held apart, returning to the tab
+    // started the loop even where the column is display:none and the canvas has never
+    // been on screen. Reduced motion keeps the field and never enters the loop, so it
+    // shows the single frame `resize` drew.
+    let onScreen = false;
+    const sync = () => {
+      const running = onScreen && !document.hidden && !reduced;
+      if (running && !frame) {
+        last = performance.now();
+        frame = requestAnimationFrame(loop);
+      } else if (!running && frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
     };
 
-    // Off-screen covers the small viewports, where the column is display:none and
-    // would otherwise render a canvas nobody sees.
-    const onScreen = new IntersectionObserver(
-      ([entry]) => (entry.isIntersecting && !document.hidden ? play() : pause()),
+    const seen = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        sync();
+      },
       { threshold: 0 }
     );
-    onScreen.observe(host);
-    const onVisibility = () => (document.hidden ? pause() : play());
-    document.addEventListener('visibilitychange', onVisibility);
+    seen.observe(host);
+    document.addEventListener('visibilitychange', sync);
 
     return () => {
-      pause();
-      observer.disconnect();
+      cancelAnimationFrame(frame);
+      sized.disconnect();
+      seen.disconnect();
+      document.removeEventListener('visibilitychange', sync);
       accent.dispose();
-      onScreen.disconnect();
-      document.removeEventListener('visibilitychange', onVisibility);
       gl.canvas.remove();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [visual]);
 
   return (
-    <div
-      aria-hidden
-      className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}
-    >
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <div ref={hostRef} className="absolute inset-0" />
 
-      {/* Framing, held here so a visual never draws its own, and in CSS so it
-          follows the theme without anyone reading a token. No backdrop-filter: over
-          a canvas that redraws every frame the compositor re-blurs it every frame
-          too, which costs whole frames. Softness belongs in the shader. */}
+      {/* Framing, held here so a visual never draws its own, and in CSS so it follows
+          the theme with nothing to read. No backdrop-filter: over a canvas redrawing
+          every frame the compositor re-blurs it every frame too, which costs whole
+          frames. Softness belongs in the shader. */}
       <div className="absolute inset-0" style={{ background: EDGE_FADE }} />
       <div className="absolute inset-0" style={{ background: CENTRE_WASH }} />
     </div>
