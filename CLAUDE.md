@@ -35,7 +35,10 @@ Two things CI cannot check, so check them by hand:
 - **Both themes.** Every component is styled with tokens, so light mode is free, but
   free is not the same as verified. Look at it in both.
 - **The build reaches the CDN.** `components/Image` resolves image dimensions from
-  remote headers at build time, so a broken asset path fails the build by design.
+  remote headers at build time. A path that no longer answers no longer fails the
+  build: `measureImage` warns, names the file, and falls back to 16/9, because an
+  asset can vanish years after a post shipped and taking every later deploy down
+  with it punishes work unrelated to the breakage. Read the build log.
 
 ## Branch workflow
 
@@ -188,7 +191,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 |---|---|
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
-| `lib/image-utils.ts` | Build-time intrinsic dimensions; throws rather than guessing |
+| `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
 | `lib/utils.ts` | `cn()` |
 | `config/site.ts` | All site metadata, SEO, `getRootMetadata()` |
@@ -322,6 +325,20 @@ needs no depth logic: each nested list carries its own `data-list`.
 `sm`, since 16px is this site's rhythm; and `CardTitle` / `CardContent` carry the prose
 type posts use. Because the file is CLI-generated, update it with
 `bunx shadcn@latest add card --diff` and re-apply these edits — don't overwrite.
+
+**The command palette is a registry, not a component full of items.**
+`lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
+and `components/CommandPalette` only renders it and hands each `run` the page's router
+and theme. Adding a command is one entry; nothing about the surface changes. `run`
+takes a context rather than reaching for hooks itself, which is what keeps the registry
+a plain module a test can read.
+
+`components/ui/command.tsx` is customized beyond the CLI output twice over: its
+`CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
+carries `--primary` rather than `--foreground`. Update it with
+`bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
+selected colour from a caller's `className` does not work: `cn()` drops it as a
+conflict with the primitive's own, silently.
 
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`

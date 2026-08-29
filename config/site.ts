@@ -10,6 +10,22 @@ const cdnUrl = 'https://cdn.lenysauzet.com'
 const supportUrl = 'https://buymeacoffee.com/lenysauzet'
 const membershipUrl = `${supportUrl}/membership`
 
+// Everywhere the site points at me. One list, so the command palette, the footer and
+// anything after them cannot drift apart.
+const social = {
+  work: authorUrl,
+  contact: 'mailto:contact@lenysauzet.com',
+  github: 'https://github.com/LenySauzet',
+  x: 'https://x.com/LenySauzet',
+  linkedin: 'https://www.linkedin.com/in/lenysauzet/',
+  bluesky: 'https://bsky.app/profile/lenysauzet.bsky.social',
+  roadmap:
+    'https://www.figma.com/board/CCTdvk3lomDhgiCsQu9hlb/Leny-s-Public-Roadmap',
+  support: supportUrl,
+}
+
+const resumeUrl = `${cdnUrl}/files/Leny-Sauzet-Resume.pdf`
+
 // Relative paths in posts are namespaced by media kind, so `blog/halftone.png`
 // resolves to `{cdnUrl}/images/blog/halftone.png`.
 const cdnPaths = {
@@ -124,6 +140,8 @@ const siteConfig = {
   cdnPaths,
   supportUrl,
   membershipUrl,
+  resumeUrl,
+  social,
   title,
   description,
   descriptionShort,

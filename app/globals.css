@@ -304,6 +304,48 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
+/* Swapping the theme under a View Transition: the incoming page arrives through a
+   soft circle opening out of the top left corner, so the change reads as a sweep
+   rather than a flash.
+
+   The circle is drawn at the mask's own origin, `cx="0" cy="0"`, which is what keeps
+   it pinned there as `mask-size` grows. Centred in its box instead, growing the box
+   drags the circle towards the bottom right and the sweep arrives from the wrong
+   corner. `feGaussianBlur` is what softens the edge; a `clip-path` animates just as
+   well but can only ever be crisp.
+
+   `theme-sweep` rather than a name any library might also use: same-named keyframes
+   are deduped by the bundler, which is the trap the `details-*` names above sidestep.
+   Skipped entirely under reduced motion, where the swap is instant. */
+@keyframes theme-sweep {
+  to {
+    mask-size: 350vmax;
+  }
+}
+
+::view-transition-new(root) {
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="b"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="0" cy="0" r="18" fill="white" filter="url(%23b)"/></svg>') top left / 0 no-repeat;
+  mask-origin: content-box;
+  animation: theme-sweep 700ms;
+  animation-fill-mode: both;
+  transform-origin: top left;
+}
+
+/* Held still underneath, rather than left to the browser's own cross-fade: the
+   sweep has to arrive over a page that is still fully there. */
+::view-transition-old(root) {
+  animation: none;
+  z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    animation: none;
+    mask: none;
+  }
+}
+
 /* The caret on a hovered post title. Not `caret-blink`: tw-animate-css defines that
    name and the bundler would keep its copy, the same trap the `details-*` names above
    sidestep. 530ms a phase is the rate terminals have blinked at since the VT100, and

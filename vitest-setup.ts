@@ -42,6 +42,12 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.releasePointerCapture = () => {};
 }
 
+// cmdk keeps the highlighted item in view as the selection moves, and jsdom has no
+// scrolling to do it with. Left out, every command list throws on its first render.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
+
 if (!window.IntersectionObserver) {
   window.IntersectionObserver = class {
     observe() {}
