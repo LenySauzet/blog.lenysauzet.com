@@ -304,6 +304,43 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
+/* Swapping the theme under a View Transition: the incoming page arrives through a
+   circle opening out of the top left corner, so the change reads as a sweep rather
+   than a flash. The outgoing snapshot holds still underneath it.
+
+   `clip-path`, which names its centre, rather than a growing mask: a mask's circle is
+   placed by its own box, so scaling the box drags the centre towards the bottom right
+   and the sweep arrives from the wrong corner. Animating the gradient's stops instead
+   pins the centre and would soften the edge, but Chrome does not interpolate
+   `mask-image`, so nothing moves at all. The edge is crisp as a result.
+
+   `theme-sweep` rather than a name any library might also use: same-named keyframes
+   are deduped by the bundler, which is the trap the `details-*` names above sidestep.
+   Skipped entirely under reduced motion, where the swap is instant. */
+@keyframes theme-sweep {
+  to {
+    clip-path: circle(150% at 0 0);
+  }
+}
+
+::view-transition-old(root) {
+  animation: none;
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  animation: theme-sweep 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  clip-path: circle(0% at 0 0);
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
+    clip-path: none;
+  }
+}
+
 /* The caret on a hovered post title. Not `caret-blink`: tw-animate-css defines that
    name and the bundler would keep its copy, the same trap the `details-*` names above
    sidestep. 530ms a phase is the rate terminals have blinked at since the VT100, and

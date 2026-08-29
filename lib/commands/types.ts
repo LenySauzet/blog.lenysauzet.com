@@ -26,10 +26,13 @@ export interface Command {
     /** Shown quietly on the right, where a link's destination is worth reading. */
     hint?: string
     /**
-     * A letter that runs this command while the palette is open, held with Alt.
-     * Not Cmd: the browser claims most of those before a page can see them.
+     * A `KeyboardEvent.key` that runs this command while the palette is open, held
+     * with Cmd. Scoped to the open palette, so it can preventDefault whatever the
+     * browser would otherwise do with the same combination.
      */
     shortcut?: string
+    /** Left standing, for a command whose own effect is worth watching. */
+    keepOpen?: boolean
     /** Listed but inert, for a destination that does not exist yet. */
     disabled?: boolean
     run: (context: CommandContext) => void

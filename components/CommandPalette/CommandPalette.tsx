@@ -27,15 +27,20 @@ import { GROUPS, type Command as PaletteCommand } from '@/lib/commands/types';
  */
 const EXIT_MS = 120;
 
-/** How far the fade reaches, and the slack that keeps it off a resting list. */
+/** What the shortcut column shows after the modifier. */
+const KEY_SYMBOLS: Record<string, string> = { ArrowUp: '↑', ArrowDown: '↓' };
+
+const keyLabel = (key: string) => KEY_SYMBOLS[key] ?? key.toUpperCase();
+
+/** How far the fade reaches once it is fully drawn. */
 const FADE = 80;
-const SLACK = 4;
 
 // Most of the falloff happens in the first third, so a row is gone well before it
-// meets the edge rather than half readable against it.
-const fadeMask = (top: boolean, bottom: boolean) => {
-  const head = top ? FADE : 0;
-  const foot = bottom ? FADE : 0;
+// meets the edge rather than half readable against it. Both ends take a 0 to 1
+// reach, so the fade grows with the scroll instead of switching on.
+const fadeMask = (top: number, bottom: number) => {
+  const head = FADE * top;
+  const foot = FADE * bottom;
 
   return [
     'linear-gradient(to bottom',
@@ -55,7 +60,7 @@ export function CommandPalette() {
   const { setTheme, resolvedTheme } = useTheme();
 
   const listRef = useRef<HTMLElement | null>(null);
-  const [edges, setEdges] = useState({ top: false, bottom: false });
+  const [edges, setEdges] = useState({ top: 0, bottom: 0 });
 
   const context = useMemo(
     () => ({ router, pathname, setTheme, resolvedTheme }),
@@ -71,9 +76,10 @@ export function CommandPalette() {
   const readEdges = useCallback(() => {
     const list = listRef.current;
     if (!list) return;
+    const below = list.scrollHeight - list.clientHeight - list.scrollTop;
     setEdges({
-      top: list.scrollTop > SLACK,
-      bottom: list.scrollTop + list.clientHeight < list.scrollHeight - SLACK,
+      top: Math.min(1, list.scrollTop / FADE),
+      bottom: Math.min(1, Math.max(0, below) / FADE),
     });
   }, []);
 
@@ -110,6 +116,7 @@ export function CommandPalette() {
 
   const dismissThenRun = useCallback(
     (command: PaletteCommand) => {
+      if (command.keepOpen) return command.run(context);
       setIsOpen(false);
       window.setTimeout(() => command.run(context), EXIT_MS);
     },
@@ -124,7 +131,8 @@ export function CommandPalette() {
         return;
       }
 
-      if (!useCmdkStore.getState().isOpen || !event.altKey) return;
+      if (!useCmdkStore.getState().isOpen) return;
+      if (!event.metaKey && !event.ctrlKey) return;
 
       const wanted = available.find(
         (command) =>
@@ -182,7 +190,7 @@ export function CommandPalette() {
                       ) : null}
                       {command.shortcut ? (
                         <CommandShortcut>
-                          ⌥{command.shortcut.toUpperCase()}
+                          ⌘{keyLabel(command.shortcut)}
                         </CommandShortcut>
                       ) : null}
                     </CommandItem>
@@ -192,8 +200,8 @@ export function CommandPalette() {
             })}
           </CommandList>
 
-          <EdgeBlur edge="top" shown={edges.top} />
-          <EdgeBlur edge="bottom" shown={edges.bottom} />
+          <EdgeBlur edge="top" reach={edges.top} />
+          <EdgeBlur edge="bottom" reach={edges.bottom} />
         </div>
       </Command>
     </CommandDialog>
@@ -201,16 +209,17 @@ export function CommandPalette() {
 }
 
 /** Siblings of the masked list: a child would be erased by that same mask. */
-function EdgeBlur({ edge, shown }: { edge: 'top' | 'bottom'; shown: boolean }) {
+function EdgeBlur({ edge, reach }: { edge: 'top' | 'bottom'; reach: number }) {
   const ramp = `linear-gradient(to ${edge === 'top' ? 'bottom' : 'top'}, black 0%, transparent 100%)`;
 
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-x-0 h-20 transition-opacity duration-150 ${
+      className={`pointer-events-none absolute inset-x-0 h-20 ${
         edge === 'top' ? 'top-0' : 'bottom-0'
-      } ${shown ? 'opacity-100' : 'opacity-0'}`}
+      }`}
       style={{
+        opacity: reach,
         backdropFilter: 'blur(4px)',
         WebkitBackdropFilter: 'blur(4px)',
         maskImage: ramp,

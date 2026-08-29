@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner'
 
 import siteConfig from '@/config/site'
+import { withThemeTransition } from '@/lib/theme-transition'
 
 import type { Command, CommandContext } from './types'
 
@@ -39,9 +40,12 @@ export const commands: Command[] = [
         icon: Moon02Icon,
         group: 'Tools',
         keywords: ['dark', 'light', 'appearance'],
-        shortcut: 't',
+        shortcut: 'd',
+        keepOpen: true,
         run: ({ setTheme, resolvedTheme }) =>
-            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
+            withThemeTransition(() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+            ),
     },
     {
         id: 'copy-link',
@@ -49,6 +53,7 @@ export const commands: Command[] = [
         icon: CopyLinkIcon,
         group: 'Tools',
         keywords: ['url', 'share'],
+        shortcut: 'l',
         when: onAPost,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
@@ -61,6 +66,7 @@ export const commands: Command[] = [
         icon: ArrowUp01Icon,
         group: 'Tools',
         keywords: ['scroll', 'beginning'],
+        shortcut: 'ArrowUp',
         when: onAPost,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
@@ -81,6 +87,7 @@ export const commands: Command[] = [
         icon: Download01Icon,
         group: 'Tools',
         keywords: ['cv', 'hire', 'pdf'],
+        shortcut: 's',
         run: () => {
             const link = document.createElement('a')
             link.href = RESUME_ROUTE

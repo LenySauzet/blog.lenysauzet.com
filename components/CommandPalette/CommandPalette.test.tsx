@@ -117,18 +117,29 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
   });
 
-  // A key that only answers while the palette is open, so it cannot fight the
-  // browser's own bindings.
-  it('runs a command from its shortcut, held with Alt', async () => {
+  // Only answers while the palette is open, which is what lets it claim a
+  // combination the browser would otherwise take.
+  it('runs a command from its shortcut', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
     await screen.findByText('Toggle theme');
 
-    await user.keyboard('{Alt>}t{/Alt}');
+    await user.keyboard('{Meta>}d{/Meta}');
 
-    expect(useCmdkStore.getState().isOpen).toBe(false);
     await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
+  });
+
+  // The sweep freezes the page for its length, so closing underneath it would show
+  // the palette gone in a snapshot that still holds it.
+  it('leaves the palette standing for a command that asks to be watched', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    await user.click(await screen.findByText('Toggle theme'));
+
+    expect(useCmdkStore.getState().isOpen).toBe(true);
   });
 
   // Typing a word the label does not contain still has to find the command.
