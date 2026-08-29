@@ -61,6 +61,14 @@ export function CommandPalette() {
 
   const listRef = useRef<HTMLElement | null>(null);
   const [edges, setEdges] = useState({ top: 0, bottom: 0 });
+  /**
+   * cmdk owns the selection, but it refuses to move it onto a disabled row, so
+   * pointing at one left the previous row lit and reading as the hovered one.
+   * Holding the value here lets a disabled row take the selection like any other:
+   * it is dimmed by `data-[disabled=true]:opacity-40` and answers nothing, which is
+   * the whole of what disabled has to say.
+   */
+  const [selected, setSelected] = useState('');
 
   const context = useMemo(
     () => ({ router, pathname, setTheme, resolvedTheme }),
@@ -155,7 +163,7 @@ export function CommandPalette() {
     <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
       {/* The dialog here is only the surface: unlike the stock shadcn one it leaves
           the cmdk root to its caller. */}
-      <Command>
+      <Command value={selected} onValueChange={setSelected}>
         <CommandInput placeholder="Type a command..." />
 
         <div ref={watchFrame} className="relative">
@@ -174,28 +182,40 @@ export function CommandPalette() {
 
               return (
                 <CommandGroup key={group} heading={group}>
-                  {inGroup.map((command) => (
-                    <CommandItem
-                      key={command.id}
-                      // cmdk matches on this, not on the rendered children.
-                      value={[command.label, ...(command.keywords ?? [])].join(' ')}
-                      disabled={command.disabled}
-                      onSelect={() => runCommand(command)}
-                    >
-                      <HugeiconsIcon icon={command.icon} strokeWidth={2} />
-                      {command.label}
-                      {command.hint ? (
-                        <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
-                          {command.hint}
-                        </span>
-                      ) : null}
-                      {command.shortcut ? (
-                        <CommandShortcut>
-                          ⌘{keyLabel(command.shortcut)}
-                        </CommandShortcut>
-                      ) : null}
-                    </CommandItem>
-                  ))}
+                  {inGroup.map((command) => {
+                    // cmdk matches on this, not on the rendered children.
+                    const value = [
+                      command.label,
+                      ...(command.keywords ?? []),
+                    ].join(' ');
+
+                    return (
+                      <CommandItem
+                        key={command.id}
+                        value={value}
+                        disabled={command.disabled}
+                        // `onPointerMove` is what cmdk selects on, and it overrides
+                        // ours with `undefined` on a disabled row.
+                        onPointerEnter={
+                          command.disabled ? () => setSelected(value) : undefined
+                        }
+                        onSelect={() => runCommand(command)}
+                      >
+                        <HugeiconsIcon icon={command.icon} strokeWidth={2} />
+                        {command.label}
+                        {command.hint ? (
+                          <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
+                            {command.hint}
+                          </span>
+                        ) : null}
+                        {command.shortcut ? (
+                          <CommandShortcut>
+                            ⌘{keyLabel(command.shortcut)}
+                          </CommandShortcut>
+                        ) : null}
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
               );
             })}

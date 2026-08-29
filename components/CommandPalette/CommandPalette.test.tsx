@@ -139,6 +139,25 @@ describe('CommandPalette', () => {
     expect(useCmdkStore.getState().isOpen).toBe(true);
   });
 
+  // cmdk refuses to move its selection onto a disabled row, which left whichever row
+  // held it lit and reading as the one under the cursor.
+  it('takes the selection off the last row when a disabled one is pointed at', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    const row = (label: string) =>
+      screen.getByText(label).closest('[role="option"]');
+
+    await user.hover(await screen.findByText('RSS'));
+    expect(row('RSS')).toHaveAttribute('data-selected', 'true');
+
+    await user.hover(screen.getByText('Glossary'));
+
+    expect(row('RSS')).toHaveAttribute('data-selected', 'false');
+    expect(row('Glossary')).toHaveAttribute('data-selected', 'true');
+  });
+
   // Typing a word the label does not contain still has to find the command.
   it('matches on keywords as well as labels', async () => {
     const user = userEvent.setup();

@@ -305,38 +305,44 @@ ol[data-list='ordered'] > li::before {
 }
 
 /* Swapping the theme under a View Transition: the incoming page arrives through a
-   circle opening out of the top left corner, so the change reads as a sweep rather
-   than a flash. The outgoing snapshot holds still underneath it.
+   soft circle opening out of the top left corner, so the change reads as a sweep
+   rather than a flash.
 
-   `clip-path`, so the edge is crisp. A soft edge needs a mask, and a mask on this
-   pseudo-element is not honoured here: growing its size, and animating the stops of
-   a registered custom property, both reach the built stylesheet intact and both
-   render nothing at all, while this animates. Do not spend the afternoon again.
+   The circle is drawn at the mask's own origin, `cx="0" cy="0"`, which is what keeps
+   it pinned there as `mask-size` grows. Centred in its box instead, growing the box
+   drags the circle towards the bottom right and the sweep arrives from the wrong
+   corner. `feGaussianBlur` is what softens the edge; a `clip-path` animates just as
+   well but can only ever be crisp.
 
    `theme-sweep` rather than a name any library might also use: same-named keyframes
    are deduped by the bundler, which is the trap the `details-*` names above sidestep.
    Skipped entirely under reduced motion, where the swap is instant. */
 @keyframes theme-sweep {
   to {
-    clip-path: circle(150% at 0 0);
+    mask-size: 350vmax;
   }
 }
 
-::view-transition-old(root) {
-  animation: none;
-  z-index: 0;
+::view-transition-new(root) {
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="b"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="0" cy="0" r="18" fill="white" filter="url(%23b)"/></svg>') top left / 0 no-repeat;
+  mask-origin: content-box;
+  animation: theme-sweep 700ms;
+  animation-fill-mode: both;
+  transform-origin: top left;
 }
 
-::view-transition-new(root) {
-  animation: theme-sweep 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  clip-path: circle(0% at 0 0);
-  z-index: 1;
+/* Held still underneath, rather than left to the browser's own cross-fade: the
+   sweep has to arrive over a page that is still fully there. */
+::view-transition-old(root) {
+  animation: none;
+  z-index: -1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-new(root) {
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
     animation: none;
-    clip-path: none;
+    mask: none;
   }
 }
 
