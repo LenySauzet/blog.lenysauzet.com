@@ -11,8 +11,15 @@ interface ImageDimensions {
   height: number;
 }
 
-// Throws rather than guessing: a wrong dimension ships as layout shift on every
-// visit, which is worse than a failed build.
+/**
+ * What a figure falls back to when the asset cannot be measured. A wrong ratio is
+ * layout shift, but an asset that no longer answers has no right ratio to keep: the
+ * choice is between reserving something and reserving nothing.
+ */
+const UNKNOWN_RATIO: ImageDimensions = { width: 1600, height: 900 };
+
+// Throws rather than guessing. `measureImage` is what callers use when a missing
+// asset should not take the build down with it.
 export const getImageDimensions = cache(
   async (url: string): Promise<ImageDimensions> => {
     let response: Response;
@@ -54,3 +61,25 @@ export const getImageDimensions = cache(
     return { width, height };
   }
 );
+
+/**
+ * The same lookup, but a CDN that has stopped answering is reported rather than
+ * fatal. An asset can disappear years after a post shipped, and taking every later
+ * deploy down with it punishes work that has nothing to do with the breakage.
+ *
+ * Loud on purpose: the warning names the file, so a broken image is something the
+ * build tells you about rather than something a reader finds.
+ */
+export const measureImage = cache(
+  async (url: string): Promise<ImageDimensions & { measured: boolean }> => {
+    try {
+      return { ...(await getImageDimensions(url)), measured: true }
+    } catch (error) {
+      console.warn(
+        `[image] ${url} could not be measured, falling back to ${UNKNOWN_RATIO.width}x${UNKNOWN_RATIO.height}.`,
+        error instanceof Error ? error.message : error
+      )
+      return { ...UNKNOWN_RATIO, measured: false }
+    }
+  }
+)

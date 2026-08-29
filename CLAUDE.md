@@ -35,7 +35,10 @@ Two things CI cannot check, so check them by hand:
 - **Both themes.** Every component is styled with tokens, so light mode is free, but
   free is not the same as verified. Look at it in both.
 - **The build reaches the CDN.** `components/Image` resolves image dimensions from
-  remote headers at build time, so a broken asset path fails the build by design.
+  remote headers at build time. A path that no longer answers no longer fails the
+  build: `measureImage` warns, names the file, and falls back to 16/9, because an
+  asset can vanish years after a post shipped and taking every later deploy down
+  with it punishes work unrelated to the breakage. Read the build log.
 
 ## Branch workflow
 
@@ -188,7 +191,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 |---|---|
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
-| `lib/image-utils.ts` | Build-time intrinsic dimensions; throws rather than guessing |
+| `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
 | `lib/utils.ts` | `cn()` |
 | `config/site.ts` | All site metadata, SEO, `getRootMetadata()` |

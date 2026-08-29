@@ -1,5 +1,5 @@
 import { resolveImageUrl } from '@/lib/cdn';
-import { getImageDimensions } from '@/lib/image-utils';
+import { measureImage } from '@/lib/image-utils';
 
 import ImageZoom from './ImageZoom';
 
@@ -27,7 +27,7 @@ export default async function Image({
 }: ImageProps) {
   const url = resolveImageUrl(src);
   const dimensions =
-    width && height ? { width, height } : await getImageDimensions(url);
+    width && height ? { width, height } : await measureImage(url);
 
   return (
     <figure className="my-6 flex w-full flex-col items-start gap-0">
