@@ -9,6 +9,7 @@ export type Group = (typeof GROUPS)[number]
 /** What a command is allowed to reach for. Anything else it can take from the page. */
 export interface CommandContext {
     router: AppRouterInstance
+    pathname: string
     setTheme: (theme: string) => void
     resolvedTheme: string | undefined
 }
@@ -20,5 +21,11 @@ export interface Command {
     group: Group
     /** Matched by the search on top of the label, for words a reader might reach for. */
     keywords?: string[]
+    /** Offered only where it means something. Absent means everywhere. */
+    when?: (context: CommandContext) => boolean
+    /** Shown quietly on the right, where a link's destination is worth reading. */
+    hint?: string
+    /** Listed but inert, for a destination that does not exist yet. */
+    disabled?: boolean
     run: (context: CommandContext) => void
 }

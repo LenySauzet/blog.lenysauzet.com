@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { HugeiconsIcon } from '@hugeicons/react';
+import { useTheme } from 'next-themes';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 import {
   Command,
@@ -13,29 +13,37 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { useCmdkStore } from "@/hooks/use-cmdk-store";
-import { commands } from "@/lib/commands/registry";
-import { GROUPS } from "@/lib/commands/types";
+} from '@/components/ui/command';
+import { useCmdkStore } from '@/hooks/use-cmdk-store';
+import { commands } from '@/lib/commands/registry';
+import { GROUPS } from '@/lib/commands/types';
 
 export function CommandPalette() {
   const { isOpen, setIsOpen } = useCmdkStore();
   const router = useRouter();
+  const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "k" || !(event.metaKey || event.ctrlKey)) return;
+      if (event.key !== 'k' || !(event.metaKey || event.ctrlKey)) return;
       event.preventDefault();
       setIsOpen(!useCmdkStore.getState().isOpen);
     };
 
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [setIsOpen]);
 
+  const context = { router, pathname, setTheme, resolvedTheme };
+  const available = commands.filter((command) => command.when?.(context) ?? true);
+
   return (
-    <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+    <CommandDialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="sm:max-w-2xl"
+    >
       {/* The dialog here is only the surface: unlike the stock shadcn one it leaves
           the cmdk root to its caller. */}
       <Command>
@@ -43,8 +51,8 @@ export function CommandPalette() {
         <CommandList>
           <CommandEmpty>Nothing matches that.</CommandEmpty>
           {GROUPS.map((group) => {
-            const inGroup = commands.filter(
-              (command) => command.group === group,
+            const inGroup = available.filter(
+              (command) => command.group === group
             );
             if (!inGroup.length) return null;
 
@@ -54,16 +62,20 @@ export function CommandPalette() {
                   <CommandItem
                     key={command.id}
                     // cmdk matches on this, not on the rendered children.
-                    value={[command.label, ...(command.keywords ?? [])].join(
-                      " ",
-                    )}
+                    value={[command.label, ...(command.keywords ?? [])].join(' ')}
+                    disabled={command.disabled}
                     onSelect={() => {
                       setIsOpen(false);
-                      command.run({ router, setTheme, resolvedTheme });
+                      command.run(context);
                     }}
                   >
                     <HugeiconsIcon icon={command.icon} strokeWidth={2} />
                     {command.label}
+                    {command.hint ? (
+                      <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
+                        {command.hint}
+                      </span>
+                    ) : null}
                   </CommandItem>
                 ))}
               </CommandGroup>

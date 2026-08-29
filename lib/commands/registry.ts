@@ -1,26 +1,31 @@
 import {
-    ArrowRight01Icon,
+    ArrowRight02Icon,
+    BlueskyIcon,
     ArrowUp01Icon,
     Coffee01Icon,
     CopyLinkIcon,
+    Download01Icon,
     ExternalLinkIcon,
     Github01Icon,
-    Home01Icon,
+    Linkedin01Icon,
     Mail01Icon,
     Moon02Icon,
     NewTwitterIcon,
-    RssIcon,
+    PaintBoardIcon,
 } from '@hugeicons/core-free-icons'
 
 import siteConfig from '@/config/site'
 
-import type { Command } from './types'
+import type { Command, CommandContext } from './types'
 
-const { social } = siteConfig
+const { social, resumeUrl } = siteConfig
 
 const openExternally = (url: string) => () => {
     window.open(url, '_blank', 'noopener,noreferrer')
 }
+
+/** Copying a link or returning to the top only mean something inside an article. */
+const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
 export const commands: Command[] = [
     {
@@ -38,6 +43,7 @@ export const commands: Command[] = [
         icon: CopyLinkIcon,
         group: 'Tools',
         keywords: ['url', 'share'],
+        when: onAPost,
         run: () => navigator.clipboard.writeText(window.location.href),
     },
     {
@@ -46,6 +52,7 @@ export const commands: Command[] = [
         icon: ArrowUp01Icon,
         group: 'Tools',
         keywords: ['scroll', 'beginning'],
+        when: onAPost,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
         run: () => {
@@ -60,9 +67,17 @@ export const commands: Command[] = [
         },
     },
     {
+        id: 'resume',
+        label: 'Download resume',
+        icon: Download01Icon,
+        group: 'Tools',
+        keywords: ['cv', 'hire', 'pdf'],
+        run: openExternally(resumeUrl),
+    },
+    {
         id: 'home',
         label: 'Home',
-        icon: Home01Icon,
+        icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['index', 'posts'],
         run: ({ router }) => router.push('/'),
@@ -70,15 +85,25 @@ export const commands: Command[] = [
     {
         id: 'design-system',
         label: 'Design System',
-        icon: ArrowRight01Icon,
+        icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['components', 'reference'],
         run: ({ router }) => router.push('/posts/design-system'),
     },
     {
+        id: 'glossary',
+        label: 'Glossary',
+        icon: ArrowRight02Icon,
+        group: 'Navigation',
+        keywords: ['terms', 'definitions'],
+        // Listed so the shape of the site is visible before the page exists.
+        disabled: true,
+        run: ({ router }) => router.push('/glossary'),
+    },
+    {
         id: 'rss',
         label: 'RSS',
-        icon: RssIcon,
+        icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['feed', 'subscribe'],
         run: ({ router }) => router.push('/rss'),
@@ -89,6 +114,7 @@ export const commands: Command[] = [
         icon: ExternalLinkIcon,
         group: 'Links',
         keywords: ['portfolio', 'site'],
+        hint: 'lenysauzet.com',
         run: openExternally(social.work),
     },
     {
@@ -97,6 +123,7 @@ export const commands: Command[] = [
         icon: Mail01Icon,
         group: 'Links',
         keywords: ['email', 'mail', 'hire'],
+        hint: 'contact@lenysauzet.com',
         run: openExternally(social.contact),
     },
     {
@@ -105,6 +132,7 @@ export const commands: Command[] = [
         icon: Github01Icon,
         group: 'Links',
         keywords: ['code', 'source'],
+        hint: 'github.com/LenySauzet',
         run: openExternally(social.github),
     },
     {
@@ -113,7 +141,35 @@ export const commands: Command[] = [
         icon: NewTwitterIcon,
         group: 'Links',
         keywords: ['twitter', 'social'],
+        hint: 'x.com/LenySauzet',
         run: openExternally(social.x),
+    },
+    {
+        id: 'bluesky',
+        label: 'Bluesky',
+        icon: BlueskyIcon,
+        group: 'Links',
+        keywords: ['social', 'bsky'],
+        hint: 'lenysauzet.bsky.social',
+        run: openExternally(social.bluesky),
+    },
+    {
+        id: 'linkedin',
+        label: 'LinkedIn',
+        icon: Linkedin01Icon,
+        group: 'Links',
+        keywords: ['social', 'work'],
+        hint: 'linkedin.com/in/lenysauzet',
+        run: openExternally(social.linkedin),
+    },
+    {
+        id: 'roadmap',
+        label: 'Roadmap',
+        icon: PaintBoardIcon,
+        group: 'Links',
+        keywords: ['figma', 'plans', 'next'],
+        hint: 'figma.com',
+        run: openExternally(social.roadmap),
     },
     {
         id: 'support',
@@ -121,6 +177,7 @@ export const commands: Command[] = [
         icon: Coffee01Icon,
         group: 'Links',
         keywords: ['donate', 'coffee', 'sponsor'],
+        hint: 'buymeacoffee.com/lenysauzet',
         run: openExternally(social.support),
     },
 ]

@@ -9,7 +9,11 @@ import { GROUPS } from '@/lib/commands/types';
 import { CommandPalette } from './CommandPalette';
 
 const push = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+let pathname = '/';
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push }),
+  usePathname: () => pathname,
+}));
 
 const setTheme = vi.fn();
 vi.mock('next-themes', () => ({
@@ -18,8 +22,12 @@ vi.mock('next-themes', () => ({
 
 afterEach(() => {
   useCmdkStore.setState({ isOpen: false });
+  pathname = '/';
   vi.clearAllMocks();
 });
+
+const shown = () =>
+  screen.getAllByRole('option').map((item) => item.textContent?.trim());
 
 describe('CommandPalette', () => {
   it('stays out of the way until it is asked for', () => {
@@ -39,7 +47,8 @@ describe('CommandPalette', () => {
     expect(useCmdkStore.getState().isOpen).toBe(false);
   });
 
-  it('offers every command in the registry, under its own heading', async () => {
+  it('offers every command that suits the page, under its own heading', async () => {
+    pathname = '/posts/anything';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
 
@@ -49,6 +58,39 @@ describe('CommandPalette', () => {
     for (const command of commands) {
       expect(screen.getByText(command.label)).toBeInTheDocument();
     }
+  });
+
+  // Copying a link or scrolling back up is meaningless on the index, and an offer
+  // that does nothing is worse than no offer.
+  it('keeps the post-only commands off every other page', async () => {
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+    await screen.findByText('Home');
+
+    expect(shown()).not.toContain('Copy link to clipboard');
+    expect(shown()).not.toContain('Go to top');
+  });
+
+  it('offers them again inside an article', async () => {
+    pathname = '/posts/shades-of-halftone';
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    expect(await screen.findByText('Copy link to clipboard')).toBeInTheDocument();
+    expect(screen.getByText('Go to top')).toBeInTheDocument();
+  });
+
+  // Listed so the shape of the site is visible, inert until the page exists.
+  it('shows the glossary without letting it be run', async () => {
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    const glossary = await screen.findByText('Glossary');
+    expect(glossary.closest('[role="option"]')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+    expect(push).not.toHaveBeenCalled();
   });
 
   // The registry decides what a command does; the palette only has to hand it the
