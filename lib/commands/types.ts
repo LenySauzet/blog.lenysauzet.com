@@ -26,9 +26,9 @@ export interface Command {
     /** Shown quietly on the right, where a link's destination is worth reading. */
     hint?: string
     /**
-     * A `KeyboardEvent.key` that runs this command while the palette is open, held
-     * with Cmd. Scoped to the open palette, so it can preventDefault whatever the
-     * browser would otherwise do with the same combination.
+     * A `KeyboardEvent.key` that runs this command from anywhere, held with Cmd.
+     * Only pick one the browser hands over: it is claimed with `preventDefault`,
+     * which the window's own bindings ignore.
      */
     shortcut?: string
     /** Left standing, for a command whose own effect is worth watching. */

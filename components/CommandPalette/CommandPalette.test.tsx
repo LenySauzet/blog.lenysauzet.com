@@ -117,13 +117,10 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
   });
 
-  // Only answers while the palette is open, which is what lets it claim a
-  // combination the browser would otherwise take.
-  it('runs a command from its shortcut', async () => {
+  // Answers from anywhere, so it is worth something before the palette is known.
+  it('runs a command from its shortcut with the palette shut', async () => {
     const user = userEvent.setup();
-    useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
-    await screen.findByText('Toggle theme');
 
     await user.keyboard('{Meta>}d{/Meta}');
 

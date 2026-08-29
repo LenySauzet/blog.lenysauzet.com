@@ -114,9 +114,11 @@ export function CommandPalette() {
     [readEdges]
   );
 
-  const dismissThenRun = useCallback(
+  const runCommand = useCallback(
     (command: PaletteCommand) => {
-      if (command.keepOpen) return command.run(context);
+      const standing = useCmdkStore.getState().isOpen && !command.keepOpen;
+      if (!standing) return command.run(context);
+
       setIsOpen(false);
       window.setTimeout(() => command.run(context), EXIT_MS);
     },
@@ -131,7 +133,6 @@ export function CommandPalette() {
         return;
       }
 
-      if (!useCmdkStore.getState().isOpen) return;
       if (!event.metaKey && !event.ctrlKey) return;
 
       const wanted = available.find(
@@ -141,12 +142,12 @@ export function CommandPalette() {
       if (!wanted) return;
 
       event.preventDefault();
-      dismissThenRun(wanted);
+      runCommand(wanted);
     };
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [available, dismissThenRun, setIsOpen]);
+  }, [available, runCommand, setIsOpen]);
 
   const mask = fadeMask(edges.top, edges.bottom);
 
@@ -179,7 +180,7 @@ export function CommandPalette() {
                       // cmdk matches on this, not on the rendered children.
                       value={[command.label, ...(command.keywords ?? [])].join(' ')}
                       disabled={command.disabled}
-                      onSelect={() => dismissThenRun(command)}
+                      onSelect={() => runCommand(command)}
                     >
                       <HugeiconsIcon icon={command.icon} strokeWidth={2} />
                       {command.label}

@@ -308,11 +308,10 @@ ol[data-list='ordered'] > li::before {
    circle opening out of the top left corner, so the change reads as a sweep rather
    than a flash. The outgoing snapshot holds still underneath it.
 
-   `clip-path`, which names its centre, rather than a growing mask: a mask's circle is
-   placed by its own box, so scaling the box drags the centre towards the bottom right
-   and the sweep arrives from the wrong corner. Animating the gradient's stops instead
-   pins the centre and would soften the edge, but Chrome does not interpolate
-   `mask-image`, so nothing moves at all. The edge is crisp as a result.
+   `clip-path`, so the edge is crisp. A soft edge needs a mask, and a mask on this
+   pseudo-element is not honoured here: growing its size, and animating the stops of
+   a registered custom property, both reach the built stylesheet intact and both
+   render nothing at all, while this animates. Do not spend the afternoon again.
 
    `theme-sweep` rather than a name any library might also use: same-named keyframes
    are deduped by the bundler, which is the trap the `details-*` names above sidestep.
@@ -329,7 +328,7 @@ ol[data-list='ordered'] > li::before {
 }
 
 ::view-transition-new(root) {
-  animation: theme-sweep 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: theme-sweep 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   clip-path: circle(0% at 0 0);
   z-index: 1;
 }
