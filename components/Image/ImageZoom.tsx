@@ -80,12 +80,18 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
   const ratio = `${props.width} / ${props.height}`;
   const gone = status === 'failed';
 
+  // Held invisible until the bytes land: shown while loading, a source that is
+  // going to fail paints the browser's broken glyph first.
   const image = (className: string, altText: string) => (
     <NextImage
       {...props}
       alt={altText}
       sizes={IMAGE_SIZES}
-      className={className}
+      className={cn(
+        className,
+        'transition-opacity duration-200',
+        status === 'ready' ? 'opacity-100' : 'opacity-0'
+      )}
       onLoad={() => setStatus('ready')}
       onError={() => setStatus('failed')}
     />

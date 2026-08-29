@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -93,17 +93,18 @@ describe('CommandPalette', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  // The registry decides what a command does; the palette only has to hand it the
-  // page's router and theme, and get out of the way afterwards.
-  it('runs the command it is given and closes behind it', async () => {
+  // The registry decides what a command does; the palette hands it the page's router
+  // and theme, and lets the surface leave first: a command that repaints the whole
+  // page during the exit makes it read as a cut.
+  it('closes first, then runs the command it was given', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
 
     await user.click(await screen.findByText('Home'));
 
-    expect(push).toHaveBeenCalledWith('/');
     expect(useCmdkStore.getState().isOpen).toBe(false);
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
   });
 
   it('toggles away from the theme currently resolved', async () => {
@@ -113,7 +114,21 @@ describe('CommandPalette', () => {
 
     await user.click(await screen.findByText('Toggle theme'));
 
-    expect(setTheme).toHaveBeenCalledWith('light');
+    await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
+  });
+
+  // A key that only answers while the palette is open, so it cannot fight the
+  // browser's own bindings.
+  it('runs a command from its shortcut, held with Alt', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+    await screen.findByText('Toggle theme');
+
+    await user.keyboard('{Alt>}t{/Alt}');
+
+    expect(useCmdkStore.getState().isOpen).toBe(false);
+    await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
   });
 
   // Typing a word the label does not contain still has to find the command.

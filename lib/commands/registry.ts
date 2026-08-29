@@ -14,15 +14,20 @@ import {
     PaintBoardIcon,
 } from '@hugeicons/core-free-icons'
 
+import { toast } from 'sonner'
+
 import siteConfig from '@/config/site'
 
 import type { Command, CommandContext } from './types'
 
-const { social, resumeUrl } = siteConfig
+const { social } = siteConfig
 
 const openExternally = (url: string) => () => {
     window.open(url, '_blank', 'noopener,noreferrer')
 }
+
+/** Same origin, so `download` is honoured and the page is never left behind. */
+const RESUME_ROUTE = '/resume'
 
 /** Copying a link or returning to the top only mean something inside an article. */
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
@@ -34,6 +39,7 @@ export const commands: Command[] = [
         icon: Moon02Icon,
         group: 'Tools',
         keywords: ['dark', 'light', 'appearance'],
+        shortcut: 't',
         run: ({ setTheme, resolvedTheme }) =>
             setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
     },
@@ -44,7 +50,10 @@ export const commands: Command[] = [
         group: 'Tools',
         keywords: ['url', 'share'],
         when: onAPost,
-        run: () => navigator.clipboard.writeText(window.location.href),
+        run: async () => {
+            await navigator.clipboard.writeText(window.location.href)
+            toast.success('Link copied to your clipboard')
+        },
     },
     {
         id: 'go-to-top',
@@ -72,7 +81,13 @@ export const commands: Command[] = [
         icon: Download01Icon,
         group: 'Tools',
         keywords: ['cv', 'hire', 'pdf'],
-        run: openExternally(resumeUrl),
+        run: () => {
+            const link = document.createElement('a')
+            link.href = RESUME_ROUTE
+            link.download = ''
+            link.click()
+            toast.success('Downloading my resume')
+        },
     },
     {
         id: 'home',

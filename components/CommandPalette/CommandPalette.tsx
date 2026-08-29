@@ -3,7 +3,7 @@
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Command,
@@ -13,19 +13,40 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandShortcut,
 } from '@/components/ui/command';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { commands } from '@/lib/commands/registry';
-import { GROUPS } from '@/lib/commands/types';
+import { GROUPS, type Command as PaletteCommand } from '@/lib/commands/types';
+
+/**
+ * What the surface takes to leave, matching the dialog's own `duration-100`. A
+ * command that repaints the whole page inside that window reads as a cut rather than
+ * an exit, so the two are kept apart. A timer rather than `animationend`, which never
+ * fires when the animation is off and would drop the command entirely.
+ */
+const EXIT_MS = 120;
 
 /** How far the fade reaches, and the slack that keeps it off a resting list. */
-const FADE = 44;
+const FADE = 80;
 const SLACK = 4;
 
-const fadeMask = (top: boolean, bottom: boolean) =>
-  `linear-gradient(to bottom, transparent 0, black ${top ? FADE : 0}px, black calc(100% - ${
-    bottom ? FADE : 0
-  }px), transparent 100%)`;
+// Most of the falloff happens in the first third, so a row is gone well before it
+// meets the edge rather than half readable against it.
+const fadeMask = (top: boolean, bottom: boolean) => {
+  const head = top ? FADE : 0;
+  const foot = bottom ? FADE : 0;
+
+  return [
+    'linear-gradient(to bottom',
+    'transparent 0',
+    `oklch(0 0 0 / 0.35) ${head * 0.4}px`,
+    `black ${head}px`,
+    `black calc(100% - ${foot}px)`,
+    `oklch(0 0 0 / 0.35) calc(100% - ${foot * 0.4}px)`,
+    'transparent 100%)',
+  ].join(', ');
+};
 
 export function CommandPalette() {
   const { isOpen, setIsOpen } = useCmdkStore();
@@ -35,6 +56,15 @@ export function CommandPalette() {
 
   const listRef = useRef<HTMLElement | null>(null);
   const [edges, setEdges] = useState({ top: false, bottom: false });
+
+  const context = useMemo(
+    () => ({ router, pathname, setTheme, resolvedTheme }),
+    [router, pathname, setTheme, resolvedTheme]
+  );
+  const available = useMemo(
+    () => commands.filter((command) => command.when?.(context) ?? true),
+    [context]
+  );
 
   // Only ever called from an event, an observer or a ref callback, never from an
   // effect body.
@@ -78,19 +108,38 @@ export function CommandPalette() {
     [readEdges]
   );
 
+  const dismissThenRun = useCallback(
+    (command: PaletteCommand) => {
+      setIsOpen(false);
+      window.setTimeout(() => command.run(context), EXIT_MS);
+    },
+    [context, setIsOpen]
+  );
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'k' || !(event.metaKey || event.ctrlKey)) return;
+      if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setIsOpen(!useCmdkStore.getState().isOpen);
+        return;
+      }
+
+      if (!useCmdkStore.getState().isOpen || !event.altKey) return;
+
+      const wanted = available.find(
+        (command) =>
+          command.shortcut && !command.disabled && command.shortcut === event.key
+      );
+      if (!wanted) return;
+
       event.preventDefault();
-      setIsOpen(!useCmdkStore.getState().isOpen);
+      dismissThenRun(wanted);
     };
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [setIsOpen]);
+  }, [available, dismissThenRun, setIsOpen]);
 
-  const context = { router, pathname, setTheme, resolvedTheme };
-  const available = commands.filter((command) => command.when?.(context) ?? true);
   const mask = fadeMask(edges.top, edges.bottom);
 
   return (
@@ -122,10 +171,7 @@ export function CommandPalette() {
                       // cmdk matches on this, not on the rendered children.
                       value={[command.label, ...(command.keywords ?? [])].join(' ')}
                       disabled={command.disabled}
-                      onSelect={() => {
-                        setIsOpen(false);
-                        command.run(context);
-                      }}
+                      onSelect={() => dismissThenRun(command)}
                     >
                       <HugeiconsIcon icon={command.icon} strokeWidth={2} />
                       {command.label}
@@ -133,6 +179,11 @@ export function CommandPalette() {
                         <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
                           {command.hint}
                         </span>
+                      ) : null}
+                      {command.shortcut ? (
+                        <CommandShortcut>
+                          ⌥{command.shortcut.toUpperCase()}
+                        </CommandShortcut>
                       ) : null}
                     </CommandItem>
                   ))}
@@ -156,12 +207,12 @@ function EdgeBlur({ edge, shown }: { edge: 'top' | 'bottom'; shown: boolean }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-x-0 h-11 transition-opacity duration-150 ${
+      className={`pointer-events-none absolute inset-x-0 h-20 transition-opacity duration-150 ${
         edge === 'top' ? 'top-0' : 'bottom-0'
       } ${shown ? 'opacity-100' : 'opacity-0'}`}
       style={{
-        backdropFilter: 'blur(3px)',
-        WebkitBackdropFilter: 'blur(3px)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
         maskImage: ramp,
         WebkitMaskImage: ramp,
       }}

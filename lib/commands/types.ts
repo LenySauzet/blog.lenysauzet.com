@@ -25,6 +25,11 @@ export interface Command {
     when?: (context: CommandContext) => boolean
     /** Shown quietly on the right, where a link's destination is worth reading. */
     hint?: string
+    /**
+     * A letter that runs this command while the palette is open, held with Alt.
+     * Not Cmd: the browser claims most of those before a page can see them.
+     */
+    shortcut?: string
     /** Listed but inert, for a destination that does not exist yet. */
     disabled?: boolean
     run: (context: CommandContext) => void
