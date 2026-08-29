@@ -26,12 +26,20 @@ export default async function Image({
   ...props
 }: ImageProps) {
   const url = resolveImageUrl(src);
-  const dimensions =
-    width && height ? { width, height } : await measureImage(url);
+  // Only the two numbers travel on: whether the CDN answered at build time is not
+  // something the DOM should be handed, and what a reader sees is decided at runtime.
+  const measurement = width && height ? { width, height } : await measureImage(url);
+  const dimensions = { width: measurement.width, height: measurement.height };
 
   return (
     <figure className="my-6 flex w-full flex-col items-start gap-0">
-      <ImageZoom src={url} alt={alt} quality={quality} {...dimensions} {...props} />
+      <ImageZoom
+        src={url}
+        alt={alt}
+        quality={quality}
+        {...dimensions}
+        {...props}
+      />
       <figcaption className="pt-2.5 font-display text-sm leading-6 text-subtle-foreground">
         {alt}
       </figcaption>
