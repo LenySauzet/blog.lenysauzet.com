@@ -31,8 +31,6 @@ export interface Command {
      * which the window's own bindings ignore.
      */
     shortcut?: string
-    /** Left standing, for a command whose own effect is worth watching. */
-    keepOpen?: boolean
     /** Listed but inert, for a destination that does not exist yet. */
     disabled?: boolean
     run: (context: CommandContext) => void

@@ -127,16 +127,18 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
   });
 
-  // The sweep freezes the page for its length, so closing underneath it would show
-  // the palette gone in a snapshot that still holds it.
-  it('leaves the palette standing for a command that asks to be watched', async () => {
+  // The sweep snapshots the whole page for its length, so it has to start once the
+  // palette has left rather than freeze it mid-exit.
+  it('is gone before the theme sweep takes its snapshot', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
 
     await user.click(await screen.findByText('Toggle theme'));
 
-    expect(useCmdkStore.getState().isOpen).toBe(true);
+    expect(useCmdkStore.getState().isOpen).toBe(false);
+    expect(setTheme).not.toHaveBeenCalled();
+    await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
   });
 
   // cmdk refuses to move its selection onto a disabled row, which left whichever row

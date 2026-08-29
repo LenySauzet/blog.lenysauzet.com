@@ -124,8 +124,7 @@ export function CommandPalette() {
 
   const runCommand = useCallback(
     (command: PaletteCommand) => {
-      const standing = useCmdkStore.getState().isOpen && !command.keepOpen;
-      if (!standing) return command.run(context);
+      if (!useCmdkStore.getState().isOpen) return command.run(context);
 
       setIsOpen(false);
       window.setTimeout(() => command.run(context), EXIT_MS);

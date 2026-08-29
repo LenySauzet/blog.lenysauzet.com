@@ -41,7 +41,6 @@ export const commands: Command[] = [
         group: 'Tools',
         keywords: ['dark', 'light', 'appearance'],
         shortcut: 'd',
-        keepOpen: true,
         run: ({ setTheme, resolvedTheme }) =>
             withThemeTransition(() =>
                 setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
