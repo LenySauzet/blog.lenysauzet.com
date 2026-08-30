@@ -14,7 +14,12 @@ export interface CommandContext {
     resolvedTheme: string | undefined
 }
 
-export interface Command {
+/** A palette that has become something else: a page of its own, with its own input. */
+export const PAGES = ['search'] as const
+
+export type Page = (typeof PAGES)[number]
+
+interface CommandBase {
     id: string
     label: string
     icon: IconSvgElement
@@ -33,5 +38,13 @@ export interface Command {
     shortcut?: string
     /** Listed but inert, for a destination that does not exist yet. */
     disabled?: boolean
-    run: (context: CommandContext) => void
 }
+
+/**
+ * A command either does something to the site or turns the palette into a page of
+ * its own, never both: `opens` has no context to run in, and `run` has nowhere to
+ * come back from. The union is what keeps the pair from being written together.
+ */
+export type Command =
+    | (CommandBase & { run: (context: CommandContext) => void; opens?: never })
+    | (CommandBase & { opens: Page; run?: never })
