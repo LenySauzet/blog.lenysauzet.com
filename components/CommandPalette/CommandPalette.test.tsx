@@ -1,6 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import MiniSearch from 'minisearch';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { INDEX_OPTIONS } from '@/lib/search/config';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { commands } from '@/lib/commands/registry';
@@ -18,6 +21,19 @@ vi.mock('next/navigation', () => ({
 const setTheme = vi.fn();
 vi.mock('next-themes', () => ({
   useTheme: () => ({ setTheme, resolvedTheme: 'dark' }),
+}));
+
+const index = new MiniSearch(INDEX_OPTIONS);
+index.add({
+  slug: 'halftone',
+  title: 'Shades of Halftone',
+  description: 'Dots on a grid.',
+  tags: 'glsl',
+  date: '2026-04-22',
+  text: 'The dot pattern is an optical illusion.',
+});
+vi.mock('@/lib/search/load-index', () => ({
+  loadSearchIndex: () => Promise.resolve(index),
 }));
 
 afterEach(() => {
@@ -158,6 +174,39 @@ describe('CommandPalette', () => {
 
     expect(row('RSS')).toHaveAttribute('data-selected', 'false');
     expect(row('Glossary')).toHaveAttribute('data-selected', 'true');
+  });
+
+  // A page is the one thing that does not act on the site, so the palette stays.
+  it('turns into the search page rather than running and leaving', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    await user.click(await screen.findByText('Search blog posts'));
+
+    expect(useCmdkStore.getState().isOpen).toBe(true);
+    expect(screen.getByRole('combobox')).toHaveAttribute(
+      'placeholder',
+      'Search blog posts...'
+    );
+    expect(await screen.findByText('Shades of Halftone')).toBeInTheDocument();
+  });
+
+  // The way back, since the palette shows no breadcrumb to click.
+  it('leaves the page on a backspace with nothing left to delete', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    await user.click(await screen.findByText('Search blog posts'));
+    await screen.findByText('Shades of Halftone');
+    await user.type(screen.getByRole('combobox'), 'a{backspace}{backspace}');
+
+    expect(screen.getByRole('combobox')).toHaveAttribute(
+      'placeholder',
+      'Type a command...'
+    );
+    expect(screen.getByText('Toggle theme')).toBeInTheDocument();
   });
 
   // Typing a word the label does not contain still has to find the command.
