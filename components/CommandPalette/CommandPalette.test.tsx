@@ -3,11 +3,10 @@ import userEvent from '@testing-library/user-event';
 import MiniSearch from 'minisearch';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { INDEX_OPTIONS } from '@/lib/search/config';
-
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS } from '@/lib/commands/types';
+import { INDEX_OPTIONS } from '@/lib/search/config';
 
 import { CommandPalette } from './CommandPalette';
 
@@ -206,6 +205,27 @@ describe('CommandPalette', () => {
       'placeholder',
       'Type a command...'
     );
+    expect(screen.getByText('Toggle theme')).toBeInTheDocument();
+  });
+
+  // A controlled dialog reports the reader's own dismissals and nothing else, so a
+  // command that closed the palette itself skipped the reset and reopened on the page
+  // it had been left on, query and all.
+  it('reopens at its root after a post was picked from the search page', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    await user.click(await screen.findByText('Search blog posts'));
+    await user.type(screen.getByRole('combobox'), 'halftone');
+    await user.click(await screen.findByText('Shades of Halftone'));
+    await waitFor(() => expect(useCmdkStore.getState().isOpen).toBe(false));
+
+    await user.keyboard('{Meta>}k{/Meta}');
+
+    const input = await screen.findByRole('combobox');
+    expect(input).toHaveAttribute('placeholder', 'Type a command...');
+    expect(input).toHaveValue('');
     expect(screen.getByText('Toggle theme')).toBeInTheDocument();
   });
 

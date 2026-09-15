@@ -7,9 +7,10 @@ import MiniSearch, { type SearchResult } from 'minisearch';
 import { useEffect, useMemo, useState } from 'react';
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { postDate } from '@/lib/post-date';
+import { SEARCH_OPTIONS, type SearchDocument } from '@/lib/search/config';
 import { excerpt } from '@/lib/search/excerpt';
 import { loadSearchIndex } from '@/lib/search/load-index';
-import { SEARCH_OPTIONS, type SearchDocument } from '@/lib/search/config';
 
 import { FadingList } from './FadingList';
 
@@ -34,15 +35,14 @@ const toResult = (match: SearchResult): Result => ({
 /** Newest first, the order the index page uses. */
 const byDate = (a: Result, b: Result) => b.date.localeCompare(a.date);
 
-export function PostSearch({
-  query,
-  onResults,
-  onPick,
-}: {
+interface PostSearchProps {
   query: string;
+  /** Every row the page is showing, so the palette can keep a selection on one. */
   onResults: (slugs: string[]) => void;
   onPick: (slug: string) => void;
-}) {
+}
+
+export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
   const [index, setIndex] = useState<MiniSearch<SearchDocument> | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -113,7 +113,7 @@ export function PostSearch({
               <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
               <span className="truncate">{result.title}</span>
               <span className="ml-auto shrink-0 pl-4 text-xs text-muted-foreground">
-                {format(new Date(Date.parse(result.date)), 'MMM d, yyyy')}
+                {format(postDate(result.date), 'MMM d, yyyy')}
               </span>
             </div>
 

@@ -29,6 +29,18 @@ describe('toPlainText', () => {
     expect(text).toBe('Before. After.');
   });
 
+  // A price is two dollar signs with prose between them, which a looser pattern
+  // reads as an expression and swallows.
+  it('leaves money alone', () => {
+    expect(toPlainText('Cost is $5 and $10 a month.')).toBe(
+      'Cost is $5 and $10 a month.'
+    );
+  });
+
+  it('still drops an expression written against its delimiters', () => {
+    expect(toPlainText('Solve $a + b$ for a.')).toBe('Solve for a.');
+  });
+
   it('keeps what a component wraps, and nothing of the component', () => {
     const text = toPlainText('<Callout type="info">Watch the grid.</Callout>');
 

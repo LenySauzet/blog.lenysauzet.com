@@ -79,6 +79,32 @@ export function CommandPalette() {
     [available]
   );
 
+  /**
+   * Where the palette starts, and what it returns to when a page is left.
+   *
+   * Named on the way in rather than on the way out: a reset while the surface is
+   * still animating away would show the root list flick back into a palette that is
+   * leaving. Closed, the dialog holds no content at all, so this is unseen.
+   */
+  const toRoot = useCallback(() => {
+    setPage(null);
+    setQuery('');
+    // The root list fills without the search box changing, and that box is the one
+    // thing cmdk watches, so the row to land on is named here.
+    setSelected(rootValues[0] ?? '');
+  }, [rootValues]);
+
+  /**
+   * Opening and closing go through these, never through `setIsOpen`. A controlled
+   * dialog fires `onOpenChange` for the reader's own dismissals and for nothing
+   * else, so a command that closes the palette itself would otherwise skip
+   * everything hung off it, and reopen on the page it was last left on.
+   */
+  const open = useCallback(() => {
+    toRoot();
+    setIsOpen(true);
+  }, [toRoot, setIsOpen]);
+
   const close = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   // The selection follows the rows a page ranks for itself: kept where it is while
@@ -112,7 +138,8 @@ export function CommandPalette() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        setIsOpen(!useCmdkStore.getState().isOpen);
+        if (useCmdkStore.getState().isOpen) close();
+        else open();
         return;
       }
 
@@ -130,28 +157,10 @@ export function CommandPalette() {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [available, runCommand, setIsOpen]);
-
-  // A palette reopened is a palette at its root: a page left standing from last time
-  // is not where anyone means to start.
-  const onOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      setPage(null);
-      setQuery('');
-    }
-  };
-
-  const leavePage = () => {
-    setPage(null);
-    setQuery('');
-    // The root list fills back up without the search box changing, and that box is
-    // the one thing cmdk watches, so the row to land on is named here.
-    setSelected(rootValues[0] ?? '');
-  };
+  }, [available, close, open, runCommand]);
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={onOpenChange}>
+    <CommandDialog open={isOpen} onOpenChange={(next) => (next ? open() : close())}>
       {/* The dialog here is only the surface: unlike the stock shadcn one it leaves
           the cmdk root to its caller. A page ranks its own results, so cmdk is told
           to score nothing while one is open. */}
@@ -165,7 +174,7 @@ export function CommandPalette() {
         // Read on the root rather than on the input: a row reached with the mouse
         // leaves the focus on itself, and the key would never reach the box.
         onKeyDown={(event) => {
-          if (page && event.key === 'Backspace' && query === '') leavePage();
+          if (page && event.key === 'Backspace' && query === '') toRoot();
         }}
       >
         <CommandInput

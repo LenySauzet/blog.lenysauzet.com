@@ -21,7 +21,10 @@ const RULES: [RegExp, string][] = [
   [/^(?:import|export)\s.*$/gm, ''],
   [/```[\s\S]*?```/g, ''],
   [/\$\$[\s\S]*?\$\$/g, ''],
-  [/\$[^$\n]+\$/g, ''],
+  // Inline math holds no space against either delimiter, which is the rule that
+  // separates it from money: `$a + b$` is an expression, `$5 and $10` is two prices
+  // and the text between them, and a looser pattern eats that text.
+  [/\$(?!\s)[^$\n]*[^\s$]\$/g, ''],
   [JSX_SELF_CLOSING, ''],
   [JSX_TAG, ''],
   // Images before links: the syntax differs by one character, and an alt read as
