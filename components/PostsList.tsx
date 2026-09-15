@@ -1,6 +1,7 @@
 'use client';
 
 import { ScrambledText } from '@/components/ScrambledText';
+import { postDate } from '@/lib/post-date';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
@@ -14,7 +15,7 @@ type Post = {
 
 export function PostsList({ posts }: { posts: Post[] }) {
   const uniqueYears = [
-    ...new Set(posts.map((post) => new Date(post.metadata.date).getFullYear())),
+    ...new Set(posts.map((post) => postDate(post.metadata.date).getFullYear())),
   ].sort((a, b) => b - a);
 
   return (
@@ -48,7 +49,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
           const postsForYear = posts
             .map((post, i) => ({ ...post, flatIndex: i }))
             .filter(
-              (post) => new Date(post.metadata.date).getFullYear() === year,
+              (post) => postDate(post.metadata.date).getFullYear() === year,
             );
 
           return (
@@ -93,10 +94,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                         speed={0.8}
                         className="text-sm font-mono group-hover:text-foreground transition-colors text-foreground/50"
                       >
-                        {format(
-                          new Date(Date.parse(post.metadata.date)),
-                          'MMM d',
-                        )}
+                        {format(postDate(post.metadata.date), 'MMM d')}
                       </ScrambledText>
                     </Link>
                   </li>
