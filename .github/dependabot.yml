@@ -33,6 +33,12 @@ updates:
       # Publication cassée : la tarball npm de la 5.0.0 ne contient aucun code.
       - dependency-name: "remark-unwrap-images"
         versions: [">=5.0.0"]
+      # Les types décrivent le runtime, pas le registre : ils suivent la majeure
+      # de .nvmrc et engines.node, aujourd'hui 24. Des types en avance sur le
+      # runtime valident du code qui plante à l'exécution, donc la majeure ne se
+      # relève qu'après le plancher Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   # Workflows GitHub Actions
   - package-ecosystem: "github-actions"
