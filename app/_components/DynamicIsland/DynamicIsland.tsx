@@ -42,10 +42,15 @@ const LINE_HEIGHT = 16;
  */
 const COMPACT_HEIGHT = '2.75rem';
 
-/** Long enough to be noticed after the page settles, short enough not to nag. */
+/**
+ * When the island mentions the palette, and for how long.
+ *
+ * It waits for the identity to have been read before covering it, and leaves on its
+ * own. The dwell is longer than the second it looks like: the entrance spends a
+ * third of it, so what is left is the time there is to actually read the line.
+ */
 const TEACH_AFTER = 1000;
-const TEACH_FOR = 4000;
-const TAUGHT = 'island-hint-seen';
+const TEACH_FOR = 1600;
 
 /** The first state whose condition holds. The last one carries none. */
 const resolve = (context: IslandContext): IslandState =>
@@ -72,19 +77,11 @@ export function DynamicIsland() {
     [pathname, hovered, post, scrolled]
   );
 
-  // Raised rather than derived: the island teaches the palette once, then gets out
-  // of the way. Per session, so refreshing does not teach three times while coming
-  // back another day still does. Guarded, since a private window throws on read.
+  // Raised rather than derived: on every load the island says what it is for, once
+  // the identity has had its moment, and then gets out of the way. Once a session
+  // was tried and is worse than it sounds: the one person who reloads most is the
+  // one who never sees it again.
   useEffect(() => {
-    let taught = true;
-    try {
-      taught = sessionStorage.getItem(TAUGHT) !== null;
-      sessionStorage.setItem(TAUGHT, '1');
-    } catch {
-      // No storage, no teaching: better silent than on every page.
-    }
-    if (taught) return;
-
     const timer = window.setTimeout(
       () => useIslandStore.getState().present(hint, { ttl: TEACH_FOR }),
       TEACH_AFTER

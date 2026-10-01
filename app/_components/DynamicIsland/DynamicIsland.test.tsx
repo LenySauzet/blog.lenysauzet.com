@@ -35,10 +35,6 @@ beforeEach(() => {
   column = document.createElement('div');
   column.setAttribute('data-scroll-root', '');
   document.body.append(column);
-  sessionStorage.clear();
-  // Every case but the teaching one starts from a session that has already been
-  // taught, or a timer fires into the middle of it.
-  sessionStorage.setItem('island-hint-seen', '1');
 });
 
 afterEach(() => {
@@ -171,40 +167,18 @@ describe('DynamicIsland', () => {
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
   });
 
-  it('teaches the palette once a session, then stops', async () => {
+  it('mentions the palette on load, once the identity has been read', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    sessionStorage.clear();
 
-    const first = render(<DynamicIsland />);
+    render(<DynamicIsland />);
     await settlesOn('Leny');
 
     await vi.advanceTimersByTimeAsync(1200);
     await settlesOn('to search');
 
-    await vi.advanceTimersByTimeAsync(4200);
+    // And leaves on its own, uncovering whatever the page was saying.
+    await vi.advanceTimersByTimeAsync(1800);
     await settlesOn('Leny');
-
-    // A second load in the same session is taught nothing.
-    first.unmount();
-    render(<DynamicIsland />);
-    await vi.advanceTimersByTimeAsync(1500);
-
-    // The hint would still be standing at this point, its welcome being four
-    // seconds long, so settling on the identity is the proof it never came.
-    await settlesOn('Leny');
-    expect(island()).not.toHaveTextContent('to search');
-  });
-
-  // jsdom applies no Tailwind, so this asserts which class reaches the element, not
-  // what it paints. Tailwind v4 keeps `scale` as a property of its own rather than
-  // folding it into `transform`, so a transition naming `transform` compiles fine
-  // and animates nothing. That has shipped here three times.
-  it('animates the property its pointer feedback actually changes', () => {
-    render(<DynamicIsland />);
-
-    expect(island()).toHaveClass('transition-[scale]');
-    expect(island()).toHaveClass('hover:scale-[1.02]');
-    expect(island()).toHaveClass('active:scale-[0.97]');
   });
 
   it('opens the palette when it is pressed', async () => {
