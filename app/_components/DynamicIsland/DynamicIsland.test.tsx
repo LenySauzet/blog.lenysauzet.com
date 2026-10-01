@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -69,6 +69,18 @@ describe('DynamicIsland', () => {
 
     expect(island()).toHaveTextContent('');
     expect(island()).not.toHaveTextContent('Leny');
+  });
+
+  // Only the first change is staged. Passing every later one through rest as well
+  // makes the island answer two tenths of a second late, which costs more than the
+  // flourish is worth.
+  it('goes straight between states once it has opened', async () => {
+    render(<DynamicIsland />);
+    await settlesOn('Leny');
+
+    act(() => useIslandStore.setState({ post: { title: 'Shades of Halftone' } }));
+
+    expect(island()).toHaveTextContent('Shades of Halftone');
   });
 
   // While the pointer rests on it the island answers "what can I do here", and the

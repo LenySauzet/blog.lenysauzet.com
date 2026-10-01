@@ -19,9 +19,8 @@ export const MORPH = { type: 'spring', stiffness: 220, damping: 20, mass: 1 } as
 export const FADE = { duration: 0.34, ease: [0.22, 0.61, 0.36, 1] } as const;
 
 /**
- * How long the island stays closed between two states. Long enough to read as a
- * collapse rather than as a stutter, short enough that a hover still answers at
- * once. The spring is still settling when the next shape starts, which is what
- * keeps the two halves reading as one movement.
+ * How long the island holds its resting shape before opening into whatever the page
+ * resolves to. Long enough that the opening is a movement rather than an arrival,
+ * short enough that nobody waits for their own site to introduce itself.
  */
-export const COLLAPSE = 180;
+export const OPENS_AFTER = 180;
