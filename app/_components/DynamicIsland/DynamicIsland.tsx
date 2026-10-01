@@ -9,6 +9,7 @@ import { useIslandStore } from '@/hooks/use-island-store';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
+import { useHasScrolled } from './use-has-scrolled';
 import { useProximityHover } from './use-proximity-hover';
 import { useOpening } from './use-opening';
 import { hint } from './states/hint';
@@ -48,11 +49,12 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
+  const scrolled = useHasScrolled();
   const still = useReducedMotion();
 
   const context = useMemo<IslandContext>(
-    () => ({ pathname, hovered, post }),
-    [pathname, hovered, post]
+    () => ({ pathname, hovered, post, scrolled }),
+    [pathname, hovered, post, scrolled]
   );
 
   // Raised rather than derived: the island teaches the palette once, then gets out

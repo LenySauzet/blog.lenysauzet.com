@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,7 +20,21 @@ const island = () => screen.getByRole('button', { name: 'Open the command palett
 const settlesOn = (text: string) =>
   waitFor(() => expect(island()).toHaveTextContent(text));
 
+/**
+ * The island reads whichever column the route marks as scrolling, and jsdom lays
+ * out nothing, so the column is stood up by hand and moved by hand.
+ */
+let column: HTMLElement;
+
+const scrollDown = () => {
+  Object.defineProperty(column, 'scrollTop', { value: 400, configurable: true });
+  fireEvent.scroll(column);
+};
+
 beforeEach(() => {
+  column = document.createElement('div');
+  column.setAttribute('data-scroll-root', '');
+  document.body.append(column);
   sessionStorage.clear();
   // Every case but the teaching one starts from a session that has already been
   // taught, or a timer fires into the middle of it.
@@ -28,6 +42,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  column.remove();
   useIslandStore.setState({ presented: [], post: null });
   useCmdkStore.setState({ isOpen: false });
   pathname = '/';
@@ -49,6 +64,7 @@ describe('DynamicIsland', () => {
       post: { title: 'An Introduction to Ray Marching', shortTitle: 'Ray Marching' },
     });
     render(<DynamicIsland />);
+    scrollDown();
 
     await settlesOn('Ray Marching');
     expect(island()).not.toHaveTextContent('An Introduction');
@@ -57,7 +73,20 @@ describe('DynamicIsland', () => {
   it('falls back to the full title when a post declares no short one', async () => {
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
+    scrollDown();
 
+    await settlesOn('Shades of Halftone');
+  });
+
+  // At the top of an article there is no progress worth reporting, so the island
+  // introduces the site and gets out of the way as soon as it has something to say.
+  it('introduces the site until the reader has started', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+
+    await settlesOn('Leny');
+
+    scrollDown();
     await settlesOn('Shades of Halftone');
   });
 
@@ -75,10 +104,11 @@ describe('DynamicIsland', () => {
   // makes the island answer two tenths of a second late, which costs more than the
   // flourish is worth.
   it('goes straight between states once it has opened', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
     await settlesOn('Leny');
 
-    act(() => useIslandStore.setState({ post: { title: 'Shades of Halftone' } }));
+    act(() => scrollDown());
 
     expect(island()).toHaveTextContent('Shades of Halftone');
   });
@@ -92,6 +122,7 @@ describe('DynamicIsland', () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
+    scrollDown();
 
     await user.hover(island());
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
@@ -108,6 +139,7 @@ describe('DynamicIsland', () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
+    scrollDown();
 
     await user.hover(island());
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
@@ -122,6 +154,7 @@ describe('DynamicIsland', () => {
   it('lets a raised state cover the page, then uncovers it', async () => {
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
+    scrollDown();
 
     const announcement: IslandState = {
       id: 'announcement',

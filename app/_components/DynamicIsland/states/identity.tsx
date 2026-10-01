@@ -27,7 +27,9 @@ export const identity: IslandState = {
     // avatar would and takes the eye off the name.
     <div className="flex h-[1.875rem] w-full min-w-[13rem] items-center justify-between pl-2 pr-4">
       <Logo className="size-5 shrink-0" />
-      <span className="text-base font-semibold whitespace-nowrap">{name}</span>
+      <span className="font-mono tracking-widest whitespace-nowrap text-muted-foreground">
+        {name}
+      </span>
     </div>
   ),
 };

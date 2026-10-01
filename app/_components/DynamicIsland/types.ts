@@ -12,6 +12,8 @@ export interface IslandContext {
   pathname: string;
   hovered: boolean;
   post: IslandPost | null;
+  /** Whether the reader has left the top of the page. */
+  scrolled: boolean;
 }
 
 export interface IslandState {

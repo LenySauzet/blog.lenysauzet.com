@@ -22,9 +22,13 @@ function Reading({ post }: { post: IslandPost }) {
   );
 }
 
-/** Where the reader is, and how much of it is left. */
+/**
+ * Where the reader is, and how much of it is left. Only once they have started:
+ * at the top of an article there is no progress to report, so the island
+ * introduces the site instead and gets out of the way as soon as it is useful.
+ */
 export const reading: IslandState = {
   id: 'reading',
-  when: ({ post }) => post !== null,
+  when: ({ post, scrolled }) => post !== null && scrolled,
   render: ({ post }) => (post ? <Reading post={post} /> : null),
 };
