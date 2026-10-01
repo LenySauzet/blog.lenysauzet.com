@@ -15,15 +15,21 @@ import { islandStates } from './states';
 import type { IslandContext, IslandState } from './types';
 
 /**
- * Uniform, and that is the whole geometry: a circle inset by the same amount on
- * three sides is concentric with the cap it sits in, so the logo and the progress
- * ring follow the island's curve instead of merely sitting near it.
- *
- * It is also all the island imposes. Width, height and horizontal breathing room
- * are each state's own business, which is what lets an aside be smaller than a
- * reading of the page rather than padded out to match it.
+ * Uniform, and that is half the geometry: a disc inset by the same amount on three
+ * sides is concentric with the cap it sits in, so the progress ring follows the
+ * island's curve instead of merely sitting near it.
  */
 const INSET = '0.375rem';
+
+/**
+ * The other half. Every compact state stands at the same height, so moving between
+ * them is a change of width and of content rather than of stature, and the island
+ * reads as one object throughout. It is the inset twice over, plus the border,
+ * around a disc of 30: a state that wants to be a card may still grow past it.
+ *
+ * Width stays each state's own business, which is where the morph lives.
+ */
+const COMPACT_HEIGHT = '2.75rem';
 
 /** Long enough to be noticed after the page settles, short enough not to nag. */
 const TEACH_AFTER = 1000;
@@ -88,7 +94,7 @@ export function DynamicIsland() {
         transition={still ? { duration: 0 } : MORPH}
         // Inline, because Motion only corrects the corner distortion its own layout
         // projection causes when the radius is a style value it can read.
-        style={{ borderRadius: 999, padding: INSET }}
+        style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
         className="flex cursor-pointer items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
       >
         {/* Decorative: the button is named once and keeps that name through every

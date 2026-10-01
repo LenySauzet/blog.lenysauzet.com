@@ -21,10 +21,11 @@ export const identity: IslandState = {
     // island read as a bar rather than as a badge. Hence a width of its own, which
     // content alone would not give it.
     //
-    // The mark is drawn small for its box. It is line work rather than a disc, so
-    // at the inner height it carries far more ink than a flat avatar would and
-    // takes the eye off the name; the row is given the height instead.
-    <div className="flex h-8 w-full min-w-[13rem] items-center justify-between pl-2 pr-4">
+    // The row stands at the island's inner height so this state is no taller than
+    // any other, and the mark is drawn small inside it. It is line work rather
+    // than a disc, so at the full inner height it carries far more ink than a flat
+    // avatar would and takes the eye off the name.
+    <div className="flex h-[1.875rem] w-full min-w-[13rem] items-center justify-between pl-2 pr-4">
       <Logo className="size-5 shrink-0" />
       <span className="text-base font-semibold whitespace-nowrap">{name}</span>
     </div>
