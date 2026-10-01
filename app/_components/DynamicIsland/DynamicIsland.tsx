@@ -92,16 +92,18 @@ export function DynamicIsland() {
           layout
           transition={still ? { duration: 0 } : MORPH}
           style={{
-            borderRadius: 999,
+            borderRadius: state.radius ?? 999,
             padding: INSET,
             minHeight: COMPACT_HEIGHT,
             width: state.width,
             minWidth: state.id === hint.id ? widthWhenPointed : undefined,
-            maxWidth: MAX_WIDTH,
+            maxWidth: state.maxWidth ?? MAX_WIDTH,
           }}
           className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
         >
-          <div aria-hidden className="pointer-events-none flex w-full items-center">
+          {/* A button centres its text by browser default, which every state
+              laying out more than one line would otherwise have to undo. */}
+          <div aria-hidden className="pointer-events-none flex w-full items-center text-left">
             <Presentation key={state.id}>{state.render(context)}</Presentation>
           </div>
         </motion.div>

@@ -55,7 +55,10 @@ export default async function RootLayout({
 }>) {
   const posts = await getPosts();
   const titles = Object.fromEntries(
-    posts.map(({ slug, metadata }) => [slug, metadata.shortTitle ?? metadata.title])
+    posts.map(({ slug, metadata }) => [
+      slug,
+      { title: metadata.shortTitle ?? metadata.title, description: metadata.description },
+    ])
   );
 
   return (

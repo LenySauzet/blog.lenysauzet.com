@@ -358,20 +358,42 @@ What the shape forces, none of it obvious:
   oscillation back.
 - **A wheel over the island does nothing on its own.** `body` does not scroll and the
   scrolling column is a sibling, so the delta is handed on by hand.
+- **A button centres its text**, so the island's content wrapper undoes it once
+  rather than every multi-line state fighting the same browser default.
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 
 **Hovering a link previews where it goes**, through one delegated listener in
 `LinkPreviews` rather than a handler on `Anchor`: every link in every post would
 otherwise become a client component, and the delegation catches links no `Anchor`
-rendered. `lib/link-preview.ts` holds what to say and is testable without a DOM.
+rendered. It speaks only where a reader cannot already tell: a post behind link
+text saying something else, and any external site. The site's own pages are left
+alone, their link text being the whole of it.
 
-It answers only the destinations a reader cannot already name: a post, whose title
-comes from the map the layout builds at build time, and an external site, named by
-its domain. No request is made, so no preview ever arrives after the pointer has
-moved on, and the site's own pages are left alone. The wait before showing keeps a
-paragraph of links from flickering, and the grace before hiding is what carries the
-island from one link to the next without dropping back in between.
+**It answers twice.** `lib/link-preview/providers.ts` is a registry, like the
+command one: each provider matches a URL and reads what the URL alone gives, which
+is what the island shows at once. `app/api/link-preview` then fetches the page and
+the island morphs as that lands. A reader therefore never waits on a request and
+never sees a spinner, and an answer arriving after they have moved on is dropped.
+Internal posts are never asked about: the layout already carries their title and
+description, and their picture is the OG image we generate anyway.
+
+A provider may also say how to merge what it learns. The default lets the page's
+own title win, but one that read a label out of the path keeps it: GitHub's title
+repeats the repository, and Bluesky builds its page in the reader's browser, so
+its title is just the name of the app.
+
+**The route is the only part that can be dangerous.** Fetching whatever it is handed
+is a request forgery primitive, so `safe-url.ts` checks every address a name
+resolves to rather than the name, redirects are followed by hand so the check runs
+again on each hop, the read is bounded and stops at `</head>`, and every failure
+answers an empty object. YouTube goes through oEmbed, which gives the channel their
+own tags do not, and falls back to the page when they refuse.
+
+The answer is cached at the edge for a day, so the next reader's hover is instant,
+and once per link per page in the browser. The wait before showing keeps a paragraph
+of links from flickering; the grace before hiding carries the island from one link
+to the next without dropping back in between.
 
 The island is deliberately absent from `content/design-system.mdx`. It is global
 chrome, always on screen, and a second one rendered inside an article would be two
