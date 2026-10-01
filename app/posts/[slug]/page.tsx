@@ -1,4 +1,5 @@
 import { AnnouncePost } from '@/app/_components/DynamicIsland';
+import Anchor from '@/components/Anchor/Anchor';
 import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
 import { UpdatedBadge } from '@/components/UpdatedBadge';
@@ -64,6 +65,15 @@ export default async function Page({
       <article className="flex flex-col gap-8 pt-28 sm:pt-80 px-4">
         <AnnouncePost title={metadata.title} shortTitle={metadata.shortTitle} />
         <div className="w-full min-w-0 max-w-2xl mx-auto">
+          {/* `Anchor` already owns this: `direction` draws the arrow and slides it
+              on hover, `discreet` keeps it under the title until pointed at. No
+              favicon padding, which only an external link has a glyph to hold. */}
+          <div className="mb-8">
+            <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+              Home
+            </Anchor>
+          </div>
+
           <div className="mb-6">
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">
               {metadata.title}
