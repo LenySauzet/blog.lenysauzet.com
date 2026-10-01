@@ -19,6 +19,14 @@ import { FADE, MORPH } from './motion';
  * box from its own inherited font rather than from the state's, so a state set in
  * 12px stood on a 24px strut. That is six pixels of height nobody asked for, and a
  * baseline that sits the glyphs off centre.
+ *
+ * It carries `layout` for a reason that is invisible until measured. Motion does
+ * not resize the pill, it scales it: mid-morph the container was reading
+ * `matrix(1.2577, 0, 0, 1)`, stretching everything inside it by a quarter. Only a
+ * child that also claims `layout` is counter-scaled, which is what lets the content
+ * hold its proportions while the island changes shape around it. A scale of its own
+ * on top of that is a second, disagreeing movement, which is why the entrance is
+ * now opacity and blur alone.
  */
 export function Presentation({ children }: { children: ReactNode }) {
   // Not a softer version under reduced motion: the whole apparatus goes, and what
@@ -39,9 +47,10 @@ export function Presentation({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.84, filter: 'blur(10px)' }}
-      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-      transition={{ scale: MORPH, opacity: FADE, filter: FADE }}
+      layout
+      initial={{ opacity: 0, filter: 'blur(10px)' }}
+      animate={{ opacity: 1, filter: 'blur(0px)' }}
+      transition={{ layout: MORPH, opacity: FADE, filter: FADE }}
       className="flex items-center"
     >
       {children}

@@ -2,15 +2,14 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
-import { useHasScrolled } from './use-has-scrolled';
-import { useProximityHover } from './use-proximity-hover';
+import { useScrollTracking } from './scroll';
 import { useOpening } from './use-opening';
 import { hint } from './states/hint';
 import { resting } from './states/resting';
@@ -23,6 +22,17 @@ import type { IslandContext, IslandState } from './types';
  * island's curve instead of merely sitting near it.
  */
 const INSET = '0.375rem';
+
+/**
+ * The target, which is deliberately not the pill.
+ *
+ * Hover and click belong to a box that never moves: hung on the pill itself, they
+ * belonged to something that changes width with every state, so the zone that
+ * raises the hint was impossible to learn and could shrink out from under the very
+ * pointer that raised it. It is cut to clear the widest state with a little room to
+ * spare, and the pill morphs inside it.
+ */
+const TARGET = 'h-14 w-60';
 
 /**
  * The other half. Every compact state stands at the same height, so moving between
@@ -45,11 +55,11 @@ const resolve = (context: IslandContext): IslandState =>
 
 export function DynamicIsland() {
   const pathname = usePathname();
-  const { ref, hovered, enter, leave } = useProximityHover<HTMLButtonElement>();
+  const [hovered, setHovered] = useState(false);
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
-  const scrolled = useHasScrolled();
+  const scrolled = useScrollTracking();
   const still = useReducedMotion();
 
   const context = useMemo<IslandContext>(
@@ -87,30 +97,36 @@ export function DynamicIsland() {
     // way. Anchored top on desktop and bottom on mobile, so the island grows away
     // from the edge it is pinned to without being told.
     <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto">
-      <motion.button
+      <button
         type="button"
-        layout
         aria-label="Open the command palette"
         onClick={() => setIsOpen(true)}
-        ref={ref}
-        onPointerEnter={enter}
-        onFocus={enter}
-        onBlur={leave}
-        transition={still ? { duration: 0 } : MORPH}
-        // Inline, because Motion only corrects the corner distortion its own layout
-        // projection causes when the radius is a style value it can read.
-        style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
-        className="flex cursor-pointer items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
+        className={`group grid cursor-pointer place-items-center outline-none ${TARGET}`}
       >
-        {/* Decorative: the button is named once and keeps that name through every
-            state, or each morph would be announced as a new control. */}
-        {/* Keyed rather than wrapped in `AnimatePresence`: the outgoing state leaves
-            without an animation, so React dropping it on the spot is exactly the
-            behaviour, and the island is left with one thing to watch. */}
-        <div aria-hidden className="flex items-center">
-          <Presentation key={state.id}>{state.render(context)}</Presentation>
-        </div>
-      </motion.button>
+        <motion.div
+          layout
+          transition={still ? { duration: 0 } : MORPH}
+          // Inline, because Motion only corrects the corner distortion its own
+          // layout projection causes when the radius is a style value it can read.
+          style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
+          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+        >
+          {/* Decorative: the button is named once and keeps that name through every
+              state, or each morph would be announced as a new control.
+
+              Keyed rather than wrapped in `AnimatePresence`: the outgoing state
+              leaves without an animation, so React dropping it on the spot is
+              exactly the behaviour, and the island is left with one thing to
+              watch. */}
+          <div aria-hidden className="flex items-center">
+            <Presentation key={state.id}>{state.render(context)}</Presentation>
+          </div>
+        </motion.div>
+      </button>
     </div>
   );
 }

@@ -114,10 +114,8 @@ describe('DynamicIsland', () => {
   });
 
   // While the pointer rests on it the island answers "what can I do here", and the
-  // article takes its surface back once the pointer is properly away. Away, and not
-  // merely off the element: the hint is smaller than what it covers, so a pill that
-  // un-hovered on its own edge would shrink out from under the pointer, grow back,
-  // and oscillate. Leaving is a move past a margin, which is what this walks.
+  // article takes its surface back the moment it leaves. The zone is a box of its
+  // own that no state resizes, which is what lets leaving simply mean leaving.
   it('shows the hint over the reading state, and gives it back', async () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
@@ -127,26 +125,19 @@ describe('DynamicIsland', () => {
     await user.hover(island());
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
 
-    await user.pointer({
-      target: document.body,
-      coords: { clientX: 500, clientY: 500 },
-    });
+    await user.unhover(island());
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
   });
 
-  // The pointer resting just off the edge keeps the hint: anything else flickers.
-  it('keeps the hint while the pointer is only just outside', async () => {
-    const user = userEvent.setup();
-    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+  // The pill changes width with every state, so hover and click are hung on a box
+  // that does not: the zone that raises the hint is learnable, and no state can
+  // shrink out from under the pointer that raised it. That it holds its size is
+  // geometry, which jsdom lays out none of, so it is measured in a browser.
+  it('hangs the hover on a box that no state resizes', () => {
     render(<DynamicIsland />);
-    scrollDown();
 
-    await user.hover(island());
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
-
-    await user.pointer({ target: document.body, coords: { clientX: 8, clientY: 8 } });
-
-    expect(island()).toHaveTextContent('to search');
+    // The surface that morphs is a descendant of the target, never the target.
+    expect(island().querySelector('[style*="border-radius"]')).toBeInTheDocument();
   });
 
   // A raised state covers whatever the page was saying, and on dismissal uncovers

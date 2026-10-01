@@ -2,19 +2,17 @@
 
 import type { IslandPost, IslandState } from '../types';
 import { ProgressRing } from '../ProgressRing';
-import { useScrollProgress } from '../use-scroll-progress';
+import { scrollProgress } from '../scroll';
 
 /**
  * A component rather than markup returned inline: the state owns where its data
- * comes from as well as its layout, so the island's context stays the three things
- * every state needs rather than the union of what any one of them wants.
+ * comes from as well as its layout, so the island's context stays what resolution
+ * needs rather than the union of what any one state wants to draw.
  */
 function Reading({ post }: { post: IslandPost }) {
-  const progress = useScrollProgress();
-
   return (
     <div className="flex items-center gap-4">
-      <ProgressRing progress={progress} />
+      <ProgressRing progress={scrollProgress} />
       <span className="max-w-[16ch] truncate pr-3 text-[0.95rem] sm:max-w-[28ch]">
         {post.shortTitle ?? post.title}
       </span>
