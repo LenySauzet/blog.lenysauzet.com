@@ -24,15 +24,22 @@ import type { IslandContext, IslandState } from './types';
 const INSET = '0.375rem';
 
 /**
- * The target, which is deliberately not the pill.
+ * The island's own ceiling, and the size of the box that listens for the pointer.
  *
  * Hover and click belong to a box that never moves: hung on the pill itself, they
  * belonged to something that changes width with every state, so the zone that
  * raises the hint was impossible to learn and could shrink out from under the very
- * pointer that raised it. It is cut to clear the widest state with a little room to
- * spare, and the pill morphs inside it.
+ * pointer that raised it.
+ *
+ * A fixed box only works if nothing can grow past it, which is why this is a
+ * ceiling as well as a size: a long enough title took the pill to 328 against a
+ * target of 240, and the 44 pixels hanging over each edge were a strip where
+ * hovering raised the hint, which shrank the pill out from under the pointer,
+ * which lowered it again, several times a second. Clamping the pill rather than
+ * widening the target also keeps a floating pill from becoming a banner.
  */
-const TARGET = 'h-14 w-60';
+const MAX_WIDTH = '19rem';
+const TARGET_HEIGHT = '3.5rem';
 
 /**
  * The other half. Every compact state stands at the same height, so moving between
@@ -106,7 +113,8 @@ export function DynamicIsland() {
         onPointerLeave={() => setHovered(false)}
         onFocus={() => setHovered(true)}
         onBlur={() => setHovered(false)}
-        className={`group grid cursor-pointer place-items-center outline-none ${TARGET}`}
+        style={{ width: MAX_WIDTH, height: TARGET_HEIGHT }}
+        className="group grid cursor-pointer place-items-center outline-none"
       >
         {/* Motion scales this box from the one it held a frame ago into the one it
             holds now, and whatever is inside goes with it. That stretch is the
@@ -127,6 +135,7 @@ export function DynamicIsland() {
             padding: INSET,
             minHeight: COMPACT_HEIGHT,
             width: state.width,
+            maxWidth: MAX_WIDTH,
           }}
           // Answers the press before it answers the click, like every other control
           // here. On the standalone `scale` property, which Tailwind v4 keeps apart

@@ -136,8 +136,10 @@ describe('DynamicIsland', () => {
   it('hangs the hover on a box that no state resizes', () => {
     render(<DynamicIsland />);
 
-    // The surface that morphs is a descendant of the target, never the target.
-    expect(island().querySelector('[style*="border-radius"]')).toBeInTheDocument();
+    // The surface that morphs is a descendant of the target, never the target, and
+    // it carries the ceiling that keeps it from ever reaching past it.
+    const pill = island().firstElementChild as HTMLElement;
+    expect(pill.style.maxWidth).toBe(island().style.width);
   });
 
   // A raised state covers whatever the page was saying, and on dismissal uncovers
