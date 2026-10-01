@@ -11,6 +11,8 @@ export interface CommandContext {
     pathname: string
     setTheme: (theme: string) => void
     resolvedTheme: string | undefined
+    atTop: boolean
+    finished: boolean
 }
 
 /** A palette that has become something else: a page of its own, with its own input. */
@@ -25,6 +27,8 @@ interface CommandBase {
     keywords?: string[]
     /** Absent means everywhere. */
     when?: (context: CommandContext) => boolean
+    /** Lifts the command out of its group and to the top, where the moment asks. */
+    recommend?: (context: CommandContext) => boolean
     /** Shown quietly on the right, where a link's destination is worth reading. */
     hint?: string
     /**

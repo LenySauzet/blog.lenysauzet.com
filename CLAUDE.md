@@ -389,6 +389,17 @@ the options it is handed, so the two drifting apart stops matching rather than f
 `lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
 and the ranking testable without a DOM.
 
+A command may also say **when it is worth recommending**, which lifts it out of its
+group and to the top of the palette. Lifted, not copied: one command is one row, or
+cmdk returns two of them for the same search. The section exists only when something
+asks for it, and holds five at most, past which it is a second menu rather than a
+recommendation. `lib/commands/recommend.ts` is the whole policy, testable without a
+DOM.
+
+What the reader has scrolled is in the context too, which is what lets a command
+withhold itself: `Go to top` is not offered to someone already there.
+`hooks/use-scroll-tracking.ts` owns that reading for both the palette and the island.
+
 `components/ui/command.tsx` is customized beyond the CLI output twice over: its
 `CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
 carries `--primary` rather than `--foreground`. Update it with

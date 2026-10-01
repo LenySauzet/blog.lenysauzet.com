@@ -13,10 +13,14 @@ import {
     NewTwitterIcon,
     PaintBoardIcon,
     SearchIcon,
+    ShuffleIcon,
 } from '@hugeicons/core-free-icons'
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
+import { loadSearchIndex } from '@/lib/search/load-index'
+import { searchPosts } from '@/lib/search/query'
+import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
 
 import type { Command, CommandContext } from './types'
@@ -32,6 +36,11 @@ const RESUME_ROUTE = '/resume'
 
 /** Copying a link or returning to the top only mean something inside an article. */
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
+
+const slugOf = ({ pathname }: CommandContext) => pathname.split('/').pop()
+
+/** The reader has run out of article, which is when the next move is worth naming. */
+const atTheEnd = (context: CommandContext) => onAPost(context) && context.finished
 
 export const commands: Command[] = [
     {
@@ -62,6 +71,7 @@ export const commands: Command[] = [
         keywords: ['url', 'share'],
         shortcut: 'l',
         when: onAPost,
+        recommend: atTheEnd,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
             announce('Link copied', CopyLinkIcon)
@@ -74,7 +84,8 @@ export const commands: Command[] = [
         group: 'Tools',
         keywords: ['scroll', 'beginning'],
         shortcut: 'ArrowUp',
-        when: onAPost,
+        when: (context) => onAPost(context) && !context.atTop,
+        recommend: atTheEnd,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
         run: () => {
@@ -109,7 +120,23 @@ export const commands: Command[] = [
         icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['index', 'posts'],
+        recommend: atTheEnd,
         run: ({ router }) => router.push('/'),
+    },
+    {
+        id: 'random-post',
+        label: 'Read something else',
+        icon: ShuffleIcon,
+        group: 'Navigation',
+        keywords: ['random', 'surprise', 'discover'],
+        recommend: atTheEnd,
+        run: async (context) => {
+            const index = await loadSearchIndex()
+            const slugs = searchPosts(index, '').map((post) => post.slug)
+            const next = pickAnother(slugs, slugOf(context))
+
+            if (next) context.router.push(`/posts/${next}`)
+        },
     },
     {
         id: 'design-system',
@@ -207,6 +234,7 @@ export const commands: Command[] = [
         group: 'Links',
         keywords: ['donate', 'coffee', 'sponsor'],
         hint: 'buymeacoffee.com/lenysauzet',
+        recommend: atTheEnd,
         run: openExternally(social.support),
     },
 ]

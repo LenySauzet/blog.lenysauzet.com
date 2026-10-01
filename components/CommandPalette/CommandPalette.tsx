@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Command, CommandDialog, CommandInput } from '@/components/ui/command';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
+import { useScrollTracking } from '@/hooks/use-scroll-tracking';
+import { partitionByRecommendation } from '@/lib/commands/recommend';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
 
@@ -26,6 +28,7 @@ export function CommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
+  const { atTop, finished } = useScrollTracking();
 
   const [query, setQuery] = useState('');
   const [page, setPage] = useState<Page | null>(null);
@@ -33,19 +36,26 @@ export function CommandPalette() {
   const input = useRef<HTMLInputElement>(null);
 
   const context = useMemo(
-    () => ({ router, pathname, setTheme, resolvedTheme }),
-    [router, pathname, setTheme, resolvedTheme]
+    () => ({ router, pathname, setTheme, resolvedTheme, atTop, finished }),
+    [router, pathname, setTheme, resolvedTheme, atTop, finished]
   );
-  const available = useMemo(
-    () => commands.filter((command) => command.when?.(context) ?? true),
+  const { recommended, rest } = useMemo(
+    () =>
+      partitionByRecommendation(
+        commands.filter((command) => command.when?.(context) ?? true),
+        context
+      ),
     [context]
   );
+  const available = useMemo(() => [...recommended, ...rest], [recommended, rest]);
   const rootValues = useMemo(
-    () =>
-      GROUPS.flatMap((group) =>
-        available.filter((command) => command.group === group).map(commandValue)
+    () => [
+      ...recommended.map(commandValue),
+      ...GROUPS.flatMap((group) =>
+        rest.filter((command) => command.group === group).map(commandValue)
       ),
-    [available]
+    ],
+    [recommended, rest]
   );
 
   /**
@@ -155,7 +165,8 @@ export function CommandPalette() {
         ) : (
           <CommandRegistry
             key="root"
-            commands={available}
+            recommended={recommended}
+            commands={rest}
             onRun={runCommand}
             onPointDisabled={setSelected}
           />

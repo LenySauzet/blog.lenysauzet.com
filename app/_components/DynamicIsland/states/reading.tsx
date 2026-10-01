@@ -1,7 +1,8 @@
 'use client';
 
+import { scrollProgress } from '@/hooks/use-scroll-tracking';
+
 import { ProgressRing } from '../ProgressRing';
-import { scrollProgress } from '../scroll';
 import type { IslandPost, IslandState } from '../types';
 
 function Reading({ post }: { post: IslandPost }) {

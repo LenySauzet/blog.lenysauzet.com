@@ -6,10 +6,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
+import { useScrollTracking } from '@/hooks/use-scroll-tracking';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
-import { useScrollTracking } from './scroll';
 import { islandStates } from './states';
 import { hint } from './states/hint';
 import { resting } from './states/resting';
@@ -50,12 +50,12 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
-  const scrolled = useScrollTracking();
+  const { atTop } = useScrollTracking();
   const still = useReducedMotion();
 
   const context = useMemo<IslandContext>(
-    () => ({ pathname, hovered, post, scrolled }),
-    [pathname, hovered, post, scrolled]
+    () => ({ pathname, hovered, post, scrolled: !atTop }),
+    [pathname, hovered, post, atTop]
   );
 
   useEffect(() => {

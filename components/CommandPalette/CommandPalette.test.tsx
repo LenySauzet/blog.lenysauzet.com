@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MiniSearch from 'minisearch';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { commands } from '@/lib/commands/registry';
@@ -35,11 +35,30 @@ vi.mock('@/lib/search/load-index', () => ({
   loadSearchIndex: () => Promise.resolve(index),
 }));
 
+let column: HTMLElement;
+
+beforeEach(() => {
+  column = document.createElement('div');
+  column.setAttribute('data-scroll-root', '');
+  document.body.append(column);
+});
+
 afterEach(() => {
+  column.remove();
   useCmdkStore.setState({ isOpen: false });
   pathname = '/';
   vi.clearAllMocks();
 });
+
+const readTo = (fraction: number) => {
+  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
+  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
+  Object.defineProperty(column, 'scrollTop', {
+    value: Math.round(500 * fraction),
+    configurable: true,
+  });
+  fireEvent.scroll(column);
+};
 
 const shown = () =>
   screen.getAllByRole('option').map((item) => item.textContent?.trim());
@@ -66,6 +85,7 @@ describe('CommandPalette', () => {
     pathname = '/posts/anything';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
+    readTo(0.5);
 
     for (const group of GROUPS) {
       expect(await screen.findByText(group)).toBeInTheDocument();
@@ -86,10 +106,53 @@ describe('CommandPalette', () => {
     expect(shown()).not.toContain('Go to top');
   });
 
+  it('withholds the way back up from a reader already at the top', async () => {
+    pathname = '/posts/shades-of-halftone';
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+    await screen.findByText('Copy link to clipboard');
+
+    expect(screen.queryByText('Go to top')).not.toBeInTheDocument();
+
+    readTo(0.5);
+
+    expect(await screen.findByText('Go to top')).toBeInTheDocument();
+  });
+
+  it('names the way onward once the article runs out', async () => {
+    pathname = '/posts/shades-of-halftone';
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+    await screen.findByText('Home');
+
+    expect(screen.queryByText('Recommended')).not.toBeInTheDocument();
+
+    readTo(1);
+
+    expect(await screen.findByText('Recommended')).toBeInTheDocument();
+    const headings = [...document.querySelectorAll('[cmdk-group-heading]')].map(
+      (heading) => heading.textContent
+    );
+    expect(headings[0]).toBe('Recommended');
+  });
+
+  // Lifted to the top rather than copied there: one command, one row.
+  it('leaves no copy behind in the group it was lifted from', async () => {
+    pathname = '/posts/shades-of-halftone';
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+    readTo(1);
+    await screen.findByText('Recommended');
+
+    expect(screen.getAllByText('Home')).toHaveLength(1);
+    expect(screen.getAllByText('Support me')).toHaveLength(1);
+  });
+
   it('offers them again inside an article', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette />);
+    readTo(0.5);
 
     expect(await screen.findByText('Copy link to clipboard')).toBeInTheDocument();
     expect(screen.getByText('Go to top')).toBeInTheDocument();
