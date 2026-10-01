@@ -333,6 +333,27 @@ and theme. Adding a command is one entry; nothing about the surface changes. `ru
 takes a context rather than reaching for hooks itself, which is what keeps the registry
 a plain module a test can read.
 
+A command either acts on the site or **opens a page of the palette**, never both;
+the `Command` union keeps the pair from being written together. `search` is the only
+page so far, and it forces four things worth knowing before opening the files:
+
+- **A page ranks its own rows**, so cmdk gets `shouldFilter={false}` and the selection
+  is driven from outside through `onResults`. cmdk moves it when *its* search box
+  changes and at no other time.
+- **Backspace-to-leave is read on the cmdk root**, not the input, and the input is
+  focused by hand when a page opens: a row reached with the mouse keeps the focus.
+- **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
+  disabled hover, and it refuses to select such a row at all.
+- **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
+  node once, at mount.
+
+The index is built at build time by `lib/search/build-index.ts` and served static by
+`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
+is shared by the build and the browser on purpose**: `loadJSON` reads an index against
+the options it is handed, so the two drifting apart stops matching rather than failing.
+`lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
+and the ranking testable without a DOM.
+
 `components/ui/command.tsx` is customized beyond the CLI output twice over: its
 `CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
 carries `--primary` rather than `--foreground`. Update it with

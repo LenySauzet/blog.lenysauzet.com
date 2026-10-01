@@ -2,6 +2,7 @@ import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
 import { UpdatedBadge } from '@/components/UpdatedBadge';
 import siteConfig from '@/config/site';
+import { postDate } from '@/lib/post-date';
 import { getPosts } from '@/lib/post-utils';
 import { readingTimeOf } from '@/lib/reading-time';
 import { relativeTime } from '@/lib/relative-time';
@@ -73,7 +74,7 @@ export default async function Page({
                 className="font-mono text-sm uppercase text-subtle-foreground"
               >
                 <ScrambledText delay={0.5} speed={1.6} windowSize={3}>
-                  {`${format(new Date(Date.parse(metadata.date)), 'MMM d, yyyy')} · ${minutes} min read`}
+                  {`${format(postDate(metadata.date), 'MMM d, yyyy')} · ${minutes} min read`}
                 </ScrambledText>
               </time>
               {metadata.updated && (
