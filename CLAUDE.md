@@ -173,13 +173,14 @@ that neither file makes obvious:
 element** — that force-applies dark and breaks the toggle. It was a bug once; don't
 reintroduce it. `:root` is light, `.dark` overrides, both in `app/globals.css`.
 
-`components/ModeToggle` is the switcher, mounted in the Dock. `<html
+`components/ModeToggle` is no longer mounted anywhere: the theme is switched from the
+palette, with ⌘D. `<html
 suppressHydrationWarning>` plus next-themes' injected script avoids the flash. Mobile
 chrome colour follows the OS via the `themeColor` viewport export, not the toggle.
 
 ### Component layout
 
-- `app/_components/` — page-shell only (Header, Dock, IndexSection). Not reused outside it.
+- `app/_components/` — page-shell only (DynamicIsland, IndexSection). Not reused outside it.
 - `components/` — reusable. Shadcn primitives in `components/ui/` (CLI-generated, avoid
   manual edits). Custom components as `ComponentName/index.ts` + `ComponentName.tsx`,
   or a single flat file.
@@ -325,6 +326,40 @@ needs no depth logic: each nested list carries its own `data-list`.
 `sm`, since 16px is this site's rhythm; and `CardTitle` / `CardContent` carry the prose
 type posts use. Because the file is CLI-generated, update it with
 `bunx shadcn@latest add card --diff` and re-apply these edits — don't overwrite.
+
+**The Dynamic Island is the page shell**, and it replaced the header and the dock,
+which were a placeholder with three dead links. It is a status surface and the door
+to the palette, never a menu: one action, whatever it is showing, or it stops being
+something a reader can rely on.
+
+`app/_components/DynamicIsland/states/` is a registry like the command one, ordered,
+first condition wins, last entry carries none. A state owns its layout and its data
+sources; the island owns only the container. States come from two places: ambient
+ones derived from the context, and transient ones raised through
+`hooks/use-island-store.ts` by anything on the page. `announce()` is the site's only
+notification surface, which is why sonner was removed rather than kept beside it.
+
+What the shape forces, none of it obvious:
+
+- **Motion scales the pill, it does not resize it.** Mid-morph the container reads
+  `matrix(1.26, 0, 0, 1)` and everything inside is stretched with it. That stretch is
+  the effect, so children must not be counter-scaled and must not scale themselves:
+  either one puts a second, disagreeing movement on screen.
+- **Hover is the only state change a pointer can cause**, so the hint keeps the width
+  of whatever it covers. Without that the pill shrinks out from under the pointer
+  that raised it and the two states trade places several times a second. It is a
+  floor, not a width, or a short title cuts the line off.
+- **The lift and the press scale the target, not the pill.** A transform carries the
+  hit area with it; on the pill they would reach past their own target and bring the
+  oscillation back.
+- **A wheel over the island does nothing on its own.** `body` does not scroll and the
+  scrolling column is a sibling, so the delta is handed on by hand.
+- **The scroll progress lives at module scope**, not in the state that draws it: a
+  state unmounts on every change of shape and the ring would fall back to zero.
+
+The island is deliberately absent from `content/design-system.mdx`. It is global
+chrome, always on screen, and a second one rendered inside an article would be two
+islands disagreeing.
 
 **The command palette is a registry, not a component full of items.**
 `lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,

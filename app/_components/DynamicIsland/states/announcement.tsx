@@ -5,25 +5,12 @@ import { useIslandStore } from '@/hooks/use-island-store';
 
 import type { IslandState } from '../types';
 
-/** Long enough to read six words, short enough not to hold the island hostage. */
 const DWELL = 2600;
+const ANNOUNCEMENT = 'announcement';
 
-/**
- * One id for every announcement, and that is the queueing policy: the store renews
- * a state raised twice, so a second announcement covers the first rather than
- * waiting behind it. A queue would make the island owe a backlog, and the reader
- * who copies a link twice is telling it the same thing twice.
- */
-const ID = 'announcement';
-
-/**
- * What a command says when it has done something. The island is the site's only
- * notification surface, so this is the whole of that contract: a sentence, and the
- * icon of whatever raised it.
- */
 export function announce(message: string, icon: IconSvgElement = Tick02Icon) {
   const state: IslandState = {
-    id: ID,
+    id: ANNOUNCEMENT,
     render: () => (
       <div className="flex w-full items-center justify-center gap-2 px-3">
         <HugeiconsIcon
