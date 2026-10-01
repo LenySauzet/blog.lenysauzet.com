@@ -396,9 +396,13 @@ and the ranking testable without a DOM.
 A command may also say **when it is worth recommending**, which lifts it out of its
 group and to the top of the palette. Lifted, not copied: one command is one row, or
 cmdk returns two of them for the same search. The section exists only when something
-asks for it, and holds five at most, past which it is a second menu rather than a
-recommendation. `lib/commands/recommend.ts` is the whole policy, testable without a
-DOM.
+asks for it, holds five at most, and reads in the palette's own group order rather
+than the registry's. `lib/commands/recommend.ts` is the whole policy, testable
+without a DOM.
+
+Three moments ask for something today: the index, an article underway, and an
+article finished. A reader who has only just arrived at an article is offered
+nothing, having made no move yet to answer.
 
 What the reader has scrolled is in the context too, which is what lets a command
 withhold itself: `Go to top` is not offered to someone already there.

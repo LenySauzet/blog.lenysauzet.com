@@ -119,6 +119,22 @@ describe('CommandPalette', () => {
     expect(await screen.findByText('Go to top')).toBeInTheDocument();
   });
 
+  it('recommends finding something to read, on the index', async () => {
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette />);
+
+    expect(await screen.findByText('Recommended')).toBeInTheDocument();
+
+    const group = screen
+      .getByText('Recommended')
+      .closest('[cmdk-group]') as HTMLElement;
+    const offered = [...group.querySelectorAll('[role="option"]')].map(
+      (row) => row.textContent?.split('\n')[0]
+    );
+
+    expect(offered).toEqual(['Search blog posts', 'Read a random post']);
+  });
+
   it('names the way onward once the article runs out', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });

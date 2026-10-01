@@ -110,7 +110,7 @@ describe('DynamicIsland', () => {
     scrollDown();
 
     await user.hover(island());
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    await waitFor(() => expect(island()).toHaveTextContent('for commands'));
 
     await user.unhover(island());
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
@@ -128,7 +128,7 @@ describe('DynamicIsland', () => {
 
     await user.hover(island());
 
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    await waitFor(() => expect(island()).toHaveTextContent('for commands'));
     expect(pill.style.minWidth).toBe('288px');
   });
 
@@ -155,7 +155,7 @@ describe('DynamicIsland', () => {
     await settlesOn('Leny');
 
     await vi.advanceTimersByTimeAsync(2000);
-    await settlesOn('to search');
+    await settlesOn('for commands');
 
     await vi.advanceTimersByTimeAsync(3200);
     await settlesOn('Leny');

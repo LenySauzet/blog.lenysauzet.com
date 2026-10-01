@@ -1,4 +1,4 @@
-import type { Command, CommandContext } from './types';
+import { GROUPS, type Command, type CommandContext } from './types';
 
 const AT_MOST = 5;
 
@@ -13,6 +13,7 @@ export function partitionByRecommendation(
 ): Partitioned {
   const recommended = commands
     .filter((command) => command.recommend?.(context) ?? false)
+    .sort((a, b) => GROUPS.indexOf(a.group) - GROUPS.indexOf(b.group))
     .slice(0, AT_MOST);
 
   return {

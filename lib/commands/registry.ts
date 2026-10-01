@@ -39,8 +39,17 @@ const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
 const slugOf = ({ pathname }: CommandContext) => pathname.split('/').pop()
 
+const onTheIndex = ({ pathname }: CommandContext) => pathname === '/'
+
+/** Underway in an article, which is neither arriving at it nor finishing it. */
+const whileReading = (context: CommandContext) =>
+    onAPost(context) && !context.atTop && !context.finished
+
 /** The reader has run out of article, which is when the next move is worth naming. */
 const atTheEnd = (context: CommandContext) => onAPost(context) && context.finished
+
+const inAnArticle = (context: CommandContext) =>
+    whileReading(context) || atTheEnd(context)
 
 export const commands: Command[] = [
     {
@@ -49,6 +58,7 @@ export const commands: Command[] = [
         icon: SearchIcon,
         group: 'Tools',
         keywords: ['find', 'articles', 'writing'],
+        recommend: (context) => whileReading(context) || onTheIndex(context),
         opens: 'search',
     },
     {
@@ -71,7 +81,7 @@ export const commands: Command[] = [
         keywords: ['url', 'share'],
         shortcut: 'l',
         when: onAPost,
-        recommend: atTheEnd,
+        recommend: inAnArticle,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
             announce('Link copied', CopyLinkIcon)
@@ -85,7 +95,7 @@ export const commands: Command[] = [
         keywords: ['scroll', 'beginning'],
         shortcut: 'ArrowUp',
         when: (context) => onAPost(context) && !context.atTop,
-        recommend: atTheEnd,
+        recommend: inAnArticle,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
         run: () => {
@@ -120,16 +130,16 @@ export const commands: Command[] = [
         icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['index', 'posts'],
-        recommend: atTheEnd,
+        recommend: inAnArticle,
         run: ({ router }) => router.push('/'),
     },
     {
         id: 'random-post',
-        label: 'Read something else',
+        label: 'Read a random post',
         icon: ShuffleIcon,
         group: 'Tools',
-        keywords: ['random', 'surprise', 'discover'],
-        recommend: atTheEnd,
+        keywords: ['random', 'surprise', 'discover', 'something else'],
+        recommend: (context) => onTheIndex(context) || atTheEnd(context),
         run: async (context) => {
             const index = await loadSearchIndex()
             const slugs = searchPosts(index, '').map((post) => post.slug)
@@ -234,7 +244,7 @@ export const commands: Command[] = [
         group: 'Links',
         keywords: ['donate', 'coffee', 'sponsor'],
         hint: 'buymeacoffee.com/lenysauzet',
-        recommend: atTheEnd,
+        recommend: inAnArticle,
         run: openExternally(social.support),
     },
 ]

@@ -5,11 +5,15 @@ import type { Command, CommandContext } from './types';
 
 const context = { finished: true } as CommandContext;
 
-const command = (id: string, recommend?: boolean): Command => ({
+const command = (
+  id: string,
+  recommend?: boolean,
+  group: Command['group'] = 'Tools'
+): Command => ({
   id,
   label: id,
   icon: [],
-  group: 'Tools',
+  group,
   recommend: recommend === undefined ? undefined : () => recommend,
   run: () => {},
 });
@@ -46,6 +50,23 @@ describe('partitionByRecommendation', () => {
 
     expect(recommended).toHaveLength(5);
     expect(rest).toHaveLength(3);
+  });
+
+  it('reads in the order the palette does, whatever the registry says', () => {
+    const { recommended } = partitionByRecommendation(
+      [
+        command('support', true, 'Links'),
+        command('copy', true, 'Tools'),
+        command('home', true, 'Navigation'),
+      ],
+      context
+    );
+
+    expect(recommended.map((command) => command.id)).toEqual([
+      'home',
+      'copy',
+      'support',
+    ]);
   });
 
   it('recommends nothing when nothing asks', () => {
