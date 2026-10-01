@@ -1,3 +1,4 @@
+import { AnnouncePost } from '@/app/_components/DynamicIsland';
 import Footnote from '@/components/Footnote';
 import { ScrambledText } from '@/components/ScrambledText';
 import { UpdatedBadge } from '@/components/UpdatedBadge';
@@ -61,6 +62,7 @@ export default async function Page({
     const minutes = await readingTimeOf(slug);
     return (
       <article className="flex flex-col gap-8 pt-28 sm:pt-80 px-4">
+        <AnnouncePost title={metadata.title} shortTitle={metadata.shortTitle} />
         <div className="w-full min-w-0 max-w-2xl mx-auto">
           <div className="mb-6">
             <h1 className="text-5xl font-serif tracking-tight text-balance leading-tight">

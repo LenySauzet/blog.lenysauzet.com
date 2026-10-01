@@ -7,7 +7,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { CommandPalette } from '@/components/CommandPalette';
 import { Toaster } from '@/components/ui/sonner';
-import Header from './_components/Header';
+import { DynamicIsland } from './_components/DynamicIsland';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -65,7 +65,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider delayDuration={400}>
-            <Header />
+            <DynamicIsland />
             <main className="h-full">{children}</main>
             <CommandPalette />
             <Toaster />
