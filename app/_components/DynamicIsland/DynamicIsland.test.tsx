@@ -34,7 +34,7 @@ describe('DynamicIsland', () => {
   it('falls back to the identity', () => {
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Leny Sauzet');
+    expect(island()).toHaveTextContent('Leny');
   });
 
   it('reads the post it was handed, preferring the short title', () => {
@@ -55,7 +55,10 @@ describe('DynamicIsland', () => {
   });
 
   // While the pointer rests on it the island answers "what can I do here", and the
-  // article takes its surface back the moment it leaves.
+  // article takes its surface back once the pointer is properly away. Away, and not
+  // merely off the element: the hint is smaller than what it covers, so a pill that
+  // un-hovered on its own edge would shrink out from under the pointer, grow back,
+  // and oscillate. Leaving is a move past a margin, which is what this walks.
   it('shows the hint over the reading state, and gives it back', async () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
@@ -64,8 +67,25 @@ describe('DynamicIsland', () => {
     await user.hover(island());
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
 
-    await user.unhover(island());
+    await user.pointer({
+      target: document.body,
+      coords: { clientX: 500, clientY: 500 },
+    });
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
+  });
+
+  // The pointer resting just off the edge keeps the hint: anything else flickers.
+  it('keeps the hint while the pointer is only just outside', async () => {
+    const user = userEvent.setup();
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+
+    await user.hover(island());
+    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+
+    await user.pointer({ target: document.body, coords: { clientX: 8, clientY: 8 } });
+
+    expect(island()).toHaveTextContent('to search');
   });
 
   // A raised state covers whatever the page was saying, and on dismissal uncovers
@@ -90,19 +110,19 @@ describe('DynamicIsland', () => {
     sessionStorage.clear();
 
     const first = render(<DynamicIsland />);
-    expect(island()).toHaveTextContent('Leny Sauzet');
+    expect(island()).toHaveTextContent('Leny');
 
     await vi.advanceTimersByTimeAsync(1100);
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
 
     await vi.advanceTimersByTimeAsync(4100);
-    await waitFor(() => expect(island()).toHaveTextContent('Leny Sauzet'));
+    await waitFor(() => expect(island()).toHaveTextContent('Leny'));
 
     first.unmount();
     render(<DynamicIsland />);
     await vi.advanceTimersByTimeAsync(1100);
 
-    expect(island()).toHaveTextContent('Leny Sauzet');
+    expect(island()).toHaveTextContent('Leny');
   });
 
   it('opens the palette when it is pressed', async () => {

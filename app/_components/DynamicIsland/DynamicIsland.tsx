@@ -2,13 +2,14 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
+import { useProximityHover } from './use-proximity-hover';
 import { hint } from './states/hint';
 import { islandStates } from './states';
 import type { IslandContext, IslandState } from './types';
@@ -35,7 +36,7 @@ const resolve = (context: IslandContext): IslandState =>
 
 export function DynamicIsland() {
   const pathname = usePathname();
-  const [hovered, setHovered] = useState(false);
+  const { ref, hovered, enter, leave } = useProximityHover<HTMLButtonElement>();
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
@@ -80,10 +81,10 @@ export function DynamicIsland() {
         layout
         aria-label="Open the command palette"
         onClick={() => setIsOpen(true)}
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
-        onBlur={() => setHovered(false)}
+        ref={ref}
+        onPointerEnter={enter}
+        onFocus={enter}
+        onBlur={leave}
         transition={still ? { duration: 0 } : MORPH}
         // Inline, because Motion only corrects the corner distortion its own layout
         // projection causes when the radius is a style value it can read.
