@@ -29,6 +29,9 @@ const INSET = '0.375rem';
  */
 const MAX_WIDTH = '19rem';
 
+/** What a wheel means by one line, for the devices that count in them. */
+const LINE_HEIGHT = 16;
+
 /**
  * The other half. Every compact state stands at the same height, so moving between
  * them is a change of width and of content rather than of stature, and the island
@@ -114,6 +117,26 @@ export function DynamicIsland() {
           setHovered(true);
         }}
         onBlur={() => setHovered(false)}
+        // The column that scrolls is the island's sibling, not its ancestor, and
+        // `body` does not scroll at all: a wheel over a floating bar therefore has
+        // nothing to act on and the page simply stops under the pointer. Handing
+        // the delta on is what a scrollable ancestor would have done.
+        //
+        // `deltaY` in pixel mode is by definition the distance the browser would
+        // have scrolled, so it is passed through rather than scaled. That parity
+        // cannot be checked under Playwright, which reports twice what it scrolls
+        // natively; the factor belongs to the harness, not to the browser.
+        onWheel={(event) => {
+          const root = document.querySelector<HTMLElement>('[data-scroll-root]');
+          if (!root) return;
+
+          // A wheel reports pixels, lines or pages depending on the device, and a
+          // line taken as a pixel moves the article by nothing at all.
+          const step =
+            event.deltaMode === 1 ? LINE_HEIGHT : event.deltaMode === 2 ? root.clientHeight : 1;
+
+          root.scrollBy({ top: event.deltaY * step, behavior: 'auto' });
+        }}
         // The target is the pill, exactly: a fixed box was predictable but reached
         // past what anyone can see, and hovering empty air raised the hint. What
         // made a fixed box necessary was the hint being narrower than the state it
