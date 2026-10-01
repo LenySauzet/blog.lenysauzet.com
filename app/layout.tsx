@@ -6,7 +6,6 @@ import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { CommandPalette } from '@/components/CommandPalette';
-import { Toaster } from '@/components/ui/sonner';
 import { DynamicIsland } from './_components/DynamicIsland';
 
 const geistSans = Geist({
@@ -68,7 +67,6 @@ export default function RootLayout({
             <DynamicIsland />
             <main className="h-full">{children}</main>
             <CommandPalette />
-            <Toaster />
           </TooltipProvider>
         </ThemeProvider>
       </body>

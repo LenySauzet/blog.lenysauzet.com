@@ -6,6 +6,7 @@ import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 
 import { DynamicIsland } from './DynamicIsland';
+import { announce } from './states/announcement';
 import type { IslandState } from './types';
 
 let pathname = '/';
@@ -19,6 +20,15 @@ const island = () => screen.getByRole('button', { name: 'Open the command palett
  */
 const settlesOn = (text: string) =>
   waitFor(() => expect(island()).toHaveTextContent(text));
+
+/**
+ * The island mentions the palette a second or two after it opens, which lands in
+ * the middle of anything else being timed. Cases that drive the clock themselves
+ * wait that window out first.
+ */
+const pastTheGreeting = async () => {
+  await vi.advanceTimersByTimeAsync(5200);
+};
 
 /**
  * The island reads whichever column the route marks as scrolling, and jsdom lays
@@ -180,6 +190,41 @@ describe('DynamicIsland', () => {
     // And leaves on its own, uncovering whatever the page was saying.
     await vi.advanceTimersByTimeAsync(3200);
     await settlesOn('Leny');
+  });
+
+  // The island is the site's only notification surface, so what a command says when
+  // it is done comes through here and leaves on its own.
+  it('carries what a command announces, then gives the page back', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+    scrollDown();
+    await pastTheGreeting();
+    await settlesOn('Shades of Halftone');
+
+    act(() => announce('Link copied'));
+    await settlesOn('Link copied');
+
+    await vi.advanceTimersByTimeAsync(3000);
+    await settlesOn('Shades of Halftone');
+  });
+
+  // Covering rather than queueing: the reader who copies a link twice is saying the
+  // same thing twice, and the second must not be dismissed on the first's schedule.
+  it('renews an announcement raised again rather than stacking it', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+    await settlesOn('Leny');
+
+    act(() => announce('Link copied'));
+    await vi.advanceTimersByTimeAsync(2000);
+    act(() => announce('Downloading my resume'));
+    await settlesOn('Downloading my resume');
+
+    // The first one's timer would have fired by now had it not been cancelled.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(island()).toHaveTextContent('Downloading my resume');
   });
 
   it('opens the palette when it is pressed', async () => {

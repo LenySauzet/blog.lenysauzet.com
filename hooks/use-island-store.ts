@@ -28,6 +28,14 @@ interface IslandStore {
   setPost: (post: IslandPost | null) => void;
 }
 
+/**
+ * What each raised state is waiting on. Held outside the store because it is
+ * bookkeeping rather than state: nothing renders from it, and renewing an
+ * announcement has to cancel the timer the first one left behind or the second
+ * would be dismissed on the first one's schedule.
+ */
+const expiries = new Map<string, number>();
+
 export const useIslandStore = create<IslandStore>((set, get) => ({
   presented: [],
   post: null,
@@ -35,6 +43,9 @@ export const useIslandStore = create<IslandStore>((set, get) => ({
   present: (state, { ttl } = {}) => {
     // Raising a state twice renews it rather than stacking two copies: the second
     // "link copied" is the same announcement, not a queue of them.
+    window.clearTimeout(expiries.get(state.id));
+    expiries.delete(state.id);
+
     set({
       presented: [
         ...get().presented.filter((entry) => entry.id !== state.id),
@@ -42,10 +53,17 @@ export const useIslandStore = create<IslandStore>((set, get) => ({
       ],
     });
 
-    if (ttl) window.setTimeout(() => get().dismiss(state.id), ttl);
+    if (ttl) {
+      expiries.set(
+        state.id,
+        window.setTimeout(() => get().dismiss(state.id), ttl)
+      );
+    }
   },
 
   dismiss: (id) => {
+    window.clearTimeout(expiries.get(id));
+    expiries.delete(id);
     set({ presented: get().presented.filter((entry) => entry.id !== id) });
   },
 
