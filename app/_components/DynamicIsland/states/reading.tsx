@@ -13,9 +13,9 @@ function Reading({ post }: { post: IslandPost }) {
   const progress = useScrollProgress();
 
   return (
-    <div className="flex items-center gap-3 pr-1">
+    <div className="flex items-center gap-4">
       <ProgressRing progress={progress} />
-      <span className="max-w-[16ch] truncate text-sm font-medium sm:max-w-[28ch]">
+      <span className="max-w-[16ch] truncate pr-3 text-[0.95rem] sm:max-w-[28ch]">
         {post.shortTitle ?? post.title}
       </span>
     </div>

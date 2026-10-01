@@ -2,7 +2,9 @@
 
 import { motion, useTransform, type MotionValue } from 'motion/react';
 
-const SIZE = 28;
+// The island's inner height: a disc inset by the same amount on three sides is
+// concentric with the cap it sits in.
+const SIZE = 30;
 const STROKE = 2.5;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -45,7 +47,7 @@ export function ProgressRing({ progress }: { progress: MotionValue<number> }) {
 
       {/* Tabular, or the box width changes with the glyphs and the island morphs
           on every percent. */}
-      <motion.span className="absolute inset-0 grid place-items-center font-mono text-[0.5rem] tabular-nums text-muted-foreground">
+      <motion.span className="absolute inset-0 grid place-items-center font-mono text-[0.5625rem] tabular-nums text-muted-foreground">
         {percent}
       </motion.span>
     </div>

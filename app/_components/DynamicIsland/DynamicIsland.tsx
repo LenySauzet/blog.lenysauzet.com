@@ -1,23 +1,35 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 
+import { MORPH } from './motion';
 import { Presentation } from './Presentation';
 import { hint } from './states/hint';
 import { islandStates } from './states';
 import type { IslandContext, IslandState } from './types';
 
 /**
- * The spring the slider's constants were derived for, which held up to a session of
- * tuning by feel: damping ratio 0.81 at 25 rad/s, which is `stiffness = f^2` and
- * `damping = 2 * ratio * sqrt(stiffness)`. Firm arrival, one short rebound.
+ * Every compact state stands the same height, so moving between them is a change of
+ * width and of content rather than of stature. It is what a disc state measures on
+ * its own, border included, or the island would gain two pixels on the way to one
+ * and lose them on the way back. A state that wants to be a card may still grow
+ * past it.
  */
-const MORPH = { type: 'spring', stiffness: 625, damping: 40.5, mass: 1 } as const;
+const COMPACT_HEIGHT = '2.75rem';
+
+/**
+ * Uniform, and that is the whole geometry: a circle inset by the same amount on
+ * three sides is concentric with the cap it sits in, so the logo and the progress
+ * ring follow the island's curve instead of merely sitting near it. Horizontal
+ * breathing room is each state's own business, since a line of text wants more of
+ * it than a disc does.
+ */
+const INSET = '0.375rem';
 
 /** Long enough to be noticed after the page settles, short enough not to nag. */
 const TEACH_AFTER = 1000;
@@ -82,19 +94,16 @@ export function DynamicIsland() {
         transition={still ? { duration: 0 } : MORPH}
         // Inline, because Motion only corrects the corner distortion its own layout
         // projection causes when the radius is a style value it can read.
-        style={{ borderRadius: 999 }}
-        className="flex cursor-pointer items-center overflow-hidden border border-border/60 bg-card/75 px-3 py-2 backdrop-blur-[6px] backdrop-saturate-[115%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+        style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
+        className="flex cursor-pointer items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
       >
         {/* Decorative: the button is named once and keeps that name through every
             state, or each morph would be announced as a new control. */}
-        <div aria-hidden className="relative flex items-center">
-          {/* `popLayout` takes the outgoing copy out of flow at once, so the island
-              starts resizing with the incoming one instead of after it. It lays that
-              copy out absolutely, which needs a positioned parent here, or the two
-              states pass beside each other instead of one fading under the other. */}
-          <AnimatePresence mode="popLayout" initial={false}>
-            <Presentation key={state.id}>{state.render(context)}</Presentation>
-          </AnimatePresence>
+        {/* Keyed rather than wrapped in `AnimatePresence`: the outgoing state leaves
+            without an animation, so React dropping it on the spot is exactly the
+            behaviour, and the island is left with one thing to watch. */}
+        <div aria-hidden className="flex items-center">
+          <Presentation key={state.id}>{state.render(context)}</Presentation>
         </div>
       </motion.button>
     </div>

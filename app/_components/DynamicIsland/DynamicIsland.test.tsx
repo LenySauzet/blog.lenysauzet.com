@@ -34,7 +34,7 @@ describe('DynamicIsland', () => {
   it('falls back to the identity', () => {
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Lény Sauzet');
+    expect(island()).toHaveTextContent('Lény');
   });
 
   it('reads the post it was handed, preferring the short title', () => {
@@ -90,19 +90,19 @@ describe('DynamicIsland', () => {
     sessionStorage.clear();
 
     const first = render(<DynamicIsland />);
-    expect(island()).toHaveTextContent('Lény Sauzet');
+    expect(island()).toHaveTextContent('Lény');
 
     await vi.advanceTimersByTimeAsync(1100);
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
 
     await vi.advanceTimersByTimeAsync(4100);
-    await waitFor(() => expect(island()).toHaveTextContent('Lény Sauzet'));
+    await waitFor(() => expect(island()).toHaveTextContent('Lény'));
 
     first.unmount();
     render(<DynamicIsland />);
     await vi.advanceTimersByTimeAsync(1100);
 
-    expect(island()).toHaveTextContent('Lény Sauzet');
+    expect(island()).toHaveTextContent('Lény');
   });
 
   it('opens the palette when it is pressed', async () => {

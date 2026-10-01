@@ -5,18 +5,17 @@ import type { IslandState } from '../types';
  * island, and transient a moment after a first load, so the palette is known
  * before anyone goes looking for it.
  *
- * The wording is keyless where there is no keyboard. The modifier itself is still
- * written ⌘ on every platform, as the palette's own shortcut column does; reading
- * the platform is a separate concern and both should be fixed together.
+ * One font, one weight, one colour, the modifier included: a key picked out in a
+ * brighter tone reads as a button to press rather than as part of the sentence.
+ * The wording is keyless where there is no keyboard; the modifier itself is still
+ * written ⌘ everywhere, as the palette's own shortcut column does.
  */
 export const hint: IslandState = {
   id: 'hint',
   when: ({ hovered }) => hovered,
   render: () => (
-    <span className="px-1 text-sm whitespace-nowrap text-muted-foreground">
-      <span className="pointer-coarse:hidden">
-        Press <kbd className="font-mono text-foreground">⌘K</kbd> to search
-      </span>
+    <span className="px-4 font-mono text-sm whitespace-nowrap text-muted-foreground/70">
+      <span className="pointer-coarse:hidden">Press ⌘K to search</span>
       <span className="pointer-fine:hidden">Tap to search and more</span>
     </span>
   ),
