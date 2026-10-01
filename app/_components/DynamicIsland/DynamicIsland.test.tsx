@@ -30,11 +30,11 @@ afterEach(() => {
 
 describe('DynamicIsland', () => {
   // The last state in the registry carries no condition, so the island is never
-  // without something to be.
+  // without something to be. The name is drawn without its diacritic, deliberately.
   it('falls back to the identity', () => {
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Lény');
+    expect(island()).toHaveTextContent('Leny Sauzet');
   });
 
   it('reads the post it was handed, preferring the short title', () => {
@@ -90,19 +90,19 @@ describe('DynamicIsland', () => {
     sessionStorage.clear();
 
     const first = render(<DynamicIsland />);
-    expect(island()).toHaveTextContent('Lény');
+    expect(island()).toHaveTextContent('Leny Sauzet');
 
     await vi.advanceTimersByTimeAsync(1100);
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
 
     await vi.advanceTimersByTimeAsync(4100);
-    await waitFor(() => expect(island()).toHaveTextContent('Lény'));
+    await waitFor(() => expect(island()).toHaveTextContent('Leny Sauzet'));
 
     first.unmount();
     render(<DynamicIsland />);
     await vi.advanceTimersByTimeAsync(1100);
 
-    expect(island()).toHaveTextContent('Lény');
+    expect(island()).toHaveTextContent('Leny Sauzet');
   });
 
   it('opens the palette when it is pressed', async () => {

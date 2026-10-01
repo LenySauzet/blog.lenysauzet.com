@@ -14,20 +14,13 @@ import { islandStates } from './states';
 import type { IslandContext, IslandState } from './types';
 
 /**
- * Every compact state stands the same height, so moving between them is a change of
- * width and of content rather than of stature. It is what a disc state measures on
- * its own, border included, or the island would gain two pixels on the way to one
- * and lose them on the way back. A state that wants to be a card may still grow
- * past it.
- */
-const COMPACT_HEIGHT = '2.75rem';
-
-/**
  * Uniform, and that is the whole geometry: a circle inset by the same amount on
  * three sides is concentric with the cap it sits in, so the logo and the progress
- * ring follow the island's curve instead of merely sitting near it. Horizontal
- * breathing room is each state's own business, since a line of text wants more of
- * it than a disc does.
+ * ring follow the island's curve instead of merely sitting near it.
+ *
+ * It is also all the island imposes. Width, height and horizontal breathing room
+ * are each state's own business, which is what lets an aside be smaller than a
+ * reading of the page rather than padded out to match it.
  */
 const INSET = '0.375rem';
 
@@ -94,7 +87,7 @@ export function DynamicIsland() {
         transition={still ? { duration: 0 } : MORPH}
         // Inline, because Motion only corrects the corner distortion its own layout
         // projection causes when the radius is a style value it can read.
-        style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
+        style={{ borderRadius: 999, padding: INSET }}
         className="flex cursor-pointer items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
       >
         {/* Decorative: the button is named once and keeps that name through every
