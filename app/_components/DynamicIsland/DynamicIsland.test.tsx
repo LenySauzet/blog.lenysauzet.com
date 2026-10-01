@@ -199,7 +199,7 @@ describe('DynamicIsland', () => {
     expect(island()).toHaveClass('active:scale-[0.97]');
   });
 
-  it('asks what comes next once the article runs out', async () => {
+  it('invites support once the article runs out', async () => {
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
     readTo(0.5);
@@ -207,7 +207,7 @@ describe('DynamicIsland', () => {
 
     act(() => readTo(1));
 
-    expect(island()).toHaveTextContent('What next?');
+    expect(island()).toHaveTextContent('Support me');
     expect(island()).not.toHaveTextContent('Shades of Halftone');
   });
 
