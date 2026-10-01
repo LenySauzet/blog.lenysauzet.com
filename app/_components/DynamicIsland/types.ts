@@ -19,6 +19,16 @@ export interface IslandContext {
 export interface IslandState {
   id: string;
   /**
+   * A width of its own, for a state whose shape is deliberate rather than its
+   * content's. Absent, the island takes the width its content asks for.
+   *
+   * It belongs to the state and is applied by the island, because the island is
+   * what animates it: a state that set its own minimum would refuse to shrink
+   * during the morph, and its right-hand anchor would sit outside the pill until
+   * the pill caught up.
+   */
+  width?: string;
+  /**
    * What the island becomes. The state owns its layout: the island only owns the
    * container, so a state is free to be a line, a pill or a card.
    */

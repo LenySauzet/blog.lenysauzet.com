@@ -15,6 +15,10 @@ const [name] = siteConfig.authorName
 /** The fallback: no condition, last in the registry. Who writes here. */
 export const identity: IslandState = {
   id: 'identity',
+  // Deliberate rather than content-sized: the gap between the mark and the name is
+  // what makes the island read as a bar, and a gap only exists if there is width to
+  // spare.
+  width: '13.75rem',
   render: () => (
     // Anchored at both ends rather than huddled in the middle: the mark holds the
     // left cap, the name the right, and the gap between them is what makes the
@@ -25,7 +29,7 @@ export const identity: IslandState = {
     // any other, and the mark is drawn small inside it. It is line work rather
     // than a disc, so at the full inner height it carries far more ink than a flat
     // avatar would and takes the eye off the name.
-    <div className="flex h-[1.875rem] w-full min-w-[13rem] items-center justify-between pl-2 pr-4">
+    <div className="flex h-[1.875rem] w-full items-center justify-between pl-2 pr-4">
       <Logo className="size-5 shrink-0" />
       <span className="font-mono tracking-widest whitespace-nowrap text-muted-foreground">
         {name}

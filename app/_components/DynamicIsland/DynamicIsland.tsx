@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { animate, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
@@ -56,6 +56,7 @@ const resolve = (context: IslandContext): IslandState =>
 export function DynamicIsland() {
   const pathname = usePathname();
   const [hovered, setHovered] = useState(false);
+  const pill = useRef<HTMLDivElement>(null);
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
@@ -91,6 +92,32 @@ export function DynamicIsland() {
   const resolved = presented.at(-1)?.state ?? resolve(context);
   const state = useOpening(resolved, resting);
 
+  /**
+   * The island animates a real width rather than projecting a layout change.
+   *
+   * Projection is cheaper, but it scales the pill instead of resizing it, so the
+   * content keeps the one box it was laid out in: an element pinned to the left cap
+   * follows, and one pinned to the right cap cannot, because that edge only exists
+   * as a transform. Animating the width lays the content out again on every frame,
+   * and the gap inside it pushes the two anchors apart as the pill opens.
+   *
+   * The target is read by letting the pill take the width it wants for a moment,
+   * before it is put back and sprung there. A layout effect, so none of that is
+   * ever painted.
+   */
+  useLayoutEffect(() => {
+    const node = pill.current;
+    if (!node) return;
+
+    const from = node.getBoundingClientRect().width;
+    node.style.width = state.width ?? 'max-content';
+    const to = node.getBoundingClientRect().width;
+    node.style.width = `${from}px`;
+
+    const morph = animate(node, { width: to }, still ? { duration: 0 } : MORPH);
+    return () => morph.stop();
+  }, [state, still]);
+
   return (
     // The fixed box does not animate: Motion drives `transform` to project a layout
     // change, and the centring translate lives on this element instead, out of its
@@ -107,11 +134,8 @@ export function DynamicIsland() {
         onBlur={() => setHovered(false)}
         className={`group grid cursor-pointer place-items-center outline-none ${TARGET}`}
       >
-        <motion.div
-          layout
-          transition={still ? { duration: 0 } : MORPH}
-          // Inline, because Motion only corrects the corner distortion its own
-          // layout projection causes when the radius is a style value it can read.
+        <div
+          ref={pill}
           style={{ borderRadius: 999, padding: INSET, minHeight: COMPACT_HEIGHT }}
           className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
         >
@@ -122,10 +146,11 @@ export function DynamicIsland() {
               leaves without an animation, so React dropping it on the spot is
               exactly the behaviour, and the island is left with one thing to
               watch. */}
-          <div aria-hidden className="flex items-center">
+          {/* Full width, so a state with two anchors has a gap to push them with. */}
+          <div aria-hidden className="flex w-full items-center">
             <Presentation key={state.id}>{state.render(context)}</Presentation>
           </div>
-        </motion.div>
+        </div>
       </button>
     </div>
   );

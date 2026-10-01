@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import type { ReactNode } from 'react';
 
-import { FADE, MORPH } from './motion';
+import { FADE } from './motion';
 
 /**
  * How a state arrives. It only arrives: the outgoing one is dropped on the spot,
@@ -15,18 +15,21 @@ import { FADE, MORPH } from './motion';
  * container carries a `backdrop-filter` for its glass, and a `filter` on an element
  * that already has one opens a second filter context that breaks it.
  *
- * Laid out as a flex row, which is not cosmetic: as a block it would raise a line
+ * Full width and laid out as a flex row. The width is not cosmetic either: a state
+ * that pushes its content to both caps resolves its own `w-full` against this
+ * element, and against an automatically sized one it collapses back to the width of
+ * its content, which is the whole thing it was trying not to be.
+ *
+ * The row is not cosmetic: as a block it would raise a line
  * box from its own inherited font rather than from the state's, so a state set in
  * 12px stood on a 24px strut. That is six pixels of height nobody asked for, and a
  * baseline that sits the glyphs off centre.
  *
- * It carries `layout` for a reason that is invisible until measured. Motion does
- * not resize the pill, it scales it: mid-morph the container was reading
- * `matrix(1.2577, 0, 0, 1)`, stretching everything inside it by a quarter. Only a
- * child that also claims `layout` is counter-scaled, which is what lets the content
- * hold its proportions while the island changes shape around it. A scale of its own
- * on top of that is a second, disagreeing movement, which is why the entrance is
- * now opacity and blur alone.
+ * No scale of its own, and none inherited either. The island animates a real width
+ * rather than projecting a layout change, so the content is laid out afresh on
+ * every frame instead of being stretched by a transform: what grows is the box, and
+ * the gap inside it pushes the content to the edges as it goes. The entrance is
+ * opacity and blur alone.
  */
 export function Presentation({ children }: { children: ReactNode }) {
   // Not a softer version under reduced motion: the whole apparatus goes, and what
@@ -47,11 +50,10 @@ export function Presentation({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, filter: 'blur(10px)' }}
       animate={{ opacity: 1, filter: 'blur(0px)' }}
-      transition={{ layout: MORPH, opacity: FADE, filter: FADE }}
-      className="flex items-center"
+      transition={{ opacity: FADE, filter: FADE }}
+      className="flex w-full items-center"
     >
       {children}
     </motion.div>
