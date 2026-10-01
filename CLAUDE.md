@@ -361,6 +361,18 @@ What the shape forces, none of it obvious:
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 
+**Hovering a link previews where it goes**, through one delegated listener in
+`LinkPreviews` rather than a handler on `Anchor`: every link in every post would
+otherwise become a client component, and the delegation catches links no `Anchor`
+rendered. `lib/link-preview.ts` holds what to say and is testable without a DOM.
+
+It answers only the destinations a reader cannot already name: a post, whose title
+comes from the map the layout builds at build time, and an external site, named by
+its domain. No request is made, so no preview ever arrives after the pointer has
+moved on, and the site's own pages are left alone. The wait before showing keeps a
+paragraph of links from flickering, and the grace before hiding is what carries the
+island from one link to the next without dropping back in between.
+
 The island is deliberately absent from `content/design-system.mdx`. It is global
 chrome, always on screen, and a second one rendered inside an article would be two
 islands disagreeing.
