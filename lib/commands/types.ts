@@ -2,7 +2,7 @@ import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.
 import type { IconSvgElement } from '@hugeicons/react'
 
 /** Rendered in this order, and a command belongs to exactly one. */
-export const GROUPS = ['Tools', 'Navigation', 'Links'] as const
+export const GROUPS = ['Navigation', 'Tools', 'Links'] as const
 
 export type Group = (typeof GROUPS)[number]
 

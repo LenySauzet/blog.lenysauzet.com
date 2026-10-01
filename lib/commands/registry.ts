@@ -15,8 +15,7 @@ import {
     SearchIcon,
 } from '@hugeicons/core-free-icons'
 
-import { toast } from 'sonner'
-
+import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
 import { withThemeTransition } from '@/lib/theme-transition'
 
@@ -65,7 +64,7 @@ export const commands: Command[] = [
         when: onAPost,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
-            toast.success('Link copied to your clipboard')
+            announce('Link copied', CopyLinkIcon)
         },
     },
     {
@@ -101,7 +100,7 @@ export const commands: Command[] = [
             link.href = RESUME_ROUTE
             link.download = ''
             link.click()
-            toast.success('Downloading my resume')
+            announce('Downloading my resume', Download01Icon)
         },
     },
     {

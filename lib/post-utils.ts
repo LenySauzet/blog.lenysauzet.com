@@ -5,6 +5,8 @@ type Post = {
     slug: string
     metadata: {
         title: string
+        /** The title cut for the island, which has far less room than a page. */
+        shortTitle?: string
         description: string
         date: string
         /** Optional, and only set by hand: the day the post last changed in a way

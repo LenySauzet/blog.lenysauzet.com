@@ -4,10 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { PanelReveal } from './PanelReveal';
 
 describe('PanelReveal', () => {
-  // `vitest-setup` forces reduced motion, so this is the branch jsdom can reach, and
-  // it is the one that matters: a curtain held still is a covered panel, not a reveal.
-  it('renders nothing under reduced motion', () => {
+  it('hides its layers in CSS rather than skipping them on the client', () => {
     const { container } = render(<PanelReveal />);
-    expect(container).toBeEmptyDOMElement();
+    const layers = [...container.children];
+
+    expect(layers).toHaveLength(2);
+    for (const layer of layers) expect(layer).toHaveClass('motion-reduce:hidden');
   });
 });
