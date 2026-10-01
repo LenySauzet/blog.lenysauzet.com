@@ -173,11 +173,11 @@ describe('DynamicIsland', () => {
     render(<DynamicIsland />);
     await settlesOn('Leny');
 
-    await vi.advanceTimersByTimeAsync(1200);
+    await vi.advanceTimersByTimeAsync(2000);
     await settlesOn('to search');
 
     // And leaves on its own, uncovering whatever the page was saying.
-    await vi.advanceTimersByTimeAsync(1800);
+    await vi.advanceTimersByTimeAsync(3200);
     await settlesOn('Leny');
   });
 

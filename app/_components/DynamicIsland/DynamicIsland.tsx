@@ -49,8 +49,8 @@ const COMPACT_HEIGHT = '2.75rem';
  * own. The dwell is longer than the second it looks like: the entrance spends a
  * third of it, so what is left is the time there is to actually read the line.
  */
-const TEACH_AFTER = 1000;
-const TEACH_FOR = 1600;
+const TEACH_AFTER = 1800;
+const TEACH_FOR = 3000;
 
 /** The first state whose condition holds. The last one carries none. */
 const resolve = (context: IslandContext): IslandState =>
