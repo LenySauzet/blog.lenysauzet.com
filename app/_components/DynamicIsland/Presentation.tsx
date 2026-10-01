@@ -25,11 +25,13 @@ import { FADE } from './motion';
  * 12px stood on a 24px strut. That is six pixels of height nobody asked for, and a
  * baseline that sits the glyphs off centre.
  *
- * No scale of its own, and none inherited either. The island animates a real width
- * rather than projecting a layout change, so the content is laid out afresh on
- * every frame instead of being stretched by a transform: what grows is the box, and
- * the gap inside it pushes the content to the edges as it goes. The entrance is
- * opacity and blur alone.
+ * No scale of its own, and no correction of the island's. Motion projects the pill
+ * from the box it held a frame ago into the one it holds now, which stretches
+ * everything inside on both axes, and that stretch is the effect: the content is
+ * laid out once at its final size and squashed into the shape of the moment.
+ * Counter-scaling it holds its proportions and loses the effect; adding a scale of
+ * its own puts a second, disagreeing movement on top. So the entrance is opacity
+ * and blur alone.
  */
 export function Presentation({ children }: { children: ReactNode }) {
   // Not a softer version under reduced motion: the whole apparatus goes, and what
