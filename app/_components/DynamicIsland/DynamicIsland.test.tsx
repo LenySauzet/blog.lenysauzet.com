@@ -23,10 +23,17 @@ const pastTheGreeting = async () => {
 
 let column: HTMLElement;
 
-const scrollDown = () => {
-  Object.defineProperty(column, 'scrollTop', { value: 400, configurable: true });
+const readTo = (fraction: number) => {
+  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
+  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
+  Object.defineProperty(column, 'scrollTop', {
+    value: Math.round(500 * fraction),
+    configurable: true,
+  });
   fireEvent.scroll(column);
 };
+
+const scrollDown = () => readTo(0.5);
 
 beforeEach(() => {
   column = document.createElement('div');
@@ -190,6 +197,18 @@ describe('DynamicIsland', () => {
     expect(island()).toHaveClass('transition-[scale]');
     expect(island()).toHaveClass('hover:scale-[1.02]');
     expect(island()).toHaveClass('active:scale-[0.97]');
+  });
+
+  it('asks what comes next once the article runs out', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+    readTo(0.5);
+    await settlesOn('Shades of Halftone');
+
+    act(() => readTo(1));
+
+    expect(island()).toHaveTextContent('What next?');
+    expect(island()).not.toHaveTextContent('Shades of Halftone');
   });
 
   it('opens the palette when it is pressed', async () => {

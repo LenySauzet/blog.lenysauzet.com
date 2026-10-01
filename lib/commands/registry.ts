@@ -127,7 +127,7 @@ export const commands: Command[] = [
         id: 'random-post',
         label: 'Read something else',
         icon: ShuffleIcon,
-        group: 'Navigation',
+        group: 'Tools',
         keywords: ['random', 'surprise', 'discover'],
         recommend: atTheEnd,
         run: async (context) => {

@@ -332,6 +332,10 @@ which were a placeholder with three dead links. It is a status surface and the d
 to the palette, never a menu: one action, whatever it is showing, or it stops being
 something a reader can rely on.
 
+The island and the palette agree on the end of an article: the island asks what comes
+next, the palette answers it in `Recommended`. The island reports, it never offers,
+which is what keeps its one action true whatever it is showing.
+
 `app/_components/DynamicIsland/states/` is a registry like the command one, ordered,
 first condition wins, last entry carries none. A state owns its layout and its data
 sources; the island owns only the container. States come from two places: ambient

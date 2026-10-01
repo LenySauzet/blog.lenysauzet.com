@@ -10,6 +10,7 @@ export interface IslandContext {
   hovered: boolean;
   post: IslandPost | null;
   scrolled: boolean;
+  finished: boolean;
 }
 
 export interface IslandState {

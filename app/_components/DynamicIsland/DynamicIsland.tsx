@@ -50,12 +50,12 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
-  const { atTop } = useScrollTracking();
+  const { atTop, finished } = useScrollTracking();
   const still = useReducedMotion();
 
   const context = useMemo<IslandContext>(
-    () => ({ pathname, hovered, post, scrolled: !atTop }),
-    [pathname, hovered, post, atTop]
+    () => ({ pathname, hovered, post, scrolled: !atTop, finished }),
+    [pathname, hovered, post, atTop, finished]
   );
 
   useEffect(() => {
