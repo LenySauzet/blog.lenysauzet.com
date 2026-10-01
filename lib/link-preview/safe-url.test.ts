@@ -3,19 +3,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const lookup = vi.hoisted(() => vi.fn());
 vi.mock('dns/promises', () => ({ lookup, default: { lookup } }));
 
-const { reachesTheOpenWeb } = await import('./safe-url');
+const { resolvePublicAddress } = await import('./safe-url');
 
-const reaches = (href: string) => reachesTheOpenWeb(new URL(href));
+/** The address a request may be pinned to, or nothing at all. */
+const reaches = async (href: string) =>
+  (await resolvePublicAddress(new URL(href))) !== undefined;
 
 beforeEach(() => vi.clearAllMocks());
 
 const resolvesTo = (...addresses: string[]) =>
   lookup.mockResolvedValueOnce(addresses.map((address) => ({ address, family: 4 })));
 
-describe('reachesTheOpenWeb', () => {
+describe('resolvePublicAddress', () => {
   it('allows a name that resolves to the open internet', async () => {
     resolvesTo('140.82.121.4');
     expect(await reaches('https://github.com/a')).toBe(true);
+  });
+
+  // Handing the name on would leave the request free to be sent elsewhere, since
+  // nothing obliges a hostile resolver to answer twice the same way.
+  it('hands back the address it checked, for the caller to pin', async () => {
+    resolvesTo('140.82.121.4');
+    expect(await resolvePublicAddress(new URL('https://github.com/a'))).toBe(
+      '140.82.121.4'
+    );
   });
 
   // The whole point: a public name is free to point anywhere.
@@ -52,8 +63,10 @@ describe('reachesTheOpenWeb', () => {
     expect(lookup).not.toHaveBeenCalled();
   });
 
-  it('allows a public address written out in full', async () => {
-    expect(await reaches('https://93.184.216.34')).toBe(true);
+  it('allows a public address written out in full, and pins it as given', async () => {
+    expect(await resolvePublicAddress(new URL('https://93.184.216.34'))).toBe(
+      '93.184.216.34'
+    );
     expect(lookup).not.toHaveBeenCalled();
   });
 

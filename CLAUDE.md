@@ -383,11 +383,21 @@ own title win, but one that read a label out of the path keeps it: GitHub's titl
 repeats the repository, and Bluesky builds its page in the reader's browser, so
 its title is just the name of the app.
 
-**The route is the only part that can be dangerous.** Fetching whatever it is handed
-is a request forgery primitive, so `safe-url.ts` checks every address a name
-resolves to rather than the name, redirects are followed by hand so the check runs
-again on each hop, the read is bounded and stops at `</head>`, and every failure
-answers an empty object. YouTube goes through oEmbed, which gives the channel their
+**The route is the only part that can be dangerous**, and it is reachable by
+anyone, not only through a link in a post. Fetching whatever it is handed is a
+request forgery primitive, so `safe-url.ts` checks every address a name resolves
+to rather than the name, redirects are walked by hand so that runs again on each
+hop, the read is bounded and stops at `</head>`, and every failure answers an
+empty object.
+
+**Checking the name is not enough, so the address is pinned.** `safe-url.ts`
+hands back the address it approved and `pinned-request.ts` gives the socket that
+address through `lookup`, because a resolver answering public once is under no
+obligation to answer the second lookup the same way, and `fetch` would have made
+exactly that second lookup. The request keeps its hostname, so the certificate
+and the `Host` header stay the ones the site expects, and `agent: false` is
+load-bearing: Node pools sockets by name, and a reused one never reaches the
+lookup its request pinned. YouTube goes through oEmbed, which gives the channel their
 own tags do not, and falls back to the page when they refuse.
 
 The answer is cached at the edge for a day, so the next reader's hover is instant,

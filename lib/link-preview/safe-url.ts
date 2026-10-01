@@ -11,22 +11,28 @@ const isPrivate = (address: string) =>
   address.includes(':') ? PRIVATE_V6.test(address) : PRIVATE_V4.test(address);
 
 /**
- * A preview route fetches whatever it is handed, which is a request forgery
- * primitive unless every address behind the name is checked, not just the name:
- * a public hostname is free to resolve to the metadata endpoint of whatever is
- * running this. The check runs again on each redirect for the same reason.
+ * Returns the address to connect to, which the caller must then pin: resolving a
+ * name and handing the *name* on leaves the request free to be sent somewhere
+ * else entirely, since a hostile resolver is under no obligation to answer the
+ * second lookup the way it answered the first. Checking every address rather
+ * than the first is what closes the rest of it, and the check runs again on each
+ * redirect.
  */
-export async function reachesTheOpenWeb(url: URL): Promise<boolean> {
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
-  if (PRIVATE_HOST.test(url.hostname)) return false;
+export async function resolvePublicAddress(url: URL): Promise<string | undefined> {
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined;
+  if (PRIVATE_HOST.test(url.hostname)) return undefined;
 
-  const bare = url.hostname.replace(/^\[|\]$/g, '');
-  if (/^[\d.]+$|:/.test(bare)) return !isPrivate(bare);
+  const literal = url.hostname.replace(/^\[|\]$/g, '');
+  if (/^[\d.]+$|:/.test(literal)) return isPrivate(literal) ? undefined : literal;
 
   try {
     const addresses = await lookup(url.hostname, { all: true });
-    return addresses.length > 0 && addresses.every(({ address }) => !isPrivate(address));
+    if (!addresses.length || addresses.some(({ address }) => isPrivate(address))) {
+      return undefined;
+    }
+
+    return addresses[0].address;
   } catch {
-    return false;
+    return undefined;
   }
 }

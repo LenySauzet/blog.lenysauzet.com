@@ -1,5 +1,8 @@
+import type { IncomingMessage } from 'node:http';
+
 import { readMetadata } from '@/lib/link-preview/metadata';
-import { reachesTheOpenWeb } from '@/lib/link-preview/safe-url';
+import { requestPinned } from '@/lib/link-preview/pinned-request';
+import { resolvePublicAddress } from '@/lib/link-preview/safe-url';
 import type { LinkMetadata } from '@/lib/link-preview/types';
 
 const UPSTREAM_TIMEOUT_MS = 5000;
@@ -31,25 +34,30 @@ const answer = (metadata: LinkMetadata) =>
     },
   });
 
-const get = (url: URL, accept: string) =>
-  fetch(url, {
-    headers: { 'User-Agent': AGENT, Accept: accept },
-    redirect: 'manual',
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-  });
-
-/** Redirects are followed by hand: the guard has to run again on every hop. */
+/** Redirects are followed by hand: the address has to be checked on every hop. */
 async function reach(url: URL, accept: string) {
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    if (!(await reachesTheOpenWeb(url))) return undefined;
+    const address = await resolvePublicAddress(url);
+    if (!address) return undefined;
 
-    const response = await get(url, accept);
-    const location = response.headers.get('location');
+    const response = await requestPinned(
+      url,
+      address,
+      { 'User-Agent': AGENT, Accept: accept },
+      UPSTREAM_TIMEOUT_MS
+    );
 
-    if (response.status < 300 || response.status >= 400 || !location) {
-      return response.ok ? { response, url } : undefined;
+    const status = response.statusCode ?? 0;
+    const location = response.headers.location;
+
+    if (status < 300 || status >= 400 || !location) {
+      if (status >= 200 && status < 300) return { response, url };
+
+      response.destroy();
+      return undefined;
     }
 
+    response.destroy();
     if (!URL.canParse(location, url)) return undefined;
     url = new URL(location, url);
   }
@@ -57,31 +65,27 @@ async function reach(url: URL, accept: string) {
   return undefined;
 }
 
-async function readBounded(response: Response) {
-  const reader = response.body?.getReader();
-  if (!reader) return '';
-
-  const decoder = new TextDecoder();
-  let html = '';
+async function readBounded(response: IncomingMessage) {
+  let text = '';
 
   try {
-    for (let read = 0; read < MAX_BYTES; ) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    response.setEncoding('utf8');
 
-      read += value.byteLength;
-      html += decoder.decode(value, { stream: true });
-
-      if (/<\/head>/i.test(html)) break;
+    for await (const chunk of response) {
+      text += chunk;
+      if (text.length >= MAX_BYTES || /<\/head>/i.test(text)) break;
     }
   } finally {
-    await reader.cancel().catch(() => {});
+    response.destroy();
   }
 
-  return html;
+  return text;
 }
 
-async function viaOembed(endpoint: string, target: URL): Promise<LinkMetadata | undefined> {
+async function viaOembed(
+  endpoint: string,
+  target: URL
+): Promise<LinkMetadata | undefined> {
   const url = new URL(endpoint);
   url.searchParams.set('url', target.href);
   url.searchParams.set('format', 'json');
@@ -89,7 +93,10 @@ async function viaOembed(endpoint: string, target: URL): Promise<LinkMetadata | 
   const reached = await reach(url, 'application/json');
   if (!reached) return undefined;
 
-  const payload = (await reached.response.json()) as Record<string, unknown>;
+  const payload = JSON.parse(await readBounded(reached.response)) as Record<
+    string,
+    unknown
+  >;
   const text = (key: string) =>
     typeof payload[key] === 'string' ? (payload[key] as string) : undefined;
 
@@ -124,7 +131,8 @@ export async function GET(request: Request) {
     const reached = await reach(target, 'text/html');
     if (!reached) return answer({});
 
-    if (!(reached.response.headers.get('content-type') ?? '').includes('html')) {
+    if (!(reached.response.headers['content-type'] ?? '').includes('html')) {
+      reached.response.destroy();
       return answer({});
     }
 
