@@ -13,6 +13,13 @@ vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
 
 const island = () => screen.getByRole('button', { name: 'Open the command palette' });
 
+/**
+ * The island opens into a state rather than appearing as one: every change passes
+ * through the resting shape, so what it settles on is what these assert.
+ */
+const settlesOn = (text: string) =>
+  waitFor(() => expect(island()).toHaveTextContent(text));
+
 beforeEach(() => {
   sessionStorage.clear();
   // Every case but the teaching one starts from a session that has already been
@@ -31,27 +38,37 @@ afterEach(() => {
 describe('DynamicIsland', () => {
   // The last state in the registry carries no condition, so the island is never
   // without something to be. The name is drawn without its diacritic, deliberately.
-  it('falls back to the identity', () => {
+  it('falls back to the identity', async () => {
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Leny');
+    await settlesOn('Leny');
   });
 
-  it('reads the post it was handed, preferring the short title', () => {
+  it('reads the post it was handed, preferring the short title', async () => {
     useIslandStore.setState({
       post: { title: 'An Introduction to Ray Marching', shortTitle: 'Ray Marching' },
     });
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Ray Marching');
+    await settlesOn('Ray Marching');
     expect(island()).not.toHaveTextContent('An Introduction');
   });
 
-  it('falls back to the full title when a post declares no short one', () => {
+  it('falls back to the full title when a post declares no short one', async () => {
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
 
-    expect(island()).toHaveTextContent('Shades of Halftone');
+    await settlesOn('Shades of Halftone');
+  });
+
+  // The resting shape is what a layout animation needs to grow from: on the first
+  // paint there is no previous box, so the island arrived at full size having never
+  // opened.
+  it('starts at rest and opens into its state', () => {
+    render(<DynamicIsland />);
+
+    expect(island()).toHaveTextContent('');
+    expect(island()).not.toHaveTextContent('Leny');
   });
 
   // While the pointer rests on it the island answers "what can I do here", and the
@@ -110,19 +127,23 @@ describe('DynamicIsland', () => {
     sessionStorage.clear();
 
     const first = render(<DynamicIsland />);
-    expect(island()).toHaveTextContent('Leny');
+    await settlesOn('Leny');
 
-    await vi.advanceTimersByTimeAsync(1100);
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    await vi.advanceTimersByTimeAsync(1200);
+    await settlesOn('to search');
 
-    await vi.advanceTimersByTimeAsync(4100);
-    await waitFor(() => expect(island()).toHaveTextContent('Leny'));
+    await vi.advanceTimersByTimeAsync(4200);
+    await settlesOn('Leny');
 
+    // A second load in the same session is taught nothing.
     first.unmount();
     render(<DynamicIsland />);
-    await vi.advanceTimersByTimeAsync(1100);
+    await vi.advanceTimersByTimeAsync(1500);
 
-    expect(island()).toHaveTextContent('Leny');
+    // The hint would still be standing at this point, its welcome being four
+    // seconds long, so settling on the identity is the proof it never came.
+    await settlesOn('Leny');
+    expect(island()).not.toHaveTextContent('to search');
   });
 
   it('opens the palette when it is pressed', async () => {

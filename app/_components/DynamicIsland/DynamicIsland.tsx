@@ -10,7 +10,9 @@ import { useIslandStore } from '@/hooks/use-island-store';
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
 import { useProximityHover } from './use-proximity-hover';
+import { useStagedState } from './use-staged-state';
 import { hint } from './states/hint';
+import { resting } from './states/resting';
 import { islandStates } from './states';
 import type { IslandContext, IslandState } from './types';
 
@@ -74,7 +76,8 @@ export function DynamicIsland() {
   }, []);
 
   // A raised state covers whatever the page was saying and, on expiry, uncovers it.
-  const state = presented.at(-1)?.state ?? resolve(context);
+  const resolved = presented.at(-1)?.state ?? resolve(context);
+  const state = useStagedState(resolved, resting);
 
   return (
     // The fixed box does not animate: Motion drives `transform` to project a layout
