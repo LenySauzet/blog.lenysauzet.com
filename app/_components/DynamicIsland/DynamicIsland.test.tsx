@@ -133,13 +133,24 @@ describe('DynamicIsland', () => {
   // that does not: the zone that raises the hint is learnable, and no state can
   // shrink out from under the pointer that raised it. That it holds its size is
   // geometry, which jsdom lays out none of, so it is measured in a browser.
-  it('hangs the hover on a box that no state resizes', () => {
+  // The target is the pill exactly, which only works because nothing a pointer does
+  // can resize it: the hint keeps the width of whatever it covers, so it cannot
+  // shrink out from under the pointer that raised it.
+  it('holds its width while the hint covers a state', async () => {
+    const user = userEvent.setup();
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
+    scrollDown();
+    await settlesOn('Shades of Halftone');
 
-    // The surface that morphs is a descendant of the target, never the target, and
-    // it carries the ceiling that keeps it from ever reaching past it.
     const pill = island().firstElementChild as HTMLElement;
-    expect(pill.style.maxWidth).toBe(island().style.width);
+    // jsdom lays out nothing, so the width it holds is whatever was read on entry.
+    Object.defineProperty(pill, 'offsetWidth', { value: 288, configurable: true });
+
+    await user.hover(island());
+
+    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    expect(pill.style.width).toBe('288px');
   });
 
   // A raised state covers whatever the page was saying, and on dismissal uncovers

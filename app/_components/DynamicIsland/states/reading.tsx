@@ -11,7 +11,7 @@ import { scrollProgress } from '../scroll';
  */
 function Reading({ post }: { post: IslandPost }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex w-full min-w-0 items-center gap-4">
       <ProgressRing progress={scrollProgress} />
       <span className="min-w-0 truncate pr-3 text-[0.95rem]">
         {post.shortTitle ?? post.title}

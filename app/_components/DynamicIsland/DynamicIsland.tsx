@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
@@ -24,22 +24,10 @@ import type { IslandContext, IslandState } from './types';
 const INSET = '0.375rem';
 
 /**
- * The island's own ceiling, and the size of the box that listens for the pointer.
- *
- * Hover and click belong to a box that never moves: hung on the pill itself, they
- * belonged to something that changes width with every state, so the zone that
- * raises the hint was impossible to learn and could shrink out from under the very
- * pointer that raised it.
- *
- * A fixed box only works if nothing can grow past it, which is why this is a
- * ceiling as well as a size: a long enough title took the pill to 328 against a
- * target of 240, and the 44 pixels hanging over each edge were a strip where
- * hovering raised the hint, which shrank the pill out from under the pointer,
- * which lowered it again, several times a second. Clamping the pill rather than
- * widening the target also keeps a floating pill from becoming a banner.
+ * How wide the island is ever allowed to be. A title long enough would otherwise
+ * turn a floating pill into a banner, and the truncation inside is what gives.
  */
 const MAX_WIDTH = '19rem';
-const TARGET_HEIGHT = '3.5rem';
 
 /**
  * The other half. Every compact state stands at the same height, so moving between
@@ -63,6 +51,13 @@ const resolve = (context: IslandContext): IslandState =>
 export function DynamicIsland() {
   const pathname = usePathname();
   const [hovered, setHovered] = useState(false);
+  /**
+   * The width the island held when the pointer arrived, which the hint then keeps.
+   * Read from the layout box rather than the painted one, so a morph still in
+   * flight, or a press holding the pill at 0.97, is not mistaken for its size.
+   */
+  const [held, setHeld] = useState<number>();
+  const pill = useRef<HTMLDivElement>(null);
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
@@ -109,12 +104,23 @@ export function DynamicIsland() {
         type="button"
         aria-label="Open the command palette"
         onClick={() => setIsOpen(true)}
-        onPointerEnter={() => setHovered(true)}
+        onPointerEnter={() => {
+          setHeld(pill.current?.offsetWidth);
+          setHovered(true);
+        }}
         onPointerLeave={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
+        onFocus={() => {
+          setHeld(pill.current?.offsetWidth);
+          setHovered(true);
+        }}
         onBlur={() => setHovered(false)}
-        style={{ width: MAX_WIDTH, height: TARGET_HEIGHT }}
-        className="group grid cursor-pointer place-items-center outline-none"
+        // The target is the pill, exactly: a fixed box was predictable but reached
+        // past what anyone can see, and hovering empty air raised the hint. What
+        // made a fixed box necessary was the hint being narrower than the state it
+        // covers, so the pill could shrink out from under the pointer that raised
+        // it. The hint holds that width instead, which is the one state change a
+        // pointer can cause, so nothing a pointer does resizes this.
+        className="group inline-flex cursor-pointer outline-none"
       >
         {/* Motion scales this box from the one it held a frame ago into the one it
             holds now, and whatever is inside goes with it. That stretch is the
@@ -124,6 +130,7 @@ export function DynamicIsland() {
             Correcting the children, or scaling them separately, is what put two
             disagreeing movements on screen. */}
         <motion.div
+          ref={pill}
           layout
           transition={still ? { duration: 0 } : MORPH}
           // Inline, because Motion only corrects the corner distortion its own
@@ -134,7 +141,7 @@ export function DynamicIsland() {
             borderRadius: 999,
             padding: INSET,
             minHeight: COMPACT_HEIGHT,
-            width: state.width,
+            width: state.id === hint.id ? held : state.width,
             maxWidth: MAX_WIDTH,
           }}
           // Answers the press before it answers the click, like every other control
