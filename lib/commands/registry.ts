@@ -12,6 +12,7 @@ import {
     Moon02Icon,
     NewTwitterIcon,
     PaintBoardIcon,
+    SearchIcon,
 } from '@hugeicons/core-free-icons'
 
 import { announce } from '@/app/_components/DynamicIsland'
@@ -33,6 +34,14 @@ const RESUME_ROUTE = '/resume'
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
 export const commands: Command[] = [
+    {
+        id: 'search-posts',
+        label: 'Search blog posts',
+        icon: SearchIcon,
+        group: 'Tools',
+        keywords: ['find', 'articles', 'writing'],
+        opens: 'search',
+    },
     {
         id: 'toggle-theme',
         label: 'Toggle theme',
