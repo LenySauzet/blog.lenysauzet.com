@@ -68,7 +68,7 @@ export default async function Page({
           {/* `Anchor` already owns this: `direction` draws the arrow and slides it
               on hover, `discreet` keeps it under the title until pointed at. No
               favicon padding, which only an external link has a glyph to hold. */}
-          <div className="mb-8">
+          <div className="mb-3">
             <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
               Home
             </Anchor>
