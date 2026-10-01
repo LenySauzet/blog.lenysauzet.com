@@ -132,7 +132,7 @@ describe('DynamicIsland', () => {
   // The target is the pill exactly, which only works because nothing a pointer does
   // can resize it: the hint keeps the width of whatever it covers, so it cannot
   // shrink out from under the pointer that raised it.
-  it('holds its width while the hint covers a state', async () => {
+  it('never shrinks below the state the hint covers', async () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
     render(<DynamicIsland />);
@@ -146,7 +146,8 @@ describe('DynamicIsland', () => {
     await user.hover(island());
 
     await waitFor(() => expect(island()).toHaveTextContent('to search'));
-    expect(pill.style.width).toBe('288px');
+    // A floor, so a state narrower than the line cannot cut it off.
+    expect(pill.style.minWidth).toBe('288px');
   });
 
   // A raised state covers whatever the page was saying, and on dismissal uncovers

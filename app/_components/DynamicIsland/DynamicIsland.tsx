@@ -60,7 +60,8 @@ export function DynamicIsland() {
   const pathname = usePathname();
   const [hovered, setHovered] = useState(false);
   /**
-   * The width the island held when the pointer arrived, which the hint then keeps.
+   * The width the island held when the pointer arrived, which the hint then takes
+   * as a floor.
    * Read from the layout box rather than the painted one, so a morph still in
    * flight, or a press holding the pill at 0.97, is not mistaken for its size.
    */
@@ -171,7 +172,13 @@ export function DynamicIsland() {
             borderRadius: 999,
             padding: INSET,
             minHeight: COMPACT_HEIGHT,
-            width: state.id === hint.id ? held : state.width,
+            width: state.width,
+            // A floor and not a width: the hint must not shrink the island, which
+            // is what would let it retreat from the pointer that raised it, but it
+            // must not be squeezed into a state narrower than its own line either.
+            // Forced to the width it covers, a short enough title cut the sentence
+            // off. It takes the wider of the two.
+            minWidth: state.id === hint.id ? held : undefined,
             maxWidth: MAX_WIDTH,
           }}
           className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
