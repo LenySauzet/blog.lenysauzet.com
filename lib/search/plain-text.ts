@@ -1,34 +1,22 @@
 /**
- * MDX reduced to the prose a reader actually sees, which is both what the index
- * should match on and what an excerpt should quote. Anything that renders as
- * furniture rather than as a sentence is dropped: a search for "const" should not
- * surface every post carrying a code block.
+ * MDX reduced to the prose a reader sees: what the index should match and what an
+ * excerpt should quote. Searching "const" must not surface every post with a code
+ * block.
  *
- * Order matters. Fenced code goes before inline code, and whole JSX blocks before
- * the loose tags, or a stripped fragment leaves a fence marker behind that the next
- * rule then reads as prose.
+ * Order matters. Fenced code before inline code, whole JSX blocks before loose
+ * tags, or a stripped fragment leaves a marker the next rule reads as prose.
  */
-
-// Not a parser: a tag whose props contain a bare `>` outruns this, and none here
-// do. `[^>]` already crosses lines, which is what a component with a prop per line
-// needs.
-const JSX_SELF_CLOSING = /<[A-Z][^>]*\/>/g;
-const JSX_TAG = /<\/?[A-Za-z][^>]*>/g;
-
 const RULES: [RegExp, string][] = [
-  // JS export frontmatter: metadata, not copy.
   [/^export const metadata = \{[\s\S]*?^\};?$/m, ''],
   [/^(?:import|export)\s.*$/gm, ''],
   [/```[\s\S]*?```/g, ''],
   [/\$\$[\s\S]*?\$\$/g, ''],
-  // Inline math holds no space against either delimiter, which is the rule that
-  // separates it from money: `$a + b$` is an expression, `$5 and $10` is two prices
-  // and the text between them, and a looser pattern eats that text.
+  /** Inline math holds no space against its delimiters; `$5 and $10` is money. */
   [/\$(?!\s)[^$\n]*[^\s$]\$/g, ''],
-  [JSX_SELF_CLOSING, ''],
-  [JSX_TAG, ''],
-  // Images before links: the syntax differs by one character, and an alt read as
-  // prose puts a caption in the middle of a sentence.
+  /** `[^>]` crosses lines, which a component with a prop per line needs. */
+  [/<[A-Z][^>]*\/>/g, ''],
+  [/<\/?[A-Za-z][^>]*>/g, ''],
+  /** Images before links: one character apart, and an alt is not prose. */
   [/!\[[^\]]*\]\([^)]*\)/g, ''],
   [/\[([^\]]*)\]\([^)]*\)/g, '$1'],
   [/^#{1,6}\s+/gm, ''],

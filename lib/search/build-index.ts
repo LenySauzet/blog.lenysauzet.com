@@ -7,18 +7,15 @@ import { getPosts } from '@/lib/post-utils';
 import { INDEX_OPTIONS, type SearchDocument } from './config';
 import { toPlainText } from './plain-text';
 
-/**
- * The whole index, serialized once at build time. Drafts are left out by
- * `getPosts`, so a post hidden from the feed is not findable through the back door.
- */
+/** Drafts are left out by `getPosts`, so nothing hidden is findable here. */
 export async function buildSearchIndex(): Promise<string> {
   const posts = await getPosts();
 
   const documents: SearchDocument[] = posts.map((post) => ({
     slug: post.slug,
     title: post.metadata.title,
-    description: post.metadata.description ?? '',
-    tags: (post.metadata.tags ?? []).join(' '),
+    description: post.metadata.description,
+    tags: post.metadata.tags.join(' '),
     date: post.metadata.date,
     text: toPlainText(post.content),
   }));

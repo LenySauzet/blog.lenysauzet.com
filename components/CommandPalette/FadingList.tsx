@@ -1,15 +1,17 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { CommandList } from '@/components/ui/command';
 
 /** How far the fade reaches once it is fully drawn. */
 const FADE = 80;
 
-// Most of the falloff happens in the first third, so a row is gone well before it
-// meets the edge rather than half readable against it. Both ends take a 0 to 1
-// reach, so the fade grows with the scroll instead of switching on.
+/**
+ * Most of the falloff is in the first third, so a row is gone before it meets the
+ * edge rather than half readable against it. Both ends take a 0 to 1 reach, so the
+ * fade grows with the scroll instead of switching on.
+ */
 const fadeMask = (top: number, bottom: number) => {
   const head = FADE * top;
   const foot = FADE * bottom;
@@ -25,97 +27,88 @@ const fadeMask = (top: number, bottom: number) => {
   ].join(', ');
 };
 
+const ramp = (edge: 'top' | 'bottom') =>
+  `linear-gradient(to ${edge === 'top' ? 'bottom' : 'top'}, black 0%, transparent 100%)`;
+
 /**
  * A `CommandList` whose cut-off ends fade rather than stop, by how far there is
- * left to scroll in that direction.
+ * left to scroll each way.
  *
- * Remount it when the list underneath is replaced wholesale, with a `key`: the
- * observers are attached to the node found at mount, and a swapped page leaves them
- * watching one that has been detached.
+ * Written to the nodes rather than held in state: scrolling would otherwise render
+ * the whole list on every frame to move two gradients.
+ *
+ * Remount it with a `key` when the list underneath is replaced wholesale, or the
+ * observers stay on a node that has been detached.
  */
 export function FadingList({ children }: { children: React.ReactNode }) {
-  const listRef = useRef<HTMLElement | null>(null);
-  const [edges, setEdges] = useState({ top: 0, bottom: 0 });
+  const list = useRef<HTMLElement | null>(null);
+  const blurs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Only ever called from an event, an observer or a ref callback, never from an
-  // effect body.
-  const readEdges = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const below = list.scrollHeight - list.clientHeight - list.scrollTop;
-    setEdges({
-      top: Math.min(1, list.scrollTop / FADE),
-      bottom: Math.min(1, Math.max(0, below) / FADE),
+  const draw = useCallback(() => {
+    const node = list.current;
+    if (!node) return;
+
+    const below = node.scrollHeight - node.clientHeight - node.scrollTop;
+    const top = Math.min(1, node.scrollTop / FADE);
+    const bottom = Math.min(1, Math.max(0, below) / FADE);
+
+    node.style.maskImage = fadeMask(top, bottom);
+    node.style.webkitMaskImage = fadeMask(top, bottom);
+    blurs.current.forEach((blur, index) => {
+      if (blur) blur.style.opacity = String(index === 0 ? top : bottom);
     });
   }, []);
 
   /**
-   * Wired from the frame's ref rather than an effect: the dialog mounts its content
-   * through a portal, so by the time an effect on the open state runs the node is
-   * not there yet and the observers were never attached. The scrolling node is
-   * found under the frame because a ref handed to `CommandList` does not reach it.
-   *
-   * Filtering changes what the list holds without changing the list's own box, so
-   * its rows are watched too.
+   * Wired from the frame's ref rather than an effect: the dialog portals its
+   * content, so an effect keyed on the open state runs before the node exists. The
+   * scrolling node is found under the frame because a ref handed to `CommandList`
+   * does not reach it, and filtering changes what it holds without changing its box.
    */
   const watchFrame = useCallback(
     (frame: HTMLDivElement | null) => {
-      listRef.current = frame?.querySelector<HTMLElement>('[cmdk-list]') ?? null;
-      const list = listRef.current;
-      if (!list) return;
+      list.current = frame?.querySelector<HTMLElement>('[cmdk-list]') ?? null;
+      const node = list.current;
+      if (!node) return;
 
-      const resized = new ResizeObserver(readEdges);
-      resized.observe(list);
+      const resized = new ResizeObserver(draw);
+      resized.observe(node);
 
-      const refilled = new MutationObserver(readEdges);
-      refilled.observe(list, { childList: true, subtree: true });
+      const refilled = new MutationObserver(draw);
+      refilled.observe(node, { childList: true, subtree: true });
 
-      readEdges();
       return () => {
         resized.disconnect();
         refilled.disconnect();
-        listRef.current = null;
+        list.current = null;
       };
     },
-    [readEdges]
+    [draw]
   );
-
-  const mask = fadeMask(edges.top, edges.bottom);
 
   return (
     <div ref={watchFrame} className="relative">
-      {/* Masking the list rather than laying a coloured band over it: the panel is
-          glass, so anything opaque would fill in what it is meant to show. */}
-      <CommandList
-        onScroll={readEdges}
-        style={{ maskImage: mask, WebkitMaskImage: mask }}
-      >
-        {children}
-      </CommandList>
+      {/* Masked rather than covered by a band: the panel is glass, and anything
+          opaque would fill in what it is meant to show. */}
+      <CommandList onScroll={draw}>{children}</CommandList>
 
-      <EdgeBlur edge="top" reach={edges.top} />
-      <EdgeBlur edge="bottom" reach={edges.bottom} />
+      {/* Siblings of the list: a child would be erased by that same mask. */}
+      {(['top', 'bottom'] as const).map((edge, index) => (
+        <div
+          key={edge}
+          ref={(node) => {
+            blurs.current[index] = node;
+          }}
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 h-20 opacity-0 ${edge === 'top' ? 'top-0' : 'bottom-0'}`}
+          style={{
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            maskImage: ramp(edge),
+            WebkitMaskImage: ramp(edge),
+          }}
+        />
+      ))}
     </div>
-  );
-}
-
-/** Siblings of the masked list: a child would be erased by that same mask. */
-function EdgeBlur({ edge, reach }: { edge: 'top' | 'bottom'; reach: number }) {
-  const ramp = `linear-gradient(to ${edge === 'top' ? 'bottom' : 'top'}, black 0%, transparent 100%)`;
-
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute inset-x-0 h-20 ${
-        edge === 'top' ? 'top-0' : 'bottom-0'
-      }`}
-      style={{
-        opacity: reach,
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-        maskImage: ramp,
-        WebkitMaskImage: ramp,
-      }}
-    />
   );
 }

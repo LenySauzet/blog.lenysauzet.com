@@ -333,35 +333,26 @@ and theme. Adding a command is one entry; nothing about the surface changes. `ru
 takes a context rather than reaching for hooks itself, which is what keeps the registry
 a plain module a test can read.
 
-A command either acts on the site or **opens a page of the palette**, never both, and
-the `Command` union is what keeps the pair from being written together. `search` is the
-only page so far: the same dialog and the same input, with its own list underneath.
-Four things that page forces, none of them obvious:
+A command either acts on the site or **opens a page of the palette**, never both;
+the `Command` union keeps the pair from being written together. `search` is the only
+page so far, and it forces four things worth knowing before opening the files:
 
-- **It ranks its own rows**, so cmdk is handed `shouldFilter={false}` and the selection
-  has to be driven from outside. cmdk moves it when *its* search box changes and at no
-  other time, so arriving on the page, the index landing, and coming back to the root
-  all leave the list unselected and Enter answering nothing. `onResults` is what names
-  the row to land on: kept where it is while it still stands, dropped to the top once
-  it does not.
-- **Backspace-to-leave is read on the cmdk root, not on the input.** A row reached with
-  the mouse keeps the focus it was given, and the key never reaches the box. For the
-  same reason the input is focused by hand when a page opens, or typing goes nowhere.
-- **cmdk overrides `onPointerMove` with `undefined` on a disabled row**, which is why
-  the palette catches a disabled hover on `onPointerEnter` instead. It also refuses to
-  move its selection onto such a row, which is what left the previous one lit.
-- **A list swapped wholesale needs a new `key`.** `FadingList` finds the scrolling node
-  once, at mount, and a page change otherwise leaves its observers on a detached one.
+- **A page ranks its own rows**, so cmdk gets `shouldFilter={false}` and the selection
+  is driven from outside through `onResults`. cmdk moves it when *its* search box
+  changes and at no other time.
+- **Backspace-to-leave is read on the cmdk root**, not the input, and the input is
+  focused by hand when a page opens: a row reached with the mouse keeps the focus.
+- **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
+  disabled hover, and it refuses to select such a row at all.
+- **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
+  node once, at mount.
 
-The index behind it is built at build time: `lib/search/build-index.ts` walks `getPosts`
-(drafts excluded, so nothing hidden is findable through the back door), reduces each
-post with `toPlainText`, and `app/search-index.json/route.ts` serves the serialized
-result as a static file, fetched once on the first search. **`INDEX_OPTIONS` is shared
-by the build and the browser on purpose**: `loadJSON` reads a serialized index against
-whatever options it is handed rather than the ones it was built with, so the two
-drifting apart does not fail, it just stops matching. Only what a result row draws is
-stored, and `text` is stored as well as indexed because a result quotes the line it
-matched, which is the whole of what the payload buys over a title-only index.
+The index is built at build time by `lib/search/build-index.ts` and served static by
+`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
+is shared by the build and the browser on purpose**: `loadJSON` reads an index against
+the options it is handed, so the two drifting apart stops matching rather than failing.
+`lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
+and the ranking testable without a DOM.
 
 `components/ui/command.tsx` is customized beyond the CLI output twice over: its
 `CommandInput` is laid out inline rather than through `InputGroup`, and a selected item

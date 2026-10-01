@@ -1,16 +1,8 @@
 import MiniSearch from 'minisearch';
 
-import {
-  INDEX_OPTIONS,
-  SEARCH_INDEX_PATH,
-  type SearchDocument,
-} from './config';
+import { INDEX_OPTIONS, SEARCH_INDEX_PATH, type SearchDocument } from './config';
 
-/**
- * Held at module scope so the index is fetched and parsed once per page load
- * however many times the palette is opened. Dropped again if it fails, so a
- * search that hit a cold network can be retried rather than being stuck.
- */
+/** Fetched once per page load, and dropped on failure so a retry is possible. */
 let pending: Promise<MiniSearch<SearchDocument>> | null = null;
 
 export function loadSearchIndex(): Promise<MiniSearch<SearchDocument>> {

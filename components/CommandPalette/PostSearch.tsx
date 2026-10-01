@@ -3,55 +3,36 @@
 import { File01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { format } from 'date-fns';
-import MiniSearch, { type SearchResult } from 'minisearch';
+import type MiniSearch from 'minisearch';
 import { useEffect, useMemo, useState } from 'react';
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { postDate } from '@/lib/post-date';
-import { SEARCH_OPTIONS, type SearchDocument } from '@/lib/search/config';
+import type { SearchDocument } from '@/lib/search/config';
 import { excerpt } from '@/lib/search/excerpt';
 import { loadSearchIndex } from '@/lib/search/load-index';
+import { searchPosts } from '@/lib/search/query';
 
 import { FadingList } from './FadingList';
 
-/** What a row draws. The stored fields come back untyped, so they are named once. */
-interface Result {
-  slug: string;
-  title: string;
-  date: string;
-  text: string;
-  /** The document's own words that matched, which is what an excerpt marks. */
-  terms: string[];
-}
-
-const toResult = (match: SearchResult): Result => ({
-  slug: String(match.id),
-  title: match.title,
-  date: match.date,
-  text: match.text,
-  terms: match.terms,
-});
-
-/** Newest first, the order the index page uses. */
-const byDate = (a: Result, b: Result) => b.date.localeCompare(a.date);
+type Index = MiniSearch<SearchDocument>;
 
 interface PostSearchProps {
   query: string;
-  /** Every row the page is showing, so the palette can keep a selection on one. */
+  /** Every row on show, so the palette can keep its selection on one. */
   onResults: (slugs: string[]) => void;
   onPick: (slug: string) => void;
 }
 
 export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
-  const [index, setIndex] = useState<MiniSearch<SearchDocument> | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [index, setIndex] = useState<Index | 'failed'>();
 
   useEffect(() => {
     let current = true;
 
     loadSearchIndex().then(
       (loaded) => current && setIndex(loaded),
-      () => current && setFailed(true)
+      () => current && setIndex('failed')
     );
 
     return () => {
@@ -59,47 +40,28 @@ export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
     };
   }, []);
 
-  const results = useMemo<Result[]>(() => {
-    if (!index) return [];
-
-    if (query.trim()) return index.search(query, SEARCH_OPTIONS).map(toResult);
-
-    // The wildcard is how MiniSearch hands back every document: with nothing typed
-    // the page is a list of the posts, not an empty surface waiting to be used.
-    return index.search(MiniSearch.wildcard).map(toResult).sort(byDate);
-  }, [index, query]);
+  const results = useMemo(
+    () => (index && index !== 'failed' ? searchPosts(index, query) : []),
+    [index, query]
+  );
 
   /**
-   * cmdk moves its selection when its own search changes, which is not the only
-   * thing that changes these rows: arriving on the page, and the index landing, both
-   * fill the list without a keystroke, and left alone the first row is unselected
-   * and Enter answers nothing.
+   * cmdk moves its selection when its own search box changes, and nothing else:
+   * arriving here and the index landing both fill the list without a keystroke.
    */
   useEffect(() => {
     onResults(results.map((result) => result.slug));
   }, [results, onResults]);
 
-  if (failed) {
-    return (
-      <FadingList>
-        <CommandEmpty>The search index could not be loaded.</CommandEmpty>
-      </FadingList>
-    );
-  }
-
-  if (!index) {
-    return (
-      <FadingList>
-        <CommandEmpty>Reading the archive...</CommandEmpty>
-      </FadingList>
-    );
-  }
-
   return (
     <FadingList>
-      {results.length === 0 ? (
+      {index === undefined && <CommandEmpty>Reading the archive...</CommandEmpty>}
+      {index === 'failed' && (
+        <CommandEmpty>The search index could not be loaded.</CommandEmpty>
+      )}
+      {index && index !== 'failed' && results.length === 0 && (
         <CommandEmpty>No post says anything about that.</CommandEmpty>
-      ) : null}
+      )}
 
       <CommandGroup heading="Blog posts">
         {results.map((result) => (

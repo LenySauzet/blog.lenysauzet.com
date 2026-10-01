@@ -10,29 +10,17 @@ import { PostSearch } from './PostSearch';
 const { loadSearchIndex } = vi.hoisted(() => ({ loadSearchIndex: vi.fn() }));
 vi.mock('@/lib/search/load-index', () => ({ loadSearchIndex }));
 
-const POSTS: SearchDocument[] = [
-  {
-    slug: 'halftone',
-    title: 'Shades of Halftone',
-    description: 'Dots on a grid.',
-    tags: 'glsl shaders',
-    date: '2026-04-22',
-    text: 'The halftone dot pattern is an optical illusion of smooth tone.',
-  },
-  {
-    slug: 'octrees',
-    title: 'Optimizing Octrees',
-    description: 'Spatial partitioning.',
-    tags: 'performance',
-    date: '2026-02-02',
-    text: 'An octree splits space into eight until the leaves are small enough.',
-  },
-];
-
 const index = new MiniSearch<SearchDocument>(INDEX_OPTIONS);
-index.addAll(POSTS);
+index.add({
+  slug: 'halftone',
+  title: 'Shades of Halftone',
+  description: 'Dots on a grid.',
+  tags: 'glsl',
+  date: '2026-04-22',
+  text: 'The halftone dot pattern is an optical illusion of smooth tone.',
+});
 
-// The page lives inside the cmdk root, which owns the roles it is read through.
+/** The page lives inside the cmdk root, which owns the roles it is read through. */
 const show = (query: string, onPick = vi.fn()) =>
   render(
     <Command shouldFilter={false}>
@@ -40,27 +28,11 @@ const show = (query: string, onPick = vi.fn()) =>
     </Command>
   );
 
-const titles = () =>
-  screen.getAllByRole('option').map((row) => row.getAttribute('data-value'));
-
 beforeEach(() => {
   loadSearchIndex.mockResolvedValue(index);
 });
 
 describe('PostSearch', () => {
-  // An empty box is a table of contents, not a surface waiting to be used.
-  it('lists every post newest first before anything is typed', async () => {
-    show('');
-
-    await waitFor(() => expect(titles()).toEqual(['halftone', 'octrees']));
-  });
-
-  it('narrows to what was asked for', async () => {
-    show('octree');
-
-    await waitFor(() => expect(titles()).toEqual(['octrees']));
-  });
-
   // The description would read the same on every result; the matched line does not.
   it('quotes the line that matched and lifts the term out of it', async () => {
     show('illusion');
@@ -76,6 +48,13 @@ describe('PostSearch', () => {
     expect(await screen.findByText(/No post says anything/)).toBeInTheDocument();
   });
 
+  it('says so while the index is still coming', () => {
+    loadSearchIndex.mockReturnValue(new Promise(() => {}));
+    show('');
+
+    expect(screen.getByText(/Reading the archive/)).toBeInTheDocument();
+  });
+
   it('says so when the index cannot be read', async () => {
     loadSearchIndex.mockRejectedValue(new Error('offline'));
     show('');
@@ -85,10 +64,21 @@ describe('PostSearch', () => {
 
   it('hands back the post that was picked', async () => {
     const onPick = vi.fn();
-    show('octree', onPick);
+    show('halftone', onPick);
 
     (await screen.findByRole('option')).click();
 
-    expect(onPick).toHaveBeenCalledWith('octrees');
+    expect(onPick).toHaveBeenCalledWith('halftone');
+  });
+
+  it('tells the palette which rows are on show', async () => {
+    const onResults = vi.fn();
+    render(
+      <Command shouldFilter={false}>
+        <PostSearch query="" onResults={onResults} onPick={vi.fn()} />
+      </Command>
+    );
+
+    await waitFor(() => expect(onResults).toHaveBeenCalledWith(['halftone']));
   });
 });

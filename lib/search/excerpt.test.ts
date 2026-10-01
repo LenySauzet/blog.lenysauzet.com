@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { excerpt } from './excerpt';
 
-const join = (text: string, terms: string[], window?: number) =>
-  excerpt(text, terms, window)
+const join = (text: string, terms: string[], span?: number) =>
+  excerpt(text, terms, span)
     .map((segment) => segment.text)
     .join('');
 

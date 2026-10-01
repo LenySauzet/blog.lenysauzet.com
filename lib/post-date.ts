@@ -1,14 +1,8 @@
 import { parseISO } from 'date-fns';
 
 /**
- * A post's date is a calendar day, `2026-04-22`: no time, no place. Handed to
- * `Date.parse` that reads as midnight UTC, which the browser then draws in the
- * reader's own zone, so west of Greenwich every post is dated a day early and a post
- * published on a 1 January lands in the previous year's group. `parseISO` reads a
- * date-only string as local midnight instead, so the day shown is the day written.
- *
- * Sorting and the RSS feed stay on plain `Date`: both read every post the same way,
- * so a shared offset cancels, and a feed timestamp is a real instant rather than a
- * calendar day.
+ * A calendar day, read as one. `Date.parse` would read `2026-04-22` as midnight UTC
+ * and the browser would draw it in the reader's zone, dating every post a day early
+ * west of Greenwich. Sorting and RSS stay on plain `Date`: a shared offset cancels.
  */
 export const postDate = (date: string) => parseISO(date);
