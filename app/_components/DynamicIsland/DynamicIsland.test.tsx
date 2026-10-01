@@ -199,12 +199,12 @@ describe('DynamicIsland', () => {
   // what it paints. Tailwind v4 keeps `scale` as a property of its own rather than
   // folding it into `transform`, so a transition naming `transform` compiles fine
   // and animates nothing. That has shipped here three times.
-  it('animates the property its press feedback actually changes', () => {
+  it('animates the property its pointer feedback actually changes', () => {
     render(<DynamicIsland />);
 
-    const pill = island().firstElementChild;
-    expect(pill).toHaveClass('transition-[scale]');
-    expect(pill).toHaveClass('group-active:scale-[0.97]');
+    expect(island()).toHaveClass('transition-[scale]');
+    expect(island()).toHaveClass('hover:scale-[1.02]');
+    expect(island()).toHaveClass('active:scale-[0.97]');
   });
 
   it('opens the palette when it is pressed', async () => {

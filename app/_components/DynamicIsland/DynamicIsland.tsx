@@ -143,7 +143,17 @@ export function DynamicIsland() {
         // covers, so the pill could shrink out from under the pointer that raised
         // it. The hint holds that width instead, which is the one state change a
         // pointer can cause, so nothing a pointer does resizes this.
-        className="group inline-flex cursor-pointer outline-none"
+        // Lifts a little under the pointer and gives under the press, like every
+        // other control here. On the target rather than on the pill, and that is
+        // the whole reason it is safe: a transform moves the hit area with it, so
+        // the grown pill is still something to point at. Scaled on the pill, it
+        // would have reached past its own target and the outer pixels would have
+        // raised a hover that shrank the pill out from under the pointer again.
+        //
+        // The standalone `scale` property, which Tailwind v4 keeps apart from
+        // `transform`: Motion owns the transform for its projection, so the two
+        // compose rather than overwrite each other.
+        className="group inline-flex cursor-pointer outline-none transition-[scale] duration-200 hover:scale-[1.02] active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
       >
         {/* Motion scales this box from the one it held a frame ago into the one it
             holds now, and whatever is inside goes with it. That stretch is the
@@ -167,11 +177,7 @@ export function DynamicIsland() {
             width: state.id === hint.id ? held : state.width,
             maxWidth: MAX_WIDTH,
           }}
-          // Answers the press before it answers the click, like every other control
-          // here. On the standalone `scale` property, which Tailwind v4 keeps apart
-          // from `transform`: Motion owns the transform for its projection, so the
-          // two compose instead of overwriting each other.
-          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[scale] duration-150 group-active:scale-[0.97] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:group-active:scale-100"
+          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
         >
           {/* Decorative: the button is named once and keeps that name through every
               state, or each morph would be announced as a new control.
