@@ -182,6 +182,18 @@ describe('DynamicIsland', () => {
     expect(island()).not.toHaveTextContent('to search');
   });
 
+  // jsdom applies no Tailwind, so this asserts which class reaches the element, not
+  // what it paints. Tailwind v4 keeps `scale` as a property of its own rather than
+  // folding it into `transform`, so a transition naming `transform` compiles fine
+  // and animates nothing. That has shipped here three times.
+  it('animates the property its press feedback actually changes', () => {
+    render(<DynamicIsland />);
+
+    const pill = island().firstElementChild;
+    expect(pill).toHaveClass('transition-[scale]');
+    expect(pill).toHaveClass('group-active:scale-[0.97]');
+  });
+
   it('opens the palette when it is pressed', async () => {
     const user = userEvent.setup();
     render(<DynamicIsland />);

@@ -128,7 +128,11 @@ export function DynamicIsland() {
             minHeight: COMPACT_HEIGHT,
             width: state.width,
           }}
-          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+          // Answers the press before it answers the click, like every other control
+          // here. On the standalone `scale` property, which Tailwind v4 keeps apart
+          // from `transform`: Motion owns the transform for its projection, so the
+          // two compose instead of overwriting each other.
+          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[scale] duration-150 group-active:scale-[0.97] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:group-active:scale-100"
         >
           {/* Decorative: the button is named once and keeps that name through every
               state, or each morph would be announced as a new control.
