@@ -15,22 +15,23 @@ const STAGGER = 0.025;
 
 const REVEAL = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 
-/** Length alone carries the heading; the whole ruler lengthens once the rail is
-    open. The two tones say section or not, and nothing else: one colour at two
-    weights, since the text tiers swap places between the themes and would
-    invert the order in light. */
-const WIDTH = {
-  closed: { plain: 'w-2', 3: 'w-3', 2: 'w-4' },
-  open: { plain: 'w-3', 3: 'w-4', 2: 'w-5' },
-} as const;
+/** Length alone carries the heading. The two tones say section or not, and
+    nothing else: one colour at two weights, since the text tiers swap places
+    between the themes and would invert the order in light. */
+const SECTION_WIDTH = 'w-4';
+const SUBSECTION_WIDTH = 'w-3';
+const PLAIN_WIDTH = 'w-2';
 
-const tickOf = (opened: boolean, section?: Section) => {
-  const width = WIDTH[opened ? 'open' : 'closed'];
-
-  return section
-    ? cn(section.level === 3 ? width[3] : width[2], 'bg-muted-foreground')
-    : cn(width.plain, 'bg-muted-foreground/30');
-};
+/** A section answers the pointer with its title alone. A plain tick has no
+    title to answer with, so it is the mark itself that reaches out. */
+const tickOf = (section: Section | undefined, pointed: boolean) =>
+  section
+    ? cn(section.level === 3 ? SUBSECTION_WIDTH : SECTION_WIDTH, 'bg-muted-foreground')
+    : cn(
+        PLAIN_WIDTH,
+        'bg-muted-foreground/30',
+        pointed && 'w-5 bg-foreground'
+      );
 
 export function ReadingRail() {
   const sections = useSections();
@@ -137,9 +138,8 @@ export function ReadingRail() {
 
             <span
               className={cn(
-                'h-px transition-[width] duration-300 motion-reduce:transition-none',
-                tickOf(opened, tick.section),
-                pointed === index && 'bg-foreground'
+                'h-px transition-[width] duration-150 motion-reduce:transition-none',
+                tickOf(tick.section, pointed === index)
               )}
             />
           </div>
@@ -158,12 +158,7 @@ export function ReadingRail() {
           >
             {readout}
           </motion.span>
-          <span
-            className={cn(
-              'h-px bg-primary transition-[width] duration-300 motion-reduce:transition-none',
-              opened ? WIDTH.open[2] : WIDTH.closed[2]
-            )}
-          />
+          <span className={cn('h-px bg-primary', SECTION_WIDTH)} />
         </motion.div>
       </div>
     </div>
