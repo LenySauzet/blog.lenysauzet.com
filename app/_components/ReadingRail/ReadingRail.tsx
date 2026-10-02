@@ -1,6 +1,13 @@
 'use client';
 
-import { motion, useMotionValueEvent, useReducedMotion, useTransform } from 'motion/react';
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+} from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { blurRamp, fadeToBackground } from '@/components/ScrollFade';
@@ -14,9 +21,10 @@ import { Tick } from './Tick';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
-const VEIL_BLUR = '8px';
+const VEIL_BLUR = 8;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
+const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
 export function ReadingRail() {
@@ -48,6 +56,21 @@ export function ReadingRail() {
   // Most posts carry no heading, and an empty drawer has no reason to open.
   const unfolded = opened && sections.length > 0;
   const cascade = useCascade(sections.length, unfolded, Boolean(still));
+
+  const veil = useMotionValue(0);
+
+  useEffect(() => {
+    const running = animate(veil, unfolded ? 1 : 0, still ? AT_ONCE : VEIL);
+    return () => running.stop();
+  }, [unfolded, still, veil]);
+
+  // The radius is what travels, not the layer's opacity: a blurred layer is
+  // already as good as fully blurred at half opacity, so fading it in jumps.
+  // `none` at rest, since a backdrop filter re-blurs its backdrop every frame
+  // it is mounted, even at no radius at all.
+  const backdrop = useTransform(veil, (shown) =>
+    shown === 0 ? 'none' : `blur(${(shown * VEIL_BLUR).toFixed(2)}px)`
+  );
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -109,25 +132,21 @@ export function ReadingRail() {
     >
       {/* The open panel lies over the column, so the column dissolves under it
           rather than reading through the titles. */}
-      <motion.div
-        animate={{ opacity: unfolded ? 1 : 0 }}
-        transition={still ? AT_ONCE : FADE}
-        className="pointer-events-none absolute inset-0"
-      >
-        <div
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <motion.div
           className="absolute inset-0"
           style={{
-            backdropFilter: `blur(${VEIL_BLUR})`,
-            WebkitBackdropFilter: `blur(${VEIL_BLUR})`,
+            backdropFilter: backdrop,
+            WebkitBackdropFilter: backdrop,
             maskImage: blurRamp('to left'),
             WebkitMaskImage: blurRamp('to left'),
           }}
         />
-        <div
+        <motion.div
           className="absolute inset-0"
-          style={{ background: fadeToBackground('to left') }}
+          style={{ opacity: veil, background: fadeToBackground('to left') }}
         />
-      </motion.div>
+      </div>
 
       <div ref={field} className="relative h-full">
         {ticks.map((tick, index) => (

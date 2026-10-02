@@ -454,6 +454,11 @@ What the shape forces:
   the mask ramps the blur, the gradient ramps the colour, and the colour fades
   to a transparent `--background` rather than to `transparent`, which would
   interpolate through black and draw a grey band.
+- **The veil's radius travels, never its layer's opacity.** A blurred layer is
+  as good as fully blurred by half opacity, so fading one in arrives at the
+  middle in a step and crawls the rest. The radius is a motion value instead,
+  and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
+  frame it is mounted even at no radius at all.
 - **It appears from `lg` up**, `pointer-fine:lg:block`, which is exactly where its
   reach stops being wider than the gutter. That reach is a 176px strip with no
   paint on it, so below that it lay over the prose unseen and took the clicks:
