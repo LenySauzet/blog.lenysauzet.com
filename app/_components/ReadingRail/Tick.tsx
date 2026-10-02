@@ -13,14 +13,9 @@ const PLAIN_WIDTH = 'w-2';
 
 const BLUR = 6;
 
-/**
- * Where the reader is, is a tick wearing `--primary`, not a line laid over one:
- * two marks at one place can never stay lined up, and there is only ever one
- * line here to get wrong.
- *
- * A section answers the pointer with its title alone; a plain tick has none, so
- * the mark itself reaches out.
- */
+/** The reader's place is a tick wearing `--primary`, never a line laid over
+    one. A section answers the pointer with its title; a plain tick has none,
+    so its mark reaches out instead. */
 const lineOf = (section: Section | undefined, pointed: boolean, reached: boolean) => {
   if (reached) return cn(SECTION_WIDTH, 'bg-primary');
 
@@ -34,13 +29,38 @@ const lineOf = (section: Section | undefined, pointed: boolean, reached: boolean
   return cn(PLAIN_WIDTH, 'bg-muted-foreground/30', pointed && `${SECTION_WIDTH} bg-foreground`);
 };
 
+function Title({
+  label,
+  shown,
+  pointed,
+}: {
+  label: string;
+  shown: MotionValue<number>;
+  pointed: boolean;
+}) {
+  const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
+
+  return (
+    <motion.span
+      style={{ opacity: shown, filter: blurred }}
+      // The colour is not transitioned: eased, a quick pass over several
+      // sections answers none of them.
+      className={cn(
+        'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
+        pointed && '-translate-x-1 text-primary'
+      )}
+    >
+      {label}
+    </motion.span>
+  );
+}
+
 interface TickProps {
   progress: number;
   section?: Section;
   pointed: boolean;
   reached: boolean;
-  /** Whether this title is shown, which the cascade drives. */
-  shown: MotionValue<number>;
+  shown?: MotionValue<number>;
 }
 
 /** Memoised because the mark moves as the reader scrolls, and redrawing fifty
@@ -52,25 +72,13 @@ export const Tick = memo(function Tick({
   reached,
   shown,
 }: TickProps) {
-  const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
-
   return (
     <div
       style={{ top: `${progress * 100}%` }}
       className="absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
     >
-      {section && (
-        <motion.span
-          style={{ opacity: shown, filter: blurred }}
-          // The colour is not transitioned: eased, a quick pass over several
-          // sections answers none of them.
-          className={cn(
-            'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
-            pointed && '-translate-x-1 text-primary'
-          )}
-        >
-          {section.label}
-        </motion.span>
+      {section && shown && (
+        <Title label={section.label} shown={shown} pointed={pointed} />
       )}
 
       <span

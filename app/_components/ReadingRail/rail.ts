@@ -1,6 +1,5 @@
 export interface Section {
   label: string;
-  /** The heading level, which the length of its tick reports. */
   level: number;
   progress: number;
   /** Where the section sits in the column, before the rail's own landing. */
@@ -17,11 +16,9 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
 export const tickAt = (count: number, progress: number) =>
   count < 2 ? 0 : Math.round(clamp(progress) * (count - 1));
 
-/**
- * Sections fall where they fall; the rail is a regular grid. Each one takes the
- * tick nearest it, and the next one down when that is already spoken for, so two
- * headings a paragraph apart stay two marks rather than becoming one.
- */
+/** Sections fall where they fall and the rail is a regular grid, so each takes
+    the tick nearest it, or the next one down when that is spoken for: two
+    headings a paragraph apart stay two marks. */
 export function layOutTicks(count: number, sections: Section[]): Tick[] {
   const ticks: Tick[] = Array.from({ length: Math.max(0, count) }, (_, index) => ({
     progress: count < 2 ? 0 : index / (count - 1),

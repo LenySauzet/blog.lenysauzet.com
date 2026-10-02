@@ -43,7 +43,9 @@ export function ReadingRail() {
     [sections]
   );
 
-  const cascade = useCascade(sections.length, opened, Boolean(still));
+  // Most posts carry no heading, and an empty drawer has no reason to open.
+  const unfolded = opened && sections.length > 0;
+  const cascade = useCascade(sections.length, unfolded, Boolean(still));
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -98,7 +100,7 @@ export function ReadingRail() {
       // the island.
       className={cn(
         'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 pointer-fine:block motion-reduce:transition-none',
-        opened ? 'w-80' : 'w-44'
+        unfolded ? 'w-80' : 'w-44'
       )}
     >
       <div ref={field} className="relative h-full">
@@ -109,7 +111,7 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
-            shown={cascade[tick.section ? (order.get(tick.section) ?? 0) : 0]}
+            shown={tick.section ? cascade[order.get(tick.section) ?? 0] : undefined}
           />
         ))}
 
@@ -117,10 +119,9 @@ export function ReadingRail() {
             is clutter, so it goes while the rail is open. */}
         <motion.span
           style={{ top }}
-          // Its own fade, not a slice of a sweep: the taking boundary leaves
-          // the giving one where it is, so riding that would bring the figure
-          // back in one frame at the end rather than over the close.
-          animate={{ opacity: opened ? 0 : 1 }}
+          // Its own fade: it is not one of the titles, and nothing about it
+          // belongs to their cascade.
+          animate={{ opacity: unfolded ? 0 : 1 }}
           transition={still ? AT_ONCE : FADE}
           className="pointer-events-none absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >

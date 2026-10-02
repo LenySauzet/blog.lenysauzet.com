@@ -8,11 +8,10 @@ import { headingsOf, scrollColumn, travelOf } from '@/lib/scroll-column';
 import type { Section } from './rail';
 
 /**
- * Clear of the island, which a heading landing at the very top would sit under.
- * The rail owns it for every level: a heading's own scroll margin is for its
- * anchor link, and counting both put an h2 twice as far down as an h3. A
- * section's place on the ruler is measured from here too, or the mark would not
- * land on the title the reader just clicked.
+ * Clear of the island, and the rail's alone: a heading's own scroll margin is
+ * for its anchor link, and counting both put an h2 twice as far down as an h3.
+ * A section's place on the ruler is measured from here too, or the mark would
+ * miss the title the reader just clicked.
  */
 export const LANDING = 88;
 
@@ -39,8 +38,8 @@ const same = (a: Section[], b: Section[]) =>
   a.length === b.length &&
   a.every((section, index) => section.top === b[index].top && section.label === b[index].label);
 
-/** Measured rather than built: the rail needs where a section sits, and the
-    headings carry their own titles already. */
+/** Measured rather than built: the rail needs where a section sits, which only
+    the page knows. */
 export function useSections(): Section[] {
   const [sections, setSections] = useState<Section[]>([]);
   const pathname = usePathname();

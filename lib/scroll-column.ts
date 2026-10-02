@@ -6,8 +6,11 @@ export const scrollColumn = () => document.querySelector<HTMLElement>(SCROLL_ROO
 export const travelOf = (column: HTMLElement) =>
   column.scrollHeight - column.clientHeight;
 
+/** The article's own headings, which is why `data-prose` exists: a card or a
+    disclosure inside the prose has a heading of its own, and it is a widget's
+    title rather than a place in the article. */
 export const headingsOf = (column: HTMLElement) =>
-  [...column.querySelectorAll<HTMLElement>('h2, h3')];
+  [...column.querySelectorAll<HTMLElement>('[data-prose] > h2, [data-prose] > h3')];
 
 const PIXELS_PER_LINE = 16;
 

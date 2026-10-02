@@ -439,6 +439,40 @@ The island is deliberately absent from `content/design-system.mdx`. It is global
 chrome, always on screen, and a second one rendered inside an article would be two
 islands disagreeing.
 
+**The reading rail is a ruler down the side of an article.** `app/_components/ReadingRail/`:
+ticks against the viewport, the reader's place among them in `--primary`, the sections as
+longer marks, and their titles unfolding on hover. Clicking anywhere travels there.
+
+Four parts, each with one job. `rail.ts` is the geometry and nothing else, so the thing
+worth getting right is testable without a DOM. `use-sections.ts` measures, since only the
+page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws.
+
+What the shape forces:
+
+- **Only the article's own headings count**, which is what `data-prose` on the post's
+  prose wrapper is for: a card or a disclosure carries a heading of its own, and a
+  widget's title is not a place in the article.
+- **Most posts have no headings at all**, so the rail has to be a ruler without them, and
+  its drawer must not open on nothing. Reading a title's state off an array sized by the
+  sections once took every one of those pages down with it, blank.
+- **The reader's place is a tick, never a line laid over one.** Two marks at one place
+  cannot stay lined up, and a tick that is already the mark has nothing to add on hover.
+- **The landing is the rail's alone.** A heading's own `scroll-mt` is for its anchor link;
+  counting both put an h2 twice as far down as an h3. A section's place on the ruler is
+  measured from the landing too, or the mark misses the title just clicked.
+- **Nothing re-renders while scrolling** but the two ticks that trade the mark, which is
+  what `memo` on the row is for: the rail costs 76-100ms of scripting over 300 scroll
+  frames against 62-89 with no rail at all.
+- **The cascade holds no delay.** A delay has to run out before its title moves, so a
+  pointer in and out faster than the cascade strands whatever was still waiting. A
+  boundary walks the titles instead and tells each one once, so a reversal is a new walk
+  rather than the old one rewinding, which is what ran it back up the rail. A reversal
+  walks only as far as the last pass reached, that being all it can have left wrong.
+
+`lib/scroll-column.ts` owns the scrolling column: the page does not scroll in `body`, so
+chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
+The island and the rail both hand it on from there.
+
 **The command palette is a registry, not a component full of items.**
 `lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
 and `components/CommandPalette` only renders it and hands each `run` the page's router
