@@ -20,12 +20,13 @@ import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
 
-const REVEAL = { duration: 0.42, ease: [0.22, 0.61, 0.36, 1] } as const;
+const REVEAL = { duration: 0.75, ease: [0.22, 0.61, 0.36, 1] } as const;
+const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
 /** How much of the unfolding is spent cascading rather than fading, which is
     what spreads the titles down the rail instead of showing them at once. */
-const SPREAD = 0.55;
+const SPREAD = 0.6;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -104,7 +105,6 @@ export function ReadingRail() {
   );
   const top = useTransform(anchored, (progress) => `${progress * 100}%`);
   const readout = useTransform(anchored, (progress) => progress.toFixed(2));
-  const figure = useTransform(reveal, [0, 1], [1, 0]);
 
   useMotionValueEvent(anchored, 'change', (progress) =>
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
@@ -172,7 +172,12 @@ export function ReadingRail() {
         {/* Only the figure rides over the ruler; beside a column of titles it
             is clutter, so it goes while the rail is open. */}
         <motion.span
-          style={{ top, opacity: figure }}
+          style={{ top }}
+          // Its own fade, not a slice of a sweep: the taking boundary leaves
+          // the giving one where it is, so riding that would bring the figure
+          // back in one frame at the end rather than over the close.
+          animate={{ opacity: opened ? 0 : 1 }}
+          transition={still ? AT_ONCE : FADE}
           className="pointer-events-none absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >
           {readout}
