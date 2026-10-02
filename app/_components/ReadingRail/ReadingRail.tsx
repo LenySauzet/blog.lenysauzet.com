@@ -23,11 +23,15 @@ const SPACING = 14;
 
 const VEIL_BLUR = 14;
 
-/** Air kept beyond the longest title, before the veil begins to ramp. */
-const VEIL_MARGIN = 28;
+/** Air kept beyond the longest title, which the panel has to be wide enough
+    for: a title reaching past the panel reaches past the veil with it. */
+const VEIL_MARGIN = 120;
 
-/** And the run it ramps over, which the panel has to be wide enough for. */
-const VEIL_RAMP = 200;
+/** The share of the panel the veil holds at full before it begins to fall. The
+    rest is ramp, and it is most of it: the blur carries legibility under a
+    title long before the colour has to, so holding the colour as far as the
+    longest title leaves a flat slab where a dissolve belongs. */
+const VEIL_SOLID = 0.28;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
@@ -103,7 +107,7 @@ export function ReadingRail() {
     return () => cancelAnimationFrame(frame);
   }, [sections, height]);
 
-  const hold = cover ? (cover / (cover + VEIL_RAMP)) * 100 : 0;
+  const hold = VEIL_SOLID * 100;
 
   // The radius is what travels, not the layer's opacity: a blurred layer is
   // already as good as fully blurred at half opacity, so fading it in jumps.
@@ -180,7 +184,7 @@ export function ReadingRail() {
       // fifty ticks on every frame of it. Wide enough for the longest title and
       // the veil's ramp beyond it, since a title reaching past the panel
       // reaches past the veil with it.
-      style={{ width: cover ? cover + VEIL_RAMP : undefined }}
+      style={{ width: cover || undefined }}
       className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
     >
       <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-20" />

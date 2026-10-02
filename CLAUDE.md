@@ -454,9 +454,12 @@ What the shape forces:
   the mask ramps the blur, the gradient ramps the colour, and the colour fades
   to a transparent `--background` rather than to `transparent`, which would
   interpolate through black and draw a grey band.
-- **The panel is as wide as its longest title**, measured, plus the run the veil
-  ramps over, which `EASED` bends rather than running straight: a linear fall
-  reads as a band with two edges where a curve reads as a dissolve. A share of a fixed width leaves a long title hanging past the
+- **The panel is as wide as its longest title**, measured, plus air beyond it,
+  and the veil holds at full across less than a third of that before falling
+  over the rest along `EASED`. Holding the colour as far as the title itself
+  leaves a flat slab where a dissolve belongs, and it is not needed: the blur
+  carries legibility under a title long before the colour has to. A straight
+  fall reads as a band with two edges, where a curve reads as a dissolve. A share of a fixed width leaves a long title hanging past the
   panel, and past the veil with it, with the column legible straight through the
   words. The veil holds at full to that measurement and ramps over the rest.
 - **The veil outlasts the titles on the way out**, by a delay on its close
