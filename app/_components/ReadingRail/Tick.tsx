@@ -39,11 +39,11 @@ interface TickProps {
   section?: Section;
   pointed: boolean;
   reached: boolean;
-  /** How far the rail has unfolded, 0 to 1. */
-  unfold: MotionValue<number>;
-  /** Where this title's share of that sweep begins. */
+  /** How far each boundary has swept down the rail, 0 to 1. */
+  reveal: MotionValue<number>;
+  hide: MotionValue<number>;
+  /** Where this title's share of a sweep begins, and where it ends. */
   from: number;
-  /** And where it ends. */
   to: number;
 }
 
@@ -54,11 +54,14 @@ export const Tick = memo(function Tick({
   section,
   pointed,
   reached,
-  unfold,
+  reveal,
+  hide,
   from,
   to,
 }: TickProps) {
-  const shown = useTransform(unfold, [from, to], [0, 1], { clamp: true });
+  const revealed = useTransform(reveal, [from, to], [0, 1], { clamp: true });
+  const hidden = useTransform(hide, [from, to], [0, 1], { clamp: true });
+  const shown = useTransform([revealed, hidden], ([on, off]: number[]) => on * (1 - off));
   const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
 
   return (

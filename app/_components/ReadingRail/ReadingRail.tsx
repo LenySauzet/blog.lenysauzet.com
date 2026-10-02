@@ -54,18 +54,39 @@ export function ReadingRail() {
   );
 
   /**
-   * One value sweeps and every title is a slice of it, rather than each title
-   * holding a delay of its own. A delay has to run out before its title moves
-   * at all, so a pointer in and out faster than the cascade strands whatever
-   * was still waiting; a slice of a value that is always on its way somewhere
-   * cannot be stranded.
+   * Two boundaries, each only ever sweeping down the rail, and a title is shown
+   * by the first and taken by the second. One value could only rewind to close,
+   * which runs the cascade back up; two let both passes read top to bottom.
+   *
+   * Neither carries a delay, which is what used to strand a title: a delay has
+   * to run out before its title moves at all, so a pointer in and out faster
+   * than the cascade left whatever was still waiting sitting at half a blur.
    */
-  const unfold = useMotionValue(0);
+  const reveal = useMotionValue(0);
+  const hide = useMotionValue(0);
 
   useEffect(() => {
-    const running = animate(unfold, opened ? 1 : 0, still ? AT_ONCE : REVEAL);
-    return () => running.stop();
-  }, [opened, still, unfold]);
+    const transition = still ? AT_ONCE : REVEAL;
+
+    if (opened) {
+      // Interrupting a close rewinds it, which is the honest undoing of a pass
+      // that had already taken half the titles.
+      const sweeps = [animate(reveal, 1, transition), animate(hide, 0, transition)];
+      return () => sweeps.forEach((sweep) => sweep.stop());
+    }
+
+    const sweep = animate(hide, 1, {
+      ...transition,
+      // Both are back at rest here, and every title is already at nothing, so
+      // the next open starts from the top again without anything showing it.
+      onComplete: () => {
+        reveal.set(0);
+        hide.set(0);
+      },
+    });
+
+    return () => sweep.stop();
+  }, [opened, still, reveal, hide]);
 
   const share = useMemo(() => {
     const step = sections.length < 2 ? 0 : SPREAD / (sections.length - 1);
@@ -83,7 +104,7 @@ export function ReadingRail() {
   );
   const top = useTransform(anchored, (progress) => `${progress * 100}%`);
   const readout = useTransform(anchored, (progress) => progress.toFixed(2));
-  const figure = useTransform(unfold, [0, 1], [1, 0]);
+  const figure = useTransform(reveal, [0, 1], [1, 0]);
 
   useMotionValueEvent(anchored, 'change', (progress) =>
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
@@ -141,7 +162,8 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
-            unfold={unfold}
+            reveal={reveal}
+            hide={hide}
             from={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.from ?? 0}
             to={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.to ?? 1}
           />
