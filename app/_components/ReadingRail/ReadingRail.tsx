@@ -101,7 +101,7 @@ export function ReadingRail() {
       // underneath. Over ScrollFade, which would otherwise wash out its foot,
       // and under the island.
       className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:xl:block',
+        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:lg:block',
         unfolded ? 'w-80' : 'w-44'
       )}
     >
