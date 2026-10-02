@@ -365,13 +365,13 @@ What the shape forces, none of it obvious:
   own and keeps catching what the button no longer does. Opened over the very link
   that raised it, the island would otherwise take the pointer off that link, shrink
   back, hand it over again, and oscillate about three times a second.
-- **What leaves crosses over what arrives**, through `AnimatePresence` in
-  `popLayout`: the outgoing content is taken out of the flow, so the pill sizes to
-  what is arriving and springs towards it while the old fades over that same move.
-  Cut instead, a card's content vanishes and the box travels empty, which reads as
-  a jump however smooth the spring under it is. Measured leaving a card: the box
-  travels 336x290 to 220x44 across 17 frames while the two layers cross at 0.68
-  against 0.62.
+- **Nothing of one state survives into the next**, and between two sizes far
+  apart the island passes through its own resting shape, empty. The content goes
+  at once, the box travels alone, and the next state arrives into a pill the size
+  it is about to be. Crossing the two over instead was tried and looks worse: a
+  large layout and a small one share the screen and the collapse stretches both.
+  Traced leaving a card: empty by 40ms, down to 87x37 by 276ms, the next state at
+  285ms, settled at 220x44.
 - **Measure the pill, never the button.** `layout` animates a transform on the
   pill, and a parent's layout box does not see a child's transform: the button's
   rect snaps between the two sizes in a single frame and makes a working morph

@@ -12,11 +12,13 @@ import {
   type KnownPosts,
 } from '@/lib/link-preview';
 
-import { linkPreview, LINK_PREVIEW } from './states/link-preview';
+import { collapsing, linkPreview, LINK_PREVIEW } from './states/link-preview';
 import type { LinkPreview } from '@/lib/link-preview';
 
 const DWELL = 260;
-const GRACE = 140;
+
+/** Long enough for the box to have all but arrived at the resting shape. */
+const COLLAPSE = 240;
 
 const anchorOf = (node: EventTarget | null) =>
   node instanceof Element ? node.closest('a[href]') : null;
@@ -65,10 +67,11 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(opening);
       pointed = undefined;
 
-      closing = window.setTimeout(
-        () => useIslandStore.getState().dismiss(LINK_PREVIEW),
-        GRACE
-      );
+      const island = useIslandStore.getState();
+      if (!island.presented.some((state) => state.id === LINK_PREVIEW)) return;
+
+      island.present(collapsing);
+      closing = window.setTimeout(() => island.dismiss(LINK_PREVIEW), COLLAPSE);
     };
 
     const crossed = (event: PointerEvent | FocusEvent) => {

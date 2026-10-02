@@ -79,6 +79,18 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
 }
 
 /**
+ * The shape the island passes through between a card and whatever follows it,
+ * carrying the preview's own id so the content goes at once and only the box is
+ * left to travel. Going straight from one to the other instead puts a large
+ * layout and a small one on screen together, and the collapse stretches both.
+ */
+export const collapsing: IslandState = {
+  id: LINK_PREVIEW,
+  inert: true,
+  render: () => <div className="w-20" />,
+};
+
+/**
  * One id whatever it has learned, so the island morphs as the answer lands
  * rather than swapping one state out for another.
  */

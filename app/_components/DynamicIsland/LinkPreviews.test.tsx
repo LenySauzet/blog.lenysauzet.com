@@ -93,7 +93,7 @@ describe('LinkPreviews', () => {
     point(link(container, 0));
     vi.advanceTimersByTime(300);
     leave(link(container, 0));
-    vi.advanceTimersByTime(200);
+    vi.advanceTimersByTime(300);
 
     expect(previewing()).toBe(false);
   });
@@ -140,7 +140,7 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(true);
 
     fireEvent.focusOut(link(container, 0), { bubbles: true });
-    vi.advanceTimersByTime(200);
+    vi.advanceTimersByTime(300);
     expect(previewing()).toBe(false);
   });
 
@@ -155,6 +155,25 @@ describe('LinkPreviews', () => {
     await vi.runAllTimersAsync();
     expect(shown()).toContain('A Real Title');
     expect(shown()).toContain('Said by the page.');
+  });
+
+  // Handed straight over, a large layout and a small one share the screen and the
+  // collapse stretches both. Emptied first, only the box is left to travel.
+  it('empties itself and shrinks before handing the island back', async () => {
+    answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
+    const { container } = render(harness());
+
+    point(link(container, 2));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(shown()).toContain('Said by the page.');
+
+    leave(link(container, 2));
+
+    expect(previewing()).toBe(true);
+    expect(shown()).toBe('');
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(previewing()).toBe(false);
   });
 
   // It names every post beside its date already, and the card would cover the list.

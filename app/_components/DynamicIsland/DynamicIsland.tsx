@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -114,12 +114,7 @@ export function DynamicIsland() {
           {/* A button centres its text by browser default, which every state
               laying out more than one line would otherwise have to undo. */}
           <div aria-hidden className="pointer-events-none flex w-full items-center text-left">
-            {/* `popLayout` takes what is leaving out of the flow, so the pill
-                sizes to what is arriving and morphs towards it while the old
-                content fades over the move instead of cutting away. */}
-            <AnimatePresence mode="popLayout" initial={false}>
-              <Presentation key={state.id}>{state.render(context)}</Presentation>
-            </AnimatePresence>
+            <Presentation key={state.id}>{state.render(context)}</Presentation>
           </div>
         </motion.div>
       </button>
