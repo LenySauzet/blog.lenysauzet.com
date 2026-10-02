@@ -1,3 +1,4 @@
+import { ReadingRail } from '@/app/_components/ReadingRail';
 import ScrollFade from '@/components/ScrollFade';
 
 export default function MdxLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export default function MdxLayout({ children }: { children: React.ReactNode }) {
           media it covered, and the reference does not have one either. The
           `position` prop is kept, and tested, if it is ever wanted back. */}
       <ScrollFade />
+      <ReadingRail />
     </div>
   );
 }

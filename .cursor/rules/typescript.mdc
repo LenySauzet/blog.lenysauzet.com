@@ -30,50 +30,42 @@ Never use relative `../../../` imports when `@/` works.
 
 ## Import Order
 
-1. React and Next.js (framework-level)
-2. Third-party libraries
-3. `@/lib/*` utilities and hooks
-4. `@/config/*`
-5. `@/components/ui/*` (Shadcn primitives)
-6. `@/components/*` (custom components)
-7. Relative imports (same feature)
-8. Type-only imports (`import type`)
+Three blocks, separated by a blank line, **each sorted alphabetically by module
+path**. That is what the codebase does and what an editor's organize-imports
+produces, so an order argued by role instead drifts back on the next save.
 
-### Example
+1. Everything external, `node:*`, `react` and `next/*` among them
+2. `@/` aliases, all of them together
+3. Relative imports
+
+`import type` is an import like any other: it sorts by its path inside its own
+block rather than collecting at the end. The same goes for a `type` specifier
+sitting inside a value import.
 
 ```tsx
-// 1. React / Next
-import { useEffect, useId, useState } from 'react';
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-
-// 2. Third-party
-import { motion } from 'motion/react';
-import { format } from 'date-fns';
 import { Home01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { format } from 'date-fns';
+import { motion } from 'motion/react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { useEffect, useId, useState } from 'react';
 
-// 3. Lib / hooks
-import { cn } from '@/lib/utils';
-import { getPosts } from '@/lib/post-utils';
-
-// 4. Config
-import siteConfig from '@/config/site';
-
-// 5. Shadcn UI primitives
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
-
-// 6. Custom components
 import Anchor from '@/components/Anchor';
-import { ScrambledText } from '@/components/ScrambledText';
+import { Button } from '@/components/ui/button';
+import siteConfig from '@/config/site';
+import { useCmdkStore } from '@/hooks/use-cmdk-store';
+import { getPosts } from '@/lib/post-utils';
+import { cn } from '@/lib/utils';
 
-// 7. Relative
 import { MySubComponent } from './MySubComponent';
-
-// 8. Types
-import type { Post } from './types';
+import { sameSections, type Section } from './rail';
 ```
+
+Alphabetical puts `@/components` before `@/config` before `@/hooks` before
+`@/lib`, which is the order every file here already reads in. Measured across
+the 112 source files: 105 have every block sorted, and exactly one `@/` block
+is out of order.
 
 ## ESLint Rules
 

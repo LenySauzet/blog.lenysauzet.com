@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
+import { handOnWheel } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
@@ -24,24 +25,8 @@ const MAX_WIDTH = '19rem';
 const MENTIONS_PALETTE_AFTER = 1400;
 const MENTIONS_PALETTE_FOR = 2400;
 
-const PIXELS_PER_LINE = 16;
-
 const resolve = (context: IslandContext): IslandState =>
   islandStates.find((state) => state.when?.(context) ?? true) ?? islandStates.at(-1)!;
-
-const scrollTheColumnInstead = (event: React.WheelEvent) => {
-  const column = document.querySelector<HTMLElement>('[data-scroll-root]');
-  if (!column) return;
-
-  const step =
-    event.deltaMode === 1
-      ? PIXELS_PER_LINE
-      : event.deltaMode === 2
-        ? column.clientHeight
-        : 1;
-
-  column.scrollBy({ top: event.deltaY * step, behavior: 'auto' });
-};
 
 export function DynamicIsland() {
   const pathname = usePathname();
@@ -92,7 +77,7 @@ export function DynamicIsland() {
         onPointerLeave={() => setHovered(false)}
         onFocus={point}
         onBlur={() => setHovered(false)}
-        onWheel={scrollTheColumnInstead}
+        onWheel={handOnWheel}
         className="group inline-flex cursor-pointer outline-none transition-[scale] duration-200 hover:scale-[1.02] active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
       >
         <motion.div

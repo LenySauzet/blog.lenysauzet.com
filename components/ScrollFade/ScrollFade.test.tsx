@@ -21,7 +21,7 @@ describe('ScrollFade', () => {
     const [blurLayer, colourLayer] = layers(container);
 
     expect(blurLayer.style.backdropFilter).toBe('blur(4px)');
-    expect(colourLayer.style.background).toContain('var(--background)');
+    expect(colourLayer.className).toContain('bg-background');
   });
 
   // The blur is ramped by a mask; without it the band would be a hard-edged
@@ -32,14 +32,26 @@ describe('ScrollFade', () => {
     expect(layers(container)[0].style.maskImage).toContain('to top');
   });
 
-  // `transparent` resolves to rgba(0,0,0,0), which draws a grey band across the
-  // fade. The colour stop has to keep the background's own channels.
-  it('fades to a transparent background colour, not to `transparent`', () => {
+  // A colour ramp laid over a surface of its own colour bands where it should
+  // be invisible, by about one part in 255, and a stop written `transparent`
+  // resolves to rgba(0,0,0,0) and interpolates through black. A flat fill
+  // behind the same mask has neither problem, so the colour layer must never
+  // go back to painting a gradient of its own.
+  it('fades a flat fill behind a mask, never a gradient of colours', () => {
     const { container } = render(<ScrollFade />);
-    const background = layers(container)[1].style.background;
+    const colourLayer = layers(container)[1];
 
-    expect(background).toContain('oklch(from var(--background)');
-    expect(background).not.toMatch(/,\s*transparent/);
+    expect(colourLayer.style.maskImage).toContain('linear-gradient');
+    expect(colourLayer.style.background).toBe('');
+  });
+
+  // Both layers describe the same dissolve, so they take the same ramp: two
+  // of them is two things to keep in step for no gain.
+  it('ramps both layers with one mask', () => {
+    const { container } = render(<ScrollFade />);
+    const [blurLayer, colourLayer] = layers(container);
+
+    expect(colourLayer.style.maskImage).toBe(blurLayer.style.maskImage);
   });
 
   it('takes its height and blur from props', () => {
@@ -49,8 +61,7 @@ describe('ScrollFade', () => {
     expect(layers(container)[0].style.backdropFilter).toBe('blur(20px)');
   });
 
-  // Both gradients run from the clinging edge inward, so they have to flip
-  // together with it. Flipping one and not the other would blur the wrong end.
+  // The ramp runs from the clinging edge inward, so it flips with it.
   //
   // Asserted against `to top` in both directions rather than against each
   // keyword in turn: `to bottom` is a gradient's default direction, and a CSS
@@ -63,7 +74,7 @@ describe('ScrollFade', () => {
 
       expect(root(container).className).toContain('bottom-0');
       expect(blurLayer.style.maskImage).toContain('to top');
-      expect(colourLayer.style.background).toContain('to top');
+      expect(colourLayer.style.maskImage).toContain('to top');
     });
 
     it('clings to the top and runs downward', () => {
@@ -72,7 +83,7 @@ describe('ScrollFade', () => {
 
       expect(root(container).className).toContain('top-0');
       expect(blurLayer.style.maskImage).not.toContain('to top');
-      expect(colourLayer.style.background).not.toContain('to top');
+      expect(colourLayer.style.maskImage).not.toContain('to top');
     });
   });
 });
