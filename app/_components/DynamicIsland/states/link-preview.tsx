@@ -79,18 +79,6 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
 }
 
 /**
- * What the island passes through on its way out, carrying the preview's own id so
- * it is a morph rather than a swap. Emptying it first is the point: a layout left
- * in place is stretched by the collapse, where every other state of the island
- * simply goes.
- */
-export const collapsing: IslandState = {
-  id: LINK_PREVIEW,
-  inert: true,
-  render: () => <div className="w-20" />,
-};
-
-/**
  * One id whatever it has learned, so the island morphs as the answer lands
  * rather than swapping one state out for another.
  */

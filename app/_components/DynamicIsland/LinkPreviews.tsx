@@ -12,7 +12,7 @@ import {
   type KnownPosts,
 } from '@/lib/link-preview';
 
-import { collapsing, linkPreview, LINK_PREVIEW } from './states/link-preview';
+import { linkPreview, LINK_PREVIEW } from './states/link-preview';
 import type { LinkPreview } from '@/lib/link-preview';
 
 const DWELL = 260;
@@ -32,12 +32,8 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
     let opening: number | undefined;
     let closing: number | undefined;
     let pointed: string | undefined;
-    let shown: LinkPreview | undefined;
-
-    const raise = (preview: LinkPreview) => {
-      shown = preview;
+    const raise = (preview: LinkPreview) =>
       useIslandStore.getState().present(linkPreview(preview));
-    };
 
     const show = (anchor: Element) => {
       const href = anchor.getAttribute('href') ?? '';
@@ -69,14 +65,10 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(opening);
       pointed = undefined;
 
-      // Emptied before it collapses, so the layout goes the way every other
-      // state of the island goes rather than being stretched down with the box.
-      if (shown) useIslandStore.getState().present(collapsing);
-
-      closing = window.setTimeout(() => {
-        shown = undefined;
-        useIslandStore.getState().dismiss(LINK_PREVIEW);
-      }, GRACE);
+      closing = window.setTimeout(
+        () => useIslandStore.getState().dismiss(LINK_PREVIEW),
+        GRACE
+      );
     };
 
     const crossed = (event: PointerEvent | FocusEvent) => {

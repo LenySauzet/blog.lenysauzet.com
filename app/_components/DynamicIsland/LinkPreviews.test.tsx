@@ -50,9 +50,16 @@ const shown = () => {
   const state = useIslandStore.getState().presented.at(-1);
   if (!state) return undefined;
 
-  const { container, unmount } = render(<>{state.render({} as IslandContext)}</>);
-  const text = container.textContent;
+  const host = document.createElement('div');
+  document.body.append(host);
+
+  const { unmount } = render(<>{state.render({} as IslandContext)}</>, {
+    container: host,
+  });
+  const text = host.textContent;
+
   unmount();
+  host.remove();
 
   return text;
 };
@@ -148,25 +155,6 @@ describe('LinkPreviews', () => {
     await vi.runAllTimersAsync();
     expect(shown()).toContain('A Real Title');
     expect(shown()).toContain('Said by the page.');
-  });
-
-  // Left in place, the layout is stretched down with the box instead of going
-  // the way every other state of the island goes.
-  it('empties itself before it collapses', async () => {
-    answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
-    const { container } = render(harness());
-
-    point(link(container, 2));
-    await vi.advanceTimersByTimeAsync(300);
-    expect(shown()).toContain('Said by the page.');
-
-    leave(link(container, 2));
-
-    expect(previewing()).toBe(true);
-    expect(shown()).toBe('');
-
-    await vi.advanceTimersByTimeAsync(200);
-    expect(previewing()).toBe(false);
   });
 
   // It names every post beside its date already, and the card would cover the list.

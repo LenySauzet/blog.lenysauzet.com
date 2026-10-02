@@ -208,8 +208,9 @@ describe('DynamicIsland', () => {
 
     act(() => readTo(1));
 
-    expect(island()).toHaveTextContent('Support me');
-    expect(island()).not.toHaveTextContent('Shades of Halftone');
+    await settlesOn('Support me');
+    // What is leaving now fades over the morph, so it goes on a frame of its own.
+    await waitFor(() => expect(island()).not.toHaveTextContent('Shades of Halftone'));
   });
 
   // Opened over the very link that raised it, it would take the pointer off that

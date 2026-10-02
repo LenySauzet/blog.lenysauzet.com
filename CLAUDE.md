@@ -365,9 +365,18 @@ What the shape forces, none of it obvious:
   own and keeps catching what the button no longer does. Opened over the very link
   that raised it, the island would otherwise take the pointer off that link, shrink
   back, hand it over again, and oscillate about three times a second.
-- **A preview empties itself before it collapses**, passing through the resting
-  shape under its own id. A layout left in place is stretched down with the box,
-  where every other state of the island simply goes when its turn ends.
+- **What leaves crosses over what arrives**, through `AnimatePresence` in
+  `popLayout`: the outgoing content is taken out of the flow, so the pill sizes to
+  what is arriving and springs towards it while the old fades over that same move.
+  Cut instead, a card's content vanishes and the box travels empty, which reads as
+  a jump however smooth the spring under it is. Measured leaving a card: the box
+  travels 336x290 to 220x44 across 17 frames while the two layers cross at 0.68
+  against 0.62.
+- **Measure the pill, never the button.** `layout` animates a transform on the
+  pill, and a parent's layout box does not see a child's transform: the button's
+  rect snaps between the two sizes in a single frame and makes a working morph
+  look like a jump. Three readings were taken off the wrong element before that
+  showed up.
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 
