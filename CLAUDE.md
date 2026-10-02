@@ -449,11 +449,22 @@ page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws
 
 What the shape forces:
 
-- **The open panel veils the column under it**, with the same two stacked ramps
-  `ScrollFade` uses, which is why `components/ScrollFade/gradients.ts` exists:
-  the mask ramps the blur, the gradient ramps the colour, and the colour fades
-  to a transparent `--background` rather than to `transparent`, which would
-  interpolate through black and draw a grey band.
+- **The open panel veils the column under it**, with the ramps
+  `components/ScrollFade/gradients.ts` holds: one ramps the blur, one ramps the
+  colour. A colour ramp written as a gradient must fade to a transparent
+  `--background` rather than to `transparent`, which would interpolate through
+  black and draw a grey band.
+- **The rail's colour layer is a flat fill behind a mask, not a gradient.**
+  Painted as a gradient of alphas it bands: over an empty page the layer is
+  `--background` on `--background` and should be invisible, and instead it laid
+  down steps of about one part in 255 that read as a faint vertical seam.
+  Measured against the page beside it, the worst column-to-column step is 0.97
+  as a gradient and 0.10 as a mask, against 0.03 for the bare page, while what
+  it hides is unchanged: 33.159 against 33.167 over the same text. The blur
+  layer never had the problem, having always carried its ramp as a mask.
+  **`ScrollFade` still paints its colour ramp as a gradient** and so still has
+  this, smaller for being 6rem over a quieter stretch; the same swap fixes it
+  and would want its tests updated with it.
 - **The panel is as wide as its longest title**, measured, plus air beyond it,
   and the veil holds at full across less than a third of that before falling
   over the rest along `EASED`. Holding the colour as far as the title itself
