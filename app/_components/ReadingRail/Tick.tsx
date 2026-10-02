@@ -39,12 +39,8 @@ interface TickProps {
   section?: Section;
   pointed: boolean;
   reached: boolean;
-  /** How far each boundary has swept down the rail, 0 to 1. */
-  reveal: MotionValue<number>;
-  hide: MotionValue<number>;
-  /** Where this title's share of a sweep begins, and where it ends. */
-  from: number;
-  to: number;
+  /** Whether this title is shown, which the cascade drives. */
+  shown: MotionValue<number>;
 }
 
 /** Memoised because the mark moves as the reader scrolls, and redrawing fifty
@@ -54,14 +50,8 @@ export const Tick = memo(function Tick({
   section,
   pointed,
   reached,
-  reveal,
-  hide,
-  from,
-  to,
+  shown,
 }: TickProps) {
-  const revealed = useTransform(reveal, [from, to], [0, 1], { clamp: true });
-  const hidden = useTransform(hide, [from, to], [0, 1], { clamp: true });
-  const shown = useTransform([revealed, hidden], ([on, off]: number[]) => on * (1 - off));
   const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
 
   return (

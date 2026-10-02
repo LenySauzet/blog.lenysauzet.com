@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-  useTransform,
-} from 'motion/react';
+import { motion, useMotionValueEvent, useReducedMotion, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
@@ -15,18 +8,14 @@ import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
+import { useCascade } from './use-cascade';
 import { Tick } from './Tick';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
 
-const REVEAL = { duration: 0.75, ease: [0.22, 0.61, 0.36, 1] } as const;
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
-
-/** How much of the unfolding is spent cascading rather than fading, which is
-    what spreads the titles down the rail instead of showing them at once. */
-const SPREAD = 0.6;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -54,49 +43,7 @@ export function ReadingRail() {
     [sections]
   );
 
-  /**
-   * Two boundaries, each only ever sweeping down the rail, and a title is shown
-   * by the first and taken by the second. One value could only rewind to close,
-   * which runs the cascade back up; two let both passes read top to bottom.
-   *
-   * Neither carries a delay, which is what used to strand a title: a delay has
-   * to run out before its title moves at all, so a pointer in and out faster
-   * than the cascade left whatever was still waiting sitting at half a blur.
-   */
-  const reveal = useMotionValue(0);
-  const hide = useMotionValue(0);
-
-  useEffect(() => {
-    const transition = still ? AT_ONCE : REVEAL;
-
-    if (opened) {
-      // Interrupting a close rewinds it, which is the honest undoing of a pass
-      // that had already taken half the titles.
-      const sweeps = [animate(reveal, 1, transition), animate(hide, 0, transition)];
-      return () => sweeps.forEach((sweep) => sweep.stop());
-    }
-
-    const sweep = animate(hide, 1, {
-      ...transition,
-      // Both are back at rest here, and every title is already at nothing, so
-      // the next open starts from the top again without anything showing it.
-      onComplete: () => {
-        reveal.set(0);
-        hide.set(0);
-      },
-    });
-
-    return () => sweep.stop();
-  }, [opened, still, reveal, hide]);
-
-  const share = useMemo(() => {
-    const step = sections.length < 2 ? 0 : SPREAD / (sections.length - 1);
-
-    return sections.map((_, index) => ({
-      from: index * step,
-      to: index * step + (1 - SPREAD),
-    }));
-  }, [sections]);
+  const cascade = useCascade(sections.length, opened, Boolean(still));
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -162,10 +109,7 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
-            reveal={reveal}
-            hide={hide}
-            from={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.from ?? 0}
-            to={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.to ?? 1}
+            shown={cascade[tick.section ? (order.get(tick.section) ?? 0) : 0]}
           />
         ))}
 
