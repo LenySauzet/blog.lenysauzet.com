@@ -10,40 +10,48 @@ import {
 } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { blurRamp, fadeToBackground } from '@/components/ScrollFade';
+import { blurRamp, EASED, fadeToBackground } from '@/components/ScrollFade';
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
-import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
-import { useCascade } from './use-cascade';
 import { Tick } from './Tick';
+import { useCascade } from './use-cascade';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
+
 const VEIL_BLUR = 14;
 
 /** Air kept beyond the longest title, before the veil begins to ramp. */
 const VEIL_MARGIN = 28;
 
-/** And the run the veil ramps over, which the panel has to be wide enough for. */
-const VEIL_RAMP = 120;
-
-/** The titles leave on their own cascade, so the veil waits for them. */
-const VEIL_EXIT_DELAY = 0.35;
+/** And the run it ramps over, which the panel has to be wide enough for. */
+const VEIL_RAMP = 200;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
+/** The titles leave on their own cascade, so the veil waits for them. */
+const EXIT_DELAY = 0.45;
+
+/** Crossing from one title to the next is not a departure. */
+const GRACE = 280;
+
 export function ReadingRail() {
   const sections = useSections();
   const field = useRef<HTMLDivElement>(null);
+  const leaving = useRef<number>(undefined);
   const [height, setHeight] = useState(0);
   const [opened, setOpened] = useState(false);
   const [pointed, setPointed] = useState<number>();
   const [reached, setReached] = useState(0);
+  const [cover, setCover] = useState(0);
   const still = useReducedMotion();
+
+  // Most posts carry no heading, and an empty drawer has no reason to open.
+  const unfolded = opened && sections.length > 0;
 
   useEffect(() => {
     const node = field.current;
@@ -62,29 +70,23 @@ export function ReadingRail() {
     [sections]
   );
 
-  // Most posts carry no heading, and an empty drawer has no reason to open.
-  const unfolded = opened && sections.length > 0;
   const cascade = useCascade(sections.length, unfolded, Boolean(still));
-
   const veil = useMotionValue(0);
-  const [cover, setCover] = useState(0);
 
   useEffect(() => {
     const running = animate(
       veil,
       unfolded ? 1 : 0,
-      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : VEIL_EXIT_DELAY }
+      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : EXIT_DELAY }
     );
 
     return () => running.stop();
   }, [unfolded, still, veil]);
 
   // Measured rather than chosen: the veil has to reach past the longest title
-  // there is, and a share of the panel leaves the long ones hanging over the
-  // column with the text still legible under them.
+  // there is, and the panel past the veil, or a long one hangs over the column
+  // with the text legible straight through it.
   useEffect(() => {
-    // After the frame the titles are laid out in, which is the only one where
-    // their widths are worth reading.
     const frame = requestAnimationFrame(() => {
       const node = field.current;
       if (!node) return;
@@ -100,6 +102,8 @@ export function ReadingRail() {
 
     return () => cancelAnimationFrame(frame);
   }, [sections, height]);
+
+  const hold = cover ? (cover / (cover + VEIL_RAMP)) * 100 : 0;
 
   // The radius is what travels, not the layer's opacity: a blurred layer is
   // already as good as fully blurred at half opacity, so fading it in jumps.
@@ -144,53 +148,60 @@ export function ReadingRail() {
     });
   };
 
+  const arrive = () => {
+    window.clearTimeout(leaving.current);
+    setOpened(true);
+  };
+
+  const depart = (event: React.PointerEvent) => {
+    const next = event.relatedTarget;
+    if (next instanceof Node && event.currentTarget.contains(next)) return;
+
+    leaving.current = window.setTimeout(() => {
+      setOpened(false);
+      setPointed(undefined);
+    }, GRACE);
+  };
+
   return (
     <div
       aria-hidden
-      onPointerEnter={() => setOpened(true)}
-      onPointerLeave={() => {
-        setOpened(false);
-        setPointed(undefined);
-      }}
+      onPointerOver={arrive}
+      onPointerOut={depart}
       onPointerMove={(event) => {
         const index = under(event);
         setPointed((held) => (held === index ? held : index));
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // The reach is a narrow band at the edge, never the width of the open
-      // panel: a strip with no paint on it still takes the clicks of whatever
-      // it lies over, and one wide enough to meet a long title opens the rail
-      // on a pointer that was only crossing the page. Under `md` the gutter is
-      // 16px, which is no target at all. Over ScrollFade, which would otherwise
-      // wash out its foot, and under the island.
-      // Wide enough for its longest title and the veil's ramp beyond it, since
-      // a title reaching past the panel reaches past the veil with it.
-      style={{ width: unfolded ? cover + VEIL_RAMP : undefined }}
-      className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:md:block',
-        !unfolded && 'w-12 lg:w-20'
-      )}
+      // The panel answers nothing itself, so its width never has to move: what
+      // opens the rail is the band at the edge, and what holds it open is that
+      // band or a title. Animating the width instead re-laid the veil and all
+      // fifty ticks on every frame of it. Wide enough for the longest title and
+      // the veil's ramp beyond it, since a title reaching past the panel
+      // reaches past the veil with it.
+      style={{ width: cover ? cover + VEIL_RAMP : undefined }}
+      className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
     >
-      {/* The open panel lies over the column, so the column dissolves under it
-          rather than reading through the titles. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-20" />
+
+      <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute inset-0"
           style={{
             backdropFilter: backdrop,
             WebkitBackdropFilter: backdrop,
-            maskImage: blurRamp('to left', `${cover}px`),
-            WebkitMaskImage: blurRamp('to left', `${cover}px`),
+            maskImage: blurRamp('to left', hold, EASED),
+            WebkitMaskImage: blurRamp('to left', hold, EASED),
           }}
         />
         <motion.div
           className="absolute inset-0"
-          style={{ opacity: veil, background: fadeToBackground('to left', `${cover}px`) }}
+          style={{ opacity: veil, background: fadeToBackground('to left', hold, EASED) }}
         />
       </div>
 
-      <div ref={field} className="relative h-full">
+      <div ref={field} className="pointer-events-none relative h-full">
         {ticks.map((tick, index) => (
           <Tick
             key={index}
@@ -198,6 +209,7 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
+            live={unfolded}
             shown={tick.section ? cascade[order.get(tick.section) ?? 0] : undefined}
           />
         ))}
@@ -206,11 +218,9 @@ export function ReadingRail() {
             is clutter, so it goes while the rail is open. */}
         <motion.span
           style={{ top }}
-          // Its own fade: it is not one of the titles, and nothing about it
-          // belongs to their cascade.
           animate={{ opacity: unfolded ? 0 : 1 }}
           transition={still ? AT_ONCE : FADE}
-          className="pointer-events-none absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
+          className="absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >
           {readout}
         </motion.span>

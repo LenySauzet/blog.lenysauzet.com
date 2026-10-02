@@ -455,7 +455,8 @@ What the shape forces:
   to a transparent `--background` rather than to `transparent`, which would
   interpolate through black and draw a grey band.
 - **The panel is as wide as its longest title**, measured, plus the run the veil
-  ramps over. A share of a fixed width leaves a long title hanging past the
+  ramps over, which `EASED` bends rather than running straight: a linear fall
+  reads as a band with two edges where a curve reads as a dissolve. A share of a fixed width leaves a long title hanging past the
   panel, and past the veil with it, with the column legible straight through the
   words. The veil holds at full to that measurement and ramps over the rest.
 - **The veil outlasts the titles on the way out**, by a delay on its close
@@ -466,12 +467,18 @@ What the shape forces:
   middle in a step and crawls the rest. The radius is a motion value instead,
   and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
   frame it is mounted even at no radius at all.
-- **What opens it is a band at the edge, never the panel's own width.** A strip
-  with no paint on it still takes the clicks of whatever it lies over, and one
-  wide enough to meet a long title opens the rail on a pointer that was only
-  crossing the page. It is 48px to `lg` and 80px after, against a gutter of 48px
-  at `md` and more above, with nothing covered at any width. Below `md` the
-  gutter is 16px, which is no target at all, so there is no rail.
+- **The panel answers nothing; a band at its edge and the title rows do.** The
+  panel is `pointer-events-none`, so it can stay the width it needs without ever
+  lying in the page's way: a point inside it hits the article, not the rail. The
+  band is 48px to `lg` and 80 after, and it alone opens the rail, one wide enough
+  to meet a long title opening it on a pointer that was only crossing the page.
+  Open, the rows answer too, so a title holds it; closed they are inert. A grace
+  before closing carries the pointer from one title to the next across the air
+  between them. Below `md` the gutter is 16px, which is no target at all, so
+  there is no rail.
+- **Its width never animates.** It used to, because the panel was the hit area,
+  and a width transition re-laid the veil and all fifty ticks on every frame of
+  it. Only the veil's radius and the titles move now.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.
