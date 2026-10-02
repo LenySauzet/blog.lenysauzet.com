@@ -192,14 +192,20 @@ export function ReadingRail() {
         )}
       />
 
-      {/* Both layers carry the ramp as a mask, the colour one over a flat fill
-          rather than as a gradient of alphas. Painted as a gradient it bands:
-          over an empty page the colour layer is `--background` on
+      {/* Gone from `xl` up, where it has nothing left to cover: measured on
+          this layout, no content passes under the part of the veil that is
+          more than a fifth opaque from 1180 on, and from 1280 a title no
+          longer crosses the column at all. What remained there was its own
+          quantisation, faint but moving while it animates.
+
+          Both layers carry the ramp as a mask, the colour one over a flat
+          fill rather than as a gradient of alphas. Painted as a gradient it
+          bands: over an empty page the colour layer is `--background` on
           `--background` and should be invisible, and instead it laid down
           steps of about one part in 255 that read as a seam. Measured against
           the page beside it, the worst column-to-column step falls from 0.97
           to 0.10 while what it hides is unchanged, 33.159 against 33.167. */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 xl:hidden">
         <motion.div
           className="absolute inset-0"
           style={{

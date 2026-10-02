@@ -449,6 +449,12 @@ page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws
 
 What the shape forces:
 
+- **The veil is gone from `xl` up**, where it has nothing left to cover.
+  Measured on this layout: no content passes under the part of the veil that
+  is more than a fifth opaque from 1180 on, and from 1280 a title no longer
+  crosses the column at all (1px, then none). What remained up there was its
+  own quantisation, faint but moving while it animates. Below `xl` it earns
+  its place: 249px of column under the panel at 1024, 311 at 900.
 - **The open panel veils the column under it**, with the ramps
   `components/ScrollFade/gradients.ts` holds: one ramps the blur, one ramps the
   colour. A colour ramp written as a gradient must fade to a transparent
