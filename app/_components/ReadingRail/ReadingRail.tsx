@@ -53,6 +53,7 @@ export function ReadingRail() {
   const [pointed, setPointed] = useState<number>();
   const [reached, setReached] = useState(0);
   const [cover, setCover] = useState(0);
+  const [reach, setReach] = useState<number[]>([]);
   const still = useReducedMotion();
 
   // Most posts carry no heading, and an empty drawer has no reason to open.
@@ -97,12 +98,12 @@ export function ReadingRail() {
       if (!node) return;
 
       const right = node.getBoundingClientRect().right;
-      const widest = [...node.querySelectorAll('span')].reduce(
-        (reach, title) => Math.max(reach, right - title.getBoundingClientRect().left),
-        0
+      const reaches = [...node.querySelectorAll('span.uppercase')].map((title) =>
+        Math.round(right - title.getBoundingClientRect().left)
       );
 
-      setCover(widest ? Math.round(widest + VEIL_MARGIN) : 0);
+      setReach(reaches);
+      setCover(reaches.length ? Math.max(...reaches) + VEIL_MARGIN : 0);
     });
 
     return () => cancelAnimationFrame(frame);
@@ -129,6 +130,34 @@ export function ReadingRail() {
   useMotionValueEvent(anchored, 'change', (progress) =>
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
   );
+
+  /**
+   * How far from the edge the rail still answers, at each tick. A title's own
+   * reach where there is one, and between two of them the greater of the pair,
+   * so the air between neighbours belongs to both. Holding the whole panel
+   * instead means crossing all of it to leave; holding the titles alone loses
+   * the pointer in the two hundred pixels that can separate them.
+   */
+  const held = useMemo(() => {
+    const own = ticks.map((tick) =>
+      tick.section ? (reach[order.get(tick.section) ?? 0] ?? 0) : 0
+    );
+    const bridged = [...own];
+
+    let carried = 0;
+    for (let i = 0; i < own.length; i += 1) {
+      carried = own[i] || carried;
+      bridged[i] = carried;
+    }
+
+    carried = 0;
+    for (let i = own.length - 1; i >= 0; i -= 1) {
+      carried = own[i] || carried;
+      bridged[i] = Math.max(bridged[i], carried);
+    }
+
+    return bridged;
+  }, [ticks, reach, order]);
 
   /** Read off the event rather than the state the pointer last set: a click
       arriving in the same batch as its move would otherwise act on the tick
@@ -158,14 +187,19 @@ export function ReadingRail() {
     setOpened(true);
   };
 
-  const depart = (event: React.PointerEvent) => {
-    const next = event.relatedTarget;
-    if (next instanceof Node && event.currentTarget.contains(next)) return;
-
+  const leave = () => {
+    window.clearTimeout(leaving.current);
     leaving.current = window.setTimeout(() => {
       setOpened(false);
       setPointed(undefined);
     }, GRACE);
+  };
+
+  const depart = (event: React.PointerEvent) => {
+    const next = event.relatedTarget;
+    if (next instanceof Node && event.currentTarget.contains(next)) return;
+
+    leave();
   };
 
   return (
@@ -175,17 +209,24 @@ export function ReadingRail() {
       onPointerOut={depart}
       onPointerMove={(event) => {
         const index = under(event);
-        setPointed((held) => (held === index ? held : index));
+        setPointed((was) => (was === index ? was : index));
+
+        const edge = event.currentTarget.getBoundingClientRect().right;
+        const beyond = edge - event.clientX;
+
+        if (index !== undefined && beyond > (held[index] ?? 0)) leave();
+        else window.clearTimeout(leaving.current);
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // What opens the rail is the band at its edge; what holds it open is the
-      // whole panel, so the air between two titles is still inside it. Closed,
-      // the panel answers nothing, which is what keeps a pointer merely
-      // crossing the page from opening it, and is why its width never has to
-      // move: animating that re-laid the veil and all fifty ticks on every
-      // frame. It is as wide as the longest title and the air beyond, a title
-      // reaching past the panel reaching past the veil with it.
+      // The panel answers nothing: the band at its edge opens the rail and the
+      // rows hold it, which is what keeps leaving a matter of stepping off a
+      // title rather than crossing the width of the panel. The rows are tall
+      // enough to meet their neighbours, so the air between two titles belongs
+      // to one of them. Its width never has to move either: animating that
+      // re-laid the veil and all fifty ticks on every frame. It is as wide as
+      // the longest title and the air beyond, a title reaching past the panel
+      // reaching past the veil with it.
       style={{ width: cover || undefined }}
       className={cn(
         'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block',
