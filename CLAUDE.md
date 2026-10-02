@@ -449,6 +449,10 @@ page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws
 
 What the shape forces:
 
+- **It appears on the widest viewports only**, `pointer-fine:xl:block`. Its reach
+  is a 176px strip with no paint on it, and under `xl` that strip lies over the
+  prose: measured at 820px it covered 102px of the column and two of its links,
+  which it would have swallowed the clicks of.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.

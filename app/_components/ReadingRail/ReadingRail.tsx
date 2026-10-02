@@ -96,10 +96,12 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // Over ScrollFade, which would otherwise wash out its foot, and under
-      // the island.
+      // Only where the gutter is wider than the rail's reach: narrower than
+      // that, its hit area lies over the prose and swallows the links
+      // underneath. Over ScrollFade, which would otherwise wash out its foot,
+      // and under the island.
       className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 pointer-fine:block motion-reduce:transition-none',
+        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:xl:block',
         unfolded ? 'w-80' : 'w-44'
       )}
     >
