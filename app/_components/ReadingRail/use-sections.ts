@@ -7,6 +7,15 @@ import { headingsOf, scrollColumn, travelOf } from '@/lib/scroll-column';
 
 import type { Section } from './rail';
 
+/**
+ * Clear of the island, which a heading landing at the very top would sit under.
+ * The rail owns it for every level: a heading's own scroll margin is for its
+ * anchor link, and counting both put an h2 twice as far down as an h3. A
+ * section's place on the ruler is measured from here too, or the mark would not
+ * land on the title the reader just clicked.
+ */
+export const LANDING = 88;
+
 const read = (): Section[] => {
   const column = scrollColumn();
   const travel = column ? travelOf(column) : 0;
@@ -20,7 +29,7 @@ const read = (): Section[] => {
     return {
       label: heading.textContent?.trim() ?? '',
       level: Number(heading.tagName.slice(1)),
-      progress: Math.min(1, top / travel),
+      progress: Math.min(1, Math.max(0, (top - LANDING) / travel)),
       top,
     };
   });

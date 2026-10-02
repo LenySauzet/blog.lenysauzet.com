@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useTransform, type MotionValue } from 'motion/react';
 import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -10,6 +10,8 @@ import type { Section } from './rail';
 const SECTION_WIDTH = 'w-4';
 const SUBSECTION_WIDTH = 'w-3';
 const PLAIN_WIDTH = 'w-2';
+
+const BLUR = 6;
 
 /**
  * Where the reader is, is a tick wearing `--primary`, not a line laid over one:
@@ -23,8 +25,10 @@ const lineOf = (section: Section | undefined, pointed: boolean, reached: boolean
   if (reached) return cn(SECTION_WIDTH, 'bg-primary');
 
   if (section) {
-    const width = section.level === 3 ? SUBSECTION_WIDTH : SECTION_WIDTH;
-    return cn(width, 'bg-muted-foreground');
+    return cn(
+      section.level === 3 ? SUBSECTION_WIDTH : SECTION_WIDTH,
+      'bg-muted-foreground'
+    );
   }
 
   return cn(PLAIN_WIDTH, 'bg-muted-foreground/30', pointed && `${SECTION_WIDTH} bg-foreground`);
@@ -35,21 +39,28 @@ interface TickProps {
   section?: Section;
   pointed: boolean;
   reached: boolean;
-  opened: boolean;
-  /** Carries the cascade's delay, which is the section's place in the order. */
-  reveal: object;
+  /** How far the rail has unfolded, 0 to 1. */
+  unfold: MotionValue<number>;
+  /** Where this title's share of that sweep begins. */
+  from: number;
+  /** And where it ends. */
+  to: number;
 }
 
-/** Memoised because the mark moves as the reader scrolls, and redrawing sixty
+/** Memoised because the mark moves as the reader scrolls, and redrawing fifty
     ticks to light one of them was measurable. */
 export const Tick = memo(function Tick({
   progress,
   section,
   pointed,
   reached,
-  opened,
-  reveal,
+  unfold,
+  from,
+  to,
 }: TickProps) {
+  const shown = useTransform(unfold, [from, to], [0, 1], { clamp: true });
+  const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
+
   return (
     <div
       style={{ top: `${progress * 100}%` }}
@@ -57,12 +68,7 @@ export const Tick = memo(function Tick({
     >
       {section && (
         <motion.span
-          initial={false}
-          animate={{
-            opacity: opened ? 1 : 0,
-            filter: opened ? 'blur(0px)' : 'blur(6px)',
-          }}
-          transition={reveal}
+          style={{ opacity: shown, filter: blurred }}
           // The colour is not transitioned: eased, a quick pass over several
           // sections answers none of them.
           className={cn(

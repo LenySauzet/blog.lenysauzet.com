@@ -1,6 +1,13 @@
 'use client';
 
-import { motion, useMotionValueEvent, useReducedMotion, useTransform } from 'motion/react';
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+} from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
@@ -9,18 +16,16 @@ import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
 import { Tick } from './Tick';
-import { useSections } from './use-sections';
+import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
-const STAGGER = 0.018;
 
-const REVEAL = { duration: 0.24, ease: [0.22, 0.61, 0.36, 1] } as const;
+const REVEAL = { duration: 0.42, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-/** Clear of the island, which a heading landing at the very top would sit under.
-    The rail owns this for every level: a heading's own scroll margin is for the
-    anchor links, and counting both put an h2 twice as far down as an h3. */
-const LANDING = 112;
+/** How much of the unfolding is spent cascading rather than fading, which is
+    what spreads the titles down the rail instead of showing them at once. */
+const SPREAD = 0.55;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -48,15 +53,28 @@ export function ReadingRail() {
     [sections]
   );
 
-  // One object per place in the cascade, so a redraw hands each tick the same
-  // transition it had and Motion has no reason to start over.
-  const reveals = useMemo(
-    () =>
-      sections.map((_, index) =>
-        still ? AT_ONCE : { ...REVEAL, delay: index * STAGGER }
-      ),
-    [sections, still]
-  );
+  /**
+   * One value sweeps and every title is a slice of it, rather than each title
+   * holding a delay of its own. A delay has to run out before its title moves
+   * at all, so a pointer in and out faster than the cascade strands whatever
+   * was still waiting; a slice of a value that is always on its way somewhere
+   * cannot be stranded.
+   */
+  const unfold = useMotionValue(0);
+
+  useEffect(() => {
+    const running = animate(unfold, opened ? 1 : 0, still ? AT_ONCE : REVEAL);
+    return () => running.stop();
+  }, [opened, still, unfold]);
+
+  const share = useMemo(() => {
+    const step = sections.length < 2 ? 0 : SPREAD / (sections.length - 1);
+
+    return sections.map((_, index) => ({
+      from: index * step,
+      to: index * step + (1 - SPREAD),
+    }));
+  }, [sections]);
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -65,6 +83,7 @@ export function ReadingRail() {
   );
   const top = useTransform(anchored, (progress) => `${progress * 100}%`);
   const readout = useTransform(anchored, (progress) => progress.toFixed(2));
+  const figure = useTransform(unfold, [0, 1], [1, 0]);
 
   useMotionValueEvent(anchored, 'change', (progress) =>
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
@@ -122,17 +141,16 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
-            opened={opened}
-            reveal={reveals[tick.section ? (order.get(tick.section) ?? 0) : 0]}
+            unfold={unfold}
+            from={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.from ?? 0}
+            to={share[tick.section ? (order.get(tick.section) ?? 0) : 0]?.to ?? 1}
           />
         ))}
 
         {/* Only the figure rides over the ruler; beside a column of titles it
             is clutter, so it goes while the rail is open. */}
         <motion.span
-          style={{ top }}
-          animate={{ opacity: opened ? 0 : 1 }}
-          transition={still ? AT_ONCE : REVEAL}
+          style={{ top, opacity: figure }}
           className="pointer-events-none absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >
           {readout}
