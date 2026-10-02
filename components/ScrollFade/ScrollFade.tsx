@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
 
+import { blurRamp, fadeToBackground } from './gradients';
+
 export interface ScrollFadeProps {
   /** Which edge of the viewport the band clings to. */
   position?: 'top' | 'bottom';
@@ -8,16 +10,6 @@ export interface ScrollFadeProps {
   /** Blur at the edge, ramping to none at the inner side. */
   blur?: string;
 }
-
-// Fades to a transparent *--background* rather than `transparent`, which
-// resolves to rgba(0,0,0,0) and would interpolate through black, drawing a grey
-// band across the gradient. Both ramps stay linear: any hold at the edge reads
-// as a wash over whatever the band covers rather than a fade.
-const fadeToBackground = (direction: string) =>
-  `linear-gradient(${direction}, var(--background) 0%, oklch(from var(--background) l c h / 0) 100%)`;
-
-const blurRamp = (direction: string) =>
-  `linear-gradient(${direction}, black 0%, transparent 100%)`;
 
 /**
  * Dissolves an edge of a scrolling article into the page. Two stacked effects

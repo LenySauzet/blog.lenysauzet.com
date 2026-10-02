@@ -449,6 +449,11 @@ page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws
 
 What the shape forces:
 
+- **The open panel veils the column under it**, with the same two stacked ramps
+  `ScrollFade` uses, which is why `components/ScrollFade/gradients.ts` exists:
+  the mask ramps the blur, the gradient ramps the colour, and the colour fades
+  to a transparent `--background` rather than to `transparent`, which would
+  interpolate through black and draw a grey band.
 - **It appears from `lg` up**, `pointer-fine:lg:block`, which is exactly where its
   reach stops being wider than the gutter. That reach is a 176px strip with no
   paint on it, so below that it lay over the prose unseen and took the clicks:

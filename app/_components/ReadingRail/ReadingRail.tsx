@@ -3,6 +3,7 @@
 import { motion, useMotionValueEvent, useReducedMotion, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { blurRamp, fadeToBackground } from '@/components/ScrollFade';
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ import { Tick } from './Tick';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
+const VEIL_BLUR = '8px';
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
@@ -105,6 +107,28 @@ export function ReadingRail() {
         unfolded ? 'w-80' : 'w-44'
       )}
     >
+      {/* The open panel lies over the column, so the column dissolves under it
+          rather than reading through the titles. */}
+      <motion.div
+        animate={{ opacity: unfolded ? 1 : 0 }}
+        transition={still ? AT_ONCE : FADE}
+        className="pointer-events-none absolute inset-0"
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backdropFilter: `blur(${VEIL_BLUR})`,
+            WebkitBackdropFilter: `blur(${VEIL_BLUR})`,
+            maskImage: blurRamp('to left'),
+            WebkitMaskImage: blurRamp('to left'),
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: fadeToBackground('to left') }}
+        />
+      </motion.div>
+
       <div ref={field} className="relative h-full">
         {ticks.map((tick, index) => (
           <Tick
