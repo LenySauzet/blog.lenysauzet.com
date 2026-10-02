@@ -465,6 +465,10 @@ What the shape forces:
 - **The veil outlasts the titles on the way out**, by a delay on its close
   alone: measured, they are gone at 744ms and it at 911, so the rail empties
   before it lifts rather than under a column that has already come back.
+- **Each title carries a halo in `--background`**, three shadows deep, which
+  lifts it off whatever the veil has not taken. Local contrast around the
+  glyphs is cheaper than asking the veil to cover more, and it follows the
+  theme on its own.
 - **The veil's radius travels, never its layer's opacity.** A blurred layer is
   as good as fully blurred by half opacity, so fading one in arrives at the
   middle in a step and crawls the rest. The radius is a motion value instead,

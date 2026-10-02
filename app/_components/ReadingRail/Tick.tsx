@@ -13,6 +13,11 @@ const PLAIN_WIDTH = 'w-2';
 
 const BLUR = 6;
 
+/** A halo in the page's own colour, which lifts a title off whatever the veil
+    has not taken rather than asking the veil to take more. */
+const HALO =
+  '[text-shadow:0_0_5px_var(--background),0_0_10px_var(--background),0_0_18px_var(--background)]';
+
 /** The reader's place is a tick wearing `--primary`, never a line laid over
     one. A section answers the pointer with its title; a plain tick has none,
     so its mark reaches out instead. */
@@ -47,6 +52,7 @@ function Title({
       // sections answers none of them.
       className={cn(
         'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
+        HALO,
         pointed && '-translate-x-1 text-primary'
       )}
     >
