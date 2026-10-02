@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 /** The boundary crosses the rail at a constant rate, so the titles arrive on an
     even beat; the easing belongs to each title's own fade, not to the order. */
-const SWEEP = { duration: 0.45, ease: 'linear' } as const;
+const SWEEP_SECONDS = 0.45;
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
@@ -38,12 +38,23 @@ export function useCascade(
   const told = useRef(-1);
 
   useEffect(() => {
+    // Only the titles the last pass reached are now wrong, and they are the
+    // ones at the top, so the new pass need travel no further than that. It
+    // keeps the beat and ends as soon as the last wrong title is put right,
+    // rather than walking the rest of the rail to tell it what it already is.
+    const wrong = Math.min(1, (told.current + 1) / count) || 1;
+
     told.current = -1;
     boundary.set(0);
 
-    const sweep = animate(boundary, 1, still ? AT_ONCE : SWEEP);
+    const sweep = animate(boundary, wrong, {
+      duration: still ? 0 : SWEEP_SECONDS * wrong,
+      ease: 'linear',
+      onComplete: () => boundary.set(1),
+    });
+
     return () => sweep.stop();
-  }, [opened, still, boundary, shown]);
+  }, [opened, still, count, boundary, shown]);
 
   useMotionValueEvent(boundary, 'change', (reached) => {
     const place = (index: number) => (count < 2 ? 0 : index / (count - 1));
