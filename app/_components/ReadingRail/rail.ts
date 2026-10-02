@@ -3,7 +3,7 @@ export interface Section {
   /** The heading level, which the length of its tick reports. */
   level: number;
   progress: number;
-  /** Where the column must be for this section to sit at the top. */
+  /** Where the section sits in the column, before the rail's own landing. */
   top: number;
 }
 

@@ -1,35 +1,26 @@
 'use client';
 
-import { motion, useReducedMotion, useTransform } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValueEvent, useReducedMotion, useTransform } from 'motion/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
-import { layOutTicks, tickAt, type Section } from './rail';
+import { layOutTicks, tickAt } from './rail';
+import { Tick } from './Tick';
 import { useSections } from './use-sections';
 
 const SPACING = 14;
-const STAGGER = 0.012;
+const STAGGER = 0.018;
 
-const REVEAL = { duration: 0.18, ease: [0.22, 0.61, 0.36, 1] } as const;
+const REVEAL = { duration: 0.24, ease: [0.22, 0.61, 0.36, 1] } as const;
+const AT_ONCE = { duration: 0 } as const;
 
-/** Length alone carries the heading. The two tones say section or not, and
-    nothing else: one colour at two weights, since the text tiers swap places
-    between the themes and would invert the order in light. */
-const SECTION_WIDTH = 'w-4';
-const SUBSECTION_WIDTH = 'w-3';
-const PLAIN_WIDTH = 'w-2';
-
-/** A section answers the pointer with its title alone. A plain tick has no
-    title to answer with, so the mark itself reaches out, to exactly the length
-    of the reader's own mark: where the two meet, one covers the other instead
-    of showing as two lines at one place. */
-const tickOf = (section: Section | undefined, pointed: boolean) =>
-  section
-    ? cn(section.level === 3 ? SUBSECTION_WIDTH : SECTION_WIDTH, 'bg-muted-foreground')
-    : cn(PLAIN_WIDTH, 'bg-muted-foreground/30', pointed && `${SECTION_WIDTH} bg-foreground`);
+/** Clear of the island, which a heading landing at the very top would sit under.
+    The rail owns this for every level: a heading's own scroll margin is for the
+    anchor links, and counting both put an h2 twice as far down as an h3. */
+const LANDING = 112;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -37,23 +28,35 @@ export function ReadingRail() {
   const [height, setHeight] = useState(0);
   const [opened, setOpened] = useState(false);
   const [pointed, setPointed] = useState<number>();
+  const [reached, setReached] = useState(0);
   const still = useReducedMotion();
 
   useEffect(() => {
     const node = field.current;
     if (!node) return;
 
-    const resized = new ResizeObserver(([entry]) =>
-      setHeight(entry.contentRect.height)
-    );
+    const resized = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
     resized.observe(node);
 
     return () => resized.disconnect();
   }, []);
 
   const count = Math.floor(height / SPACING);
-  const ticks = layOutTicks(count, sections);
-  const order = new Map(sections.map((section, index) => [section, index]));
+  const ticks = useMemo(() => layOutTicks(count, sections), [count, sections]);
+  const order = useMemo(
+    () => new Map(sections.map((section, index) => [section, index])),
+    [sections]
+  );
+
+  // One object per place in the cascade, so a redraw hands each tick the same
+  // transition it had and Motion has no reason to start over.
+  const reveals = useMemo(
+    () =>
+      sections.map((_, index) =>
+        still ? AT_ONCE : { ...REVEAL, delay: index * STAGGER }
+      ),
+    [sections, still]
+  );
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -63,6 +66,13 @@ export function ReadingRail() {
   const top = useTransform(anchored, (progress) => `${progress * 100}%`);
   const readout = useTransform(anchored, (progress) => progress.toFixed(2));
 
+  useMotionValueEvent(anchored, 'change', (progress) =>
+    setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
+  );
+
+  /** Read off the event rather than the state the pointer last set: a click
+      arriving in the same batch as its move would otherwise act on the tick
+      before it. */
   const under = (event: { clientY: number }) => {
     const box = field.current?.getBoundingClientRect();
 
@@ -72,13 +82,13 @@ export function ReadingRail() {
   const go = (event: React.MouseEvent) => {
     const index = under(event);
     const tick = index === undefined ? undefined : ticks[index];
-    if (!tick) return;
-
     const column = scrollColumn();
-    if (!column) return;
+    if (!tick || !column) return;
 
     column.scrollTo({
-      top: tick.section ? tick.section.top : tick.progress * travelOf(column),
+      top: tick.section
+        ? Math.max(0, tick.section.top - LANDING)
+        : tick.progress * travelOf(column),
       behavior: still ? 'auto' : 'smooth',
     });
   };
@@ -106,58 +116,27 @@ export function ReadingRail() {
     >
       <div ref={field} className="relative h-full">
         {ticks.map((tick, index) => (
-          <div
+          <Tick
             key={index}
-            style={{ top: `${tick.progress * 100}%` }}
-            className="absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
-          >
-            {tick.section && (
-              <motion.span
-                initial={false}
-                animate={{
-                  opacity: opened ? 1 : 0,
-                  filter: opened ? 'blur(0px)' : 'blur(6px)',
-                }}
-                transition={
-                  still
-                    ? { duration: 0 }
-                    : { ...REVEAL, delay: (order.get(tick.section) ?? 0) * STAGGER }
-                }
-                // The colour is not transitioned: eased, a quick pass over
-                // several sections answers none of them.
-                className={cn(
-                  'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
-                  pointed === index && '-translate-x-1 text-primary'
-                )}
-              >
-                {tick.section.label}
-              </motion.span>
-            )}
-
-            <span
-              className={cn(
-                'h-px transition-[width] duration-150 motion-reduce:transition-none',
-                tickOf(tick.section, pointed === index)
-              )}
-            />
-          </div>
+            progress={tick.progress}
+            section={tick.section}
+            pointed={pointed === index}
+            reached={reached === index}
+            opened={opened}
+            reveal={reveals[tick.section ? (order.get(tick.section) ?? 0) : 0]}
+          />
         ))}
 
-        <motion.div
+        {/* Only the figure rides over the ruler; beside a column of titles it
+            is clutter, so it goes while the rail is open. */}
+        <motion.span
           style={{ top }}
-          className="pointer-events-none absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
+          animate={{ opacity: opened ? 0 : 1 }}
+          transition={still ? AT_ONCE : REVEAL}
+          className="pointer-events-none absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >
-          {/* The mark stays, since it is where the reader is; the figure goes,
-              since beside a column of titles it is only clutter. */}
-          <motion.span
-            animate={{ opacity: opened ? 0 : 1 }}
-            transition={still ? { duration: 0 } : REVEAL}
-            className="font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
-          >
-            {readout}
-          </motion.span>
-          <span className={cn('h-px bg-primary', SECTION_WIDTH)} />
-        </motion.div>
+          {readout}
+        </motion.span>
       </div>
     </div>
   );

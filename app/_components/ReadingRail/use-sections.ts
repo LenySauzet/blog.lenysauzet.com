@@ -15,10 +15,7 @@ const read = (): Section[] => {
   const origin = column.getBoundingClientRect().top - column.scrollTop;
 
   return headingsOf(column).map((heading) => {
-    // A heading's own scroll margin is where it means to land, so the rail lands
-    // it there too rather than flush against the top.
-    const margin = Number.parseFloat(getComputedStyle(heading).scrollMarginTop) || 0;
-    const top = Math.max(0, heading.getBoundingClientRect().top - origin - margin);
+    const top = Math.max(0, heading.getBoundingClientRect().top - origin);
 
     return {
       label: heading.textContent?.trim() ?? '',
