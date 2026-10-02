@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { blurRamp, EASED, fadeToBackground } from '@/components/ScrollFade';
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
+import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
 import { Tick } from './Tick';
@@ -178,16 +179,20 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // The panel answers nothing itself, so its width never has to move: what
-      // opens the rail is the band at the edge, and what holds it open is that
-      // band or a title. Animating the width instead re-laid the veil and all
-      // fifty ticks on every frame of it. Wide enough for the longest title and
-      // the veil's ramp beyond it, since a title reaching past the panel
-      // reaches past the veil with it.
+      // What opens the rail is the band at its edge; what holds it open is the
+      // whole panel, so the air between two titles is still inside it. Closed,
+      // the panel answers nothing, which is what keeps a pointer merely
+      // crossing the page from opening it, and is why its width never has to
+      // move: animating that re-laid the veil and all fifty ticks on every
+      // frame. It is as wide as the longest title and the air beyond, a title
+      // reaching past the panel reaching past the veil with it.
       style={{ width: cover || undefined }}
-      className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
+      className={cn(
+        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block',
+        unfolded ? 'pointer-events-auto' : 'pointer-events-none'
+      )}
     >
-      <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-20" />
+      <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-28" />
 
       <div className="pointer-events-none absolute inset-0">
         <motion.div
@@ -213,7 +218,6 @@ export function ReadingRail() {
             section={tick.section}
             pointed={pointed === index}
             reached={reached === index}
-            live={unfolded}
             shown={tick.section ? cascade[order.get(tick.section) ?? 0] : undefined}
           />
         ))}

@@ -470,15 +470,12 @@ What the shape forces:
   middle in a step and crawls the rest. The radius is a motion value instead,
   and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
   frame it is mounted even at no radius at all.
-- **The panel answers nothing; a band at its edge and the title rows do.** The
-  panel is `pointer-events-none`, so it can stay the width it needs without ever
-  lying in the page's way: a point inside it hits the article, not the rail. The
-  band is 48px to `lg` and 80 after, and it alone opens the rail, one wide enough
-  to meet a long title opening it on a pointer that was only crossing the page.
-  Open, the rows answer too, so a title holds it; closed they are inert. A grace
-  before closing carries the pointer from one title to the next across the air
-  between them. Below `md` the gutter is 16px, which is no target at all, so
-  there is no rail.
+- **A band at the edge opens it; the whole panel holds it.** Closed, the panel
+  is `pointer-events-none`, so a point inside it hits the article and a pointer
+  merely crossing the page cannot open the rail. Only the band can, 48px to `lg`
+  and 112 after. Open, the panel answers, so the air between two titles is still
+  inside the rail: holding it on the titles alone loses the pointer in the gaps.
+  Below `md` the gutter is 16px, which is no target at all, so there is no rail.
 - **Its width never animates.** It used to, because the panel was the hit area,
   and a width transition re-laid the veil and all fifty ticks on every frame of
   it. Only the veil's radius and the titles move now.

@@ -60,9 +60,6 @@ interface TickProps {
   section?: Section;
   pointed: boolean;
   reached: boolean;
-  /** A row answers the pointer only once the rail is open; closed, the band at
-      the edge is the whole of what can open it. */
-  live: boolean;
   shown?: MotionValue<number>;
 }
 
@@ -73,16 +70,12 @@ export const Tick = memo(function Tick({
   section,
   pointed,
   reached,
-  live,
   shown,
 }: TickProps) {
   return (
     <div
       style={{ top: `${progress * 100}%` }}
-      className={cn(
-        'absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 py-2 pr-5',
-        live ? 'pointer-events-auto' : 'pointer-events-none'
-      )}
+      className="absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 py-2 pr-5"
     >
       {section && shown && (
         <Title label={section.label} shown={shown} pointed={pointed} />
