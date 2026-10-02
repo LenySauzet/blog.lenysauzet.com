@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 import { useIslandStore } from '@/hooks/use-island-store';
@@ -11,7 +12,7 @@ import {
   type KnownPosts,
 } from '@/lib/link-preview';
 
-import { linkPreview, LINK_PREVIEW } from './states/link-preview';
+import { collapsing, linkPreview, LINK_PREVIEW } from './states/link-preview';
 import type { LinkPreview } from '@/lib/link-preview';
 
 const DWELL = 260;
@@ -21,7 +22,13 @@ const anchorOf = (node: EventTarget | null) =>
   node instanceof Element ? node.closest('a[href]') : null;
 
 export function LinkPreviews({ posts }: { posts: KnownPosts }) {
+  const pathname = usePathname();
+
   useEffect(() => {
+    // The index already names every post beside its date, so a card there repeats
+    // what the reader is looking at, over the list it is repeating.
+    if (pathname === '/') return;
+
     let opening: number | undefined;
     let closing: number | undefined;
     let pointed: string | undefined;
@@ -62,13 +69,9 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(opening);
       pointed = undefined;
 
-      // A card collapsing straight back to a pill drags its whole layout
-      // through the move while the island is already wearing the next state's
-      // content. Stepping through the bare pill first leaves the last morph a
-      // change of width at the height the island is about to be anyway.
-      if (shown?.image || shown?.detail) {
-        raise({ icon: shown.icon, label: shown.label });
-      }
+      // Emptied before it collapses, so the layout goes the way every other
+      // state of the island goes rather than being stretched down with the box.
+      if (shown) useIslandStore.getState().present(collapsing);
 
       closing = window.setTimeout(() => {
         shown = undefined;
@@ -114,7 +117,7 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(closing);
       useIslandStore.getState().dismiss(LINK_PREVIEW);
     };
-  }, [posts]);
+  }, [posts, pathname]);
 
   return null;
 }

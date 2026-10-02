@@ -365,10 +365,9 @@ What the shape forces, none of it obvious:
   own and keeps catching what the button no longer does. Opened over the very link
   that raised it, the island would otherwise take the pointer off that link, shrink
   back, hand it over again, and oscillate about three times a second.
-- **A card steps down through the bare pill on its way out.** Collapsing straight
-  back drags the whole card layout through the move while the island already wears
-  the next state's content; stopping at the pill first leaves the last morph a
-  change of width at the height the island is about to be anyway.
+- **A preview empties itself before it collapses**, passing through the resting
+  shape under its own id. A layout left in place is stretched down with the box,
+  where every other state of the island simply goes when its turn ends.
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 
@@ -385,7 +384,9 @@ is what the island shows at once. `app/api/link-preview` then fetches the page a
 the island morphs as that lands. A reader therefore never waits on a request and
 never sees a spinner, and an answer arriving after they have moved on is dropped.
 Internal posts are never asked about: the layout already carries their title and
-description, and their picture is the OG image we generate anyway.
+description, and their picture is the OG image we generate anyway. **The index
+previews nothing at all**, since it names every post beside its date already and
+the card would cover the very list it was repeating.
 
 A provider may also say how to merge what it learns. The default lets the page's
 own title win, but one that read a label out of the path keeps it: GitHub's title

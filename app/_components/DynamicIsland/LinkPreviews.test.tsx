@@ -9,6 +9,9 @@ import { LinkPreviews } from './LinkPreviews';
 import { LINK_PREVIEW } from './states/link-preview';
 import type { IslandContext } from './types';
 
+let pathname = '/posts/anything';
+vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
+
 const answer = vi.hoisted(() => vi.fn<() => Promise<LinkMetadata>>());
 vi.mock('@/lib/link-preview/client', () => ({ askAbout: answer }));
 
@@ -62,6 +65,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.clearAllMocks();
+  pathname = '/posts/anything';
   useIslandStore.setState({ presented: [] });
 });
 
@@ -146,9 +150,9 @@ describe('LinkPreviews', () => {
     expect(shown()).toContain('Said by the page.');
   });
 
-  // A card collapsing straight back drags its layout through the move. Stepping
-  // through the bare pill leaves the last morph a change of width alone.
-  it('steps down to a bare pill before letting the island go', async () => {
+  // Left in place, the layout is stretched down with the box instead of going
+  // the way every other state of the island goes.
+  it('empties itself before it collapses', async () => {
     answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
     const { container } = render(harness());
 
@@ -159,9 +163,20 @@ describe('LinkPreviews', () => {
     leave(link(container, 2));
 
     expect(previewing()).toBe(true);
-    expect(shown()).toBe('A Real Title');
+    expect(shown()).toBe('');
 
     await vi.advanceTimersByTimeAsync(200);
+    expect(previewing()).toBe(false);
+  });
+
+  // It names every post beside its date already, and the card would cover the list.
+  it('says nothing on the index, where the page already says it', async () => {
+    pathname = '/';
+    const { container } = render(harness());
+
+    point(link(container, 2));
+    await vi.advanceTimersByTimeAsync(300);
+
     expect(previewing()).toBe(false);
   });
 
