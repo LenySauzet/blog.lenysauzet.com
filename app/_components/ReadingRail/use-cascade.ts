@@ -15,6 +15,12 @@ const BEAT = 0.0375;
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
+/** How long a whole pass takes, the walk plus the last title's own fade.
+    Exported because anything that should wait for the rail to empty has to
+    wait on the count, not on a number someone picked. */
+export const passDuration = (count: number) =>
+  BEAT * Math.max(0, count - 1) + FADE.duration;
+
 /**
  * A boundary walks the titles and tells each one, once, what to do as it
  * reaches it, so every pass runs top to bottom, a reversal being a new walk

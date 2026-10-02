@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
 import { Tick } from './Tick';
-import { useCascade } from './use-cascade';
+import { passDuration, useCascade } from './use-cascade';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
@@ -228,11 +228,18 @@ export function ReadingRail() {
         ))}
 
         {/* Only the figure rides over the ruler; beside a column of titles it
-            is clutter, so it goes while the rail is open. */}
+            is clutter, so it goes while the rail is open. Coming back it waits
+            for the titles to be gone, which is the cascade's business to say
+            and not a delay of its own choosing: the walk is paced per title,
+            so a long post empties later than a short one. */}
         <motion.span
           style={{ top }}
           animate={{ opacity: unfolded ? 0 : 1 }}
-          transition={still ? AT_ONCE : FADE}
+          transition={
+            still
+              ? AT_ONCE
+              : { ...FADE, delay: unfolded ? 0 : passDuration(sections.length) }
+          }
           className="absolute right-0 -translate-y-1/2 pr-10 font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
         >
           {readout}

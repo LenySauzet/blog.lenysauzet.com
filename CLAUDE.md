@@ -475,8 +475,12 @@ What the shape forces:
   title hanging past the panel, and past the veil with it, with the column
   legible straight through the words.
 - **The veil outlasts the titles on the way out**, by a delay on its close
-  alone: measured, they are gone at 744ms and it at 911, so the rail empties
-  before it lifts rather than under a column that has already come back.
+  alone, and so does the scroll figure, which the titles replace while the
+  rail is open. Neither waits on a number someone picked: the figure waits on
+  `passDuration(count)`, the cascade's own length, because the walk is paced
+  per title and a long post therefore empties later than a short one.
+  Measured on a thirteen-section post: last title gone at 733ms, the figure
+  begins to return at 766 and is back at 999, the veil lifting at 999 with it.
 - **Each title carries a halo in `--background`**, three shadows deep, which
   lifts it off whatever the veil has not taken. Local contrast around the
   glyphs is cheaper than asking the veil to cover more, and it follows the
