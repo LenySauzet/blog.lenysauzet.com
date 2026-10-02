@@ -10,11 +10,17 @@ export interface IslandContext {
   hovered: boolean;
   post: IslandPost | null;
   scrolled: boolean;
+  finished: boolean;
 }
 
 export interface IslandState {
   id: string;
   width?: string;
+  maxWidth?: string;
+  /** The pill's own, in pixels, for a state that is not pill-shaped. */
+  radius?: number;
+  /** A state that reports on something else, and must not answer the pointer. */
+  inert?: boolean;
   when?: (context: IslandContext) => boolean;
   render: (context: IslandContext) => ReactNode;
 }

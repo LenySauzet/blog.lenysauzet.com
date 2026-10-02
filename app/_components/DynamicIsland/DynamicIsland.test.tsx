@@ -7,6 +7,7 @@ import { useIslandStore } from '@/hooks/use-island-store';
 
 import { DynamicIsland } from './DynamicIsland';
 import { announce } from './states/announcement';
+import { linkPreview } from './states/link-preview';
 import type { IslandState } from './types';
 
 let pathname = '/';
@@ -23,10 +24,17 @@ const pastTheGreeting = async () => {
 
 let column: HTMLElement;
 
-const scrollDown = () => {
-  Object.defineProperty(column, 'scrollTop', { value: 400, configurable: true });
+const readTo = (fraction: number) => {
+  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
+  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
+  Object.defineProperty(column, 'scrollTop', {
+    value: Math.round(500 * fraction),
+    configurable: true,
+  });
   fireEvent.scroll(column);
 };
+
+const scrollDown = () => readTo(0.5);
 
 beforeEach(() => {
   column = document.createElement('div');
@@ -103,7 +111,7 @@ describe('DynamicIsland', () => {
     scrollDown();
 
     await user.hover(island());
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    await waitFor(() => expect(island()).toHaveTextContent('for commands'));
 
     await user.unhover(island());
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
@@ -121,7 +129,7 @@ describe('DynamicIsland', () => {
 
     await user.hover(island());
 
-    await waitFor(() => expect(island()).toHaveTextContent('to search'));
+    await waitFor(() => expect(island()).toHaveTextContent('for commands'));
     expect(pill.style.minWidth).toBe('288px');
   });
 
@@ -148,7 +156,7 @@ describe('DynamicIsland', () => {
     await settlesOn('Leny');
 
     await vi.advanceTimersByTimeAsync(2000);
-    await settlesOn('to search');
+    await settlesOn('for commands');
 
     await vi.advanceTimersByTimeAsync(3200);
     await settlesOn('Leny');
@@ -190,6 +198,38 @@ describe('DynamicIsland', () => {
     expect(island()).toHaveClass('transition-[scale]');
     expect(island()).toHaveClass('hover:scale-[1.02]');
     expect(island()).toHaveClass('active:scale-[0.97]');
+  });
+
+  it('invites support once the article runs out', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+    readTo(0.5);
+    await settlesOn('Shades of Halftone');
+
+    act(() => readTo(1));
+
+    await settlesOn('Support me');
+    // What is leaving now fades over the morph, so it goes on a frame of its own.
+    await waitFor(() => expect(island()).not.toHaveTextContent('Shades of Halftone'));
+  });
+
+  // Opened over the very link that raised it, it would take the pointer off that
+  // link, shrink back, hand it over again, and oscillate. The positioner is what
+  // has to go inert: it is a box of its own, and catches what the button does not.
+  it('stops answering the pointer while it is showing someone else\'s link', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+
+    expect(island().parentElement).not.toHaveClass('pointer-events-none');
+
+    act(() =>
+      useIslandStore
+        .getState()
+        .present(linkPreview({ icon: [], label: 'example.com' }))
+    );
+
+    expect(island().parentElement).toHaveClass('pointer-events-none');
   });
 
   it('opens the palette when it is pressed', async () => {

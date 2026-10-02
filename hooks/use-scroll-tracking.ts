@@ -4,10 +4,20 @@ import { motionValue } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+const NEARLY_THERE = 0.98;
+
 export const scrollProgress = motionValue(0);
 
-export function useScrollTracking() {
-  const [scrolled, setScrolled] = useState(false);
+export interface ScrollPosition {
+  atTop: boolean;
+  finished: boolean;
+}
+
+export function useScrollTracking(): ScrollPosition {
+  const [position, setPosition] = useState<ScrollPosition>({
+    atTop: true,
+    finished: false,
+  });
   const pathname = usePathname();
 
   useEffect(() => {
@@ -16,9 +26,19 @@ export function useScrollTracking() {
     const read = () => {
       const travel = column ? column.scrollHeight - column.clientHeight : 0;
       const passed = column?.scrollTop ?? 0;
+      const progress = travel > 0 ? Math.min(1, passed / travel) : 0;
 
-      scrollProgress.set(travel > 0 ? Math.min(1, passed / travel) : 0);
-      setScrolled(passed > 0);
+      const atTop = passed === 0;
+      const finished = progress >= NEARLY_THERE;
+
+      scrollProgress.set(progress);
+      // A fresh object every scroll event would re-render both readers sixty
+      // times a second to tell them nothing had changed.
+      setPosition((previous) =>
+        previous.atTop === atTop && previous.finished === finished
+          ? previous
+          : { atTop, finished }
+      );
     };
 
     column?.addEventListener('scroll', read, { passive: true });
@@ -31,5 +51,5 @@ export function useScrollTracking() {
     };
   }, [pathname]);
 
-  return scrolled;
+  return position;
 }

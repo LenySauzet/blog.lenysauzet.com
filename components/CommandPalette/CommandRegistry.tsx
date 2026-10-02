@@ -21,6 +21,7 @@ export const commandValue = (command: Command) =>
   [command.label, ...(command.keywords ?? [])].join(' ');
 
 interface CommandRegistryProps {
+  recommended: Command[];
   commands: Command[];
   onRun: (command: Command) => void;
   /** cmdk refuses to select a disabled row, so the palette is told to do it. */
@@ -28,13 +29,43 @@ interface CommandRegistryProps {
 }
 
 export function CommandRegistry({
+  recommended,
   commands,
   onRun,
   onPointDisabled,
 }: CommandRegistryProps) {
+  const row = (command: Command) => {
+    const value = commandValue(command);
+
+    return (
+      <CommandItem
+        key={command.id}
+        value={value}
+        disabled={command.disabled}
+        onPointerEnter={command.disabled ? () => onPointDisabled(value) : undefined}
+        onSelect={() => onRun(command)}
+      >
+        <HugeiconsIcon icon={command.icon} strokeWidth={2} />
+        {command.label}
+        {command.hint && (
+          <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
+            {command.hint}
+          </span>
+        )}
+        {command.shortcut && (
+          <CommandShortcut>⌘{keyLabel(command.shortcut)}</CommandShortcut>
+        )}
+      </CommandItem>
+    );
+  };
+
   return (
     <FadingList>
       <CommandEmpty>Nothing matches that.</CommandEmpty>
+
+      {recommended.length > 0 && (
+        <CommandGroup heading="Recommended">{recommended.map(row)}</CommandGroup>
+      )}
 
       {GROUPS.map((group) => {
         const inGroup = commands.filter((command) => command.group === group);
@@ -42,32 +73,7 @@ export function CommandRegistry({
 
         return (
           <CommandGroup key={group} heading={group}>
-            {inGroup.map((command) => {
-              const value = commandValue(command);
-
-              return (
-                <CommandItem
-                  key={command.id}
-                  value={value}
-                  disabled={command.disabled}
-                  onPointerEnter={
-                    command.disabled ? () => onPointDisabled(value) : undefined
-                  }
-                  onSelect={() => onRun(command)}
-                >
-                  <HugeiconsIcon icon={command.icon} strokeWidth={2} />
-                  {command.label}
-                  {command.hint && (
-                    <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
-                      {command.hint}
-                    </span>
-                  )}
-                  {command.shortcut && (
-                    <CommandShortcut>⌘{keyLabel(command.shortcut)}</CommandShortcut>
-                  )}
-                </CommandItem>
-              );
-            })}
+            {inGroup.map(row)}
           </CommandGroup>
         );
       })}

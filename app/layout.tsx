@@ -6,7 +6,8 @@ import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { CommandPalette } from '@/components/CommandPalette';
-import { DynamicIsland } from './_components/DynamicIsland';
+import { getPosts } from '@/lib/post-utils';
+import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
 
 const geistSans = Geist({
   variable: '--font-display',
@@ -47,11 +48,18 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const known = Object.fromEntries(
+    (await getPosts()).map(({ slug, metadata }) => [
+      slug,
+      { title: metadata.shortTitle ?? metadata.title, description: metadata.description },
+    ])
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -65,8 +73,9 @@ export default function RootLayout({
         >
           <TooltipProvider delayDuration={400}>
             <DynamicIsland />
+            <LinkPreviews posts={known} />
             <main className="h-full">{children}</main>
-            <CommandPalette />
+            <CommandPalette slugs={Object.keys(known)} />
           </TooltipProvider>
         </ThemeProvider>
       </body>

@@ -13,10 +13,12 @@ import {
     NewTwitterIcon,
     PaintBoardIcon,
     SearchIcon,
+    ShuffleIcon,
 } from '@hugeicons/core-free-icons'
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
+import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
 
 import type { Command, CommandContext } from './types'
@@ -33,6 +35,20 @@ const RESUME_ROUTE = '/resume'
 /** Copying a link or returning to the top only mean something inside an article. */
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
+const slugOf = ({ pathname }: CommandContext) =>
+    pathname.split('/').filter(Boolean).pop()
+
+const onTheIndex = ({ pathname }: CommandContext) => pathname === '/'
+
+const whileReading = (context: CommandContext) =>
+    onAPost(context) && !context.atTop && !context.finished
+
+const atTheEnd = (context: CommandContext) => onAPost(context) && context.finished
+
+/** Past the top of an article, where a reader has made a move to answer. */
+const underway = (context: CommandContext) =>
+    whileReading(context) || atTheEnd(context)
+
 export const commands: Command[] = [
     {
         id: 'search-posts',
@@ -40,6 +56,7 @@ export const commands: Command[] = [
         icon: SearchIcon,
         group: 'Tools',
         keywords: ['find', 'articles', 'writing'],
+        recommend: (context) => whileReading(context) || onTheIndex(context),
         opens: 'search',
     },
     {
@@ -62,6 +79,7 @@ export const commands: Command[] = [
         keywords: ['url', 'share'],
         shortcut: 'l',
         when: onAPost,
+        recommend: underway,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
             announce('Link copied', CopyLinkIcon)
@@ -74,7 +92,8 @@ export const commands: Command[] = [
         group: 'Tools',
         keywords: ['scroll', 'beginning'],
         shortcut: 'ArrowUp',
-        when: onAPost,
+        when: (context) => onAPost(context) && !context.atTop,
+        recommend: underway,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
         run: () => {
@@ -109,7 +128,20 @@ export const commands: Command[] = [
         icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['index', 'posts'],
+        recommend: underway,
         run: ({ router }) => router.push('/'),
+    },
+    {
+        id: 'random-post',
+        label: 'Read a random post',
+        icon: ShuffleIcon,
+        group: 'Tools',
+        keywords: ['random', 'surprise', 'discover', 'something else'],
+        recommend: (context) => onTheIndex(context) || atTheEnd(context),
+        run: (context) => {
+            const next = pickAnother(context.slugs, slugOf(context))
+            if (next) context.router.push(`/posts/${next}`)
+        },
     },
     {
         id: 'design-system',
@@ -207,6 +239,7 @@ export const commands: Command[] = [
         group: 'Links',
         keywords: ['donate', 'coffee', 'sponsor'],
         hint: 'buymeacoffee.com/lenysauzet',
+        recommend: underway,
         run: openExternally(social.support),
     },
 ]

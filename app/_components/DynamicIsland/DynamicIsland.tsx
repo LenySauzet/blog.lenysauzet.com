@@ -6,10 +6,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
+import { useScrollTracking } from '@/hooks/use-scroll-tracking';
+import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
-import { useScrollTracking } from './scroll';
 import { islandStates } from './states';
 import { hint } from './states/hint';
 import { resting } from './states/resting';
@@ -20,8 +21,8 @@ const INSET = '0.375rem';
 const COMPACT_HEIGHT = '2.75rem';
 const MAX_WIDTH = '19rem';
 
-const MENTIONS_PALETTE_AFTER = 1800;
-const MENTIONS_PALETTE_FOR = 3000;
+const MENTIONS_PALETTE_AFTER = 1400;
+const MENTIONS_PALETTE_FOR = 2400;
 
 const PIXELS_PER_LINE = 16;
 
@@ -50,12 +51,12 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
-  const scrolled = useScrollTracking();
+  const { atTop, finished } = useScrollTracking();
   const still = useReducedMotion();
 
   const context = useMemo<IslandContext>(
-    () => ({ pathname, hovered, post, scrolled }),
-    [pathname, hovered, post, scrolled]
+    () => ({ pathname, hovered, post, scrolled: !atTop, finished }),
+    [pathname, hovered, post, atTop, finished]
   );
 
   useEffect(() => {
@@ -75,7 +76,14 @@ export function DynamicIsland() {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto">
+    <div
+      className={cn(
+        'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
+        // On the positioner, not the button: it is a box of its own and keeps
+        // catching what the button no longer does.
+        state.inert && 'pointer-events-none'
+      )}
+    >
       <button
         type="button"
         aria-label="Open the command palette"
@@ -92,16 +100,16 @@ export function DynamicIsland() {
           layout
           transition={still ? { duration: 0 } : MORPH}
           style={{
-            borderRadius: 999,
+            borderRadius: state.radius ?? 999,
             padding: INSET,
             minHeight: COMPACT_HEIGHT,
             width: state.width,
             minWidth: state.id === hint.id ? widthWhenPointed : undefined,
-            maxWidth: MAX_WIDTH,
+            maxWidth: state.maxWidth ?? MAX_WIDTH,
           }}
           className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
         >
-          <div aria-hidden className="pointer-events-none flex w-full items-center">
+          <div aria-hidden className="pointer-events-none flex w-full items-center text-left">
             <Presentation key={state.id}>{state.render(context)}</Presentation>
           </div>
         </motion.div>
