@@ -4,9 +4,9 @@ import { motionValue } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const NEARLY_THERE = 0.98;
+import { scrollColumn, travelOf } from '@/lib/scroll-column';
 
-export const SCROLL_ROOT = '[data-scroll-root]';
+const NEARLY_THERE = 0.98;
 
 export const scrollProgress = motionValue(0);
 
@@ -23,10 +23,10 @@ export function useScrollTracking(): ScrollPosition {
   const pathname = usePathname();
 
   useEffect(() => {
-    const column = document.querySelector<HTMLElement>(SCROLL_ROOT);
+    const column = scrollColumn();
 
     const read = () => {
-      const travel = column ? column.scrollHeight - column.clientHeight : 0;
+      const travel = column ? travelOf(column) : 0;
       const passed = column?.scrollTop ?? 0;
       const progress = travel > 0 ? Math.min(1, passed / travel) : 0;
 

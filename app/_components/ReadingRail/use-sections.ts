@@ -3,18 +3,18 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { SCROLL_ROOT } from '@/hooks/use-scroll-tracking';
+import { headingsOf, scrollColumn, travelOf } from '@/lib/scroll-column';
 
 import type { Section } from './rail';
 
 const read = (): Section[] => {
-  const column = document.querySelector<HTMLElement>(SCROLL_ROOT);
-  const travel = column ? column.scrollHeight - column.clientHeight : 0;
+  const column = scrollColumn();
+  const travel = column ? travelOf(column) : 0;
   if (!column || travel <= 0) return [];
 
   const top = column.getBoundingClientRect().top - column.scrollTop;
 
-  return [...column.querySelectorAll<HTMLElement>('h2[id]')].map((heading) => ({
+  return headingsOf(column).map((heading) => ({
     id: heading.id,
     label: heading.textContent?.trim() ?? '',
     progress: Math.min(1, (heading.getBoundingClientRect().top - top) / travel),
@@ -39,7 +39,7 @@ export function useSections(): Section[] {
 
     measure();
 
-    const column = document.querySelector<HTMLElement>(SCROLL_ROOT);
+    const column = scrollColumn();
     const resized = new ResizeObserver(measure);
     // The column's own box answers the viewport; its content answers an image
     // or a formula landing late and moving every section below it.
