@@ -11,9 +11,9 @@ import { layOutTicks, tickAt, type Section } from './rail';
 import { useSections } from './use-sections';
 
 const SPACING = 14;
-const STAGGER = 0.025;
+const STAGGER = 0.012;
 
-const REVEAL = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
+const REVEAL = { duration: 0.18, ease: [0.22, 0.61, 0.36, 1] } as const;
 
 /** Length alone carries the heading. The two tones say section or not, and
     nothing else: one colour at two weights, since the text tiers swap places
@@ -23,15 +23,13 @@ const SUBSECTION_WIDTH = 'w-3';
 const PLAIN_WIDTH = 'w-2';
 
 /** A section answers the pointer with its title alone. A plain tick has no
-    title to answer with, so it is the mark itself that reaches out. */
+    title to answer with, so the mark itself reaches out, to exactly the length
+    of the reader's own mark: where the two meet, one covers the other instead
+    of showing as two lines at one place. */
 const tickOf = (section: Section | undefined, pointed: boolean) =>
   section
     ? cn(section.level === 3 ? SUBSECTION_WIDTH : SECTION_WIDTH, 'bg-muted-foreground')
-    : cn(
-        PLAIN_WIDTH,
-        'bg-muted-foreground/30',
-        pointed && 'w-5 bg-foreground'
-      );
+    : cn(PLAIN_WIDTH, 'bg-muted-foreground/30', pointed && `${SECTION_WIDTH} bg-foreground`);
 
 export function ReadingRail() {
   const sections = useSections();
@@ -102,7 +100,7 @@ export function ReadingRail() {
       // Over ScrollFade, which would otherwise wash out its foot, and under
       // the island.
       className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-300 pointer-fine:block motion-reduce:transition-none',
+        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 pointer-fine:block motion-reduce:transition-none',
         opened ? 'w-80' : 'w-44'
       )}
     >
