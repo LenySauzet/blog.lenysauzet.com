@@ -1,8 +1,10 @@
 export interface Section {
-  id: string;
   label: string;
-  /** Where the reader is when this section reaches the top. */
+  /** The heading level, which the length of its tick reports. */
+  level: number;
   progress: number;
+  /** Where the column must be for this section to sit at the top. */
+  top: number;
 }
 
 export interface Tick {

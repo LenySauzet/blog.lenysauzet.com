@@ -7,7 +7,7 @@ export const travelOf = (column: HTMLElement) =>
   column.scrollHeight - column.clientHeight;
 
 export const headingsOf = (column: HTMLElement) =>
-  [...column.querySelectorAll<HTMLElement>('h2[id]')];
+  [...column.querySelectorAll<HTMLElement>('h2, h3')];
 
 const PIXELS_PER_LINE = 16;
 

@@ -2,14 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { layOutTicks, tickAt, type Section } from './rail';
 
-const section = (id: string, progress: number): Section => ({
-  id,
-  label: id.toUpperCase(),
+const section = (label: string, progress: number): Section => ({
+  label,
+  level: 2,
   progress,
+  top: progress * 1000,
 });
 
 const marked = (ticks: ReturnType<typeof layOutTicks>) =>
-  ticks.flatMap((tick, index) => (tick.section ? [[index, tick.section.id]] : []));
+  ticks.flatMap((tick, index) => (tick.section ? [[index, tick.section.label]] : []));
 
 describe('tickAt', () => {
   it('finds the tick nearest a position', () => {

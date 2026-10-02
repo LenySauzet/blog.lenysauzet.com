@@ -12,30 +12,39 @@ const read = (): Section[] => {
   const travel = column ? travelOf(column) : 0;
   if (!column || travel <= 0) return [];
 
-  const top = column.getBoundingClientRect().top - column.scrollTop;
+  const origin = column.getBoundingClientRect().top - column.scrollTop;
 
-  return headingsOf(column).map((heading) => ({
-    id: heading.id,
-    label: heading.textContent?.trim() ?? '',
-    progress: Math.min(1, (heading.getBoundingClientRect().top - top) / travel),
-  }));
+  return headingsOf(column).map((heading) => {
+    // A heading's own scroll margin is where it means to land, so the rail lands
+    // it there too rather than flush against the top.
+    const margin = Number.parseFloat(getComputedStyle(heading).scrollMarginTop) || 0;
+    const top = Math.max(0, heading.getBoundingClientRect().top - origin - margin);
+
+    return {
+      label: heading.textContent?.trim() ?? '',
+      level: Number(heading.tagName.slice(1)),
+      progress: Math.min(1, top / travel),
+      top,
+    };
+  });
 };
 
 const same = (a: Section[], b: Section[]) =>
   a.length === b.length &&
-  a.every((section, index) => section.id === b[index].id && section.progress === b[index].progress);
+  a.every((section, index) => section.top === b[index].top && section.label === b[index].label);
 
 /** Measured rather than built: the rail needs where a section sits, and the
-    headings carry their own titles and ids already. */
+    headings carry their own titles already. */
 export function useSections(): Section[] {
   const [sections, setSections] = useState<Section[]>([]);
   const pathname = usePathname();
 
   useEffect(() => {
-    const measure = () => setSections((held) => {
-      const found = read();
-      return same(held, found) ? held : found;
-    });
+    const measure = () =>
+      setSections((held) => {
+        const found = read();
+        return same(held, found) ? held : found;
+      });
 
     measure();
 

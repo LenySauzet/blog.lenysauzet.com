@@ -7,13 +7,24 @@ import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
-import { layOutTicks, tickAt } from './rail';
+import { layOutTicks, tickAt, type Section } from './rail';
 import { useSections } from './use-sections';
 
 const SPACING = 14;
 const STAGGER = 0.025;
 
 const REVEAL = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
+
+/** One colour at three weights rather than three tokens: the text tiers swap
+    places between the themes, which would invert the ruler's own hierarchy. */
+const TICK = {
+  plain: 'w-2 bg-muted-foreground/30',
+  3: 'w-3 bg-muted-foreground/60',
+  2: 'w-4 bg-muted-foreground',
+} as const;
+
+const lengthOf = (section?: Section) =>
+  section ? (TICK[section.level === 3 ? 3 : 2] ?? TICK[2]) : TICK.plain;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -37,7 +48,7 @@ export function ReadingRail() {
 
   const count = Math.floor(height / SPACING);
   const ticks = layOutTicks(count, sections);
-  const order = new Map(sections.map((section, index) => [section.id, index]));
+  const order = new Map(sections.map((section, index) => [section, index]));
 
   // The ticks are the anchors, so the mark rests on one rather than sliding
   // between them: the reader scrolls a little and it steps.
@@ -58,13 +69,13 @@ export function ReadingRail() {
     const tick = index === undefined ? undefined : ticks[index];
     if (!tick) return;
 
-    const behavior = still ? 'auto' : 'smooth';
-    const heading = tick.section && document.getElementById(tick.section.id);
-
-    if (heading) return heading.scrollIntoView({ behavior, block: 'start' });
-
     const column = scrollColumn();
-    column?.scrollTo({ top: tick.progress * travelOf(column), behavior });
+    if (!column) return;
+
+    column.scrollTo({
+      top: tick.section ? tick.section.top : tick.progress * travelOf(column),
+      behavior: still ? 'auto' : 'smooth',
+    });
   };
 
   return (
@@ -105,11 +116,12 @@ export function ReadingRail() {
                 transition={
                   still
                     ? { duration: 0 }
-                    : { ...REVEAL, delay: (order.get(tick.section.id) ?? 0) * STAGGER }
+                    : { ...REVEAL, delay: (order.get(tick.section) ?? 0) * STAGGER }
                 }
                 className={cn(
                   'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap uppercase transition-[color,translate] duration-200 motion-reduce:transition-none',
-                  pointed === index ? '-translate-x-1 text-primary' : 'text-foreground'
+                  tick.section.level === 3 ? 'text-muted-foreground' : 'text-foreground',
+                  pointed === index && '-translate-x-1 text-primary'
                 )}
               >
                 {tick.section.label}
@@ -119,15 +131,19 @@ export function ReadingRail() {
             <span
               className={cn(
                 'h-px transition-colors duration-200 motion-reduce:transition-none',
-                tick.section ? 'w-4 bg-muted-foreground' : 'w-2 bg-subtle-foreground',
+                lengthOf(tick.section),
                 pointed === index && 'bg-foreground'
               )}
             />
           </div>
         ))}
 
+        {/* The sections are what the reader came to the rail for; the mark would
+            only compete with them. */}
         <motion.div
           style={{ top }}
+          animate={{ opacity: opened ? 0 : 1 }}
+          transition={still ? { duration: 0 } : REVEAL}
           className="pointer-events-none absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
         >
           <motion.span className="font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums">
