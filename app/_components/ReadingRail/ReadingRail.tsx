@@ -41,8 +41,12 @@ const AT_ONCE = { duration: 0 } as const;
 /** The titles leave on their own cascade, so the veil waits for them. */
 const EXIT_DELAY = 0.45;
 
-/** Crossing from one title to the next is not a departure. */
-const GRACE = 280;
+/**
+ * Forgives a wobble at the boundary, and nothing more: the envelope already
+ * carries the pointer from one title to the next, so every millisecond here is
+ * time in which leaving the rail has visibly done nothing.
+ */
+const GRACE = 120;
 
 export function ReadingRail() {
   const sections = useSections();

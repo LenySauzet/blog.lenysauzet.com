@@ -468,7 +468,11 @@ What the shape forces:
 - **Each title carries a halo in `--background`**, three shadows deep, which
   lifts it off whatever the veil has not taken. Local contrast around the
   glyphs is cheaper than asking the veil to cover more, and it follows the
-  theme on its own.
+  theme on its own. **It is invisible above `xl` and that is correct**: the
+  prose column ends at 976 where the longest title starts at 975, so nothing
+  is ever behind them there. It earns its place at the widths where the gutter
+  is tight, 231px of overlap at 820 and 129 at 1024. Judge it there or it
+  looks like dead styling.
 - **The veil's radius travels, never its layer's opacity.** A blurred layer is
   as good as fully blurred by half opacity, so fading one in arrives at the
   middle in a step and crawls the rest. The radius is a motion value instead,
@@ -477,7 +481,9 @@ What the shape forces:
 - **A band at the edge opens it; the envelope of the titles holds it.** Closed,
   the panel is `pointer-events-none`, so a point inside it hits the article and
   a pointer merely crossing the page cannot open the rail. Only the band can,
-  48px to `lg` and 112 after.
+  48px to `lg` and 112 after. The grace before it closes forgives a wobble at
+  the boundary and nothing else, so it is short: every millisecond of it is
+  time in which leaving the rail has visibly done nothing.
 - **Open, how far the rail answers follows the titles**, each tick carrying its
   own title's reach and, between two of them, the greater of the pair. The two
   simple shapes are both wrong and were both tried: the whole panel means
