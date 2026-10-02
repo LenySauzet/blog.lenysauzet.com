@@ -492,6 +492,10 @@ What the shape forces:
   cheaper than asking the veil to cover more, and it follows the theme on its own. It
   does nothing above `xl`, nothing being behind it there; judge it at 820, where 231px
   of column run under the titles.
+- **The rail is `aria-hidden` and holds nothing focusable**, on purpose: it is a second
+  way to reach headings that already carry their own anchors, it exists only under a
+  fine pointer, and a ruler of fifty ticks read aloud is noise. Give it a keyboard path
+  only by giving it something the article does not already offer.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.
