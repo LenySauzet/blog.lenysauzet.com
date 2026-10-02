@@ -37,18 +37,18 @@ const RESUME_ROUTE = '/resume'
 /** Copying a link or returning to the top only mean something inside an article. */
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
-const slugOf = ({ pathname }: CommandContext) => pathname.split('/').pop()
+const slugOf = ({ pathname }: CommandContext) =>
+    pathname.split('/').filter(Boolean).pop()
 
 const onTheIndex = ({ pathname }: CommandContext) => pathname === '/'
 
-/** Underway in an article, which is neither arriving at it nor finishing it. */
 const whileReading = (context: CommandContext) =>
     onAPost(context) && !context.atTop && !context.finished
 
-/** The reader has run out of article, which is when the next move is worth naming. */
 const atTheEnd = (context: CommandContext) => onAPost(context) && context.finished
 
-const inAnArticle = (context: CommandContext) =>
+/** Past the top of an article, where a reader has made a move to answer. */
+const underway = (context: CommandContext) =>
     whileReading(context) || atTheEnd(context)
 
 export const commands: Command[] = [
@@ -81,7 +81,7 @@ export const commands: Command[] = [
         keywords: ['url', 'share'],
         shortcut: 'l',
         when: onAPost,
-        recommend: inAnArticle,
+        recommend: underway,
         run: async () => {
             await navigator.clipboard.writeText(window.location.href)
             announce('Link copied', CopyLinkIcon)
@@ -95,7 +95,7 @@ export const commands: Command[] = [
         keywords: ['scroll', 'beginning'],
         shortcut: 'ArrowUp',
         when: (context) => onAPost(context) && !context.atTop,
-        recommend: inAnArticle,
+        recommend: underway,
         // `body` is fixed and each column owns its overflow, so the window never
         // scrolls: whichever column is marked is the thing that has to move.
         run: () => {
@@ -130,7 +130,7 @@ export const commands: Command[] = [
         icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['index', 'posts'],
-        recommend: inAnArticle,
+        recommend: underway,
         run: ({ router }) => router.push('/'),
     },
     {
@@ -244,7 +244,7 @@ export const commands: Command[] = [
         group: 'Links',
         keywords: ['donate', 'coffee', 'sponsor'],
         hint: 'buymeacoffee.com/lenysauzet',
-        recommend: inAnArticle,
+        recommend: underway,
         run: openExternally(social.support),
     },
 ]

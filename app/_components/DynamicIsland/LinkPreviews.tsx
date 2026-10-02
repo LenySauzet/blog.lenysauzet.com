@@ -10,10 +10,10 @@ import {
   resolveLinkPreview,
   worthAsking,
   type KnownPosts,
+  type LinkPreview,
 } from '@/lib/link-preview';
 
 import { collapsing, linkPreview, LINK_PREVIEW } from './states/link-preview';
-import type { LinkPreview } from '@/lib/link-preview';
 
 const DWELL = 260;
 
@@ -27,8 +27,6 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // The index already names every post beside its date, so a card there repeats
-    // what the reader is looking at, over the list it is repeating.
     if (pathname === '/') return;
 
     let opening: number | undefined;
@@ -46,23 +44,18 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(opening);
       pointed = href;
 
-      // Asked for at once and shown after the wait, so the answer is often already
-      // in hand by the time the island opens at all.
+      // Asked for at once and shown after the wait, so the answer is often in
+      // hand by the time the island opens at all.
       const asked = worthAsking(href) ? askAbout(href) : undefined;
 
       opening = window.setTimeout(() => {
         raise(preview);
-
-        // The island keeps what the URL alone said until the page answers, and
-        // keeps it for good if the answer lands after the reader has moved on.
         asked?.then((metadata) => {
           if (pointed === href) raise(enrich(href, preview, metadata));
         });
       }, DWELL);
     };
 
-    // Left to run out, the grace period is what carries the island from one link
-    // to the next without dropping back to what it was showing in between.
     const hide = () => {
       window.clearTimeout(opening);
       pointed = undefined;

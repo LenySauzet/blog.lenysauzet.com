@@ -13,17 +13,14 @@ import type { KnownPosts, LinkMetadata, LinkPreview } from './types';
 
 interface Provider {
   matches: (url: URL) => boolean;
-  preview: (url: URL) => LinkPreview | undefined;
-  /** Where the page's own words go when they arrive. */
+  preview: (url: URL) => LinkPreview;
   merge?: (preview: LinkPreview, metadata: LinkMetadata) => LinkPreview;
 }
 
 const segments = (url: URL) => url.pathname.split('/').filter(Boolean);
 
-/**
- * For a provider whose label was read out of the path: their own title is either
- * a repeat of it or, on a page their reader builds, no title at all.
- */
+/** Their own title either repeats the path or, on a page built in the reader's
+    browser, is the name of the app. */
 const keepsItsLabel = (preview: LinkPreview, { description, image }: LinkMetadata) => ({
   ...preview,
   detail: preview.detail ?? description,
@@ -46,8 +43,7 @@ const providers: Provider[] = [
         icon: YoutubeIcon,
         label: 'YouTube',
         site: 'YouTube',
-        // Derived from the id, so a video has its still before anything is asked.
-        image: id && `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        image: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined,
       };
     },
   },
@@ -57,13 +53,15 @@ const providers: Provider[] = [
       const [owner, repo, kind, number] = segments(url);
       if (!owner) return { icon: Github01Icon, label: 'github.com' };
 
-      const subject =
-        kind === 'issues' ? `Issue #${number}` : kind === 'pull' ? `PR #${number}` : undefined;
-
       return {
         icon: Github01Icon,
         label: repo ? `${owner}/${repo}` : owner,
-        detail: subject,
+        detail:
+          kind === 'issues'
+            ? `Issue #${number}`
+            : kind === 'pull'
+              ? `PR #${number}`
+              : undefined,
         site: 'GitHub',
       };
     },
@@ -92,6 +90,13 @@ const defaultMerge = (preview: LinkPreview, metadata: LinkMetadata): LinkPreview
   site: metadata.site ?? preview.site ?? preview.label,
 });
 
+const BASE = 'https://relative';
+
+const parse = (href: string) =>
+  URL.canParse(href, BASE) ? new URL(href, BASE) : undefined;
+
+const providerFor = (url: URL) => providers.find((provider) => provider.matches(url));
+
 const post = (url: URL, posts: KnownPosts): LinkPreview | undefined => {
   const slug = url.pathname.match(/^\/posts\/([^/]+)/)?.[1];
   const known = slug && posts[slug];
@@ -107,13 +112,9 @@ const post = (url: URL, posts: KnownPosts): LinkPreview | undefined => {
     : undefined;
 };
 
-const parse = (href: string) => (URL.canParse(href, 'https://x') ? new URL(href, 'https://x') : undefined);
+export const worthAsking = (href: string) =>
+  !href.startsWith('#') && !href.startsWith('mailto:') && !isInternalLink(href);
 
-/**
- * Only the destinations a reader cannot already name: a post behind link text
- * that says something else, and whatever site an external link leads to. The
- * site's own pages are left alone, their link text being the whole of it.
- */
 export function resolveLinkPreview(
   href: string,
   posts: KnownPosts
@@ -130,16 +131,12 @@ export function resolveLinkPreview(
   if (isInternalLink(href)) return post(url, posts);
 
   return (
-    providers.find((provider) => provider.matches(url))?.preview(url) ?? {
+    providerFor(url)?.preview(url) ?? {
       icon: getLinkTypeIcon(href).icon ?? Link01Icon,
       label: url.hostname.replace(/^www\./, ''),
     }
   );
 }
-
-/** Whether the island has anything left to learn about this link. */
-export const worthAsking = (href: string) =>
-  !href.startsWith('#') && !href.startsWith('mailto:') && !isInternalLink(href);
 
 export function enrich(
   href: string,
@@ -147,8 +144,6 @@ export function enrich(
   metadata: LinkMetadata
 ): LinkPreview {
   const url = parse(href);
-  const merge =
-    (url && providers.find((provider) => provider.matches(url))?.merge) ?? defaultMerge;
 
-  return merge(preview, metadata);
+  return ((url && providerFor(url)?.merge) ?? defaultMerge)(preview, metadata);
 }

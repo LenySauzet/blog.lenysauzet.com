@@ -79,10 +79,8 @@ export function DynamicIsland() {
     <div
       className={cn(
         'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
-        // Opened over the very link that raised it, the island would take the
-        // pointer off that link, shrink back, hand it over again, and oscillate.
-        // It has to go inert here and not on the button: the positioner is a box
-        // of its own, and would keep catching what the button no longer does.
+        // On the positioner, not the button: it is a box of its own and keeps
+        // catching what the button no longer does.
         state.inert && 'pointer-events-none'
       )}
     >
@@ -111,8 +109,6 @@ export function DynamicIsland() {
           }}
           className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
         >
-          {/* A button centres its text by browser default, which every state
-              laying out more than one line would otherwise have to undo. */}
           <div aria-hidden className="pointer-events-none flex w-full items-center text-left">
             <Presentation key={state.id}>{state.render(context)}</Presentation>
           </div>

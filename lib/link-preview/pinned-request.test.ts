@@ -34,11 +34,8 @@ const read = async (response: NodeJS.ReadableStream) => {
 };
 
 describe('requestPinned', () => {
-  /**
-   * The whole point of the guard: a name is resolved and checked once, and the
-   * socket is then sent to that address rather than resolving the name again,
-   * which a hostile resolver is free to answer differently the second time.
-   */
+  // The whole point of the guard: resolving the name a second time is what a
+  // hostile resolver is free to answer differently.
   it('connects to the address it was given, not to where the name points', async () => {
     const url = new URL(`http://example.com:${port}/preview`);
 

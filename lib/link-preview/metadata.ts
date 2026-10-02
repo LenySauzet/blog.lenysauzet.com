@@ -38,10 +38,8 @@ const decode = (value: string) =>
 const valueOf = (match: RegExpMatchArray | null) =>
   match ? (match[2] ?? match[3] ?? match[4] ?? '') : undefined;
 
-/**
- * Read against the markup rather than a DOM: a route handler has no parser, and
- * pulling one in to read four tags would weigh more than everything it reads.
- */
+/** Read against the markup: a parser pulled in to read four tags would weigh
+    more than everything it reads. */
 export function readMetadata(html: string, base: string): LinkMetadata {
   const tags = new Map<string, string>();
 
@@ -61,8 +59,6 @@ export function readMetadata(html: string, base: string): LinkMetadata {
   return {
     title: first('og:title', 'twitter:title') ?? (titled ? decode(titled) : undefined),
     description: first('og:description', 'twitter:description', 'description'),
-    // Relative on more sites than you would expect, and a bare path is useless
-    // to a browser on our origin.
     image: image && URL.canParse(image, base) ? new URL(image, base).href : undefined,
     site: first('og:site_name'),
   };

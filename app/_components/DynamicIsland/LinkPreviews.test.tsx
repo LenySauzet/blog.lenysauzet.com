@@ -157,8 +157,7 @@ describe('LinkPreviews', () => {
     expect(shown()).toContain('Said by the page.');
   });
 
-  // Handed straight over, a large layout and a small one share the screen and the
-  // collapse stretches both. Emptied first, only the box is left to travel.
+  // Handed straight over, a large layout and a small one share the screen.
   it('empties itself and shrinks before handing the island back', async () => {
     answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
     const { container } = render(harness());

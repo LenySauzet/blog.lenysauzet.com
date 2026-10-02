@@ -10,14 +10,9 @@ const PRIVATE_HOST = /^(localhost|.*\.local|.*\.internal)$/i;
 const isPrivate = (address: string) =>
   address.includes(':') ? PRIVATE_V6.test(address) : PRIVATE_V4.test(address);
 
-/**
- * Returns the address to connect to, which the caller must then pin: resolving a
- * name and handing the *name* on leaves the request free to be sent somewhere
- * else entirely, since a hostile resolver is under no obligation to answer the
- * second lookup the way it answered the first. Checking every address rather
- * than the first is what closes the rest of it, and the check runs again on each
- * redirect.
- */
+/** Returns the address the caller must then pin: handing the name on instead
+    leaves the request free to be sent elsewhere, nothing obliging a hostile
+    resolver to answer the second lookup the way it answered the first. */
 export async function resolvePublicAddress(url: URL): Promise<string | undefined> {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined;
   if (PRIVATE_HOST.test(url.hostname)) return undefined;

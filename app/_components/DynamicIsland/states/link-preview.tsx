@@ -1,11 +1,11 @@
 'use client';
 
-import { HugeiconsIcon } from '@hugeicons/react';
 import { useState } from 'react';
 
 import type { LinkPreview } from '@/lib/link-preview';
 import { cn } from '@/lib/utils';
 
+import { Mark } from '../Mark';
 import type { IslandState } from '../types';
 
 export const LINK_PREVIEW = 'link-preview';
@@ -32,14 +32,7 @@ function Still({ src }: { src: string }) {
   );
 }
 
-/**
- * One layout that gains its parts: a bare domain stays the pill the island
- * already is, and everything learned about a link adds a row to it rather than
- * a shape of its own.
- */
 function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
-  // A site that answers with nothing but its own name would otherwise be printed
-  // twice, once over the other.
   const site = preview.site === preview.label ? undefined : preview.site;
 
   return (
@@ -52,13 +45,7 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
           open ? 'items-start pt-3 pb-1' : 'h-[1.875rem] items-center'
         )}
       >
-        <span className="grid size-[1.875rem] shrink-0 place-items-center rounded-full bg-primary/10">
-          <HugeiconsIcon
-            icon={preview.icon}
-            strokeWidth={2}
-            className="size-4 text-primary"
-          />
-        </span>
+        <Mark icon={preview.icon} />
 
         <div className="min-w-0 flex-1">
           {open && site && (
@@ -78,17 +65,8 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
   );
 }
 
-/**
- * The shape the island passes through between a card and whatever follows it,
- * carrying the preview's own id so the content goes at once and only the box is
- * left to travel. Going straight from one to the other instead puts a large
- * layout and a small one on screen together, and the collapse stretches both.
- *
- * It keeps the corner it is collapsing from: dropped back to the pill's, a box
- * still card-sized rounds into a pebble, and the shape drifts away from the one
- * it is supposed to be leaving. Held instead, it converges on its own, a corner
- * being clamped to half the shorter side once the box is small enough.
- */
+/** Keeps the corner it is collapsing from, which a pill's radius would round
+    into a pebble while the box is still card-sized. */
 export const collapsing = (radius?: number): IslandState => ({
   id: LINK_PREVIEW,
   inert: true,
@@ -96,10 +74,6 @@ export const collapsing = (radius?: number): IslandState => ({
   render: () => <div className="w-20" />,
 });
 
-/**
- * One id whatever it has learned, so the island morphs as the answer lands
- * rather than swapping one state out for another.
- */
 export const linkPreview = (preview: LinkPreview): IslandState => {
   const open = Boolean(preview.image || preview.detail);
 

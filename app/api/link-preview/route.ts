@@ -8,8 +8,6 @@ import type { LinkMetadata } from '@/lib/link-preview/types';
 const UPSTREAM_TIMEOUT_MS = 5000;
 const MAX_REDIRECTS = 3;
 
-// Everything read sits in the head; the rest of a page is of no interest, and a
-// hostile one has no size at all.
 const MAX_BYTES = 256 * 1024;
 
 const A_DAY = 86400;
@@ -28,13 +26,11 @@ const OEMBED: Record<string, string> = {
 const answer = (metadata: LinkMetadata) =>
   Response.json(metadata, {
     headers: {
-      // What a page says about itself moves slowly, and the edge holding it is
-      // what makes the next reader's hover instant.
       'Cache-Control': `public, s-maxage=${A_DAY}, stale-while-revalidate=${A_WEEK}`,
     },
   });
 
-/** Redirects are followed by hand: the address has to be checked on every hop. */
+/** Redirects are walked by hand so the address is checked again on every hop. */
 async function reach(url: URL, accept: string) {
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
     const address = await resolvePublicAddress(url);
@@ -48,9 +44,9 @@ async function reach(url: URL, accept: string) {
     );
 
     const status = response.statusCode ?? 0;
-    const location = response.headers.location;
+    const redirected = status >= 300 && status < 400 && response.headers.location;
 
-    if (status < 300 || status >= 400 || !location) {
+    if (!redirected) {
       if (status >= 200 && status < 300) return { response, url };
 
       response.destroy();
@@ -58,8 +54,8 @@ async function reach(url: URL, accept: string) {
     }
 
     response.destroy();
-    if (!URL.canParse(location, url)) return undefined;
-    url = new URL(location, url);
+    if (!URL.canParse(redirected, url)) return undefined;
+    url = new URL(redirected, url);
   }
 
   return undefined;
@@ -110,11 +106,8 @@ async function viaOembed(
   };
 }
 
-/**
- * Answers in our own shape, so the browser never talks to the target site, and
- * answers an empty object on every failure: the island then keeps what the URL
- * alone told it, which is already a preview.
- */
+/** Answers in our own shape, and an empty one on every failure: the island then
+    keeps what the URL alone told it, which is already a preview. */
 export async function GET(request: Request) {
   const href = new URL(request.url).searchParams.get('url');
   if (!href || !URL.canParse(href)) return answer({});
@@ -122,8 +115,7 @@ export async function GET(request: Request) {
   const target = new URL(href);
 
   try {
-    // Richer than their own tags where it answers at all, and a video they will
-    // not describe this way still has a page that describes itself.
+    // Richer than their own tags, and a video they refuse here still has a page.
     const endpoint = OEMBED[target.hostname];
     const embedded = endpoint && (await viaOembed(endpoint, target));
     if (embedded) return answer(embedded);
@@ -138,8 +130,6 @@ export async function GET(request: Request) {
 
     return answer(readMetadata(await readBounded(reached.response), reached.url.href));
   } catch {
-    // Expected for anything slow, unreachable, or answering something other than
-    // a page. The reader sees the preview the URL alone produced.
     return answer({});
   }
 }
