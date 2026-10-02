@@ -41,23 +41,14 @@ const AT_ONCE = { duration: 0 } as const;
 /** The titles leave on their own cascade, so the veil waits for them. */
 const EXIT_DELAY = 0.45;
 
-/**
- * Forgives a wobble at the boundary, and nothing more: the envelope already
- * carries the pointer from one title to the next, so every millisecond here is
- * time in which leaving the rail has visibly done nothing.
- */
-const GRACE = 120;
-
 export function ReadingRail() {
   const sections = useSections();
   const field = useRef<HTMLDivElement>(null);
-  const leaving = useRef<number>(undefined);
   const [height, setHeight] = useState(0);
   const [opened, setOpened] = useState(false);
   const [pointed, setPointed] = useState<number>();
   const [reached, setReached] = useState(0);
-  const [cover, setCover] = useState(0);
-  const [reach, setReach] = useState<number[]>([]);
+  const [widest, setWidest] = useState(0);
   const still = useReducedMotion();
 
   // Most posts carry no heading, and an empty drawer has no reason to open.
@@ -102,12 +93,11 @@ export function ReadingRail() {
       if (!node) return;
 
       const right = node.getBoundingClientRect().right;
-      const reaches = [...node.querySelectorAll('span.uppercase')].map((title) =>
-        Math.round(right - title.getBoundingClientRect().left)
+      const reaches = [...node.querySelectorAll('span.uppercase')].map(
+        (title) => right - title.getBoundingClientRect().left
       );
 
-      setReach(reaches);
-      setCover(reaches.length ? Math.max(...reaches) + VEIL_MARGIN : 0);
+      setWidest(reaches.length ? Math.round(Math.max(...reaches)) : 0);
     });
 
     return () => cancelAnimationFrame(frame);
@@ -135,34 +125,6 @@ export function ReadingRail() {
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
   );
 
-  /**
-   * How far from the edge the rail still answers, at each tick. A title's own
-   * reach where there is one, and between two of them the greater of the pair,
-   * so the air between neighbours belongs to both. Holding the whole panel
-   * instead means crossing all of it to leave; holding the titles alone loses
-   * the pointer in the two hundred pixels that can separate them.
-   */
-  const held = useMemo(() => {
-    const own = ticks.map((tick) =>
-      tick.section ? (reach[order.get(tick.section) ?? 0] ?? 0) : 0
-    );
-    const bridged = [...own];
-
-    let carried = 0;
-    for (let i = 0; i < own.length; i += 1) {
-      carried = own[i] || carried;
-      bridged[i] = carried;
-    }
-
-    carried = 0;
-    for (let i = own.length - 1; i >= 0; i -= 1) {
-      carried = own[i] || carried;
-      bridged[i] = Math.max(bridged[i], carried);
-    }
-
-    return bridged;
-  }, [ticks, reach, order]);
-
   /** Read off the event rather than the state the pointer last set: a click
       arriving in the same batch as its move would otherwise act on the tick
       before it. */
@@ -186,57 +148,49 @@ export function ReadingRail() {
     });
   };
 
-  const arrive = () => {
-    window.clearTimeout(leaving.current);
-    setOpened(true);
-  };
-
-  const leave = () => {
-    window.clearTimeout(leaving.current);
-    leaving.current = window.setTimeout(() => {
-      setOpened(false);
-      setPointed(undefined);
-    }, GRACE);
-  };
-
   const depart = (event: React.PointerEvent) => {
     const next = event.relatedTarget;
     if (next instanceof Node && event.currentTarget.contains(next)) return;
 
-    leave();
+    setOpened(false);
+    setPointed(undefined);
   };
 
   return (
     <div
       aria-hidden
-      onPointerOver={arrive}
+      onPointerOver={() => setOpened(true)}
       onPointerOut={depart}
       onPointerMove={(event) => {
         const index = under(event);
         setPointed((was) => (was === index ? was : index));
-
-        const edge = event.currentTarget.getBoundingClientRect().right;
-        const beyond = edge - event.clientX;
-
-        if (index !== undefined && beyond > (held[index] ?? 0)) leave();
-        else window.clearTimeout(leaving.current);
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // Closed, the panel answers nothing, so the band at its edge is the only
-      // way in and a pointer crossing the page cannot open the rail. Open, it
-      // takes the pointer in order to report it: how far the rail still
-      // answers is `held`, not this box. Its width never moves either, since
-      // animating it re-laid the veil and all fifty ticks on every frame. It
-      // is as wide as the longest title and the air beyond, a title reaching
-      // past the panel reaching past the veil with it.
-      style={{ width: cover || undefined }}
-      className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block',
-        unfolded ? 'pointer-events-auto' : 'pointer-events-none'
-      )}
+      // The panel itself never answers the pointer: the two boxes below are
+      // the whole of what does, so what the rail reacts to is a shape the
+      // browser hit-tests rather than a threshold read on every move. Its
+      // width never moves either, since animating it re-laid the veil and all
+      // fifty ticks on every frame. It is as wide as the longest title and the
+      // air beyond, a title reaching past the panel reaching past the veil
+      // with it.
+      style={{ width: widest ? widest + VEIL_MARGIN : undefined }}
+      className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
     >
+      {/* The way in, and the only one: a band narrow enough that a pointer
+          crossing the page cannot open the rail. */}
       <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-28" />
+
+      {/* What holds it open, once it is: the reach of the longest title and
+          not a pixel more, so leaving is one straight edge to cross at any
+          height. The veil is wider, being a picture rather than a target. */}
+      <div
+        style={{ width: widest || undefined }}
+        className={cn(
+          'absolute inset-y-0 right-0',
+          unfolded ? 'pointer-events-auto' : 'pointer-events-none'
+        )}
+      />
 
       <div className="pointer-events-none absolute inset-0">
         <motion.div

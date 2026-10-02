@@ -479,18 +479,22 @@ What the shape forces:
   middle in a step and crawls the rest. The radius is a motion value instead,
   and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
   frame it is mounted even at no radius at all.
-- **A band at the edge opens it; the envelope of the titles holds it.** Closed,
-  the panel is `pointer-events-none`, so a point inside it hits the article and
-  a pointer merely crossing the page cannot open the rail. Only the band can,
-  48px to `lg` and 112 after. The grace before it closes forgives a wobble at
-  the boundary and nothing else, so it is short: every millisecond of it is
-  time in which leaving the rail has visibly done nothing.
-- **Open, how far the rail answers follows the titles**, each tick carrying its
-  own title's reach and, between two of them, the greater of the pair. The two
-  simple shapes are both wrong and were both tried: the whole panel means
-  crossing four hundred pixels to leave, and the titles alone lose the pointer
-  in the two hundred that can separate them. Below `md` the gutter is 16px,
-  which is no target at all, so there is no rail.
+- **The panel answers nothing; two boxes inside it do.** A band at the edge is
+  the only way in, 48px to `lg` and 112 after, narrow enough that a pointer
+  crossing the page cannot open the rail. What holds it open, once open, is a
+  second box the width of the longest title and not a pixel more, so leaving
+  is one straight edge to cross at any height. Both are shapes the browser
+  hit-tests: there is no threshold read on every move, and no deferred close
+  to tune, which is what a rectangle buys over the alternatives.
+- **Three shapes were tried before that one**, and the two obvious ones are
+  both wrong: the whole panel means crossing four hundred pixels to leave, and
+  the titles alone lose the pointer in the two hundred that can separate them.
+  An envelope bridging each title to its neighbours works and is what the
+  rectangle replaced, at a per-tick table and a threshold in the move handler.
+  Below `md` the gutter is 16px, which is no target at all, so there is no rail.
+- **The veil is wider than the target, deliberately.** 425px against 305: it is
+  a picture, not a surface to hit, and the air beyond the longest title is what
+  keeps a title from reaching past its own veil.
 - **Its width never animates.** It used to, because the panel was the hit area,
   and a width transition re-laid the veil and all fifty ticks on every frame of
   it. Only the veil's radius and the titles move now.
