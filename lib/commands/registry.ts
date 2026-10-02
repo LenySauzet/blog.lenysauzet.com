@@ -3,6 +3,7 @@ import {
     BlueskyIcon,
     ArrowUp01Icon,
     Coffee01Icon,
+    ColorsIcon,
     CopyLinkIcon,
     Download01Icon,
     ExternalLinkIcon,
@@ -18,6 +19,7 @@ import {
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
+import { HUES } from '@/lib/hues'
 import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
 
@@ -71,6 +73,19 @@ export const commands: Command[] = [
                 setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
             ),
     },
+    /* One per preset, and the one in force withholds itself the way `Go to top`
+       does: the palette offers what would change something. */
+    ...HUES.map(
+        (preset): Command => ({
+            id: `tint-${preset.id}`,
+            label: `Tint ${preset.label.toLowerCase()}`,
+            icon: ColorsIcon,
+            group: 'Tools',
+            keywords: ['hue', 'colour', 'color', 'accent', 'palette', 'theme'],
+            when: ({ hue }) => hue !== preset.id,
+            run: ({ setHue }) => withThemeTransition(() => setHue(preset.id)),
+        })
+    ),
     {
         id: 'copy-link',
         label: 'Copy link to clipboard',

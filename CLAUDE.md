@@ -526,6 +526,30 @@ What the shape forces:
 chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
 The island and the rail both hand it on from there.
 
+**The accent is a reader's choice, out of four presets.** `lib/hues.ts` is the whole
+list; everything else reads it. One command per preset in the palette's registry, and
+the one in force withholds itself through `when`, the way `Go to top` does to a reader
+already at the top: the palette offers what would change something, so no checkmark had
+to be invented and `Command` did not have to grow.
+
+- **Only the hue rotates.** Chroma and lightness are fixed on every token, so a preset
+  is an angle and never a mood: a muted or pastel option is not reachable this way.
+- **The angles were measured, not picked.** `--primary` against white runs 3.16 at the
+  cyans to 4.06 at the magentas, the shipped violet sitting at 3.79, so a green preset
+  would read worse in light mode than the site already does. The presets stay in the
+  two arcs that clear the default, and `hues.test.ts` guards it.
+- **A blocking script paints it before the first frame**, built in `app/layout.tsx`
+  from `HUES` itself so a preset cannot exist there and nowhere else. Left to React the
+  page paints the default and corrects it on hydration, which is a flash of the wrong
+  colour. Measured on a cold load with a preset stored: the right hue at readyState
+  `interactive`, at the first frame, at first contentful paint, in both themes.
+- **The swap goes through `withThemeTransition`**, the same sweep `⌘D` uses, so
+  changing the accent and changing the theme are one gesture rather than two.
+- **Nothing else had to change**, which was the point of the token architecture: the
+  shader follows because `Backdrop` reads the accent every frame, and the syntax
+  highlighting follows because `config/code-theme.ts` emits `var(--shiki-token-*)`
+  rather than literal colours.
+
 **The command palette is a registry, not a component full of items.**
 `lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
 and `components/CommandPalette` only renders it and hands each `run` the page's router

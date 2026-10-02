@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Command, CommandDialog, CommandInput } from '@/components/ui/command';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
+import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
 import { partitionByRecommendation } from '@/lib/commands/recommend';
 import { commands } from '@/lib/commands/registry';
@@ -28,6 +29,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
+  const { hue, setHue } = useHue();
   const { atTop, finished } = useScrollTracking();
 
   const [query, setQuery] = useState('');
@@ -36,8 +38,8 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   const input = useRef<HTMLInputElement>(null);
 
   const context = useMemo(
-    () => ({ router, pathname, setTheme, resolvedTheme, slugs, atTop, finished }),
-    [router, pathname, setTheme, resolvedTheme, slugs, atTop, finished]
+    () => ({ router, pathname, setTheme, resolvedTheme, hue, setHue, slugs, atTop, finished }),
+    [router, pathname, setTheme, resolvedTheme, hue, setHue, slugs, atTop, finished]
   );
   const { recommended, rest } = useMemo(
     () =>

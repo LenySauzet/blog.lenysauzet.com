@@ -11,6 +11,9 @@ export interface CommandContext {
     pathname: string
     setTheme: (theme: string) => void
     resolvedTheme: string | undefined
+    /** The accent preset in force, by id, and the way to change it. */
+    hue: string
+    setHue: (hue: string) => void
     /** Every post that exists, which is what the random one is drawn from. */
   slugs: string[]
   atTop: boolean

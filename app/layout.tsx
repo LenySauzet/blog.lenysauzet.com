@@ -6,6 +6,7 @@ import { CommandPalette } from '@/components/CommandPalette';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
+import { HUES, STORAGE_KEY } from '@/lib/hues';
 import { getPosts } from '@/lib/post-utils';
 
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
@@ -50,6 +51,20 @@ export const viewport: Viewport = {
   ],
 };
 
+/**
+ * Paints the reader's accent before the first frame, the way next-themes does
+ * for the theme class. Left to React, the page would paint the default hue and
+ * correct it on hydration, which is a visible flash of the wrong colour.
+ *
+ * Built from `HUES` rather than written out, so a preset cannot exist here and
+ * nowhere else.
+ */
+const paintHue = `try{var h=${JSON.stringify(
+  Object.fromEntries(HUES.map(({ id, hue }) => [id, hue]))
+)}[localStorage.getItem(${JSON.stringify(
+  STORAGE_KEY
+)})];if(h)document.documentElement.style.setProperty('--base-hue',h)}catch(e){}`;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -67,6 +82,8 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} ${SignatureDecember.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
       >
+        <script dangerouslySetInnerHTML={{ __html: paintHue }} />
+
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
