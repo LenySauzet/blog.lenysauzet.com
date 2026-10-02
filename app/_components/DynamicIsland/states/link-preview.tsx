@@ -83,12 +83,18 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
  * carrying the preview's own id so the content goes at once and only the box is
  * left to travel. Going straight from one to the other instead puts a large
  * layout and a small one on screen together, and the collapse stretches both.
+ *
+ * It keeps the corner it is collapsing from: dropped back to the pill's, a box
+ * still card-sized rounds into a pebble, and the shape drifts away from the one
+ * it is supposed to be leaving. Held instead, it converges on its own, a corner
+ * being clamped to half the shorter side once the box is small enough.
  */
-export const collapsing: IslandState = {
+export const collapsing = (radius?: number): IslandState => ({
   id: LINK_PREVIEW,
   inert: true,
+  radius,
   render: () => <div className="w-20" />,
-};
+});
 
 /**
  * One id whatever it has learned, so the island morphs as the answer lands

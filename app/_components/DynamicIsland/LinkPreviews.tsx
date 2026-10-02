@@ -68,9 +68,10 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       pointed = undefined;
 
       const island = useIslandStore.getState();
-      if (!island.presented.some((state) => state.id === LINK_PREVIEW)) return;
+      const current = island.presented.find((state) => state.id === LINK_PREVIEW);
+      if (!current) return;
 
-      island.present(collapsing);
+      island.present(collapsing(current.radius));
       closing = window.setTimeout(() => island.dismiss(LINK_PREVIEW), COLLAPSE);
     };
 

@@ -372,6 +372,12 @@ What the shape forces, none of it obvious:
   large layout and a small one share the screen and the collapse stretches both.
   Traced leaving a card: empty by 40ms, down to 87x37 by 276ms, the next state at
   285ms, settled at 220x44.
+- **A shape that empties keeps the corner it had.** Dropped back to the pill's
+  radius, a box still card-sized rounds into a pebble and the shape drifts away
+  from the one it is leaving. Held, it converges on its own, a corner being
+  clamped to half the shorter side once the box is small enough, and Motion
+  carries it through the morph as a percentage so the rendered corner never
+  moves: 6.5% of 336 and 11% of 199 are both 22px.
 - **Measure the pill, never the button.** `layout` animates a transform on the
   pill, and a parent's layout box does not see a child's transform: the button's
   rect snaps between the two sizes in a single frame and makes a working morph
