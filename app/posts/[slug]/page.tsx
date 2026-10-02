@@ -63,7 +63,7 @@ export default async function Page({
     const { default: Post, metadata } = await import(`@/content/${slug}.mdx`);
     const minutes = await readingTimeOf(slug);
     return (
-      <article className="flex flex-col gap-8 pt-28 sm:pt-80 px-4">
+      <article className="flex flex-col gap-8 pt-28 sm:pt-56 px-4">
         <AnnouncePost title={metadata.title} shortTitle={metadata.shortTitle} />
         <div className="w-full min-w-0 max-w-2xl mx-auto">
           {/* `Anchor` already owns this: `direction` draws the arrow and slides it
