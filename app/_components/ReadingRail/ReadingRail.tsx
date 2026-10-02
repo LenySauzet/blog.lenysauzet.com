@@ -21,7 +21,10 @@ import { Tick } from './Tick';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
-const VEIL_BLUR = 8;
+const VEIL_BLUR = 14;
+
+/** How much of the panel stays fully covered before the veil starts to ramp. */
+const VEIL_HOLD = 45;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
@@ -121,13 +124,14 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // Only where the gutter is wider than the rail's reach: narrower than
-      // that, its hit area lies over the prose and swallows the links
-      // underneath. Over ScrollFade, which would otherwise wash out its foot,
-      // and under the island.
+      // The reach is cut to the gutter it has, since a strip wider than that
+      // lies over the prose unseen and swallows the links underneath: 48px of
+      // gutter at `md`, 176 by `lg`, and under `md` only 16, which is no
+      // target at all. Over ScrollFade, which would otherwise wash out its
+      // foot, and under the island.
       className={cn(
-        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:lg:block',
-        unfolded ? 'w-80' : 'w-44'
+        'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:md:block',
+        unfolded ? 'w-80' : 'w-10 lg:w-44'
       )}
     >
       {/* The open panel lies over the column, so the column dissolves under it
@@ -138,13 +142,13 @@ export function ReadingRail() {
           style={{
             backdropFilter: backdrop,
             WebkitBackdropFilter: backdrop,
-            maskImage: blurRamp('to left'),
-            WebkitMaskImage: blurRamp('to left'),
+            maskImage: blurRamp('to left', VEIL_HOLD),
+            WebkitMaskImage: blurRamp('to left', VEIL_HOLD),
           }}
         />
         <motion.div
           className="absolute inset-0"
-          style={{ opacity: veil, background: fadeToBackground('to left') }}
+          style={{ opacity: veil, background: fadeToBackground('to left', VEIL_HOLD) }}
         />
       </div>
 

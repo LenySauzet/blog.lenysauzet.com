@@ -459,11 +459,12 @@ What the shape forces:
   middle in a step and crawls the rest. The radius is a motion value instead,
   and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
   frame it is mounted even at no radius at all.
-- **It appears from `lg` up**, `pointer-fine:lg:block`, which is exactly where its
-  reach stops being wider than the gutter. That reach is a 176px strip with no
-  paint on it, so below that it lay over the prose unseen and took the clicks:
-  measured at 820px it covered 102px of the column and two of its links. At 1024
-  the strip ends on the prose's own edge, and the gutter only grows from there.
+- **Its reach is cut to the gutter it has**, which is what the widths are: a
+  strip with no paint on it still takes the clicks of whatever it lies over, and
+  a fixed 176px covered 102px of the column and two of its links at 820. The
+  gutter measures 48px at `md`, 176 by `lg`, and 16 below `md`, which is no
+  target at all, so the rail is `pointer-fine:md:block` and 40px wide until `lg`
+  widens it. Nothing is covered at any width it appears on.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.
