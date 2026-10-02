@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 
 const NEARLY_THERE = 0.98;
 
+export const SCROLL_ROOT = '[data-scroll-root]';
+
 export const scrollProgress = motionValue(0);
 
 export interface ScrollPosition {
@@ -21,7 +23,7 @@ export function useScrollTracking(): ScrollPosition {
   const pathname = usePathname();
 
   useEffect(() => {
-    const column = document.querySelector<HTMLElement>('[data-scroll-root]');
+    const column = document.querySelector<HTMLElement>(SCROLL_ROOT);
 
     const read = () => {
       const travel = column ? column.scrollHeight - column.clientHeight : 0;
