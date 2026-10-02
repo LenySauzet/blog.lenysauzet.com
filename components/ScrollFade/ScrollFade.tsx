@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-import { blurRamp, fadeToBackground } from './gradients';
+import { blurRamp } from './gradients';
 
 export interface ScrollFadeProps {
   /** Which edge of the viewport the band clings to. */
@@ -27,7 +27,10 @@ export default function ScrollFade({
   height = '6rem',
   blur = '4px',
 }: ScrollFadeProps) {
-  // The gradients run from the clinging edge inward, so they flip with it.
+  // The ramp runs from the clinging edge inward, so it flips with it. One ramp
+  // for both layers: they describe the same dissolve, and the colour one is a
+  // flat fill behind it rather than a gradient of alphas, which bands over a
+  // surface of its own colour.
   const direction = position === 'top' ? 'to bottom' : 'to top';
   const mask = blurRamp(direction);
 
@@ -52,8 +55,8 @@ export default function ScrollFade({
         }}
       />
       <div
-        className="absolute inset-0"
-        style={{ background: fadeToBackground(direction) }}
+        className="absolute inset-0 bg-background"
+        style={{ maskImage: mask, WebkitMaskImage: mask }}
       />
     </div>
   );

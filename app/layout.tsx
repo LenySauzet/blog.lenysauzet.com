@@ -1,13 +1,15 @@
-import { ThemeProvider } from '@/components/theme-provider';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { getRootMetadata } from '@/config/site';
 import type { Viewport } from 'next';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
-import './globals.css';
+
 import { CommandPalette } from '@/components/CommandPalette';
+import { ThemeProvider } from '@/components/theme-provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { getRootMetadata } from '@/config/site';
 import { getPosts } from '@/lib/post-utils';
+
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
+import './globals.css';
 
 const geistSans = Geist({
   variable: '--font-display',

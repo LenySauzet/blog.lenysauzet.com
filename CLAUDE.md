@@ -471,9 +471,8 @@ What the shape forces:
   gradient of alphas instead, it is `--background` on `--background` over an empty page
   and should be nothing at all, and it lays down steps of about one part in 255 that
   read as a vertical seam: worst column step 0.97 as a gradient against 0.10 as a mask.
-  **`ScrollFade` still paints its colour ramp as a gradient** and still has this,
-  smaller. A colour ramp written as a gradient must also fade to a transparent
-  `--background` and never to `transparent`, which interpolates through black.
+  `ScrollFade` is built the same way for the same reason, 1.20 against 0.12 across its
+  band, and `gradients.ts` now offers no way to paint a colour ramp at all.
 - **The veil holds at full across less than a third of the panel**, then falls along
   `EASED`. Held as far as the title itself it is a flat slab where a dissolve belongs,
   and the blur carries legibility under a title long before the colour has to. A

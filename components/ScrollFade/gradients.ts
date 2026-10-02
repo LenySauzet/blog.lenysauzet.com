@@ -5,7 +5,14 @@
 const LINEAR = [1, 0];
 export const EASED = [1, 0.92, 0.74, 0.46, 0.2, 0.06, 0];
 
-/** `hold` is the share of the run that stays at full before the ramp begins. */
+/**
+ * `hold` is the share of the run that stays at full before the ramp begins.
+ *
+ * Painted as a mask over a flat fill, never as a gradient of colours: a colour
+ * ramp laid over a surface of its own colour bands where it should be
+ * invisible, by about one part in 255. `transparent` is a second reason, it
+ * resolving to rgba(0,0,0,0) and interpolating through black.
+ */
 const ramp = (hold: number, curve: number[], at: (alpha: number) => string) =>
   curve
     .map((alpha, index) => {
@@ -14,17 +21,6 @@ const ramp = (hold: number, curve: number[], at: (alpha: number) => string) =>
       return `${at(alpha)} ${(hold + (100 - hold) * through).toFixed(2)}%`;
     })
     .join(', ');
-
-/**
- * Fades to a transparent `--background` rather than `transparent`, which
- * resolves to rgba(0,0,0,0) and would interpolate through black, drawing a grey
- * band across the gradient.
- *
- * A colour ramp painted this way bands over a surface of its own colour, so a
- * layer that has to stay invisible there takes `blurRamp` as a mask instead.
- */
-export const fadeToBackground = (direction: string) =>
-  `linear-gradient(${direction}, var(--background) 0%, ${ramp(0, LINEAR, (alpha) => `oklch(from var(--background) l c h / ${alpha})`)})`;
 
 export const blurRamp = (direction: string, hold = 0, curve = LINEAR) =>
   `linear-gradient(${direction}, black 0%, ${ramp(hold, curve, (alpha) => `rgb(0 0 0 / ${alpha})`)})`;
