@@ -15,16 +15,22 @@ const STAGGER = 0.025;
 
 const REVEAL = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 
-/** One colour at three weights rather than three tokens: the text tiers swap
-    places between the themes, which would invert the ruler's own hierarchy. */
-const TICK = {
-  plain: 'w-2 bg-muted-foreground/30',
-  3: 'w-3 bg-muted-foreground/60',
-  2: 'w-4 bg-muted-foreground',
+/** Length alone carries the heading; the whole ruler lengthens once the rail is
+    open. The two tones say section or not, and nothing else: one colour at two
+    weights, since the text tiers swap places between the themes and would
+    invert the order in light. */
+const WIDTH = {
+  closed: { plain: 'w-2', 3: 'w-3', 2: 'w-4' },
+  open: { plain: 'w-3', 3: 'w-4', 2: 'w-5' },
 } as const;
 
-const lengthOf = (section?: Section) =>
-  section ? (TICK[section.level === 3 ? 3 : 2] ?? TICK[2]) : TICK.plain;
+const tickOf = (opened: boolean, section?: Section) => {
+  const width = WIDTH[opened ? 'open' : 'closed'];
+
+  return section
+    ? cn(section.level === 3 ? width[3] : width[2], 'bg-muted-foreground')
+    : cn(width.plain, 'bg-muted-foreground/30');
+};
 
 export function ReadingRail() {
   const sections = useSections();
@@ -118,9 +124,10 @@ export function ReadingRail() {
                     ? { duration: 0 }
                     : { ...REVEAL, delay: (order.get(tick.section) ?? 0) * STAGGER }
                 }
+                // The colour is not transitioned: eased, a quick pass over
+                // several sections answers none of them.
                 className={cn(
-                  'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap uppercase transition-[color,translate] duration-200 motion-reduce:transition-none',
-                  tick.section.level === 3 ? 'text-muted-foreground' : 'text-foreground',
+                  'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
                   pointed === index && '-translate-x-1 text-primary'
                 )}
               >
@@ -130,26 +137,33 @@ export function ReadingRail() {
 
             <span
               className={cn(
-                'h-px transition-colors duration-200 motion-reduce:transition-none',
-                lengthOf(tick.section),
+                'h-px transition-[width] duration-300 motion-reduce:transition-none',
+                tickOf(opened, tick.section),
                 pointed === index && 'bg-foreground'
               )}
             />
           </div>
         ))}
 
-        {/* The sections are what the reader came to the rail for; the mark would
-            only compete with them. */}
         <motion.div
           style={{ top }}
-          animate={{ opacity: opened ? 0 : 1 }}
-          transition={still ? { duration: 0 } : REVEAL}
           className="pointer-events-none absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
         >
-          <motion.span className="font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums">
+          {/* The mark stays, since it is where the reader is; the figure goes,
+              since beside a column of titles it is only clutter. */}
+          <motion.span
+            animate={{ opacity: opened ? 0 : 1 }}
+            transition={still ? { duration: 0 } : REVEAL}
+            className="font-mono text-[0.6875rem] tracking-wider text-primary tabular-nums"
+          >
             {readout}
           </motion.span>
-          <span className="h-px w-4 bg-primary" />
+          <span
+            className={cn(
+              'h-px bg-primary transition-[width] duration-300 motion-reduce:transition-none',
+              opened ? WIDTH.open[2] : WIDTH.closed[2]
+            )}
+          />
         </motion.div>
       </div>
     </div>
