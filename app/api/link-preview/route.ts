@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 
+import { isLinkedFromAPost } from '@/lib/link-preview/allowed-hosts';
 import { readMetadata } from '@/lib/link-preview/metadata';
 import { requestPinned } from '@/lib/link-preview/pinned-request';
 import { resolvePublicAddress } from '@/lib/link-preview/safe-url';
@@ -115,6 +116,8 @@ export async function GET(request: Request) {
   const target = new URL(href);
 
   try {
+    if (!(await isLinkedFromAPost(target.hostname))) return answer({});
+
     // Richer than their own tags, and a video they refuse here still has a page.
     const endpoint = OEMBED[target.hostname];
     const embedded = endpoint && (await viaOembed(endpoint, target));

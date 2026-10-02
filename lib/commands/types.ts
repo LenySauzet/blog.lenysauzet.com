@@ -11,7 +11,9 @@ export interface CommandContext {
     pathname: string
     setTheme: (theme: string) => void
     resolvedTheme: string | undefined
-    atTop: boolean
+    /** Every post that exists, which is what the random one is drawn from. */
+  slugs: string[]
+  atTop: boolean
     finished: boolean
 }
 

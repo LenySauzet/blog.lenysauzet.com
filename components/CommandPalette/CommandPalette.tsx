@@ -23,7 +23,7 @@ const EXIT_MS = 120;
 
 const PLACEHOLDERS: Record<Page, string> = { search: 'Search blog posts...' };
 
-export function CommandPalette() {
+export function CommandPalette({ slugs }: { slugs: string[] }) {
   const { isOpen, setIsOpen } = useCmdkStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -36,8 +36,8 @@ export function CommandPalette() {
   const input = useRef<HTMLInputElement>(null);
 
   const context = useMemo(
-    () => ({ router, pathname, setTheme, resolvedTheme, atTop, finished }),
-    [router, pathname, setTheme, resolvedTheme, atTop, finished]
+    () => ({ router, pathname, setTheme, resolvedTheme, slugs, atTop, finished }),
+    [router, pathname, setTheme, resolvedTheme, slugs, atTop, finished]
   );
   const { recommended, rest } = useMemo(
     () =>

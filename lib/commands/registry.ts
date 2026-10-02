@@ -18,8 +18,6 @@ import {
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
-import { loadSearchIndex } from '@/lib/search/load-index'
-import { searchPosts } from '@/lib/search/query'
 import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
 
@@ -140,11 +138,8 @@ export const commands: Command[] = [
         group: 'Tools',
         keywords: ['random', 'surprise', 'discover', 'something else'],
         recommend: (context) => onTheIndex(context) || atTheEnd(context),
-        run: async (context) => {
-            const index = await loadSearchIndex()
-            const slugs = searchPosts(index, '').map((post) => post.slug)
-            const next = pickAnother(slugs, slugOf(context))
-
+        run: (context) => {
+            const next = pickAnother(context.slugs, slugOf(context))
             if (next) context.router.push(`/posts/${next}`)
         },
     },

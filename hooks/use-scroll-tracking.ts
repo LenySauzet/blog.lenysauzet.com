@@ -28,8 +28,17 @@ export function useScrollTracking(): ScrollPosition {
       const passed = column?.scrollTop ?? 0;
       const progress = travel > 0 ? Math.min(1, passed / travel) : 0;
 
+      const atTop = passed === 0;
+      const finished = progress >= NEARLY_THERE;
+
       scrollProgress.set(progress);
-      setPosition({ atTop: passed === 0, finished: progress >= NEARLY_THERE });
+      // A fresh object every scroll event would re-render both readers sixty
+      // times a second to tell them nothing had changed.
+      setPosition((previous) =>
+        previous.atTop === atTop && previous.finished === finished
+          ? previous
+          : { atTop, finished }
+      );
     };
 
     column?.addEventListener('scroll', read, { passive: true });

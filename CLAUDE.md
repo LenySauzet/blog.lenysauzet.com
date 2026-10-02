@@ -409,11 +409,16 @@ repeats the repository, and Bluesky builds its page in the reader's browser, so
 its title is just the name of the app.
 
 **The route is the only part that can be dangerous**, and it is reachable by
-anyone, not only through a link in a post. Fetching whatever it is handed is a
-request forgery primitive, so `safe-url.ts` checks every address a name resolves
-to rather than the name, redirects are walked by hand so that runs again on each
-hop, the read is bounded and stops at `</head>`, and every failure answers an
-empty object.
+anyone, not only through a link in a post. So it answers only for hosts a post
+actually links to, read off the content once per instance by
+`allowed-hosts.ts`: the set is the whole of what a reader can hover, and
+anything else is refused before a socket is opened. Fetching whatever it is
+handed would otherwise be both a request forgery primitive and someone else's
+crawler running on our bill.
+
+Beyond that, `safe-url.ts` checks every address a name resolves to rather than
+the name, redirects are walked by hand so that runs again on each hop, the read
+is bounded and stops at `</head>`, and every failure answers an empty object.
 
 **Checking the name is not enough, so the address is pinned.** `safe-url.ts`
 hands back the address it approved and `pinned-request.ts` gives the socket that
@@ -475,7 +480,11 @@ nothing, having made no move yet to answer.
 
 What the reader has scrolled is in the context too, which is what lets a command
 withhold itself: `Go to top` is not offered to someone already there.
-`hooks/use-scroll-tracking.ts` owns that reading for both the palette and the island.
+`hooks/use-scroll-tracking.ts` owns that reading for both the palette and the
+island, and **hands back the object it already holds when nothing has moved**: a
+fresh one per scroll event re-renders both of them sixty times a second to say
+nothing changed, which measured 189ms of scripting over 300 frames against 79ms
+once it stopped.
 
 `components/ui/command.tsx` is customized beyond the CLI output twice over: its
 `CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
