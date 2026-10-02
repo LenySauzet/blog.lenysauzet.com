@@ -459,9 +459,10 @@ What the shape forces:
   over the rest along `EASED`. Holding the colour as far as the title itself
   leaves a flat slab where a dissolve belongs, and it is not needed: the blur
   carries legibility under a title long before the colour has to. A straight
-  fall reads as a band with two edges, where a curve reads as a dissolve. A share of a fixed width leaves a long title hanging past the
-  panel, and past the veil with it, with the column legible straight through the
-  words. The veil holds at full to that measurement and ramps over the rest.
+  fall reads as a band with two edges, where a curve reads as a dissolve. The
+  width is measured and never a share of the viewport: a share leaves a long
+  title hanging past the panel, and past the veil with it, with the column
+  legible straight through the words.
 - **The veil outlasts the titles on the way out**, by a delay on its close
   alone: measured, they are gone at 744ms and it at 911, so the rail empties
   before it lifts rather than under a column that has already come back.

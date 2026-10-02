@@ -223,14 +223,13 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // The panel answers nothing: the band at its edge opens the rail and the
-      // rows hold it, which is what keeps leaving a matter of stepping off a
-      // title rather than crossing the width of the panel. The rows are tall
-      // enough to meet their neighbours, so the air between two titles belongs
-      // to one of them. Its width never has to move either: animating that
-      // re-laid the veil and all fifty ticks on every frame. It is as wide as
-      // the longest title and the air beyond, a title reaching past the panel
-      // reaching past the veil with it.
+      // Closed, the panel answers nothing, so the band at its edge is the only
+      // way in and a pointer crossing the page cannot open the rail. Open, it
+      // takes the pointer in order to report it: how far the rail still
+      // answers is `held`, not this box. Its width never moves either, since
+      // animating it re-laid the veil and all fifty ticks on every frame. It
+      // is as wide as the longest title and the air beyond, a title reaching
+      // past the panel reaching past the veil with it.
       style={{ width: cover || undefined }}
       className={cn(
         'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block',
