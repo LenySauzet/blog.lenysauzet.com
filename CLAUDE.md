@@ -454,17 +454,24 @@ What the shape forces:
   the mask ramps the blur, the gradient ramps the colour, and the colour fades
   to a transparent `--background` rather than to `transparent`, which would
   interpolate through black and draw a grey band.
+- **The panel is as wide as its longest title**, measured, plus the run the veil
+  ramps over. A share of a fixed width leaves a long title hanging past the
+  panel, and past the veil with it, with the column legible straight through the
+  words. The veil holds at full to that measurement and ramps over the rest.
+- **The veil outlasts the titles on the way out**, by a delay on its close
+  alone: measured, they are gone at 744ms and it at 911, so the rail empties
+  before it lifts rather than under a column that has already come back.
 - **The veil's radius travels, never its layer's opacity.** A blurred layer is
   as good as fully blurred by half opacity, so fading one in arrives at the
   middle in a step and crawls the rest. The radius is a motion value instead,
   and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
   frame it is mounted even at no radius at all.
-- **Its reach is cut to the gutter it has**, which is what the widths are: a
-  strip with no paint on it still takes the clicks of whatever it lies over, and
-  a fixed 176px covered 102px of the column and two of its links at 820. The
-  gutter measures 48px at `md`, 176 by `lg`, and 16 below `md`, which is no
-  target at all, so the rail is `pointer-fine:md:block` and 40px wide until `lg`
-  widens it. Nothing is covered at any width it appears on.
+- **What opens it is a band at the edge, never the panel's own width.** A strip
+  with no paint on it still takes the clicks of whatever it lies over, and one
+  wide enough to meet a long title opens the rail on a pointer that was only
+  crossing the page. It is 48px to `lg` and 80px after, against a gutter of 48px
+  at `md` and more above, with nothing covered at any width. Below `md` the
+  gutter is 16px, which is no target at all, so there is no rail.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.

@@ -7,8 +7,8 @@
  * dissolving into a page wants none of it, reading as a wash otherwise; a panel
  * covering what is under it wants exactly that wash.
  */
-export const fadeToBackground = (direction: string, hold = 0) =>
-  `linear-gradient(${direction}, var(--background) 0%, var(--background) ${hold}%, oklch(from var(--background) l c h / 0) 100%)`;
+export const fadeToBackground = (direction: string, hold = '0%') =>
+  `linear-gradient(${direction}, var(--background) 0%, var(--background) ${hold}, oklch(from var(--background) l c h / 0) 100%)`;
 
-export const blurRamp = (direction: string, hold = 0) =>
-  `linear-gradient(${direction}, black 0%, black ${hold}%, transparent 100%)`;
+export const blurRamp = (direction: string, hold = '0%') =>
+  `linear-gradient(${direction}, black 0%, black ${hold}, transparent 100%)`;

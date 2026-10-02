@@ -23,8 +23,14 @@ import { LANDING, useSections } from './use-sections';
 const SPACING = 14;
 const VEIL_BLUR = 14;
 
-/** How much of the panel stays fully covered before the veil starts to ramp. */
-const VEIL_HOLD = 45;
+/** Air kept beyond the longest title, before the veil begins to ramp. */
+const VEIL_MARGIN = 28;
+
+/** And the run the veil ramps over, which the panel has to be wide enough for. */
+const VEIL_RAMP = 120;
+
+/** The titles leave on their own cascade, so the veil waits for them. */
+const VEIL_EXIT_DELAY = 0.35;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
@@ -61,11 +67,39 @@ export function ReadingRail() {
   const cascade = useCascade(sections.length, unfolded, Boolean(still));
 
   const veil = useMotionValue(0);
+  const [cover, setCover] = useState(0);
 
   useEffect(() => {
-    const running = animate(veil, unfolded ? 1 : 0, still ? AT_ONCE : VEIL);
+    const running = animate(
+      veil,
+      unfolded ? 1 : 0,
+      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : VEIL_EXIT_DELAY }
+    );
+
     return () => running.stop();
   }, [unfolded, still, veil]);
+
+  // Measured rather than chosen: the veil has to reach past the longest title
+  // there is, and a share of the panel leaves the long ones hanging over the
+  // column with the text still legible under them.
+  useEffect(() => {
+    // After the frame the titles are laid out in, which is the only one where
+    // their widths are worth reading.
+    const frame = requestAnimationFrame(() => {
+      const node = field.current;
+      if (!node) return;
+
+      const right = node.getBoundingClientRect().right;
+      const widest = [...node.querySelectorAll('span')].reduce(
+        (reach, title) => Math.max(reach, right - title.getBoundingClientRect().left),
+        0
+      );
+
+      setCover(widest ? Math.round(widest + VEIL_MARGIN) : 0);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [sections, height]);
 
   // The radius is what travels, not the layer's opacity: a blurred layer is
   // already as good as fully blurred at half opacity, so fading it in jumps.
@@ -124,14 +158,18 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // The reach is cut to the gutter it has, since a strip wider than that
-      // lies over the prose unseen and swallows the links underneath: 48px of
-      // gutter at `md`, 176 by `lg`, and under `md` only 16, which is no
-      // target at all. Over ScrollFade, which would otherwise wash out its
-      // foot, and under the island.
+      // The reach is a narrow band at the edge, never the width of the open
+      // panel: a strip with no paint on it still takes the clicks of whatever
+      // it lies over, and one wide enough to meet a long title opens the rail
+      // on a pointer that was only crossing the page. Under `md` the gutter is
+      // 16px, which is no target at all. Over ScrollFade, which would otherwise
+      // wash out its foot, and under the island.
+      // Wide enough for its longest title and the veil's ramp beyond it, since
+      // a title reaching past the panel reaches past the veil with it.
+      style={{ width: unfolded ? cover + VEIL_RAMP : undefined }}
       className={cn(
         'fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 transition-[width] duration-200 motion-reduce:transition-none pointer-fine:md:block',
-        unfolded ? 'w-80' : 'w-10 lg:w-44'
+        !unfolded && 'w-12 lg:w-20'
       )}
     >
       {/* The open panel lies over the column, so the column dissolves under it
@@ -142,13 +180,13 @@ export function ReadingRail() {
           style={{
             backdropFilter: backdrop,
             WebkitBackdropFilter: backdrop,
-            maskImage: blurRamp('to left', VEIL_HOLD),
-            WebkitMaskImage: blurRamp('to left', VEIL_HOLD),
+            maskImage: blurRamp('to left', `${cover}px`),
+            WebkitMaskImage: blurRamp('to left', `${cover}px`),
           }}
         />
         <motion.div
           className="absolute inset-0"
-          style={{ opacity: veil, background: fadeToBackground('to left', VEIL_HOLD) }}
+          style={{ opacity: veil, background: fadeToBackground('to left', `${cover}px`) }}
         />
       </div>
 
