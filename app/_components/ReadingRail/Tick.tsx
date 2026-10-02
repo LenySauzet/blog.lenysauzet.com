@@ -13,14 +13,13 @@ const PLAIN_WIDTH = 'w-2';
 
 const BLUR = 6;
 
-/** A halo in the page's own colour, which lifts a title off whatever the veil
-    has not taken rather than asking the veil to take more. */
+/** Lifts a title off whatever the veil has not taken. Invisible above `xl`,
+    where nothing passes behind the rail at all. */
 const HALO =
   '[text-shadow:0_0_5px_var(--background),0_0_10px_var(--background),0_0_18px_var(--background)]';
 
 /** The reader's place is a tick wearing `--primary`, never a line laid over
-    one. A section answers the pointer with its title; a plain tick has none,
-    so its mark reaches out instead. */
+    one: two marks at one place cannot stay lined up. */
 const lineOf = (section: Section | undefined, pointed: boolean, reached: boolean) => {
   if (reached) return cn(SECTION_WIDTH, 'bg-primary');
 
@@ -43,13 +42,19 @@ function Title({
   shown: MotionValue<number>;
   pointed: boolean;
 }) {
-  const blurred = useTransform(shown, (value) => `blur(${(1 - value) * BLUR}px)`);
+  // `none` at either end, or every title holds a composited blur layer for the
+  // whole life of the page to draw a radius of zero, or one it cannot be seen
+  // through at an opacity of zero.
+  const blurred = useTransform(shown, (value) =>
+    value <= 0 || value >= 1 ? 'none' : `blur(${(1 - value) * BLUR}px)`
+  );
 
   return (
     <motion.span
+      data-title
       style={{ opacity: shown, filter: blurred }}
-      // The colour is not transitioned: eased, a quick pass over several
-      // sections answers none of them.
+      // Only `translate` transitions. Eased, the colour would answer none of
+      // several sections crossed quickly.
       className={cn(
         'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
         HALO,
@@ -69,8 +74,8 @@ interface TickProps {
   shown?: MotionValue<number>;
 }
 
-/** Memoised because the mark moves as the reader scrolls, and redrawing fifty
-    ticks to light one of them was measurable. */
+/** Memoised: the mark moves as the reader scrolls, and redrawing fifty ticks to
+    light one of them was measurable. */
 export const Tick = memo(function Tick({
   progress,
   section,
@@ -81,7 +86,7 @@ export const Tick = memo(function Tick({
   return (
     <div
       style={{ top: `${progress * 100}%` }}
-      className="absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 py-2 pr-5"
+      className="absolute right-0 flex -translate-y-1/2 items-center justify-end gap-3 pr-5"
     >
       {section && shown && (
         <Title label={section.label} shown={shown} pointed={pointed} />

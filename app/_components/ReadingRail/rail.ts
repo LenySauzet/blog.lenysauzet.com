@@ -13,6 +13,18 @@ export interface Tick {
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
+/** Compares what the rail reads, `progress` included: a shorter viewport
+    leaves every heading where it was and still lengthens the travel under it,
+    so comparing the measurements alone would hold a stale place on the rail. */
+export const sameSections = (a: Section[], b: Section[]) =>
+  a.length === b.length &&
+  a.every(
+    (section, index) =>
+      section.top === b[index].top &&
+      section.label === b[index].label &&
+      section.progress === b[index].progress
+  );
+
 export const tickAt = (count: number, progress: number) =>
   count < 2 ? 0 : Math.round(clamp(progress) * (count - 1));
 

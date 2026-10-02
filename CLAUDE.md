@@ -443,88 +443,65 @@ islands disagreeing.
 ticks against the viewport, the reader's place among them in `--primary`, the sections as
 longer marks, and their titles unfolding on hover. Clicking anywhere travels there.
 
-Four parts, each with one job. `rail.ts` is the geometry and nothing else, so the thing
-worth getting right is testable without a DOM. `use-sections.ts` measures, since only the
-page knows where a heading sits. `use-cascade.ts` choreographs. `Tick.tsx` draws.
+Four parts, each with one job. `rail.ts` is the geometry and the comparison, pure, so what
+is worth getting right is testable without a DOM. `use-sections.ts` measures, since only
+the page knows where a heading sits. `use-cascade.ts` choreographs and owns the pace.
+`Tick.tsx` draws.
 
 What the shape forces:
 
-- **The veil is gone from `xl` up**, where it has nothing left to cover.
-  Measured on this layout: no content passes under the part of the veil that
-  is more than a fifth opaque from 1180 on, and from 1280 a title no longer
-  crosses the column at all (1px, then none). What remained up there was its
-  own quantisation, faint but moving while it animates. Below `xl` it earns
-  its place: 249px of column under the panel at 1024, 311 at 900.
-- **The open panel veils the column under it**, with the ramps
-  `components/ScrollFade/gradients.ts` holds: one ramps the blur, one ramps the
-  colour. A colour ramp written as a gradient must fade to a transparent
-  `--background` rather than to `transparent`, which would interpolate through
-  black and draw a grey band.
-- **The rail's colour layer is a flat fill behind a mask, not a gradient.**
-  Painted as a gradient of alphas it bands: over an empty page the layer is
-  `--background` on `--background` and should be invisible, and instead it laid
-  down steps of about one part in 255 that read as a faint vertical seam.
-  Measured against the page beside it, the worst column-to-column step is 0.97
-  as a gradient and 0.10 as a mask, against 0.03 for the bare page, while what
-  it hides is unchanged: 33.159 against 33.167 over the same text. The blur
-  layer never had the problem, having always carried its ramp as a mask.
-  **`ScrollFade` still paints its colour ramp as a gradient** and so still has
-  this, smaller for being 6rem over a quieter stretch; the same swap fixes it
-  and would want its tests updated with it.
-- **The panel is as wide as its longest title**, measured, plus air beyond it,
-  and the veil holds at full across less than a third of that before falling
-  over the rest along `EASED`. Holding the colour as far as the title itself
-  leaves a flat slab where a dissolve belongs, and it is not needed: the blur
-  carries legibility under a title long before the colour has to. A straight
-  fall reads as a band with two edges, where a curve reads as a dissolve. The
-  width is measured and never a share of the viewport: a share leaves a long
-  title hanging past the panel, and past the veil with it, with the column
-  legible straight through the words.
-- **The veil outlasts the titles on the way out**, by a delay on its close
-  alone, and so does the scroll figure, which the titles replace while the
-  rail is open. Neither waits on a number someone picked: the figure waits on
-  `passDuration(count)`, the cascade's own length, because the walk is paced
-  per title and a long post therefore empties later than a short one.
-  Measured on a thirteen-section post: last title gone at 733ms, the figure
-  begins to return at 766 and is back at 999, the veil lifting at 999 with it.
-- **Each title carries a halo in `--background`**, three shadows deep, which
-  lifts it off whatever the veil has not taken. Local contrast around the
-  glyphs is cheaper than asking the veil to cover more, and it follows the
-  theme on its own. **It is invisible above `xl` and that is correct**: the
-  prose column ends at 976 where the longest title starts at 975, so nothing
-  is ever behind them there. It earns its place at the widths where the gutter
-  is tight, 231px of overlap at 820 and 129 at 1024. Judge it there or it
-  looks like dead styling.
-- **The veil's radius travels, never its layer's opacity.** A blurred layer is
-  as good as fully blurred by half opacity, so fading one in arrives at the
-  middle in a step and crawls the rest. The radius is a motion value instead,
-  and it reads `none` at rest, a backdrop filter re-blurring its backdrop every
-  frame it is mounted even at no radius at all.
-- **The panel answers nothing; two boxes inside it do.** A band at the edge is
-  the only way in, 48px to `lg` and 112 after, narrow enough that a pointer
-  crossing the page cannot open the rail. What holds it open, once open, is a
-  second box the width of the longest title and not a pixel more, so leaving
-  is one straight edge to cross at any height. Both are shapes the browser
-  hit-tests: there is no threshold read on every move, and no deferred close
-  to tune, which is what a rectangle buys over the alternatives.
-- **Three shapes were tried before that one**, and the two obvious ones are
-  both wrong: the whole panel means crossing four hundred pixels to leave, and
-  the titles alone lose the pointer in the two hundred that can separate them.
-  An envelope bridging each title to its neighbours works and is what the
-  rectangle replaced, at a per-tick table and a threshold in the move handler.
-  Below `md` the gutter is 16px, which is no target at all, so there is no rail.
-- **The veil is wider than the target, deliberately.** 425px against 305: it is
-  a picture, not a surface to hit, and the air beyond the longest title is what
-  keeps a title from reaching past its own veil.
-- **Its width never animates.** It used to, because the panel was the hit area,
-  and a width transition re-laid the veil and all fifty ticks on every frame of
-  it. Only the veil's radius and the titles move now.
+- **The panel answers nothing; two boxes inside it do.** A band at the edge is the only
+  way in, 48px to `lg` and 112 after, narrow enough that a pointer crossing the page
+  cannot open the rail. What holds it open is a second box the width of the longest
+  title and not a pixel more, so leaving is one straight edge to cross at any height.
+  Both are shapes the browser hit-tests, which is what spares the rail a threshold read
+  on every move and a deferred close to tune. The two obvious regions are both wrong and
+  were both shipped: the whole panel means crossing four hundred pixels to leave, the
+  titles alone lose the pointer in the two hundred that can separate them.
+- **The panel is wider than that target and never animates.** It is the longest title
+  plus air, measured, because a title reaching past the veil leaves the column legible
+  through the words; a share of the viewport cannot promise that. Animating the width
+  re-laid the veil and all fifty ticks on every frame, which is why the hit area is a
+  box of its own.
+- **The veil only exists below `xl`.** Above it no content passes behind the rail at
+  all, so what was left to see was its own quantisation. Below, it earns the cost:
+  249px of column sit under the panel at 1024, 311 at 900.
+- **Both of its layers carry their ramp as a mask**, from
+  `components/ScrollFade/gradients.ts`, the colour one over a flat fill. Painted as a
+  gradient of alphas instead, it is `--background` on `--background` over an empty page
+  and should be nothing at all, and it lays down steps of about one part in 255 that
+  read as a vertical seam: worst column step 0.97 as a gradient against 0.10 as a mask.
+  **`ScrollFade` still paints its colour ramp as a gradient** and still has this,
+  smaller. A colour ramp written as a gradient must also fade to a transparent
+  `--background` and never to `transparent`, which interpolates through black.
+- **The veil holds at full across less than a third of the panel**, then falls along
+  `EASED`. Held as far as the title itself it is a flat slab where a dissolve belongs,
+  and the blur carries legibility under a title long before the colour has to. A
+  straight fall reads as a band with two edges.
+- **The veil's radius travels, never its layer's opacity.** A blurred layer is as good
+  as fully blurred by half opacity, so fading one in arrives at the middle in a step and
+  crawls the rest. `none` at rest, a backdrop filter re-blurring its backdrop every frame
+  it is mounted even at no radius at all. The titles' own blur is `none` at both ends for
+  the same reason: left at `blur(0)` every one of them holds a composited layer for the
+  life of the page.
+- **Leaving is ordered, and the order is the cascade's to set.** The veil and the scroll
+  figure both wait for the titles, the figure on `passDuration(count)` rather than a
+  figure picked for one post: the walk is paced per title, so thirteen sections empty at
+  750ms and three at 375.
+- **Each title carries a halo in `--background`.** Local contrast at the glyphs is
+  cheaper than asking the veil to cover more, and it follows the theme on its own. It
+  does nothing above `xl`, nothing being behind it there; judge it at 820, where 231px
+  of column run under the titles.
 - **Only the article's own headings count**, which is what `data-prose` on the post's
   prose wrapper is for: a card or a disclosure carries a heading of its own, and a
   widget's title is not a place in the article.
 - **Most posts have no headings at all**, so the rail has to be a ruler without them, and
   its drawer must not open on nothing. Reading a title's state off an array sized by the
-  sections once took every one of those pages down with it, blank.
+  sections once took every one of those pages down with it, blank. The cascade is keyed
+  by section now, so there is no index to get wrong.
+- **A reading is compared on `progress`, not only on where the heading sits.** A shorter
+  viewport leaves every heading where it was and still lengthens the travel under it, so
+  `sameSections` would otherwise hold a stale place on the rail.
 - **The reader's place is a tick, never a line laid over one.** Two marks at one place
   cannot stay lined up, and a tick that is already the mark has nothing to add on hover.
 - **The landing is the rail's alone.** A heading's own `scroll-mt` is for its anchor link;
@@ -538,6 +515,9 @@ What the shape forces:
   boundary walks the titles instead and tells each one once, so a reversal is a new walk
   rather than the old one rewinding, which is what ran it back up the rail. A reversal
   walks only as far as the last pass reached, that being all it can have left wrong.
+- **jsdom can reach none of this.** Its `ResizeObserver` is a stub and every box is zero
+  high, so the rail lays out no tick there at all: a DOM test can only show that the
+  component stands. Anything worth asserting belongs in `rail.ts` or `passDuration`.
 
 `lib/scroll-column.ts` owns the scrolling column: the page does not scroll in `body`, so
 chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.

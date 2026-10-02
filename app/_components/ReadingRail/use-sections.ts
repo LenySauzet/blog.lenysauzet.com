@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { headingsOf, scrollColumn, travelOf } from '@/lib/scroll-column';
 
-import type { Section } from './rail';
+import { sameSections, type Section } from './rail';
 
 /**
  * Clear of the island, and the rail's alone: a heading's own scroll margin is
@@ -34,10 +34,6 @@ const read = (): Section[] => {
   });
 };
 
-const same = (a: Section[], b: Section[]) =>
-  a.length === b.length &&
-  a.every((section, index) => section.top === b[index].top && section.label === b[index].label);
-
 /** Measured rather than built: the rail needs where a section sits, which only
     the page knows. */
 export function useSections(): Section[] {
@@ -48,7 +44,7 @@ export function useSections(): Section[] {
     const measure = () =>
       setSections((held) => {
         const found = read();
-        return same(held, found) ? held : found;
+        return sameSections(held, found) ? held : found;
       });
 
     measure();

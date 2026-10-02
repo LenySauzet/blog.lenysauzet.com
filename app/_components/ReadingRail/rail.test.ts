@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { layOutTicks, tickAt, type Section } from './rail';
+import { layOutTicks, sameSections, tickAt, type Section } from './rail';
 
 const section = (label: string, progress: number): Section => ({
   label,
@@ -76,5 +76,30 @@ describe('layOutTicks', () => {
 
   it('lays out nothing for a rail with no room', () => {
     expect(layOutTicks(0, [section('a', 0.5)])).toEqual([]);
+  });
+});
+
+describe('sameSections', () => {
+  const one = section('one', 0.5);
+
+  it('holds a reading that has not moved', () => {
+    expect(sameSections([one], [section('one', 0.5)])).toBe(true);
+  });
+
+  // A shorter viewport leaves every heading where it was and still lengthens
+  // the travel under it, so the place on the rail moves while the measurement
+  // does not. Compared on `top` alone the rail froze.
+  it('sees a place that moved under a heading that did not', () => {
+    const moved: Section = { ...one, progress: 0.48 };
+
+    expect(moved.top).toBe(one.top);
+    expect(sameSections([one], [moved])).toBe(false);
+  });
+
+  it('sees a heading renamed, moved, added or dropped', () => {
+    expect(sameSections([one], [{ ...one, label: 'other' }])).toBe(false);
+    expect(sameSections([one], [{ ...one, top: 12 }])).toBe(false);
+    expect(sameSections([one], [one, section('two', 0.8)])).toBe(false);
+    expect(sameSections([one], [])).toBe(false);
   });
 });

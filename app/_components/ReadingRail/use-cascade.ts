@@ -9,15 +9,16 @@ import {
 } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 
+import type { Section } from './rail';
+
 /** Seconds from one title to the next, so the beat holds whatever the count. */
 const BEAT = 0.0375;
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-/** How long a whole pass takes, the walk plus the last title's own fade.
-    Exported because anything that should wait for the rail to empty has to
-    wait on the count, not on a number someone picked. */
+/** The walk plus the last title's own fade. Anything waiting for the rail to
+    empty waits on this, the pace being per title. */
 export const passDuration = (count: number) =>
   BEAT * Math.max(0, count - 1) + FADE.duration;
 
@@ -31,17 +32,19 @@ export const passDuration = (count: number) =>
  * have left wrong, then tells the rest at once.
  */
 export function useCascade(
-  count: number,
+  sections: Section[],
   opened: boolean,
   still: boolean
-): MotionValue<number>[] {
+): Map<Section, MotionValue<number>> {
   const shown = useMemo(
-    () => Array.from({ length: count }, () => motionValue(0)),
-    [count]
+    () => new Map(sections.map((section) => [section, motionValue(0)] as const)),
+    [sections]
   );
+  const walk = useMemo(() => [...shown.values()], [shown]);
 
   const boundary = useMotionValue(0);
   const told = useRef(0);
+  const count = walk.length;
 
   useEffect(() => {
     if (!count) return;
@@ -51,18 +54,18 @@ export function useCascade(
     told.current = 0;
     boundary.set(0);
 
-    const walk = animate(boundary, last, {
+    const running = animate(boundary, last, {
       duration: still ? 0 : BEAT * last,
       ease: 'linear',
       onComplete: () => boundary.set(count - 1),
     });
 
-    return () => walk.stop();
+    return () => running.stop();
   }, [opened, still, count, boundary]);
 
   useMotionValueEvent(boundary, 'change', (reached) => {
     while (told.current < count && told.current <= reached) {
-      animate(shown[told.current], opened ? 1 : 0, still ? AT_ONCE : FADE);
+      animate(walk[told.current], opened ? 1 : 0, still ? AT_ONCE : FADE);
       told.current += 1;
     }
   });
