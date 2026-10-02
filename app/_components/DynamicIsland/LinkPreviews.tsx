@@ -12,6 +12,7 @@ import {
 } from '@/lib/link-preview';
 
 import { linkPreview, LINK_PREVIEW } from './states/link-preview';
+import type { LinkPreview } from '@/lib/link-preview';
 
 const DWELL = 260;
 const GRACE = 140;
@@ -24,6 +25,12 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
     let opening: number | undefined;
     let closing: number | undefined;
     let pointed: string | undefined;
+    let shown: LinkPreview | undefined;
+
+    const raise = (preview: LinkPreview) => {
+      shown = preview;
+      useIslandStore.getState().present(linkPreview(preview));
+    };
 
     const show = (anchor: Element) => {
       const href = anchor.getAttribute('href') ?? '';
@@ -39,13 +46,12 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       const asked = worthAsking(href) ? askAbout(href) : undefined;
 
       opening = window.setTimeout(() => {
-        useIslandStore.getState().present(linkPreview(preview));
+        raise(preview);
 
         // The island keeps what the URL alone said until the page answers, and
         // keeps it for good if the answer lands after the reader has moved on.
         asked?.then((metadata) => {
-          if (pointed !== href) return;
-          useIslandStore.getState().present(linkPreview(enrich(href, preview, metadata)));
+          if (pointed === href) raise(enrich(href, preview, metadata));
         });
       }, DWELL);
     };
@@ -55,10 +61,19 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
     const hide = () => {
       window.clearTimeout(opening);
       pointed = undefined;
-      closing = window.setTimeout(
-        () => useIslandStore.getState().dismiss(LINK_PREVIEW),
-        GRACE
-      );
+
+      // A card collapsing straight back to a pill drags its whole layout
+      // through the move while the island is already wearing the next state's
+      // content. Stepping through the bare pill first leaves the last morph a
+      // change of width at the height the island is about to be anyway.
+      if (shown?.image || shown?.detail) {
+        raise({ icon: shown.icon, label: shown.label });
+      }
+
+      closing = window.setTimeout(() => {
+        shown = undefined;
+        useIslandStore.getState().dismiss(LINK_PREVIEW);
+      }, GRACE);
     };
 
     const crossed = (event: PointerEvent | FocusEvent) => {

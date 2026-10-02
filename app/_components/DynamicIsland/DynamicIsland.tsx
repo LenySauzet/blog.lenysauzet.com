@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
+import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
@@ -75,7 +76,16 @@ export function DynamicIsland() {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto">
+    <div
+      className={cn(
+        'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
+        // Opened over the very link that raised it, the island would take the
+        // pointer off that link, shrink back, hand it over again, and oscillate.
+        // It has to go inert here and not on the button: the positioner is a box
+        // of its own, and would keep catching what the button no longer does.
+        state.inert && 'pointer-events-none'
+      )}
+    >
       <button
         type="button"
         aria-label="Open the command palette"

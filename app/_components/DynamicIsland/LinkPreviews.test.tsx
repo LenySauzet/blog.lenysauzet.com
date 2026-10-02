@@ -146,6 +146,25 @@ describe('LinkPreviews', () => {
     expect(shown()).toContain('Said by the page.');
   });
 
+  // A card collapsing straight back drags its layout through the move. Stepping
+  // through the bare pill leaves the last morph a change of width alone.
+  it('steps down to a bare pill before letting the island go', async () => {
+    answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
+    const { container } = render(harness());
+
+    point(link(container, 2));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(shown()).toContain('Said by the page.');
+
+    leave(link(container, 2));
+
+    expect(previewing()).toBe(true);
+    expect(shown()).toBe('A Real Title');
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(previewing()).toBe(false);
+  });
+
   // An answer that lands after the reader has moved on is an island changing by itself.
   it('drops an answer that arrives too late', async () => {
     answer.mockResolvedValue({ title: 'A Real Title' });

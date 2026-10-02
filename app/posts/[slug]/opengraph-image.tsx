@@ -47,12 +47,14 @@ export default async function Image({
       />
 
       <div
-        tw="absolute top-0 left-0 w-full h-full flex items-center justify-center text-6xl"
+        tw="absolute top-0 left-0 w-full h-full flex items-center justify-center px-[130px]"
         style={{
           fontFamily: 'Geist',
         }}
       >
-        {metadata.title}
+        <div tw="text-6xl" style={{ textAlign: 'center' }}>
+          {metadata.title}
+        </div>
       </div>
 
       <div tw="w-full h-full p-[90px] px-[130px] flex">

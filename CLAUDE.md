@@ -360,6 +360,15 @@ What the shape forces, none of it obvious:
   scrolling column is a sibling, so the delta is handed on by hand.
 - **A button centres its text**, so the island's content wrapper undoes it once
   rather than every multi-line state fighting the same browser default.
+- **A state that reports on something else goes `inert`**, and the positioner is
+  what takes `pointer-events-none`, not the button: the positioner is a box of its
+  own and keeps catching what the button no longer does. Opened over the very link
+  that raised it, the island would otherwise take the pointer off that link, shrink
+  back, hand it over again, and oscillate about three times a second.
+- **A card steps down through the bare pill on its way out.** Collapsing straight
+  back drags the whole card layout through the move while the island already wears
+  the next state's content; stopping at the pill first leaves the last morph a
+  change of width at the height the island is about to be anyway.
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 

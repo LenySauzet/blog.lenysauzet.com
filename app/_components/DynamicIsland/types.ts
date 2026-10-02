@@ -19,6 +19,8 @@ export interface IslandState {
   maxWidth?: string;
   /** The pill's own, in pixels, for a state that is not pill-shaped. */
   radius?: number;
+  /** A state that reports on something else, and must not answer the pointer. */
+  inert?: boolean;
   when?: (context: IslandContext) => boolean;
   render: (context: IslandContext) => ReactNode;
 }

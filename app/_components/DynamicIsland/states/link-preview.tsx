@@ -87,6 +87,7 @@ export const linkPreview = (preview: LinkPreview): IslandState => {
 
   return {
     id: LINK_PREVIEW,
+    inert: true,
     width: open ? OPEN_WIDTH : undefined,
     maxWidth: open ? OPEN_WIDTH : undefined,
     radius: open ? OPEN_RADIUS : undefined,

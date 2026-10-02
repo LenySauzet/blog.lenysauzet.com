@@ -7,6 +7,7 @@ import { useIslandStore } from '@/hooks/use-island-store';
 
 import { DynamicIsland } from './DynamicIsland';
 import { announce } from './states/announcement';
+import { linkPreview } from './states/link-preview';
 import type { IslandState } from './types';
 
 let pathname = '/';
@@ -209,6 +210,25 @@ describe('DynamicIsland', () => {
 
     expect(island()).toHaveTextContent('Support me');
     expect(island()).not.toHaveTextContent('Shades of Halftone');
+  });
+
+  // Opened over the very link that raised it, it would take the pointer off that
+  // link, shrink back, hand it over again, and oscillate. The positioner is what
+  // has to go inert: it is a box of its own, and catches what the button does not.
+  it('stops answering the pointer while it is showing someone else\'s link', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+
+    expect(island().parentElement).not.toHaveClass('pointer-events-none');
+
+    act(() =>
+      useIslandStore
+        .getState()
+        .present(linkPreview({ icon: [], label: 'example.com' }))
+    );
+
+    expect(island().parentElement).toHaveClass('pointer-events-none');
   });
 
   it('opens the palette when it is pressed', async () => {
