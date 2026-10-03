@@ -95,6 +95,10 @@ export interface SliderProps
   /** Appended to the readout, e.g. `%` or `px`. */
   unit?: string;
   decimals?: number;
+  /** Drives the slider from outside. Needs `onValueChange` to be able to move. */
+  value?: number;
+  /** Named after the primitive's own, and handed one value rather than a range. */
+  onValueChange?: (value: number) => void;
 }
 
 /**
@@ -114,9 +118,14 @@ export default function Slider({
   decimals = 0,
   disabled,
   className,
+  value: controlled,
+  onValueChange,
   ...props
 }: SliderProps) {
-  const [value, setValue] = useState(defaultValue);
+  // Uncontrolled by default, since most sliders in a post only move themselves.
+  // A figure that draws from the value passes both and owns it instead.
+  const [uncontrolled, setUncontrolled] = useState(defaultValue);
+  const value = controlled ?? uncontrolled;
   // Starts hidden: the grip's position is in measured pixels, so it has none until
   // the track is measured, and the server cannot measure. Its own opacity
   // transition then fades it in where it belongs.
@@ -342,7 +351,10 @@ export default function Slider({
       >
         <SliderRoot
           value={[value]}
-          onValueChange={([next]) => setValue(next)}
+          onValueChange={([next]) => {
+            setUncontrolled(next);
+            onValueChange?.(next);
+          }}
           min={min}
           max={max}
           step={step}

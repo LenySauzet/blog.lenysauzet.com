@@ -226,6 +226,8 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 |---|---|
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
+| `components/Figure` | The frame every visual shares: surface, controls row, caption |
+| `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
@@ -976,6 +978,71 @@ string has moved: `getComputedStyle` measured 8.1us under 6x CPU throttling, and
 runs of one build spread p95 from 9.8 to 10.8 and the worst frame from 13.6 to 110.7,
 so a per-frame read is well under the noise. Reduced motion draws once, so it keeps
 whatever the accent was at mount.
+
+**A visual in an article is one of three things, and the frame is all they share.**
+`components/Figure` holds a surface, a row for whatever drives it, and a caption, and
+**it never knows what it contains**: the moment it starts to, it is the catch-all this
+file spends its length avoiding. On top of it:
+
+- **A chart carries axes**, so it is `components/Chart` on Recharts, through shadcn's
+  `ui/chart.tsx`. `type` picks the plot and the mark together, which is the whole of
+  Recharts' model: `AreaChart` plus `Area`, `BarChart` plus `Bar`.
+- **A drawn figure carries none**, so it is a component in `components/figures/` and no
+  library at all. The scale is a subtraction and a multiply; reach for `d3-scale` when
+  the mapping stops being linear, not before.
+- **A rendered surface** is a canvas, which `Backdrop` already shows how to hold. There
+  is no harness for it yet, and three.js is deliberately not installed: 150KB for a
+  figure that does not exist is how a dependency arrives and never earns itself.
+
+What the shape forces:
+
+- **A decoration goes inside the chart, never beside it.** Recharts v3 exposes
+  `useXAxisScale`, `usePlotArea` and friends to any child, so `figures/SpectrumBand`
+  reads the scales the chart already built and paints into its SVG. It lines up by
+  construction and keeps doing so when the width changes. **It only paints on the
+  client**, `usePlotArea` having nothing to measure on the server, which is fine for a
+  decoration and would not be for the data.
+- **The legend is ours**, for three reasons that turned up at once: Recharts orders it
+  by payload rather than by the series as declared, it sits above anything we put under
+  the plot, and a series a reader can switch off is most of the point on an explanatory
+  chart. The last visible series cannot be hidden, an empty plot reading as a bug.
+  **Its colours are resolved rather than named**: `--color-<key>` is scoped to the chart
+  container by `ChartStyle`, and the legend is outside it, so `var(--color-webgl)` there
+  resolves to nothing and the dots come out blank.
+- **A pie's legend is a key, not a set of toggles.** Switching a slice off changes what
+  the whole is, so the figure would quietly answer a different question than its caption.
+- **The axis labels are ours too.** `XAxis`'s own `label` positions against the plot and
+  lands on top of the tick text at this size. Ours are boxes in the layout, so they
+  cannot collide, and they carry the figure's typography rather than the chart's.
+- **The five chart tokens are shades of one accent**, not five hues, so a sixth series
+  repeats the first. A series may name its own colour, and should **only** when the
+  colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
+  and a wavelength does not follow the reader's theme.
+- **A control in the frame's row stretches.** Flex children shrink to their content by
+  default, which rendered the sampling diagram's slider as a label and a readout jammed
+  together with no bar between them.
+- **`components/Slider` can now be driven**, through `value` and `onValueChange`, and
+  stays uncontrolled without them. Named after the primitive rather than `onChange`,
+  which would shadow the DOM handler of the same name on its root.
+
+**`components/figures/ConfusionMatrix` is a table, not a drawing.** It is tabular data:
+the counts stay selectable, a screen reader reads each with its headers, and it ships no
+JavaScript. **The tint stops at 45% of the accent**, which is what lets every cell keep
+`--foreground`. Inverting the hottest cells to `--primary-foreground` instead was built
+and measured first: white on full `--primary` is 3.79:1 in both themes, and 2.16:1 on a
+half-mixed cell in light. Capped, the fill can never climb far enough to fight the body
+tier, and the scale still reads because the eye compares cells against each other. The
+worst cell now measures 6.85:1 in dark and 10.98:1 in light.
+
+**Measure a `color-mix` through a canvas, never through `getComputedStyle` alone.**
+Chrome hands back `oklab(...)` and `lab(...)`, so a contrast check that parses the
+string for three numbers reads the wrong components and invents a failure: the first
+run of the above reported every cell under 4.5 and seven different tints as the same
+2.51. Paint the colour into a 1x1 canvas and read the pixel.
+
+**`bunx shadcn@latest add chart` pulls `cn` from npm** and imports from it, where every
+other primitive here takes `cn` from `@/lib/utils`. Repoint the import and remove the
+package.
 
 ## New component checklist
 

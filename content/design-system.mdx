@@ -237,6 +237,144 @@ $$
 A footnote reference marks a spot in the text <FootnoteRef id="1" />, and the
 list at the end resolves it — the reference and the entry link to each other.
 
+export const frameTimes = [
+  { size: '256', webgl: 1.4, canvas: 4.1 },
+  { size: '512', webgl: 2.1, canvas: 6.8 },
+  { size: '1024', webgl: 3.8, canvas: 11.2 },
+  { size: '2048', webgl: 7.2, canvas: 18.5 },
+  { size: '4096', webgl: 15.9, canvas: 29.4 },
+];
+
+export const spectral = Array.from({ length: 31 }, (_, i) => {
+  const nm = 400 + i * 10;
+  return {
+    nm,
+    green: Math.round(95 * Math.exp(-(((nm - 540) / 55) ** 2))),
+    blue: Math.round(97 * Math.exp(-(((nm - 420) / 60) ** 2))),
+  };
+});
+
+## Charts
+
+A chart is a figure that carries axes. It owns the grid, the tooltip and the
+legend, and takes its colours from the five chart tokens, so every chart on the
+site reads the same and follows the accent without being told.
+
+The same data, the same props, one word apart: `area`, `bar`, `line`.
+
+<Chart
+  data={frameTimes}
+  series={[
+    { key: 'webgl', label: 'WebGL' },
+    { key: 'canvas', label: 'Canvas 2D' },
+  ]}
+  x={{ key: 'size', label: 'Texture size (px)' }}
+  y={{ label: 'Frame time (ms)' }}
+  caption="Sample data. An area chart reads as a quantity over a progression."
+/>
+
+<Chart
+  type="bar"
+  data={frameTimes}
+  series={[
+    { key: 'webgl', label: 'WebGL' },
+    { key: 'canvas', label: 'Canvas 2D' },
+  ]}
+  x={{ key: 'size', label: 'Texture size (px)' }}
+  y={{ label: 'Frame time (ms)' }}
+  caption="Bars compare discrete things, so the x axis is a set of names rather than a scale."
+/>
+
+<Chart
+  type="line"
+  data={frameTimes}
+  series={[
+    { key: 'webgl', label: 'WebGL' },
+    { key: 'canvas', label: 'Canvas 2D' },
+  ]}
+  x={{ key: 'size', label: 'Texture size (px)' }}
+  y={{ label: 'Frame time (ms)' }}
+  caption="A line keeps the shape of a trend without claiming the area underneath means anything."
+/>
+
+## Pie chart
+
+Parts of a whole, so it has no axes and shares none of the cartesian chart's
+shape beyond the frame and the tooltip.
+
+<PieChart
+  data={[
+    { key: 'shaders', label: 'Shaders', value: 42 },
+    { key: 'react', label: 'React', value: 28 },
+    { key: 'maths', label: 'Maths', value: 18 },
+    { key: 'other', label: 'Other', value: 12 },
+  ]}
+  caption="Sample data. The hole keeps the slices comparable by angle alone."
+/>
+
+## A decorated chart
+
+A chart accepts children, and they are drawn **inside the plot**. They read the
+scales the chart already built, through Recharts' own hooks, so a decoration
+lines up with the curve above it by construction and keeps doing so when the
+width changes.
+
+`SpectrumBand` is the whole idea in sixty lines: it asks the x axis where 400nm
+and 700nm land, and paints a gradient between them.
+
+A series can also name its own colour, which is the right call exactly once: when
+the colour is the subject. A curve labelled Green drawn in the site's accent
+would be absurd, and a wavelength does not follow the reader's theme.
+
+<Chart
+  type="line"
+  data={spectral}
+  series={[
+    { key: 'green', label: 'Green', color: 'oklch(0.78 0.21 145)' },
+    { key: 'blue', label: 'Blue', color: 'oklch(0.62 0.21 258)' },
+  ]}
+  x={{ key: 'nm', label: 'Wavelength (nm)' }}
+  y={{ label: 'Reflectance (%)', min: 0, max: 100 }}
+  caption="The band is a child of the chart, not a layer beside it."
+>
+  <SpectrumBand from={400} to={700} />
+</Chart>
+
+## Confusion matrix
+
+Not every figure is a chart, and not every figure is a drawing. This one is
+tabular data, so it is a real `table`: the counts stay selectable, a screen
+reader reads each cell with its headers, and it ships no JavaScript at all. The
+tint is the only graphic, and it is `--primary` mixed against the surface.
+
+<ConfusionMatrix
+  matrix={[
+    [259, 7, 3],
+    [10, 141, 118],
+    [9, 60, 437],
+  ]}
+  labels={['Normal', 'Viral', 'Bacterial']}
+  caption="Sample data. Shadcn has no heatmap, and this needed no library to not have one."
+/>
+
+## A diagram with controls
+
+A figure can be driven. The inputs go in the frame's own row, so a slider under
+a drawing and a slider in a form are the same control, and the drawing is plain
+SVG whose every colour is a token.
+
+<SamplingDiagram caption="Drag the slider. The scale is one subtraction and one multiply." />
+
+## Figure
+
+The frame itself, holding nothing in particular. It owns the surface, the
+controls row and the caption, and never knows what it contains, which is what
+lets a chart, a table and a drawing sit in the same family.
+
+<Figure caption="A figure with no chart in it is still a figure.">
+  <p className="text-muted-foreground text-center">Anything can go in here.</p>
+</Figure>
+
 ## Dividers
 
 ---
