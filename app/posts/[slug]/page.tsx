@@ -30,7 +30,12 @@ export async function generateMetadata({
     return {
       title: pageTitle,
       description: metadata.description,
-      alternates: { canonical: postUrl },
+      alternates: {
+        canonical: postUrl,
+        // The page says where its own source lives, so nothing has to guess
+        // the path or read a listing to find it.
+        types: { 'text/markdown': `${postUrl}/index.md` },
+      },
       openGraph: {
         title: pageTitle,
         description: metadata.description,
