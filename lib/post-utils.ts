@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-type Post = {
+export type Post = {
     slug: string
     metadata: {
         title: string

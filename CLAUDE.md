@@ -105,6 +105,40 @@ three days ago a year later.
 
 MDX components are registered globally in `mdx-components.tsx`.
 
+### The same posts, for something that is not a browser
+
+A post is served twice: as the page, and as `/posts/<slug>/index.md`, which is the
+file you wrote. The page is 297KB against the source's 14 and loses the two things a
+technical post rests on, measured on the planet post: Shiki splits every keyword into
+one of 1027 `<span>`s, so the code arrives unfenced and indistinguishable from prose,
+and the thirteen headings arrive unmarked. MathJax renders a formula as vector glyphs,
+which is right for an eye and unreadable for anything else.
+
+`lib/post-markdown.ts` is the whole transform and takes two liberties with the source,
+each because the original means nothing outside the build: the metadata export becomes
+YAML, which something other than a bundler can parse, and a relative media path becomes
+absolute. Both are narrower than they look. **Only the imports the file opens with are
+dropped**, because a component carrying an example in a prop has lines of it at column
+zero: anchoring to every line start cost the design system its `import './scene.css';`
+out of a Sandpack. And **a fenced block is never touched at all**, being the subject
+rather than the machinery. **The CDN namespace is chosen by extension**, not by a table of components:
+`.mp4` goes to videos and everything else to images, so adding a component to
+`mdx-components.tsx` can never put a file in the wrong place.
+
+- **`/llms.txt` lists the posts** and points at their Markdown rather than their pages,
+  which is the point of it. Drafts are absent, the way they are from the feed, while a
+  draft's own `.md` resolves, the way its page does.
+- **Both are written at build**, beside the search index and the feed that already
+  derive from `getPosts`. Nothing is computed per request.
+- **A page says where its source is** through `alternates.types`, so nothing has to
+  guess the path. `/llms.txt` is advertised nowhere: the root path is its convention,
+  and claiming it as an alternate representation of the homepage would be inventing
+  one.
+- **Worth knowing before trying `/posts/<slug>.md`**: a route segment cannot mix a
+  dynamic part with a suffix. `getSegmentParam` only reads a segment as dynamic when it
+  ends in `]`, and strict mode rejects `/posts/[slug].md`, which is why the file sits
+  one level down.
+
 ### Media and the CDN
 
 Media lives on `cdn.lenysauzet.com` (Cloudflare R2), namespaced by kind: `images/…`
@@ -191,6 +225,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | Path | What it owns |
 |---|---|
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
+| `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
