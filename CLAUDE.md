@@ -639,11 +639,16 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output four times over: its
+`components/ui/command.tsx` is customized beyond the CLI output five times over: its
 `CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
 slot at the end of its row, a selected item carries `--primary` rather than
-`--foreground`, and **the dialog travels its backdrop's radius on the way out** rather
-than only its opacity. A blurred backdrop is as good as fully blurred at an opacity of
+`--foreground`, **a row's selection is not transitioned** and
+**the dialog travels its backdrop's radius on the way out** rather
+than only its opacity. The row eased its colour and its wash over 100ms while
+the icon, whose colour is set on the `svg` and carries no transition of its
+own, snapped: one change arriving at two speeds. Only the press is animated
+now, which is the same reason the reading rail's titles take their accent at
+once. A blurred backdrop is as good as fully blurred at an opacity of
 zero, so fading alone held the page blurred to the last frame and let it snap back,
 which reads as a missing exit where there is detail behind the panel. The closed value
 keeps the same function list, or there is nothing to interpolate between and it jumps

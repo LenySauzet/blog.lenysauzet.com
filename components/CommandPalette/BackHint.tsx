@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
     than as chrome bolted beside it. */
 const CLASS = cn(
   'shrink-0 cursor-pointer rounded-md px-2 py-1 text-sm whitespace-nowrap',
-  'text-muted-foreground/70 transition-[scale,color,background-color] duration-100',
+  'text-muted-foreground/70 transition-[scale] duration-100',
   'hover:bg-primary/10 hover:text-primary active:scale-[0.97] motion-reduce:active:scale-100',
   'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
   'focus-visible:ring-offset-background focus-visible:outline-none'
