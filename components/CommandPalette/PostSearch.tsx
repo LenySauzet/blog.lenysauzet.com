@@ -4,7 +4,7 @@ import { File01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { format } from 'date-fns';
 import type MiniSearch from 'minisearch';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   CommandEmpty,
@@ -47,8 +47,13 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
   const [index, setIndex] = useState<Index | 'failed'>();
   const asked = query.trim();
 
+  /** Asked for once, by the first thing typed, and never again however the
+      query changes after that. */
+  const fetched = useRef(false);
+
   useEffect(() => {
-    if (!asked) return;
+    if (!asked || fetched.current) return;
+    fetched.current = true;
 
     let current = true;
 
@@ -60,10 +65,7 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
     return () => {
       current = false;
     };
-    // Once, on the first thing typed: `asked` changing afterwards must not
-    // start the fetch again.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [Boolean(asked)]);
+  }, [asked]);
 
   /**
    * Unsearched, the server's list; searched, the index's ranking. Between the

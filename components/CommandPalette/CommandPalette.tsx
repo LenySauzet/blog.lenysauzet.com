@@ -28,12 +28,9 @@ import { PostSearch } from './PostSearch';
 const EXIT_MS = 120;
 
 /**
- * One pane at a time, `mode="wait"` holding the next until the last has gone:
- * a page is a `CommandList`, and two of them inside one `Command` would have
- * cmdk ranking and arrowing through rows nobody can see.
- *
- * The blur is the movement's own, so it resolves to `none` rather than resting
- * at `blur(0)`, which would leave every pane holding a composited layer.
+ * One pane at a time: a page is a `CommandList`, and two inside one `Command`
+ * have cmdk ranking and arrowing through rows nobody can see. The blur
+ * resolves to `none`, or every pane holds a composited layer.
  */
 const TRAVEL = 28;
 const SMEAR = 7;
@@ -83,43 +80,36 @@ export function CommandPalette({ posts }: { posts: ListedPost[] }) {
   const [travelling, setTravelling] = useState(false);
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
+  const measured = useRef(false);
 
   /**
-   * Only the pane that is arriving is measured. Entering a page clears the box
-   * as well, so the pane on its way out re-renders unfiltered and swells back
-   * to its full height first: followed, the dialog grew to meet a list nobody
-   * would see and then dropped to the page's own size.
+   * The arriving pane only: entering a page clears the box too, so the one on
+   * its way out swells back to full height first. Its first reading is the
+   * swap and travels, the rest is the list filtering under a box that should
+   * follow. Held here, not cleared on the animation's end, which never fires
+   * for two panes of the same height.
    */
   useEffect(() => {
     if (!pane || pane.dataset.pane !== (page ?? 'root')) return;
 
-    // The first reading from a pane is the swap and travels; everything after
-    // it is the list filtering under a box that should simply follow. Held
-    // here rather than cleared when the animation ends, which never fires for
-    // two panes that happen to be the same height.
     let arriving = true;
 
     const resized = new ResizeObserver(([entry]) => {
-      setTravelling(arriving && height !== 'auto');
+      setTravelling(arriving && measured.current);
       arriving = false;
+      measured.current = true;
       setHeight(entry.contentRect.height);
     });
     resized.observe(pane);
 
     return () => resized.disconnect();
-    // `height` is read to tell the palette opening from a swap, and following
-    // it would re-arm the travel on every measurement.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pane, page]);
 
-  /** The chooser opens on the accent in force, so the reader starts from where
-      they are rather than at the top of an alphabet. */
+  /** The chooser opens on the accent in force. A frame late, cmdk laying its
+      own highlight on the first row as the rows mount. */
   useEffect(() => {
     if (page !== 'accent' || !isOpen) return;
 
-    // A frame later: cmdk puts its own highlight on the first row as the rows
-    // mount, and setting this during the effect only to have that land on top
-    // leaves the chooser pointing at a colour the reader is not on.
     const frame = requestAnimationFrame(() => setSelected(useHue.getState().hue));
 
     return () => cancelAnimationFrame(frame);
@@ -158,9 +148,8 @@ export function CommandPalette({ posts }: { posts: ListedPost[] }) {
     setPage(null);
     setQuery('');
     setSelected(rootValues[0] ?? '');
-    // Clicked rather than typed, the way back is a button that leaves with the
-    // page it belongs to: focus would be left on nothing and the keyboard with
-    // nowhere to go.
+    // The way back is a button that leaves with the page it belongs to, so
+    // the focus it took has to be handed somewhere.
     input.current?.focus();
   }, [rootValues]);
 
@@ -249,23 +238,15 @@ export function CommandPalette({ posts }: { posts: ListedPost[] }) {
           hint={<BackHint shown={page !== null && query === ''} onBack={toRoot} />}
         />
 
-        {/* The box travels with its contents. Two panes can differ by a couple
-            of hundred pixels, and left alone the dialog takes that in a single
-            frame, in the middle of an otherwise smooth swap. `layout` is the
-            wrong tool: it transforms the element and leaves the real box to
-            jump, which is what the dialog sizes itself to. So the height is
-            measured off the pane and animated for real, and it holds through
-            the gap between one pane leaving and the next arriving, the
-            observer having nothing to watch there. */}
+        {/* The box travels with its contents, by a measured height rather
+            than `layout`, which transforms the element and leaves the real
+            box to jump. */}
         <motion.div
           animate={{ height }}
           initial={false}
           transition={still || !travelling ? AT_ONCE : SWAP}
-          // Five rows of floor, `h-11` each plus the list's own padding.
-          // Filtered to a single command the box used to fall to one row and
-          // climb back out on the way into a page, which read as a pulse
-          // rather than as the list narrowing. Deeper than this and an empty
-          // result is mostly void.
+          // Five rows of `h-11` plus the list's padding: filtered to one
+          // command the box fell to a single row and climbed back out.
           className="min-h-[14.75rem] overflow-hidden"
         >
           <AnimatePresence mode="wait" initial={false} custom={towards}>
@@ -292,10 +273,8 @@ export function CommandPalette({ posts }: { posts: ListedPost[] }) {
                 />
               )}
 
-              {/* Applied in place, and the page stays: every other command acts
-                  and the palette shuts behind it, but a chooser has to let one
-                  accent be compared with the next. The whole surface rethemes
-                  under the reader's eyes, which is the answer. */}
+              {/* The page stays where every other command shuts it: a
+                  chooser has to let one accent be compared with the next. */}
               {page === 'accent' && (
                 <AccentPicker current={hue} onPick={(preset) => setHue(preset.id)} />
               )}
