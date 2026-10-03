@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { DEFAULT_HUE, hueOf, STORAGE_KEY } from '@/lib/hues';
+import { DEFAULT_HUE, hueOf, propertiesOf, STORAGE_KEY } from '@/lib/hues';
 
 type HueStore = {
   hue: string;
@@ -23,7 +23,9 @@ const stored = () => {
 export const useHue = create<HueStore>((set) => ({
   hue: stored(),
   setHue: (hue: string) => {
-    document.documentElement.style.setProperty('--base-hue', String(hueOf(hue)));
+    for (const [property, value] of Object.entries(propertiesOf(hueOf(hue)))) {
+      document.documentElement.style.setProperty(property, value);
+    }
 
     // A private window throws rather than returning null, and a reader who
     // blocked storage should still get the colour they just asked for.

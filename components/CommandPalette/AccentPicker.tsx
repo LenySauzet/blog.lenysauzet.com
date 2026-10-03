@@ -1,9 +1,18 @@
 'use client';
 
 import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { HUES, type Hue } from '@/lib/hues';
+import { accentOf, HUES, type Hue } from '@/lib/hues';
 
 import { FadingList } from './FadingList';
+
+/** The figure, in pixels, so the cut lands where the front disc actually is.
+    `w-5 h-4` and `size-3.5` below are the same numbers in Tailwind's units. */
+const DISC = 14;
+const OVERLAP = 8;
+/** What the page shows through between the two, in place of a stroke: a border
+    would be a colour that has to match whatever is behind it, and this has to
+    hold on a panel, in either theme, at any accent. */
+const CUT = 1.5;
 
 /**
  * The colour the preset will produce, not a token: written at the preset's own
@@ -14,14 +23,19 @@ import { FadingList } from './FadingList';
  * an alpha composites against whatever surface it lands on, and this one has
  * to hold on a panel in either theme.
  */
-function Swatch({ hue }: { hue: number }) {
-  const accent = `oklch(0.615 0.168 ${hue})`;
+function Swatch({ preset }: { preset: Hue }) {
+  const accent = accentOf(preset);
+  const cut = `radial-gradient(circle at ${DISC - OVERLAP + DISC / 2}px ${DISC / 2}px, transparent ${DISC / 2 + CUT}px, black ${DISC / 2 + CUT}px)`;
 
   return (
     <span aria-hidden className="relative flex h-4 w-5 shrink-0 items-center">
       <span
         className="absolute left-0 size-3.5 rounded-full"
-        style={{ background: `color-mix(in oklab, ${accent} 45%, var(--background))` }}
+        style={{
+          background: `color-mix(in oklab, ${accent} 45%, var(--background))`,
+          maskImage: cut,
+          WebkitMaskImage: cut,
+        }}
       />
       <span
         className="absolute right-0 size-3.5 rounded-full"
@@ -51,7 +65,7 @@ export function AccentPicker({ current, onPick }: AccentPickerProps) {
             value={preset.label}
             onSelect={() => onPick(preset)}
           >
-            <Swatch hue={preset.hue} />
+            <Swatch preset={preset} />
             {preset.label}
             {preset.id === current && (
               <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">

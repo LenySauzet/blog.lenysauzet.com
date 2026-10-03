@@ -7,7 +7,7 @@ import { HUES } from '@/lib/hues';
 
 import { AccentPicker } from './AccentPicker';
 
-const picker = (current = 'violet', onPick = vi.fn()) => {
+const picker = (current = 'blue', onPick = vi.fn()) => {
   render(
     <Command>
       <AccentPicker current={current} onPick={onPick} />
@@ -29,9 +29,9 @@ describe('AccentPicker', () => {
   // Unlike the root palette, which hides what would change nothing, a chooser
   // has to say where the reader already is.
   it('marks the one in force rather than hiding it', () => {
-    picker('ember');
+    picker('teal');
 
-    expect(screen.getByText('Ember')).toBeInTheDocument();
+    expect(screen.getByText('Teal')).toBeInTheDocument();
     expect(screen.getByText('Current')).toBeInTheDocument();
     expect(screen.getAllByText('Current')).toHaveLength(1);
   });

@@ -526,85 +526,44 @@ What the shape forces:
 chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
 The island and the rail both hand it on from there.
 
-**The accent is a reader's choice, out of four presets.** `lib/hues.ts` is the whole
-list; everything else reads it. One row in `Tools` opens a page of the palette, and the
-choosing happens there: four rows as commands kept the palette permanently three rows
-heavier for a thing most readers set once.
+**The accent is a reader's choice, out of eighteen presets.** `lib/hues.ts` is the
+whole list; everything else reads it. One row in `Tools` opens a page of the palette,
+and the choosing happens there.
 
-- **Only the hue rotates.** Chroma and lightness are fixed on every token, so a preset
-  is an angle and never a mood: a muted or pastel option is not reachable this way.
-- **The angles were measured, not picked.** `--primary` against white runs 3.16 at the
-  cyans to 4.06 at the magentas, the shipped violet sitting at 3.79, so a green preset
-  would read worse in light mode than the site already does. The presets stay in the
-  two arcs that clear the default, and `hues.test.ts` guards it.
+- **The names come from Tailwind's palette, and so do the angles**, which is the only
+  way a name stays honest. The site shipped 262.04 as "Violet" for a long time; that is
+  Tailwind's *blue* at 259.8, and the real violet is at 292.7. The default is Blue now,
+  and `hues.test.ts` checks every preset against Tailwind's own figure.
+- **The accent has its own lightness and chroma**, `--accent-l` and `--accent-c`, where
+  every other token takes only the hue. It needs them: the accent carries far more
+  chroma than anything else, so rotating it alone drops `--primary` on white from 4.06
+  at the warm end to 3.17 at teal, well under what the site shipped. Nine presets carry
+  a lightness that buys it back, by at most 0.05. Measured on the page after the change,
+  teal in light mode reads 3.84 where it read 3.17.
+- **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself
+  and fails a preset that falls under 3.79 in light or 4.5 in dark. The conversion is
+  test-only and agrees with Chrome to within 0.02 of a ratio.
+- **Neutral is the one preset that is not a colour**, `--accent-c` at zero. The rest of
+  the site keeps its faint tint, every other token carrying chroma of its own.
 - **A blocking script paints it before the first frame**, built in `app/layout.tsx`
   from `HUES` itself so a preset cannot exist there and nowhere else. Left to React the
   page paints the default and corrects it on hydration, which is a flash of the wrong
-  colour. Measured on a cold load with a preset stored: the right hue at readyState
+  colour. Measured on a cold load with a preset stored: the right accent at readyState
   `interactive`, at the first frame, at first contentful paint, in both themes.
 - **Picking applies in place and the page stays open.** Every other command acts and
   the palette shuts behind it; a chooser has to let one accent be compared with the
   next, and the whole surface rethemes under the reader's eyes, which is the answer.
   The row in force is marked rather than withheld, for the same reason: a chooser says
   where you are where the root palette only offers what would change something.
+- **The swatch is two discs and a cut, and the cut is a mask.** A border would be a
+  colour that has to match whatever sits behind it, on a panel, in either theme, under
+  any accent; a mask makes the separation the surface itself. The disc behind is mixed
+  into the page rather than laid over it at an alpha, for the same reason the text
+  tiers are named colours.
 - **Nothing else had to change**, which was the point of the token architecture: the
   shader follows because `Backdrop` reads the accent every frame, and the syntax
   highlighting follows because `config/code-theme.ts` emits `var(--shiki-token-*)`
   rather than literal colours.
-
-**The command palette is a registry, not a component full of items.**
-`lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
-and `components/CommandPalette` only renders it and hands each `run` the page's router
-and theme. Adding a command is one entry; nothing about the surface changes. `run`
-takes a context rather than reaching for hooks itself, which is what keeps the registry
-a plain module a test can read.
-
-A command either acts on the site or **opens a page of the palette**, never both;
-the `Command` union keeps the pair from being written together. `search` is the only
-page so far, and it forces four things worth knowing before opening the files:
-
-- **A page ranks its own rows**, so cmdk gets `shouldFilter={false}` and the selection
-  is driven from outside through `onResults`. cmdk moves it when *its* search box
-  changes and at no other time.
-- **Backspace-to-leave is read on the cmdk root**, not the input, and the input is
-  focused by hand when a page opens: a row reached with the mouse keeps the focus.
-- **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
-  disabled hover, and it refuses to select such a row at all.
-- **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
-  node once, at mount.
-
-The index is built at build time by `lib/search/build-index.ts` and served static by
-`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
-is shared by the build and the browser on purpose**: `loadJSON` reads an index against
-the options it is handed, so the two drifting apart stops matching rather than failing.
-`lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
-and the ranking testable without a DOM.
-
-A command may also say **when it is worth recommending**, which lifts it out of its
-group and to the top of the palette. Lifted, not copied: one command is one row, or
-cmdk returns two of them for the same search. The section exists only when something
-asks for it, holds five at most, and reads in the palette's own group order rather
-than the registry's. `lib/commands/recommend.ts` is the whole policy, testable
-without a DOM.
-
-Three moments ask for something today: the index, an article underway, and an
-article finished. A reader who has only just arrived at an article is offered
-nothing, having made no move yet to answer.
-
-What the reader has scrolled is in the context too, which is what lets a command
-withhold itself: `Go to top` is not offered to someone already there.
-`hooks/use-scroll-tracking.ts` owns that reading for both the palette and the
-island, and **hands back the object it already holds when nothing has moved**: a
-fresh one per scroll event re-renders both of them sixty times a second to say
-nothing changed, which measured 189ms of scripting over 300 frames against 79ms
-once it stopped.
-
-`components/ui/command.tsx` is customized beyond the CLI output twice over: its
-`CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
-carries `--primary` rather than `--foreground`. Update it with
-`bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
-selected colour from a caller's `className` does not work: `cn()` drops it as a
-conflict with the primitive's own, silently.
 
 **A page of the palette is an entry in `lib/commands/pages.ts`**, holding its prompt and
 whether it ranks its own rows. `Page` is the map's keys, so a page that is not described
