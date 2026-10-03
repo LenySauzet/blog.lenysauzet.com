@@ -16,6 +16,7 @@ import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
 
 import { AccentPicker } from './AccentPicker';
+import { BackHint } from './BackHint';
 import { CommandRegistry, commandValue } from './CommandRegistry';
 import { PostSearch } from './PostSearch';
 
@@ -239,6 +240,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
           value={query}
           onValueChange={setQuery}
           placeholder={page ? PAGES[page].placeholder : 'Type a command...'}
+          hint={<BackHint shown={page !== null && query === ''} />}
         />
 
         {/* The box travels with its contents. Two panes can differ by a couple

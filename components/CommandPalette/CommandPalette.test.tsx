@@ -130,6 +130,23 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(row).toHaveAttribute('data-selected', 'true'));
   });
 
+  // Backspace leaving a page was the one move nothing on the surface taught.
+  // The hint says so, and only while it is true: with a query in hand the key
+  // deletes a character instead.
+  it('says how to get back, and only while that is what the key does', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette slugs={['halftone', 'planets']} />);
+
+    expect(screen.queryByText(/Back/)).not.toBeInTheDocument();
+
+    await user.click(await screen.findByText('Change the accent'));
+    expect(await screen.findByText(/Back/)).toBeInTheDocument();
+
+    await user.keyboard('te');
+    await waitFor(() => expect(screen.queryByText(/Back/)).not.toBeInTheDocument());
+  });
+
   // Backspace on an empty box is the way back, and the root has to come back
   // whole: a page left behind would keep the palette on its own prompt.
   it('comes back to the root from a page', async () => {

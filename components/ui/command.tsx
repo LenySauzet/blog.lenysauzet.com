@@ -66,8 +66,12 @@ function CommandDialog({
 // leading icon, not a field with an addon floating over it.
 function CommandInput({
   className,
+  hint,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+}: React.ComponentProps<typeof CommandPrimitive.Input> & {
+  /** Room at the end of the row for what the box can do right now. */
+  hint?: React.ReactNode
+}) {
   return (
     <div data-slot="command-input-wrapper">
       <div className="flex h-[55px] items-center gap-3 border-b-[1.5px] border-foreground/10 px-[18px]">
@@ -80,6 +84,7 @@ function CommandInput({
           )}
           {...props}
         />
+        {hint}
       </div>
     </div>
   )
