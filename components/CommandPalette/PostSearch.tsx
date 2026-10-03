@@ -13,10 +13,11 @@ import {
   CommandItem,
 } from '@/components/ui/command';
 import { postDate } from '@/lib/post-date';
+import type { PostSummary } from '@/lib/post-utils';
 import type { SearchDocument } from '@/lib/search/config';
 import { excerpt } from '@/lib/search/excerpt';
 import { loadSearchIndex } from '@/lib/search/load-index';
-import { searchPosts, type ListedPost, type PostMatch } from '@/lib/search/query';
+import { searchPosts, type PostMatch } from '@/lib/search/query';
 
 import { FadingList } from './FadingList';
 
@@ -24,7 +25,7 @@ type Index = MiniSearch<SearchDocument>;
 
 /** Unsearched, a post's own description is the line worth showing, where a
     match shows the line it was found on. */
-const listed = (post: ListedPost): PostMatch => ({
+const listed = (post: PostSummary): PostMatch => ({
   slug: post.slug,
   title: post.title,
   date: post.date,
@@ -34,7 +35,7 @@ const listed = (post: ListedPost): PostMatch => ({
 
 interface PostSearchProps {
   /** From the server, so the unsearched list never waits on the index. */
-  posts: ListedPost[];
+  posts: PostSummary[];
   query: string;
   /** Every row on show, so the palette can keep its selection on one. */
   onResults: (slugs: string[]) => void;

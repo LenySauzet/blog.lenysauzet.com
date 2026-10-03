@@ -13,7 +13,7 @@ import { PAGES } from '@/lib/commands/pages';
 import { partitionByRecommendation } from '@/lib/commands/recommend';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
-import type { ListedPost } from '@/lib/search/query';
+import type { PostSummary } from '@/lib/post-utils';
 
 import { AccentPicker } from './AccentPicker';
 import { BackHint } from './BackHint';
@@ -57,7 +57,7 @@ const PANE = {
 const SWAP = { duration: 0.16, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-export function CommandPalette({ posts }: { posts: ListedPost[] }) {
+export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const slugs = useMemo(() => posts.map((post) => post.slug), [posts]);
   const { isOpen, setIsOpen } = useCmdkStore();
   const router = useRouter();

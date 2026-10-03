@@ -2,15 +2,6 @@ import MiniSearch, { type SearchResult } from 'minisearch';
 
 import { SEARCH_OPTIONS, type SearchDocument } from './config';
 
-/** What a row needs before anything has been searched: the server has all of
-    it, so the list does not have to wait on an index to be drawn. */
-export interface ListedPost {
-  slug: string;
-  title: string;
-  description: string;
-  date: string;
-}
-
 export interface PostMatch {
   slug: string;
   title: string;

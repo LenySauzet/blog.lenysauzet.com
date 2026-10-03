@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
 import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/hues';
-import { getPosts } from '@/lib/post-utils';
+import { getPosts, summaryOf } from '@/lib/post-utils';
 
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
 import './globals.css';
@@ -70,12 +70,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const posts = (await getPosts()).map(({ slug, metadata }) => ({
-    slug,
-    title: metadata.shortTitle ?? metadata.title,
-    description: metadata.description,
-    date: metadata.date,
-  }));
+  const posts = (await getPosts()).map(summaryOf);
 
   const known = Object.fromEntries(
     posts.map(({ slug, title, description }) => [slug, { title, description }])
