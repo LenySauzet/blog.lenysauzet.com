@@ -259,7 +259,12 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
           animate={{ height }}
           initial={false}
           transition={still || !travelling ? AT_ONCE : SWAP}
-          className="overflow-hidden"
+          // Five rows of floor, `h-11` each plus the list's own padding.
+          // Filtered to a single command the box used to fall to one row and
+          // climb back out on the way into a page, which read as a pulse
+          // rather than as the list narrowing. Deeper than this and an empty
+          // result is mostly void.
+          className="min-h-[14.75rem] overflow-hidden"
         >
           <AnimatePresence mode="wait" initial={false} custom={towards}>
             <motion.div

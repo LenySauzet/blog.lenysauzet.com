@@ -664,7 +664,11 @@ lets cmdk filter four names.
   the dialog sizes itself to: measured, it still took 222px in a single frame. The
   height is measured off the pane with a `ResizeObserver` and animated for real, and it
   holds through the gap between one pane leaving and the next arriving because the
-  observer has nothing to watch there. **Only a swap travels**, never a filter: the
+  observer has nothing to watch there. **The box keeps a floor of five rows**, or
+  filtering to a single command drops it to one and the page it opens climbs
+  all the way back out, which reads as a pulse rather than as a list
+  narrowing. Deeper than five and an empty result is mostly void.
+  **Only a swap travels**, never a filter: the
   first reading from a pane is the swap, everything after it is the list
   narrowing under a box that should simply follow, and easing down to meet it
   and back up again reads as the dialog breathing rather than as rows going

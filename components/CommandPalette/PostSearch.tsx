@@ -63,7 +63,10 @@ export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
         <CommandEmpty>No post says anything about that.</CommandEmpty>
       )}
 
-      <CommandGroup heading="Blog posts">
+      {/* The heading only has a group to name when there is one: rendered
+          unconditionally it sat over nothing while the archive loaded and
+          under every message saying there was nothing to show. */}
+      <CommandGroup heading={results.length ? 'Blog posts' : undefined}>
         {results.map((result) => (
           <CommandItem
             key={result.slug}
