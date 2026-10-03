@@ -526,7 +526,7 @@ What the shape forces:
 chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
 The island and the rail both hand it on from there.
 
-**The accent is a reader's choice, out of eighteen presets.** `lib/hues.ts` is the
+**The accent is a reader's choice, out of seventeen presets.** `lib/hues.ts` is the
 whole list; everything else reads it. One row in `Tools` opens a page of the palette,
 and the choosing happens there.
 
@@ -534,17 +534,22 @@ and the choosing happens there.
   way a name stays honest. The site shipped 262.04 as "Violet" for a long time; that is
   Tailwind's *blue* at 259.8, and the real violet is at 292.7. The default is Blue now,
   and `hues.test.ts` checks every preset against Tailwind's own figure.
-- **The accent has its own lightness and chroma**, `--accent-l` and `--accent-c`, where
-  every other token takes only the hue. It needs them: the accent carries far more
-  chroma than anything else, so rotating it alone drops `--primary` on white from 4.06
-  at the warm end to 3.17 at teal, well under what the site shipped. Nine presets carry
-  a lightness that buys it back, by at most 0.05. Measured on the page after the change,
-  teal in light mode reads 3.84 where it read 3.17.
+- **The accent has its own lightness**, `--accent-l`, where every other token takes
+  only the hue. It needs one: the accent carries far more chroma than anything else, so
+  rotating it alone drops `--primary` on white from 4.06 at the warm end to 3.17 at
+  teal, well under what the site shipped. Nine presets carry a lightness that buys it
+  back, by at most 0.05. Measured on the page after the change, teal in light mode
+  reads 3.84 where it read 3.17.
 - **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself
   and fails a preset that falls under 3.79 in light or 4.5 in dark. The conversion is
   test-only and agrees with Chrome to within 0.02 of a ratio.
-- **Neutral is the one preset that is not a colour**, `--accent-c` at zero. The rest of
-  the site keeps its faint tint, every other token carrying chroma of its own.
+- **There is no Neutral, and that is the answer rather than an omission.** Zeroing the
+  accent's chroma only reaches `--primary`: every other token carries its own and
+  points at whatever angle is set, so a grey accent sat on a pink page. Measured under
+  it, `--subtle-foreground` came out 170,138,147, thirty-two points of 255 apart across
+  its channels, where `--primary` was a flat 131,131,131. A preset turns the wheel and
+  grey is not on it; making it honest would mean all 88 token definitions taking a
+  chroma multiplier.
 - **A blocking script paints it before the first frame**, built in `app/layout.tsx`
   from `HUES` itself so a preset cannot exist there and nowhere else. Left to React the
   page paints the default and corrects it on hydration, which is a flash of the wrong
@@ -556,6 +561,10 @@ and the choosing happens there.
   out, escaping or closing the palette all restore, closing included because the page
   the palette was left on is kept on purpose and a preview would otherwise outlive the
   surface that raised it.
+- **The mark reads itself in, letter by letter**, on the grammar `ZoomCaption` uses
+  under a zoomed image: a 6px blur per glyph, staggered left to right, and leaving
+  mirrors it last letter first so the mark hands over to the row that takes it rather
+  than blinking out. Measured mid-reveal, the seven letters sit at 0.96 down to 0.20.
 - **The chooser opens on the accent in force**, so arriving changes nothing, which is
   also why `--base-hue` in `globals.css` has to be the angle `DEFAULT_HUE` names: two
   defaults meant opening the chooser nudged the page. The selection is set a frame
