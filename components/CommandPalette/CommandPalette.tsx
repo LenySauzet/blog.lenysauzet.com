@@ -75,6 +75,10 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   const [towards, setTowards] = useState(1);
   const [pane, setPane] = useState<HTMLDivElement | null>(null);
   const [height, setHeight] = useState<number | 'auto'>('auto');
+  /** A swap travels; filtering does not. Typing narrows the list, and a box
+      that eases down to meet it and back up again reads as the dialog
+      breathing rather than as rows going away. */
+  const [travelling, setTravelling] = useState(false);
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
@@ -87,10 +91,23 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   useEffect(() => {
     if (!pane || pane.dataset.pane !== (page ?? 'root')) return;
 
-    const resized = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
+    // The first reading from a pane is the swap and travels; everything after
+    // it is the list filtering under a box that should simply follow. Held
+    // here rather than cleared when the animation ends, which never fires for
+    // two panes that happen to be the same height.
+    let arriving = true;
+
+    const resized = new ResizeObserver(([entry]) => {
+      setTravelling(arriving && height !== 'auto');
+      arriving = false;
+      setHeight(entry.contentRect.height);
+    });
     resized.observe(pane);
 
     return () => resized.disconnect();
+    // `height` is read to tell the palette opening from a swap, and following
+    // it would re-arm the travel on every measurement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pane, page]);
 
   /** The chooser opens on the accent in force, so the reader starts from where
@@ -241,7 +258,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
         <motion.div
           animate={{ height }}
           initial={false}
-          transition={still ? AT_ONCE : SWAP}
+          transition={still || !travelling ? AT_ONCE : SWAP}
           className="overflow-hidden"
         >
           <AnimatePresence mode="wait" initial={false} custom={towards}>
