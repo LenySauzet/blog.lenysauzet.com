@@ -13,17 +13,6 @@ describe('useHue', () => {
     useHue.setState({ hue: DEFAULT_HUE.id });
   });
 
-  // A preview paints over the committed accent and must leave no trace of
-  // itself: a reader who looks at six colours and picks none keeps the one
-  // they arrived with.
-  it('paints a preview without committing it', () => {
-    useHue.getState().apply('teal');
-
-    expect(painted()).toBe(String(hueOf('teal').hue));
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(useHue.getState().hue).toBe(DEFAULT_HUE.id);
-  });
-
   it('paints and remembers what is actually chosen', () => {
     useHue.getState().setHue('rose');
 
@@ -39,7 +28,7 @@ describe('useHue', () => {
   });
 
   it('paints the default rather than nothing for an id it does not know', () => {
-    useHue.getState().apply('chartreuse');
+    useHue.getState().setHue('chartreuse');
 
     expect(painted()).toBe(String(DEFAULT_HUE.hue));
   });

@@ -555,20 +555,17 @@ and the choosing happens there.
   page paints the default and corrects it on hydration, which is a flash of the wrong
   colour. Measured on a cold load with a preset stored: the right accent at readyState
   `interactive`, at the first frame, at first contentful paint, in both themes.
-- **The selected row is previewed, and leaving puts it back.** `apply` paints without
-  committing, `setHue` commits; the mark stays on the accent in force throughout, so
-  the list says where the reader is while the page says where they would land. Backing
-  out, escaping or closing the palette all restore, closing included because the page
-  the palette was left on is kept on purpose and a preview would otherwise outlive the
-  surface that raised it.
 - **The mark reads itself in, letter by letter**, on the grammar `ZoomCaption` uses
   under a zoomed image: a 6px blur per glyph, staggered left to right, and leaving
   mirrors it last letter first so the mark hands over to the row that takes it rather
   than blinking out. Measured mid-reveal, the seven letters sit at 0.96 down to 0.20.
-- **The chooser opens on the accent in force**, so arriving changes nothing, which is
-  also why `--base-hue` in `globals.css` has to be the angle `DEFAULT_HUE` names: two
-  defaults meant opening the chooser nudged the page. The selection is set a frame
-  late, cmdk putting its own highlight on the first row as the rows mount.
+- **The chooser opens on the accent in force**, so the reader starts from where they
+  are. The selection is set a frame late, cmdk putting its own highlight on the first
+  row as the rows mount. **Hovering a row does not preview it**: tried, and a page
+  that rethemes under a pointer merely passing over a list is more startling than it
+  is useful.
+- **`--base-hue` in `globals.css` is the angle `DEFAULT_HUE` names**, or the two
+  disagree and the page shifts the moment anything reads a preset.
 - **Picking applies in place and the page stays open.** Every other command acts and
   the palette shuts behind it; a chooser has to let one accent be compared with the
   next.
