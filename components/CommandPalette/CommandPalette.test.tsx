@@ -5,9 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useHue } from '@/hooks/use-hue';
-import { HUES } from '@/lib/hues';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS } from '@/lib/commands/types';
+import { HUES } from '@/lib/hues';
 import { INDEX_OPTIONS } from '@/lib/search/config';
 
 import { CommandPalette } from './CommandPalette';

@@ -4,7 +4,7 @@ import { File01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { format } from 'date-fns';
 import type MiniSearch from 'minisearch';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   CommandEmpty,
@@ -22,8 +22,8 @@ import { FadingList } from './FadingList';
 
 type Index = MiniSearch<SearchDocument>;
 
-/** A post the reader has not searched for yet: its own description is the line
-    worth showing, where a match shows the line it was found on. */
+/** Unsearched, a post's own description is the line worth showing, where a
+    match shows the line it was found on. */
 const listed = (post: ListedPost): PostMatch => ({
   slug: post.slug,
   title: post.title,
@@ -33,9 +33,7 @@ const listed = (post: ListedPost): PostMatch => ({
 });
 
 interface PostSearchProps {
-  /** Every post, from the server. The unsearched list is drawn from this and
-      never waits on the index, which used to arrive after the page did and
-      resize the palette under the reader. */
+  /** From the server, so the unsearched list never waits on the index. */
   posts: ListedPost[];
   query: string;
   /** Every row on show, so the palette can keep its selection on one. */
@@ -46,14 +44,10 @@ interface PostSearchProps {
 export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps) {
   const [index, setIndex] = useState<Index | 'failed'>();
   const asked = query.trim();
-
-  /** Asked for once, by the first thing typed, and never again however the
-      query changes after that. */
-  const fetched = useRef(false);
+  const searching = asked.length > 0;
 
   useEffect(() => {
-    if (!asked || fetched.current) return;
-    fetched.current = true;
+    if (!searching) return;
 
     let current = true;
 
@@ -65,13 +59,12 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
     return () => {
       current = false;
     };
-  }, [asked]);
+  }, [searching]);
 
   /**
-   * Unsearched, the server's list; searched, the index's ranking. Between the
-   * two, a plain match on what the server already gave: the panel keeps
-   * something true on screen rather than emptying itself for the length of a
-   * fetch, and never shows a post that does not answer what was typed.
+   * Unsearched, the server's list; searched, the index's ranking; between the
+   * two, a plain match on what the server already gave, so the panel keeps
+   * something true on screen for the length of a fetch.
    */
   const results = useMemo(() => {
     if (!asked) return posts.map(listed);

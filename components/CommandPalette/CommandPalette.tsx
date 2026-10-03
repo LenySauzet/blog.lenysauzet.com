@@ -11,9 +11,9 @@ import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
 import { PAGES } from '@/lib/commands/pages';
 import { partitionByRecommendation } from '@/lib/commands/recommend';
-import type { ListedPost } from '@/lib/search/query';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
+import type { ListedPost } from '@/lib/search/query';
 
 import { AccentPicker } from './AccentPicker';
 import { BackHint } from './BackHint';
@@ -69,35 +69,27 @@ export function CommandPalette({ posts }: { posts: ListedPost[] }) {
   const still = useReducedMotion();
   const [query, setQuery] = useState('');
   const [page, setPage] = useState<Page | null>(null);
-  /** Which way the panes travel: into a page, or back out of one. State and
-      not a ref, the variants reading it as they render. */
+  /** Which way the panes travel: into a page, or back out of one. */
   const [towards, setTowards] = useState(1);
   const [pane, setPane] = useState<HTMLDivElement | null>(null);
   const [height, setHeight] = useState<number | 'auto'>('auto');
-  /** A swap travels; filtering does not. Typing narrows the list, and a box
-      that eases down to meet it and back up again reads as the dialog
-      breathing rather than as rows going away. */
   const [travelling, setTravelling] = useState(false);
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
-  const measured = useRef(false);
+  const lastMeasured = useRef<HTMLElement | null>(null);
 
   /**
    * The arriving pane only: entering a page clears the box too, so the one on
-   * its way out swells back to full height first. Its first reading is the
-   * swap and travels, the rest is the list filtering under a box that should
-   * follow. Held here, not cleared on the animation's end, which never fires
-   * for two panes of the same height.
+   * its way out swells back to full height first. A box the size of a pane it
+   * has not measured before is a swap and travels; the same pane resizing
+   * again is the list filtering, and follows at once.
    */
   useEffect(() => {
     if (!pane || pane.dataset.pane !== (page ?? 'root')) return;
 
-    let arriving = true;
-
     const resized = new ResizeObserver(([entry]) => {
-      setTravelling(arriving && measured.current);
-      arriving = false;
-      measured.current = true;
+      setTravelling(lastMeasured.current !== null && lastMeasured.current !== pane);
+      lastMeasured.current = pane;
       setHeight(entry.contentRect.height);
     });
     resized.observe(pane);

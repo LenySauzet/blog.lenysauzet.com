@@ -1,12 +1,8 @@
-/**
- * A palette that has become something else: its own prompt, its own rows. One
- * entry per page, so adding one is a line here rather than a condition spread
- * across the view.
- */
+/** A palette that has become something else: its own prompt, its own rows. */
 export const PAGES = {
   search: {
     placeholder: 'Search blog posts...',
-    /** The page ranks its own rows, so cmdk is told to leave them alone. */
+    /** cmdk is told to leave the rows alone, the page ranking its own. */
     ranksItself: true,
   },
   accent: {

@@ -1,5 +1,5 @@
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import type { IconSvgElement } from '@hugeicons/react'
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 
 import type { Page } from './pages'
 

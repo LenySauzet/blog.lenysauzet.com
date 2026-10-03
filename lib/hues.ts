@@ -1,32 +1,19 @@
 export interface Hue {
   id: string;
   label: string;
-  /** The oklch angle every token in `app/globals.css` derives from. Taken from
-      Tailwind's own palette, so the name is the colour it names. */
+  /** Tailwind's own angle for that name, which every token derives from. */
   hue: number;
-  /**
-   * The accent's lightness, where the shipped 0.615 does not hold. Only the
-   * hue turns for the rest of the site; the accent carries a third of the
-   * chroma of anything else and loses a third of its contrast on white across
-   * the green and cyan arc. Measured per preset to clear both themes.
-   */
+  /** Where the shipped lightness does not clear the contrast floor. */
   lightness?: number;
 }
 
-/**
- * Tailwind's hue for each name, so Blue is Tailwind's blue and not a violet
- * that has been called one. Alphabetical: a list to find a name in rather than
- * a wheel to turn.
- *
- * There is no Neutral, and it is not an oversight. Zeroing the accent's chroma
- * leaves every other token carrying its own and pointing at whatever angle is
- * set, so a grey accent sat on a pink page: measured, `--subtle-foreground`
- * came out 32 points of 255 apart across its channels. A preset can only turn
- * the wheel, and grey is not on it.
- */
+const BLUE: Hue = { id: 'blue', label: 'Blue', hue: 259.815, lightness: 0.61 };
+
+export const DEFAULT_HUE = BLUE;
+
 export const HUES: Hue[] = [
   { id: 'amber', label: 'Amber', hue: 70.08 },
-  { id: 'blue', label: 'Blue', hue: 259.815, lightness: 0.61 },
+  BLUE,
   { id: 'cyan', label: 'Cyan', hue: 215.221, lightness: 0.57 },
   { id: 'emerald', label: 'Emerald', hue: 162.48, lightness: 0.575 },
   { id: 'fuchsia', label: 'Fuchsia', hue: 322.15 },
@@ -44,8 +31,6 @@ export const HUES: Hue[] = [
   { id: 'yellow', label: 'Yellow', hue: 86.047, lightness: 0.61 },
 ];
 
-export const DEFAULT_HUE = HUES.find((hue) => hue.id === 'blue')!;
-
 export const LIGHTNESS = 0.615;
 export const CHROMA = 0.168;
 
@@ -54,13 +39,10 @@ export const STORAGE_KEY = 'hue';
 export const hueOf = (id: string | null | undefined) =>
   HUES.find((candidate) => candidate.id === id) ?? DEFAULT_HUE;
 
-/** What a preset writes on `<html>`, read by the store and by the script that
-    paints before the first frame. */
 export const propertiesOf = (hue: Hue) => ({
   '--base-hue': String(hue.hue),
   '--accent-l': String(hue.lightness ?? LIGHTNESS),
 });
 
-/** The accent a preset produces, which is what a swatch paints. */
 export const accentOf = (hue: Hue) =>
   `oklch(${hue.lightness ?? LIGHTNESS} ${CHROMA} ${hue.hue})`;
