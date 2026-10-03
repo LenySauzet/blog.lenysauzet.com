@@ -11,6 +11,7 @@ import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
 import { PAGES } from '@/lib/commands/pages';
 import { partitionByRecommendation } from '@/lib/commands/recommend';
+import type { ListedPost } from '@/lib/search/query';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
 
@@ -59,7 +60,8 @@ const PANE = {
 const SWAP = { duration: 0.16, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-export function CommandPalette({ slugs }: { slugs: string[] }) {
+export function CommandPalette({ posts }: { posts: ListedPost[] }) {
+  const slugs = useMemo(() => posts.map((post) => post.slug), [posts]);
   const { isOpen, setIsOpen } = useCmdkStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -280,6 +282,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
             >
               {page === 'search' && (
                 <PostSearch
+                  posts={posts}
                   query={query}
                   onResults={onResults}
                   onPick={(slug) => {

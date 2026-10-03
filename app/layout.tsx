@@ -70,11 +70,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const posts = (await getPosts()).map(({ slug, metadata }) => ({
+    slug,
+    title: metadata.shortTitle ?? metadata.title,
+    description: metadata.description,
+    date: metadata.date,
+  }));
+
   const known = Object.fromEntries(
-    (await getPosts()).map(({ slug, metadata }) => [
-      slug,
-      { title: metadata.shortTitle ?? metadata.title, description: metadata.description },
-    ])
+    posts.map(({ slug, title, description }) => [slug, { title, description }])
   );
 
   return (
@@ -94,7 +98,7 @@ export default async function RootLayout({
             <DynamicIsland />
             <LinkPreviews posts={known} />
             <main className="h-full">{children}</main>
-            <CommandPalette slugs={Object.keys(known)} />
+            <CommandPalette posts={posts} />
           </TooltipProvider>
         </ThemeProvider>
       </body>

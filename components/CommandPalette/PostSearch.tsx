@@ -11,23 +11,40 @@ import { postDate } from '@/lib/post-date';
 import type { SearchDocument } from '@/lib/search/config';
 import { excerpt } from '@/lib/search/excerpt';
 import { loadSearchIndex } from '@/lib/search/load-index';
-import { searchPosts } from '@/lib/search/query';
+import { searchPosts, type ListedPost, type PostMatch } from '@/lib/search/query';
 
 import { FadingList } from './FadingList';
 
 type Index = MiniSearch<SearchDocument>;
 
+/** A post the reader has not searched for yet: its own description is the line
+    worth showing, where a match shows the line it was found on. */
+const listed = (post: ListedPost): PostMatch => ({
+  slug: post.slug,
+  title: post.title,
+  date: post.date,
+  text: post.description,
+  terms: [],
+});
+
 interface PostSearchProps {
+  /** Every post, from the server. The unsearched list is drawn from this and
+      never waits on the index, which used to arrive after the page did and
+      resize the palette under the reader. */
+  posts: ListedPost[];
   query: string;
   /** Every row on show, so the palette can keep its selection on one. */
   onResults: (slugs: string[]) => void;
   onPick: (slug: string) => void;
 }
 
-export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
+export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps) {
   const [index, setIndex] = useState<Index | 'failed'>();
+  const asked = query.trim();
 
   useEffect(() => {
+    if (!asked) return;
+
     let current = true;
 
     loadSearchIndex().then(
@@ -38,12 +55,30 @@ export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
     return () => {
       current = false;
     };
-  }, []);
+    // Once, on the first thing typed: `asked` changing afterwards must not
+    // start the fetch again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Boolean(asked)]);
 
-  const results = useMemo(
-    () => (index && index !== 'failed' ? searchPosts(index, query) : []),
-    [index, query]
-  );
+  /**
+   * Unsearched, the server's list; searched, the index's ranking. Between the
+   * two, a plain match on what the server already gave: the panel keeps
+   * something true on screen rather than emptying itself for the length of a
+   * fetch, and never shows a post that does not answer what was typed.
+   */
+  const results = useMemo(() => {
+    if (!asked) return posts.map(listed);
+    if (index === 'failed') return [];
+    if (!index) {
+      const wanted = asked.toLowerCase();
+
+      return posts
+        .filter((post) => `${post.title} ${post.description}`.toLowerCase().includes(wanted))
+        .map(listed);
+    }
+
+    return searchPosts(index, asked);
+  }, [index, asked, posts]);
 
   /**
    * cmdk moves its selection when its own search box changes, and nothing else:
@@ -55,12 +90,12 @@ export function PostSearch({ query, onResults, onPick }: PostSearchProps) {
 
   return (
     <FadingList>
-      {index === undefined && <CommandEmpty>Reading the archive...</CommandEmpty>}
-      {index === 'failed' && (
-        <CommandEmpty>The search index could not be loaded.</CommandEmpty>
-      )}
-      {index && index !== 'failed' && results.length === 0 && (
-        <CommandEmpty>No post says anything about that.</CommandEmpty>
+      {results.length === 0 && (
+        <CommandEmpty>
+          {index === 'failed'
+            ? 'The search index could not be loaded.'
+            : 'No post says anything about that.'}
+        </CommandEmpty>
       )}
 
       {/* The heading only has a group to name when there is one: rendered

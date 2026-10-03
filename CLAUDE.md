@@ -608,7 +608,13 @@ are the pages, and they force four things worth knowing before opening the files
   node once, at mount.
 
 The index is built at build time by `lib/search/build-index.ts` and served static by
-`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
+`app/search-index.json/route.ts`, **fetched on the first thing typed and not before**.
+The unsearched list is the server's, handed to the palette as `posts`: drawn from the
+index it arrived after the page did, so a cold load opened the search page on a line of
+text and then resized it under the reader once the archive landed. Between a keystroke
+and the index there is a plain match on title and description, so the panel keeps
+something true on screen for the length of the fetch and never shows a post that does
+not answer what was typed. **`INDEX_OPTIONS`
 is shared by the build and the browser on purpose**: `loadJSON` reads an index against
 the options it is handed, so the two drifting apart stops matching rather than failing.
 `lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
