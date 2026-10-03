@@ -98,6 +98,59 @@ describe('toMarkdown', () => {
     expect(toMarkdown(post(`<VideoPlayer src="${elsewhere}" />`))).toContain(elsewhere);
   });
 
+  /**
+   * A post about Three.js will carry `import * as THREE` in an example sooner
+   * or later, and a shader post a `src=` in one. Both are the subject, not
+   * machinery, and a transform that reaches inside a fence eats them.
+   */
+  it('leaves a fenced block entirely alone', () => {
+    const fenced = [
+      '```ts',
+      "import * as THREE from 'three';",
+      '',
+      'const html = `<Image src="blog/not-a-real-asset.png" />`;',
+      '```',
+    ].join('\n');
+
+    const out = toMarkdown(post(`${FRONTMATTER}\n\nBefore.\n\n${fenced}\n\nAfter.`));
+
+    expect(out).toContain(fenced);
+  });
+
+  /**
+   * A Sandpack holds its example in a prop, as a template literal, so a line
+   * of that example can begin at column zero halfway down the file. Stripped
+   * by a pattern anchored to any line start, the example silently loses it,
+   * which is what happened to `import './scene.css';` in the design system.
+   */
+  it('only strips the imports the file opens with', () => {
+    const sandpack = [
+      '<Sandpack',
+      '  files={{',
+      "    '/App.js': `import { motion } from 'motion/react';",
+      "import './scene.css';",
+      '',
+      'function App() {}`,',
+      '  }}',
+      '/>',
+    ].join('\n');
+
+    const out = toMarkdown(post(`import { Sandpack } from '@/x';\n\n${sandpack}`));
+
+    expect(out).toContain("import './scene.css';");
+    expect(out).not.toContain('import { Sandpack }');
+  });
+
+  it('still reaches what sits between two fences', () => {
+    const out = toMarkdown(
+      post('```ts\nconst a = 1;\n```\n\n<Image src="blog/a.png" />\n\n```ts\nconst b = 2;\n```')
+    );
+
+    expect(out).toContain('src="https://cdn.lenysauzet.com/images/blog/a.png"');
+    expect(out).toContain('const a = 1;');
+    expect(out).toContain('const b = 2;');
+  });
+
   it('ends with a single newline, the way a text file does', () => {
     expect(toMarkdown(post('Body.'))).toMatch(/[^\n]\n$/);
   });

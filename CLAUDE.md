@@ -117,7 +117,11 @@ which is right for an eye and unreadable for anything else.
 `lib/post-markdown.ts` is the whole transform and takes two liberties with the source,
 each because the original means nothing outside the build: the metadata export becomes
 YAML, which something other than a bundler can parse, and a relative media path becomes
-absolute. **The CDN namespace is chosen by extension**, not by a table of components:
+absolute. Both are narrower than they look. **Only the imports the file opens with are
+dropped**, because a component carrying an example in a prop has lines of it at column
+zero: anchoring to every line start cost the design system its `import './scene.css';`
+out of a Sandpack. And **a fenced block is never touched at all**, being the subject
+rather than the machinery. **The CDN namespace is chosen by extension**, not by a table of components:
 `.mp4` goes to videos and everything else to images, so adding a component to
 `mdx-components.tsx` can never put a file in the wrong place.
 
