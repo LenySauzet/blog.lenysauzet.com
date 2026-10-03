@@ -11,7 +11,12 @@ import {
   ToggleShowcase,
 } from '@/components/ComponentShowcase';
 import Card from '@/components/Card';
+import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
+import Figure from '@/components/Figure';
+import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
+import SamplingDiagram from '@/components/figures/SamplingDiagram';
+import SpectrumBand from '@/components/figures/SpectrumBand';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -39,14 +44,20 @@ const components = {
   ButtonShowcase,
   Callout,
   Card,
+  Chart,
+  ConfusionMatrix,
   Details,
+  Figure,
   InputShowcase,
   SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
   Fullbleed,
   Image,
+  PieChart,
   Sandpack,
+  SamplingDiagram,
+  SpectrumBand,
   SupportCallout,
 
   a: Anchor,
