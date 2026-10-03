@@ -664,7 +664,11 @@ lets cmdk filter four names.
   the dialog sizes itself to: measured, it still took 222px in a single frame. The
   height is measured off the pane with a `ResizeObserver` and animated for real, and it
   holds through the gap between one pane leaving and the next arriving because the
-  observer has nothing to watch there. 33 frames where there was one, and typing in the
+  observer has nothing to watch there. **Only the arriving pane is measured**, which
+  the `data-pane` guard is for: entering a page clears the box too, so the pane on its
+  way out re-renders unfiltered and swells back to full height first, and following it
+  grew the dialog to meet a list nobody would see before dropping to the page's own
+  size. 33 frames where there was one, and typing in the
   root stopped snapping as well.
 
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;

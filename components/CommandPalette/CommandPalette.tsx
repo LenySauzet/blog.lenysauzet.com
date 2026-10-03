@@ -78,14 +78,20 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
+  /**
+   * Only the pane that is arriving is measured. Entering a page clears the box
+   * as well, so the pane on its way out re-renders unfiltered and swells back
+   * to its full height first: followed, the dialog grew to meet a list nobody
+   * would see and then dropped to the page's own size.
+   */
   useEffect(() => {
-    if (!pane) return;
+    if (!pane || pane.dataset.pane !== (page ?? 'root')) return;
 
     const resized = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
     resized.observe(pane);
 
     return () => resized.disconnect();
-  }, [pane]);
+  }, [pane, page]);
 
   /** The chooser opens on the accent in force, so the reader starts from where
       they are rather than at the top of an alphabet. */
@@ -242,6 +248,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
             <motion.div
               ref={setPane}
               key={page ?? 'root'}
+              data-pane={page ?? 'root'}
               custom={towards}
               variants={PANE}
               initial="entering"
