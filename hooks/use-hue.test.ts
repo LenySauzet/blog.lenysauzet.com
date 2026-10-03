@@ -32,11 +32,10 @@ describe('useHue', () => {
     expect(useHue.getState().hue).toBe('rose');
   });
 
-  it('writes the lightness and chroma a preset carries', () => {
-    useHue.getState().setHue('neutral');
+  it('writes the lightness a preset carries', () => {
+    useHue.getState().setHue('teal');
 
-    expect(document.documentElement.style.getPropertyValue('--accent-c')).toBe('0');
-    expect(document.documentElement.style.getPropertyValue('--accent-l')).toBe('0.61');
+    expect(document.documentElement.style.getPropertyValue('--accent-l')).toBe('0.565');
   });
 
   it('paints the default rather than nothing for an id it does not know', () => {

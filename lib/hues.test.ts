@@ -69,8 +69,6 @@ describe('HUES', () => {
     };
 
     for (const preset of HUES) {
-      if (preset.id === 'neutral') continue;
-
       expect(preset.hue, preset.label).toBeCloseTo(tailwind[preset.id], 2);
     }
   });
@@ -86,11 +84,7 @@ describe('HUES', () => {
     const onWhite = luminance(1, 0, 0);
 
     for (const preset of HUES) {
-      const accent = luminance(
-        preset.lightness ?? LIGHTNESS,
-        preset.chroma ?? CHROMA,
-        preset.hue
-      );
+      const accent = luminance(preset.lightness ?? LIGHTNESS, CHROMA, preset.hue);
       const onPage = luminance(0.1468, 0.01, preset.hue);
 
       expect(contrast(accent, onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3.79);
@@ -100,16 +94,14 @@ describe('HUES', () => {
 });
 
 describe('propertiesOf', () => {
-  it('writes the three the accent is made of, defaults included', () => {
+  it('writes the angle and the lightness, the default one included', () => {
     expect(propertiesOf(hueOf('violet'))).toEqual({
       '--base-hue': '292.717',
       '--accent-l': String(LIGHTNESS),
-      '--accent-c': String(CHROMA),
     });
   });
 
-  it('carries the lightness and chroma a preset declares', () => {
-    expect(propertiesOf(hueOf('neutral'))['--accent-c']).toBe('0');
+  it('carries the lightness a preset declares', () => {
     expect(propertiesOf(hueOf('teal'))['--accent-l']).toBe('0.565');
   });
 });
@@ -117,6 +109,6 @@ describe('propertiesOf', () => {
 describe('accentOf', () => {
   it('paints what the preset will apply, not an approximation of it', () => {
     expect(accentOf(hueOf('teal'))).toBe('oklch(0.565 0.168 182.503)');
-    expect(accentOf(hueOf('neutral'))).toBe('oklch(0.61 0 0)');
+    expect(accentOf(hueOf('violet'))).toBe('oklch(0.615 0.168 292.717)');
   });
 });

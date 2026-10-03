@@ -11,15 +11,20 @@ export interface Hue {
    * the green and cyan arc. Measured per preset to clear both themes.
    */
   lightness?: number;
-  /** Zero for the one preset that is not a colour. */
-  chroma?: number;
 }
 
-/** Tailwind's hue for each name, so Blue is Tailwind's blue and not a violet
-    that has been called one. Neutral first, then alphabetical: a list to find
-    a name in rather than a wheel to turn. */
+/**
+ * Tailwind's hue for each name, so Blue is Tailwind's blue and not a violet
+ * that has been called one. Alphabetical: a list to find a name in rather than
+ * a wheel to turn.
+ *
+ * There is no Neutral, and it is not an oversight. Zeroing the accent's chroma
+ * leaves every other token carrying its own and pointing at whatever angle is
+ * set, so a grey accent sat on a pink page: measured, `--subtle-foreground`
+ * came out 32 points of 255 apart across its channels. A preset can only turn
+ * the wheel, and grey is not on it.
+ */
 export const HUES: Hue[] = [
-  { id: 'neutral', label: 'Neutral', hue: 0, lightness: 0.61, chroma: 0 },
   { id: 'amber', label: 'Amber', hue: 70.08 },
   { id: 'blue', label: 'Blue', hue: 259.815, lightness: 0.61 },
   { id: 'cyan', label: 'Cyan', hue: 215.221, lightness: 0.57 },
@@ -54,9 +59,8 @@ export const hueOf = (id: string | null | undefined) =>
 export const propertiesOf = (hue: Hue) => ({
   '--base-hue': String(hue.hue),
   '--accent-l': String(hue.lightness ?? LIGHTNESS),
-  '--accent-c': String(hue.chroma ?? CHROMA),
 });
 
 /** The accent a preset produces, which is what a swatch paints. */
 export const accentOf = (hue: Hue) =>
-  `oklch(${hue.lightness ?? LIGHTNESS} ${hue.chroma ?? CHROMA} ${hue.hue})`;
+  `oklch(${hue.lightness ?? LIGHTNESS} ${CHROMA} ${hue.hue})`;
