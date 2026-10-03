@@ -3,7 +3,13 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Fragment } from 'react';
 
-import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import {
+  CommandEmpty,
+  CommandGroup,
+  CommandHint,
+  commandHint,
+  CommandItem,
+} from '@/components/ui/command';
 import { accentOf, HUES, type Hue } from '@/lib/hues';
 
 import { FadingList } from './FadingList';
@@ -48,8 +54,6 @@ function Swatch({ preset }: { preset: Hue }) {
   );
 }
 
-const MARK = 'ml-auto truncate pl-6 text-sm text-muted-foreground/70';
-
 const LETTER = {
   hidden: { opacity: 0, filter: 'blur(6px)' },
   shown: { opacity: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } },
@@ -67,11 +71,12 @@ const WORD = {
 function Mark({ children }: { children: string }) {
   const still = useReducedMotion();
 
-  if (still) return <span className={MARK}>{children}</span>;
+  if (still) return <CommandHint>{children}</CommandHint>;
 
   return (
     <motion.span
-      className={MARK}
+      data-slot="command-hint"
+      className={commandHint}
       variants={WORD}
       initial="hidden"
       animate="shown"

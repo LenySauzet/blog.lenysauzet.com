@@ -179,6 +179,19 @@ function CommandItem({
   )
 }
 
+/** What a row says on its right: a destination, a date, the accent in force.
+    Lifts with the row the way a shortcut does, or the one thing on the line
+    that does not answer the selection reads as disabled.
+
+    Exported as a class as well, for a mark that has to be a motion element to
+    animate its own exit. */
+const commandHint =
+  "ml-auto truncate pl-6 text-sm text-muted-foreground/70 group-data-selected/command-item:text-foreground"
+
+function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
+  return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />
+}
+
 function CommandShortcut({
   className,
   ...props
@@ -203,6 +216,8 @@ export {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandHint,
+  commandHint,
   CommandShortcut,
   CommandSeparator,
 }

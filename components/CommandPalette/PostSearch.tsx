@@ -6,7 +6,12 @@ import { format } from 'date-fns';
 import type MiniSearch from 'minisearch';
 import { useEffect, useMemo, useState } from 'react';
 
-import { CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import {
+  CommandEmpty,
+  CommandGroup,
+  CommandHint,
+  CommandItem,
+} from '@/components/ui/command';
 import { postDate } from '@/lib/post-date';
 import type { SearchDocument } from '@/lib/search/config';
 import { excerpt } from '@/lib/search/excerpt';
@@ -112,9 +117,9 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
             <div className="flex w-full items-center gap-3">
               <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
               <span className="truncate">{result.title}</span>
-              <span className="ml-auto shrink-0 pl-4 text-xs text-muted-foreground">
+              <CommandHint className="shrink-0 pl-4 text-xs">
                 {format(postDate(result.date), 'MMM d, yyyy')}
-              </span>
+              </CommandHint>
             </div>
 
             {/* The line it was found on, rather than the description every result

@@ -639,10 +639,14 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output five times over: its
+`components/ui/command.tsx` is customized beyond the CLI output six times over: its
 `CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
 slot at the end of its row, a selected item carries `--primary` rather than
-`--foreground`, **a row's selection is not transitioned** and
+`--foreground`, **`CommandHint` names what a row says on its
+right** and lifts it with the selection the way a shortcut does, since the one
+thing on the line that does not answer the selection reads as disabled (it is
+exported as a class too, for a mark that has to be a motion element to animate
+its own exit), **a row's selection is not transitioned** and
 **the dialog travels its backdrop's radius on the way out** rather
 than only its opacity. The row eased its colour and its wash over 100ms while
 the icon, whose colour is set on the `svg` and carries no transition of its

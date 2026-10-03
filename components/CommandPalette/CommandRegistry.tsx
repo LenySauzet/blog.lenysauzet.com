@@ -5,6 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import {
   CommandEmpty,
   CommandGroup,
+  CommandHint,
   CommandItem,
   CommandShortcut,
 } from '@/components/ui/command';
@@ -47,11 +48,7 @@ export function CommandRegistry({
       >
         <HugeiconsIcon icon={command.icon} strokeWidth={2} />
         {command.label}
-        {command.hint && (
-          <span className="ml-auto truncate pl-6 text-sm text-muted-foreground/70">
-            {command.hint}
-          </span>
-        )}
+        {command.hint && <CommandHint>{command.hint}</CommandHint>}
         {command.shortcut && (
           <CommandShortcut>⌘{keyLabel(command.shortcut)}</CommandShortcut>
         )}
