@@ -51,7 +51,15 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] sm:max-w-[600px]",
+          // The radius travels on the way out, not just the layer's opacity: a
+          // blurred backdrop is as good as fully blurred at an opacity of
+          // zero, so fading alone holds the page blurred to the last frame and
+          // then lets it snap back. Two traps in the closed value: it keeps the
+          // same function list, or there is nothing to interpolate between, and
+          // it lands on half a pixel rather than none, Lightning CSS minifying
+          // `blur(0px)` to the invalid `blur()` and taking the declaration with
+          // it.
+          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[backdrop-filter] duration-100 ease-out data-closed:[backdrop-filter:blur(0.5px)_saturate(1.15)] sm:max-w-[600px]",
           className
         )}
         showCloseButton={showCloseButton}
@@ -66,8 +74,12 @@ function CommandDialog({
 // leading icon, not a field with an addon floating over it.
 function CommandInput({
   className,
+  hint,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+}: React.ComponentProps<typeof CommandPrimitive.Input> & {
+  /** Room at the end of the row for what the box can do right now. */
+  hint?: React.ReactNode
+}) {
   return (
     <div data-slot="command-input-wrapper">
       <div className="flex h-[55px] items-center gap-3 border-b-[1.5px] border-foreground/10 px-[18px]">
@@ -80,6 +92,7 @@ function CommandInput({
           )}
           {...props}
         />
+        {hint}
       </div>
     </div>
   )
@@ -155,7 +168,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-[0.95rem] outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale,color,background-color] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-primary/10 data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-primary",
+        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-[0.95rem] outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-primary/10 data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-primary",
         className
       )}
       {...props}
@@ -164,6 +177,19 @@ function CommandItem({
       <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className="ml-auto hidden group-data-[checked=true]/command-item:block" />
     </CommandPrimitive.Item>
   )
+}
+
+/** What a row says on its right: a destination, a date, the accent in force.
+    Lifts with the row the way a shortcut does, or the one thing on the line
+    that does not answer the selection reads as disabled.
+
+    Exported as a class as well, for a mark that has to be a motion element to
+    animate its own exit. */
+const commandHint =
+  "ml-auto truncate pl-6 text-sm text-muted-foreground/70 group-data-selected/command-item:text-foreground"
+
+function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
+  return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />
 }
 
 function CommandShortcut({
@@ -190,6 +216,8 @@ export {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandHint,
+  commandHint,
   CommandShortcut,
   CommandSeparator,
 }

@@ -20,6 +20,22 @@ type Post = {
     lastModified: Date
 }
 
+/** A post as the app passes it around: what a listing, a preview or a search
+    row needs, without the body. */
+export type PostSummary = {
+    slug: string
+    title: string
+    description: string
+    date: string
+}
+
+export const summaryOf = ({ slug, metadata }: Post): PostSummary => ({
+    slug,
+    title: metadata.shortTitle ?? metadata.title,
+    description: metadata.description,
+    date: metadata.date,
+})
+
 type GetPostsOptions = {
     /** Off by default so the feed, RSS and sitemap never leak drafts. */
     includeDrafts?: boolean

@@ -4,8 +4,10 @@ import MiniSearch from 'minisearch';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
+import { useHue } from '@/hooks/use-hue';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS } from '@/lib/commands/types';
+import { HUES } from '@/lib/hues';
 import { INDEX_OPTIONS } from '@/lib/search/config';
 
 import { CommandPalette } from './CommandPalette';
@@ -63,16 +65,22 @@ const readTo = (fraction: number) => {
 const shown = () =>
   screen.getAllByRole('option').map((item) => item.textContent?.trim());
 
+/** What the server hands it: the palette draws the unsearched list from this. */
+const posts = [
+  { slug: 'halftone', title: 'Shades of Halftone', description: 'Dots.', date: '2026-04-22' },
+  { slug: 'planets', title: 'Procedural Planets', description: 'Spheres.', date: '2026-04-21' },
+];
+
 describe('CommandPalette', () => {
   it('stays out of the way until it is asked for', () => {
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('opens on the shortcut and closes on it again', async () => {
     const user = userEvent.setup();
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.keyboard('{Meta>}k{/Meta}');
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -84,7 +92,7 @@ describe('CommandPalette', () => {
   it('offers every command that suits the page, under its own heading', async () => {
     pathname = '/posts/anything';
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     readTo(0.5);
 
     for (const group of GROUPS) {
@@ -95,11 +103,91 @@ describe('CommandPalette', () => {
     }
   });
 
+  // The accent is a page rather than one row per preset: the palette keeps its
+  // density and the choosing happens through the door.
+  it('opens the accent page, with the one in force marked', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+
+    expect(await screen.findByPlaceholderText('Pick an accent...')).toBeInTheDocument();
+    for (const { label } of HUES) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+
+    const inForce = HUES.find((preset) => preset.id === useHue.getState().hue)!;
+    expect(screen.getByText(inForce.label)).toBeInTheDocument();
+    expect(screen.getByText('Current')).toBeInTheDocument();
+  });
+
+  // Arriving must change nothing: the chooser opens on the accent in force, so
+  // the first preview a reader sees is one they asked for.
+  it('opens the chooser on the accent already in force', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    useHue.setState({ hue: 'teal' });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+
+    const row = (await screen.findByText('Teal')).closest('[cmdk-item]');
+    await waitFor(() => expect(row).toHaveAttribute('data-selected', 'true'));
+  });
+
+  // Backspace leaving a page was the one move nothing on the surface taught.
+  // The hint says so, and only while it is true: with a query in hand the key
+  // deletes a character instead.
+  it('says how to get back, and only while that is what the key does', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    expect(screen.queryByText(/Back/)).not.toBeInTheDocument();
+
+    await user.click(await screen.findByText('Change the accent'));
+    expect(await screen.findByText(/Back/)).toBeInTheDocument();
+
+    await user.keyboard('te');
+    await waitFor(() => expect(screen.queryByText(/Back/)).not.toBeInTheDocument());
+  });
+
+  // The hint is the target too, so the mouse is not left with Escape as its
+  // only way out of a page, and the focus it takes goes back to the box.
+  it('goes back when the hint is clicked, and hands the box its focus', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+    await user.click(await screen.findByRole('button', { name: /Back/ }));
+
+    const box = await screen.findByPlaceholderText('Type a command...');
+    expect(box).toBeInTheDocument();
+    expect(box).toHaveFocus();
+  });
+
+  // Backspace on an empty box is the way back, and the root has to come back
+  // whole: a page left behind would keep the palette on its own prompt.
+  it('comes back to the root from a page', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+    await screen.findByPlaceholderText('Pick an accent...');
+
+    await user.keyboard('{Backspace}');
+
+    expect(await screen.findByPlaceholderText('Type a command...')).toBeInTheDocument();
+  });
+
   // Copying a link or scrolling back up is meaningless on the index, and an offer
   // that does nothing is worse than no offer.
   it('keeps the post-only commands off every other page', async () => {
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     await screen.findByText('Home');
 
     expect(shown()).not.toContain('Copy link to clipboard');
@@ -109,7 +197,7 @@ describe('CommandPalette', () => {
   it('withholds the way back up from a reader already at the top', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     await screen.findByText('Copy link to clipboard');
 
     expect(screen.queryByText('Go to top')).not.toBeInTheDocument();
@@ -121,7 +209,7 @@ describe('CommandPalette', () => {
 
   it('recommends finding something to read, on the index', async () => {
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     expect(await screen.findByText('Recommended')).toBeInTheDocument();
 
@@ -138,7 +226,7 @@ describe('CommandPalette', () => {
   it('names the way onward once the article runs out', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     await screen.findByText('Home');
 
     expect(screen.queryByText('Recommended')).not.toBeInTheDocument();
@@ -156,7 +244,7 @@ describe('CommandPalette', () => {
   it('leaves no copy behind in the group it was lifted from', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     readTo(1);
     await screen.findByText('Recommended');
 
@@ -167,7 +255,7 @@ describe('CommandPalette', () => {
   it('offers them again inside an article', async () => {
     pathname = '/posts/shades-of-halftone';
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
     readTo(0.5);
 
     expect(await screen.findByText('Copy link to clipboard')).toBeInTheDocument();
@@ -177,7 +265,7 @@ describe('CommandPalette', () => {
   // Listed so the shape of the site is visible, inert until the page exists.
   it('shows the glossary without letting it be run', async () => {
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     const glossary = await screen.findByText('Glossary');
     expect(glossary.closest('[role="option"]')).toHaveAttribute(
@@ -193,7 +281,7 @@ describe('CommandPalette', () => {
   it('closes first, then runs the command it was given', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Home'));
 
@@ -204,7 +292,7 @@ describe('CommandPalette', () => {
   it('toggles away from the theme currently resolved', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Toggle theme'));
 
@@ -214,7 +302,7 @@ describe('CommandPalette', () => {
   // Answers from anywhere, so it is worth something before the palette is known.
   it('runs a command from its shortcut with the palette shut', async () => {
     const user = userEvent.setup();
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.keyboard('{Meta>}d{/Meta}');
 
@@ -226,7 +314,7 @@ describe('CommandPalette', () => {
   it('is gone before the theme sweep takes its snapshot', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Toggle theme'));
 
@@ -240,7 +328,7 @@ describe('CommandPalette', () => {
   it('takes the selection off the last row when a disabled one is pointed at', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     const row = (label: string) =>
       screen.getByText(label).closest('[role="option"]');
@@ -258,7 +346,7 @@ describe('CommandPalette', () => {
   it('turns into the search page rather than running and leaving', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Search blog posts'));
 
@@ -274,7 +362,7 @@ describe('CommandPalette', () => {
   it('leaves the page on a backspace with nothing left to delete', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Search blog posts'));
     await screen.findByText('Shades of Halftone');
@@ -293,7 +381,7 @@ describe('CommandPalette', () => {
   it('reopens at its root after a post was picked from the search page', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.click(await screen.findByText('Search blog posts'));
     await user.type(screen.getByRole('combobox'), 'halftone');
@@ -312,7 +400,7 @@ describe('CommandPalette', () => {
   it('matches on keywords as well as labels', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette slugs={['halftone', 'planets']} />);
+    render(<CommandPalette posts={posts} />);
 
     await user.type(await screen.findByRole('combobox'), 'donate');
 

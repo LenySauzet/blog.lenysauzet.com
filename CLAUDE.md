@@ -526,6 +526,59 @@ What the shape forces:
 chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
 The island and the rail both hand it on from there.
 
+**The accent is a reader's choice, out of seventeen presets.** `lib/hues.ts` is the
+whole list; everything else reads it. One row in `Tools` opens a page of the palette,
+and the choosing happens there.
+
+- **The names come from Tailwind's palette, and so do the angles**, which is the only
+  way a name stays honest. The site shipped 262.04 as "Violet" for a long time; that is
+  Tailwind's *blue* at 259.8, and the real violet is at 292.7. The default is Blue now,
+  and `hues.test.ts` checks every preset against Tailwind's own figure.
+- **The accent has its own lightness**, `--accent-l`, where every other token takes
+  only the hue. It needs one: the accent carries far more chroma than anything else, so
+  rotating it alone drops `--primary` on white from 4.06 at the warm end to 3.17 at
+  teal, well under what the site shipped. Nine presets carry a lightness that buys it
+  back, by at most 0.05. Measured on the page after the change, teal in light mode
+  reads 3.84 where it read 3.17.
+- **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself
+  and fails a preset that falls under 3.79 in light or 4.5 in dark. The conversion is
+  test-only and agrees with Chrome to within 0.02 of a ratio.
+- **There is no Neutral, and that is the answer rather than an omission.** Zeroing the
+  accent's chroma only reaches `--primary`: every other token carries its own and
+  points at whatever angle is set, so a grey accent sat on a pink page. Measured under
+  it, `--subtle-foreground` came out 170,138,147, thirty-two points of 255 apart across
+  its channels, where `--primary` was a flat 131,131,131. A preset turns the wheel and
+  grey is not on it; making it honest would mean all 88 token definitions taking a
+  chroma multiplier.
+- **A blocking script paints it before the first frame**, built in `app/layout.tsx`
+  from `HUES` itself so a preset cannot exist there and nowhere else. Left to React the
+  page paints the default and corrects it on hydration, which is a flash of the wrong
+  colour. Measured on a cold load with a preset stored: the right accent at readyState
+  `interactive`, at the first frame, at first contentful paint, in both themes.
+- **The mark reads itself in, letter by letter**, on the grammar `ZoomCaption` uses
+  under a zoomed image: a 6px blur per glyph, staggered left to right, and leaving
+  mirrors it last letter first so the mark hands over to the row that takes it rather
+  than blinking out. Measured mid-reveal, the seven letters sit at 0.96 down to 0.20.
+- **The chooser opens on the accent in force**, so the reader starts from where they
+  are. The selection is set a frame late, cmdk putting its own highlight on the first
+  row as the rows mount. **Hovering a row does not preview it**: tried, and a page
+  that rethemes under a pointer merely passing over a list is more startling than it
+  is useful.
+- **`--base-hue` in `globals.css` is the angle `DEFAULT_HUE` names**, or the two
+  disagree and the page shifts the moment anything reads a preset.
+- **Picking applies in place and the page stays open.** Every other command acts and
+  the palette shuts behind it; a chooser has to let one accent be compared with the
+  next.
+- **The swatch is two discs and a cut, and the cut is a mask.** A border would be a
+  colour that has to match whatever sits behind it, on a panel, in either theme, under
+  any accent; a mask makes the separation the surface itself. The disc behind is mixed
+  into the page rather than laid over it at an alpha, for the same reason the text
+  tiers are named colours.
+- **Nothing else had to change**, which was the point of the token architecture: the
+  shader follows because `Backdrop` reads the accent every frame, and the syntax
+  highlighting follows because `config/code-theme.ts` emits `var(--shiki-token-*)`
+  rather than literal colours.
+
 **The command palette is a registry, not a component full of items.**
 `lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
 and `components/CommandPalette` only renders it and hands each `run` the page's router
@@ -534,21 +587,34 @@ takes a context rather than reaching for hooks itself, which is what keeps the r
 a plain module a test can read.
 
 A command either acts on the site or **opens a page of the palette**, never both;
-the `Command` union keeps the pair from being written together. `search` is the only
-page so far, and it forces four things worth knowing before opening the files:
+the `Command` union keeps the pair from being written together. `search` and `accent`
+are the pages, and they force four things worth knowing before opening the files:
 
 - **A page ranks its own rows**, so cmdk gets `shouldFilter={false}` and the selection
   is driven from outside through `onResults`. cmdk moves it when *its* search box
   changes and at no other time.
 - **Backspace-to-leave is read on the cmdk root**, not the input, and the input is
   focused by hand when a page opens: a row reached with the mouse keeps the focus.
+  **`BackHint` is what says so**, at the end of the input row, and only while the box
+  is empty, which is the only time the key does that: with a query in hand it deletes
+  a character, and a hint promising otherwise is worse than none. It is the target as
+  well, so a mouse is not left with Escape alone, and it hands the box back its focus
+  on the way out, the button leaving with the page it belongs to. **cmdk reads Enter on
+  its root** and runs whatever row is highlighted, so a button inside it is reachable by
+  Tab and dead on arrival until the key is stopped at the button.
 - **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
   disabled hover, and it refuses to select such a row at all.
 - **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
   node once, at mount.
 
 The index is built at build time by `lib/search/build-index.ts` and served static by
-`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
+`app/search-index.json/route.ts`, **fetched on the first thing typed and not before**.
+The unsearched list is the server's, handed to the palette as `posts`: drawn from the
+index it arrived after the page did, so a cold load opened the search page on a line of
+text and then resized it under the reader once the archive landed. Between a keystroke
+and the index there is a plain match on title and description, so the panel keeps
+something true on screen for the length of the fetch and never shows a post that does
+not answer what was typed. **`INDEX_OPTIONS`
 is shared by the build and the browser on purpose**: `loadJSON` reads an index against
 the options it is handed, so the two drifting apart stops matching rather than failing.
 `lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
@@ -573,12 +639,61 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output twice over: its
-`CommandInput` is laid out inline rather than through `InputGroup`, and a selected item
-carries `--primary` rather than `--foreground`. Update it with
+`components/ui/command.tsx` is customized beyond the CLI output six times over: its
+`CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
+slot at the end of its row, a selected item carries `--primary` rather than
+`--foreground`, **`CommandHint` names what a row says on its
+right** and lifts it with the selection the way a shortcut does, since the one
+thing on the line that does not answer the selection reads as disabled (it is
+exported as a class too, for a mark that has to be a motion element to animate
+its own exit), **a row's selection is not transitioned** and
+**the dialog travels its backdrop's radius on the way out** rather
+than only its opacity. The row eased its colour and its wash over 100ms while
+the icon, whose colour is set on the `svg` and carries no transition of its
+own, snapped: one change arriving at two speeds. Only the press is animated
+now, which is the same reason the reading rail's titles take their accent at
+once. A blurred backdrop is as good as fully blurred at an opacity of
+zero, so fading alone held the page blurred to the last frame and let it snap back,
+which reads as a missing exit where there is detail behind the panel. The closed value
+keeps the same function list, or there is nothing to interpolate between and it jumps
+all the same. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.
+
+**A page of the palette is an entry in `lib/commands/pages.ts`**, holding its prompt and
+whether it ranks its own rows. `Page` is the map's keys, so a page that is not described
+there cannot be opened, and a new one is a line plus a branch rather than a condition
+spread across the view. `search` ranks for itself and tells cmdk to stand down; `accent`
+lets cmdk filter four names.
+
+- **One pane is mounted at a time, which `AnimatePresence mode="wait"` is for.** A page
+  is a `CommandList`, and two of them inside one `Command` would have cmdk ranking and
+  arrowing through rows nobody can see. The reveal reads the same for it: the pane
+  leaves to one side under a blur, the next arrives from the other.
+- **The blur is the movement's own**, so it resolves to `none` through `transitionEnd`
+  rather than resting at `blur(0)`, which would leave every pane holding a composited
+  layer for the life of the palette.
+- **The box travels with its contents, and `layout` cannot do it.** Motion's layout
+  animation transforms the element and lets the real box jump, which is exactly what
+  the dialog sizes itself to: measured, it still took 222px in a single frame. The
+  height is measured off the pane with a `ResizeObserver` and animated for real, and it
+  holds through the gap between one pane leaving and the next arriving because the
+  observer has nothing to watch there. **The box keeps a floor of five rows**, or
+  filtering to a single command drops it to one and the page it opens climbs
+  all the way back out, which reads as a pulse rather than as a list
+  narrowing. Deeper than five and an empty result is mostly void.
+  **Only a swap travels**, never a filter: the
+  first reading from a pane is the swap, everything after it is the list
+  narrowing under a box that should simply follow, and easing down to meet it
+  and back up again reads as the dialog breathing rather than as rows going
+  away. Held on the observation rather than cleared when the animation ends,
+  which never fires for two panes that happen to be the same height.
+  **Only the arriving pane is measured**, which the `data-pane` guard is for: entering a page clears the box too, so the pane on its
+  way out re-renders unfiltered and swells back to full height first, and following it
+  grew the dialog to meet a list nobody would see before dropping to the page's own
+  size. 33 frames where there was one, and typing in the
+  root stopped snapping as well.
 
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
@@ -602,7 +717,10 @@ clipped the bottom padding. All open-state styling reads Radix's `data-state` th
 - Put the animation on the `className`, not a separate `[data-state]` CSS rule. A
   separate rule races Radix's unmount check and the exit never plays.
 - Write `filter: none`, not `filter: blur(0)`. Lightning CSS minifies the latter to the
-  invalid `blur()`.
+  invalid `blur()`. **`backdrop-filter` is no safer**: the palette's exit asked for
+  `blur(0px) saturate(1.15)` and shipped `blur()saturate(1.15)`, which takes the whole
+  declaration with it. Where a zero cannot be avoided, half a pixel survives the
+  minifier and is not visible.
 
 **Form fields are one surface, not a container plus parts.** `components/ui/input.tsx`
 exports `inputSurface`, the whole visual contract (edge, fill, radius, type, and every

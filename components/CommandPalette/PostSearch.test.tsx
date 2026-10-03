@@ -20,11 +20,21 @@ index.add({
   text: 'The halftone dot pattern is an optical illusion of smooth tone.',
 });
 
+/** What the server hands the palette, which is what an unsearched list shows. */
+const posts = [
+  {
+    slug: 'halftone',
+    title: 'Shades of Halftone',
+    description: 'Dots on a grid.',
+    date: '2026-04-22',
+  },
+];
+
 /** The page lives inside the cmdk root, which owns the roles it is read through. */
 const show = (query: string, onPick = vi.fn()) =>
   render(
     <Command shouldFilter={false}>
-      <PostSearch query={query} onResults={vi.fn()} onPick={onPick} />
+      <PostSearch posts={posts} query={query} onResults={vi.fn()} onPick={onPick} />
     </Command>
   );
 
@@ -48,16 +58,29 @@ describe('PostSearch', () => {
     expect(await screen.findByText(/No post says anything/)).toBeInTheDocument();
   });
 
-  it('says so while the index is still coming', () => {
+  // The unsearched list is the server's and waits on nothing. It used to be
+  // the index's, which arrived after the page did and resized the palette
+  // under the reader on every cold load.
+  it('lists the posts without asking for the index at all', () => {
     loadSearchIndex.mockReturnValue(new Promise(() => {}));
     show('');
 
-    expect(screen.getByText(/Reading the archive/)).toBeInTheDocument();
+    expect(screen.getByText('Shades of Halftone')).toBeInTheDocument();
+    expect(screen.getByText('Dots on a grid.')).toBeInTheDocument();
+    expect(loadSearchIndex).not.toHaveBeenCalled();
+  });
+
+  it('keeps the list up while an index asked for late is still coming', () => {
+    loadSearchIndex.mockReturnValue(new Promise(() => {}));
+    show('halftone');
+
+    expect(screen.getByText('Shades of Halftone')).toBeInTheDocument();
+    expect(loadSearchIndex).toHaveBeenCalled();
   });
 
   it('says so when the index cannot be read', async () => {
     loadSearchIndex.mockRejectedValue(new Error('offline'));
-    show('');
+    show('halftone');
 
     expect(await screen.findByText(/could not be loaded/)).toBeInTheDocument();
   });
@@ -75,7 +98,7 @@ describe('PostSearch', () => {
     const onResults = vi.fn();
     render(
       <Command shouldFilter={false}>
-        <PostSearch query="" onResults={onResults} onPick={vi.fn()} />
+        <PostSearch posts={posts} query="" onResults={onResults} onPick={vi.fn()} />
       </Command>
     );
 

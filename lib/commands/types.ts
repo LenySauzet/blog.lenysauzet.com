@@ -1,5 +1,7 @@
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import type { IconSvgElement } from '@hugeicons/react'
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
+
+import type { Page } from './pages'
 
 /** Rendered in this order, and a command belongs to exactly one. */
 export const GROUPS = ['Navigation', 'Tools', 'Links'] as const
@@ -11,14 +13,16 @@ export interface CommandContext {
     pathname: string
     setTheme: (theme: string) => void
     resolvedTheme: string | undefined
+    /** The accent preset in force, by id, and the way to change it. */
+    hue: string
+    setHue: (hue: string) => void
     /** Every post that exists, which is what the random one is drawn from. */
   slugs: string[]
   atTop: boolean
     finished: boolean
 }
 
-/** A palette that has become something else: a page of its own, with its own input. */
-export type Page = 'search'
+export type { Page } from './pages'
 
 interface CommandBase {
     id: string

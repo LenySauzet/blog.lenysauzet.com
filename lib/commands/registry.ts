@@ -3,6 +3,7 @@ import {
     BlueskyIcon,
     ArrowUp01Icon,
     Coffee01Icon,
+    ColorsIcon,
     CopyLinkIcon,
     Download01Icon,
     ExternalLinkIcon,
@@ -70,6 +71,14 @@ export const commands: Command[] = [
             withThemeTransition(() =>
                 setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
             ),
+    },
+    {
+        id: 'accent',
+        label: 'Change the accent',
+        icon: ColorsIcon,
+        group: 'Tools',
+        keywords: ['hue', 'colour', 'color', 'tint', 'palette', 'theme'],
+        opens: 'accent',
     },
     {
         id: 'copy-link',
