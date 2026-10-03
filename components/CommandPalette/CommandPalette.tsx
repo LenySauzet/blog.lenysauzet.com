@@ -246,12 +246,16 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
               ref={setPane}
               key={page ?? 'root'}
               data-pane={page ?? 'root'}
-              custom={towards}
-              variants={PANE}
-              initial="entering"
-              animate="settled"
-              exit="leaving"
-              transition={still ? AT_ONCE : SWAP}
+              {...(still
+                ? {}
+                : {
+                    custom: towards,
+                    variants: PANE,
+                    initial: 'entering',
+                    animate: 'settled',
+                    exit: 'leaving',
+                    transition: SWAP,
+                  })}
             >
               {page === 'search' && (
                 <PostSearch
