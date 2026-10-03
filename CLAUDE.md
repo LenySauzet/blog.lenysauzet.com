@@ -582,6 +582,64 @@ and the choosing happens there.
   highlighting follows because `config/code-theme.ts` emits `var(--shiki-token-*)`
   rather than literal colours.
 
+**The command palette is a registry, not a component full of items.**
+`lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
+and `components/CommandPalette` only renders it and hands each `run` the page's router
+and theme. Adding a command is one entry; nothing about the surface changes. `run`
+takes a context rather than reaching for hooks itself, which is what keeps the registry
+a plain module a test can read.
+
+A command either acts on the site or **opens a page of the palette**, never both;
+the `Command` union keeps the pair from being written together. `search` and `accent`
+are the pages, and they force four things worth knowing before opening the files:
+
+- **A page ranks its own rows**, so cmdk gets `shouldFilter={false}` and the selection
+  is driven from outside through `onResults`. cmdk moves it when *its* search box
+  changes and at no other time.
+- **Backspace-to-leave is read on the cmdk root**, not the input, and the input is
+  focused by hand when a page opens: a row reached with the mouse keeps the focus.
+  **`BackHint` is what says so**, at the end of the input row, and only while the box
+  is empty, which is the only time the key does that: with a query in hand it deletes
+  a character, and a hint promising otherwise is worse than none.
+- **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
+  disabled hover, and it refuses to select such a row at all.
+- **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
+  node once, at mount.
+
+The index is built at build time by `lib/search/build-index.ts` and served static by
+`app/search-index.json/route.ts`, fetched once on the first search. **`INDEX_OPTIONS`
+is shared by the build and the browser on purpose**: `loadJSON` reads an index against
+the options it is handed, so the two drifting apart stops matching rather than failing.
+`lib/search/query.ts` holds the engine, which is what keeps the view free of MiniSearch
+and the ranking testable without a DOM.
+
+A command may also say **when it is worth recommending**, which lifts it out of its
+group and to the top of the palette. Lifted, not copied: one command is one row, or
+cmdk returns two of them for the same search. The section exists only when something
+asks for it, holds five at most, and reads in the palette's own group order rather
+than the registry's. `lib/commands/recommend.ts` is the whole policy, testable
+without a DOM.
+
+Three moments ask for something today: the index, an article underway, and an
+article finished. A reader who has only just arrived at an article is offered
+nothing, having made no move yet to answer.
+
+What the reader has scrolled is in the context too, which is what lets a command
+withhold itself: `Go to top` is not offered to someone already there.
+`hooks/use-scroll-tracking.ts` owns that reading for both the palette and the
+island, and **hands back the object it already holds when nothing has moved**: a
+fresh one per scroll event re-renders both of them sixty times a second to say
+nothing changed, which measured 189ms of scripting over 300 frames against 79ms
+once it stopped.
+
+`components/ui/command.tsx` is customized beyond the CLI output three times over: its
+`CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
+slot at the end of its row, and a selected item carries `--primary` rather than
+`--foreground`. Update it with
+`bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
+selected colour from a caller's `className` does not work: `cn()` drops it as a
+conflict with the primitive's own, silently.
+
 **A page of the palette is an entry in `lib/commands/pages.ts`**, holding its prompt and
 whether it ranks its own rows. `Page` is the map's keys, so a page that is not described
 there cannot be opened, and a new one is a line plus a branch rather than a condition
