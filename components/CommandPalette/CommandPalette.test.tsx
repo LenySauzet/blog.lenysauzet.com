@@ -147,6 +147,21 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(screen.queryByText(/Back/)).not.toBeInTheDocument());
   });
 
+  // The hint is the target too, so the mouse is not left with Escape as its
+  // only way out of a page, and the focus it takes goes back to the box.
+  it('goes back when the hint is clicked, and hands the box its focus', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette slugs={['halftone', 'planets']} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+    await user.click(await screen.findByRole('button', { name: /Back/ }));
+
+    const box = await screen.findByPlaceholderText('Type a command...');
+    expect(box).toBeInTheDocument();
+    expect(box).toHaveFocus();
+  });
+
   // Backspace on an empty box is the way back, and the root has to come back
   // whole: a page left behind would keep the palette on its own prompt.
   it('comes back to the root from a page', async () => {

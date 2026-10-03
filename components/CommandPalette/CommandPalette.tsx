@@ -156,6 +156,10 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
     setPage(null);
     setQuery('');
     setSelected(rootValues[0] ?? '');
+    // Clicked rather than typed, the way back is a button that leaves with the
+    // page it belongs to: focus would be left on nothing and the keyboard with
+    // nowhere to go.
+    input.current?.focus();
   }, [rootValues]);
 
   /**
@@ -240,7 +244,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
           value={query}
           onValueChange={setQuery}
           placeholder={page ? PAGES[page].placeholder : 'Type a command...'}
-          hint={<BackHint shown={page !== null && query === ''} />}
+          hint={<BackHint shown={page !== null && query === ''} onBack={toRoot} />}
         />
 
         {/* The box travels with its contents. Two panes can differ by a couple

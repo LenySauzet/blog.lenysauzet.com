@@ -600,7 +600,11 @@ are the pages, and they force four things worth knowing before opening the files
   focused by hand when a page opens: a row reached with the mouse keeps the focus.
   **`BackHint` is what says so**, at the end of the input row, and only while the box
   is empty, which is the only time the key does that: with a query in hand it deletes
-  a character, and a hint promising otherwise is worse than none.
+  a character, and a hint promising otherwise is worse than none. It is the target as
+  well, so a mouse is not left with Escape alone, and it hands the box back its focus
+  on the way out, the button leaving with the page it belongs to. **cmdk reads Enter on
+  its root** and runs whatever row is highlighted, so a button inside it is reachable by
+  Tab and dead on arrival until the key is stopped at the button.
 - **cmdk nulls `onPointerMove` on a disabled row**, hence `onPointerEnter` for the
   disabled hover, and it refuses to select such a row at all.
 - **A list swapped wholesale needs a new `key`**: `FadingList` finds the scrolling
