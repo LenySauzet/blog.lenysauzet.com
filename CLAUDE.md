@@ -633,10 +633,15 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output three times over: its
+`components/ui/command.tsx` is customized beyond the CLI output four times over: its
 `CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
-slot at the end of its row, and a selected item carries `--primary` rather than
-`--foreground`. Update it with
+slot at the end of its row, a selected item carries `--primary` rather than
+`--foreground`, and **the dialog travels its backdrop's radius on the way out** rather
+than only its opacity. A blurred backdrop is as good as fully blurred at an opacity of
+zero, so fading alone held the page blurred to the last frame and let it snap back,
+which reads as a missing exit where there is detail behind the panel. The closed value
+keeps the same function list, or there is nothing to interpolate between and it jumps
+all the same. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.
@@ -684,7 +689,10 @@ clipped the bottom padding. All open-state styling reads Radix's `data-state` th
 - Put the animation on the `className`, not a separate `[data-state]` CSS rule. A
   separate rule races Radix's unmount check and the exit never plays.
 - Write `filter: none`, not `filter: blur(0)`. Lightning CSS minifies the latter to the
-  invalid `blur()`.
+  invalid `blur()`. **`backdrop-filter` is no safer**: the palette's exit asked for
+  `blur(0px) saturate(1.15)` and shipped `blur()saturate(1.15)`, which takes the whole
+  declaration with it. Where a zero cannot be avoided, half a pixel survives the
+  minifier and is not visible.
 
 **Form fields are one surface, not a container plus parts.** `components/ui/input.tsx`
 exports `inputSurface`, the whole visual contract (edge, fill, radius, type, and every

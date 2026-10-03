@@ -51,7 +51,15 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] sm:max-w-[600px]",
+          // The radius travels on the way out, not just the layer's opacity: a
+          // blurred backdrop is as good as fully blurred at an opacity of
+          // zero, so fading alone holds the page blurred to the last frame and
+          // then lets it snap back. Two traps in the closed value: it keeps the
+          // same function list, or there is nothing to interpolate between, and
+          // it lands on half a pixel rather than none, Lightning CSS minifying
+          // `blur(0px)` to the invalid `blur()` and taking the declaration with
+          // it.
+          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[backdrop-filter] duration-100 ease-out data-closed:[backdrop-filter:blur(0.5px)_saturate(1.15)] sm:max-w-[600px]",
           className
         )}
         showCloseButton={showCloseButton}
