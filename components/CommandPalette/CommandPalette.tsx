@@ -10,6 +10,7 @@ import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
 import { PAGES } from '@/lib/commands/pages';
+import { HUES } from '@/lib/hues';
 import { partitionByRecommendation } from '@/lib/commands/recommend';
 import { commands } from '@/lib/commands/registry';
 import { GROUPS, type Command as PaletteCommand, type Page } from '@/lib/commands/types';
@@ -63,7 +64,7 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
-  const { hue, setHue } = useHue();
+  const { hue, apply, setHue } = useHue();
   const { atTop, finished } = useScrollTracking();
 
   const still = useReducedMotion();
@@ -85,6 +86,41 @@ export function CommandPalette({ slugs }: { slugs: string[] }) {
 
     return () => resized.disconnect();
   }, [pane]);
+
+  /**
+   * The chooser opens on the accent in force, so arriving changes nothing, and
+   * then every move previews what it would do. The mark stays on the committed
+   * one throughout: it says where the reader is, the page says where they
+   * would land.
+   */
+  useEffect(() => {
+    if (page !== 'accent' || !isOpen) return;
+
+    // A frame later: cmdk puts its own highlight on the first row as the rows
+    // mount, and setting this during the effect only to have that land on top
+    // leaves the chooser pointing at a colour the reader is not on.
+    const frame = requestAnimationFrame(() => setSelected(useHue.getState().hue));
+
+    return () => cancelAnimationFrame(frame);
+  }, [page, isOpen]);
+
+  useEffect(() => {
+    if (page !== 'accent' || !isOpen) return;
+
+    const wanted = HUES.find((preset) => preset.id === selected);
+    if (wanted) apply(wanted.id);
+  }, [page, isOpen, selected, apply]);
+
+  /**
+   * Leaving the chooser puts back whatever was actually chosen, and closing
+   * the palette counts as leaving: the page it was left on is kept on purpose,
+   * so that alone would let a preview outlive the surface that raised it.
+   */
+  useEffect(() => {
+    if (page !== 'accent' || !isOpen) return;
+
+    return () => apply(useHue.getState().hue);
+  }, [page, isOpen, apply]);
 
   const context = useMemo(
     () => ({ router, pathname, setTheme, resolvedTheme, hue, setHue, slugs, atTop, finished }),

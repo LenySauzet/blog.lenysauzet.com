@@ -62,7 +62,7 @@ export function AccentPicker({ current, onPick }: AccentPickerProps) {
         {HUES.map((preset) => (
           <CommandItem
             key={preset.id}
-            value={preset.label}
+            value={preset.id}
             onSelect={() => onPick(preset)}
           >
             <Swatch preset={preset} />

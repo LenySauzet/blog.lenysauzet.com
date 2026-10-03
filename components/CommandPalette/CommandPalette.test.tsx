@@ -116,6 +116,20 @@ describe('CommandPalette', () => {
     expect(screen.getByText('Current')).toBeInTheDocument();
   });
 
+  // Arriving must change nothing: the chooser opens on the accent in force, so
+  // the first preview a reader sees is one they asked for.
+  it('opens the chooser on the accent already in force', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    useHue.setState({ hue: 'teal' });
+    render(<CommandPalette slugs={['halftone', 'planets']} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+
+    const row = (await screen.findByText('Teal')).closest('[cmdk-item]');
+    await waitFor(() => expect(row).toHaveAttribute('data-selected', 'true'));
+  });
+
   // Backspace on an empty box is the way back, and the root has to come back
   // whole: a page left behind would keep the palette on its own prompt.
   it('comes back to the root from a page', async () => {

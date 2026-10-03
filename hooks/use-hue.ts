@@ -3,7 +3,11 @@ import { create } from 'zustand';
 import { DEFAULT_HUE, hueOf, propertiesOf, STORAGE_KEY } from '@/lib/hues';
 
 type HueStore = {
+  /** The accent the reader has settled on. A preview paints over it without
+      touching it, so the chooser can show one while the page still holds
+      another. */
   hue: string;
+  apply: (hue: string) => void;
   setHue: (hue: string) => void;
 };
 
@@ -20,12 +24,17 @@ const stored = () => {
   }
 };
 
+const paint = (hue: string) => {
+  for (const [property, value] of Object.entries(propertiesOf(hueOf(hue)))) {
+    document.documentElement.style.setProperty(property, value);
+  }
+};
+
 export const useHue = create<HueStore>((set) => ({
   hue: stored(),
+  apply: paint,
   setHue: (hue: string) => {
-    for (const [property, value] of Object.entries(propertiesOf(hueOf(hue)))) {
-      document.documentElement.style.setProperty(property, value);
-    }
+    paint(hue);
 
     // A private window throws rather than returning null, and a reader who
     // blocked storage should still get the colour they just asked for.

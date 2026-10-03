@@ -67,7 +67,9 @@
 }
 
 :root {
-  --base-hue: 262.04;
+  /* Tailwind's blue, which `lib/hues.ts` names as the default preset. The
+     two have to agree, or opening the chooser nudges the page on arrival. */
+  --base-hue: 259.815;
 
   /* Lit from above: a highlight along the top edge, a shade along the bottom.
      Fixed rgba on purpose — this is lighting, not colour, so it must not rotate

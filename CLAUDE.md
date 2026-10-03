@@ -550,11 +550,19 @@ and the choosing happens there.
   page paints the default and corrects it on hydration, which is a flash of the wrong
   colour. Measured on a cold load with a preset stored: the right accent at readyState
   `interactive`, at the first frame, at first contentful paint, in both themes.
+- **The selected row is previewed, and leaving puts it back.** `apply` paints without
+  committing, `setHue` commits; the mark stays on the accent in force throughout, so
+  the list says where the reader is while the page says where they would land. Backing
+  out, escaping or closing the palette all restore, closing included because the page
+  the palette was left on is kept on purpose and a preview would otherwise outlive the
+  surface that raised it.
+- **The chooser opens on the accent in force**, so arriving changes nothing, which is
+  also why `--base-hue` in `globals.css` has to be the angle `DEFAULT_HUE` names: two
+  defaults meant opening the chooser nudged the page. The selection is set a frame
+  late, cmdk putting its own highlight on the first row as the rows mount.
 - **Picking applies in place and the page stays open.** Every other command acts and
   the palette shuts behind it; a chooser has to let one accent be compared with the
-  next, and the whole surface rethemes under the reader's eyes, which is the answer.
-  The row in force is marked rather than withheld, for the same reason: a chooser says
-  where you are where the root palette only offers what would change something.
+  next.
 - **The swatch is two discs and a cut, and the cut is a mask.** A border would be a
   colour that has to match whatever sits behind it, on a panel, in either theme, under
   any accent; a mask makes the separation the surface itself. The disc behind is mixed
