@@ -92,24 +92,43 @@ describe('CommandPalette', () => {
     for (const group of GROUPS) {
       expect(await screen.findByText(group)).toBeInTheDocument();
     }
-    const inForce = HUES.find((preset) => preset.id === useHue.getState().hue)!;
-
     for (const command of commands) {
-      if (command.id === `tint-${inForce.id}`) continue;
-
       expect(screen.getByText(command.label)).toBeInTheDocument();
     }
   });
 
-  // The palette offers what would change something, so the accent already in
-  // force is not among the tints, the way `Go to top` is absent at the top.
-  it('withholds the accent already in force', async () => {
+  // The accent is a page rather than one row per preset: the palette keeps its
+  // density and the choosing happens through the door.
+  it('opens the accent page, with the one in force marked', async () => {
+    const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette slugs={['halftone', 'planets']} />);
-    const inForce = HUES.find((preset) => preset.id === useHue.getState().hue)!;
 
-    expect(await screen.findByText(`Tint ${HUES[1].label.toLowerCase()}`)).toBeInTheDocument();
-    expect(screen.queryByText(`Tint ${inForce.label.toLowerCase()}`)).not.toBeInTheDocument();
+    await user.click(await screen.findByText('Change the accent'));
+
+    expect(await screen.findByPlaceholderText('Pick an accent...')).toBeInTheDocument();
+    for (const { label } of HUES) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+
+    const inForce = HUES.find((preset) => preset.id === useHue.getState().hue)!;
+    expect(screen.getByText(inForce.label)).toBeInTheDocument();
+    expect(screen.getByText('Current')).toBeInTheDocument();
+  });
+
+  // Backspace on an empty box is the way back, and the root has to come back
+  // whole: a page left behind would keep the palette on its own prompt.
+  it('comes back to the root from a page', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette slugs={['halftone', 'planets']} />);
+
+    await user.click(await screen.findByText('Change the accent'));
+    await screen.findByPlaceholderText('Pick an accent...');
+
+    await user.keyboard('{Backspace}');
+
+    expect(await screen.findByPlaceholderText('Type a command...')).toBeInTheDocument();
   });
 
   // Copying a link or scrolling back up is meaningless on the index, and an offer

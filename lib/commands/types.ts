@@ -1,6 +1,8 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import type { IconSvgElement } from '@hugeicons/react'
 
+import type { Page } from './pages'
+
 /** Rendered in this order, and a command belongs to exactly one. */
 export const GROUPS = ['Navigation', 'Tools', 'Links'] as const
 
@@ -20,8 +22,7 @@ export interface CommandContext {
     finished: boolean
 }
 
-/** A palette that has become something else: a page of its own, with its own input. */
-export type Page = 'search'
+export type { Page } from './pages'
 
 interface CommandBase {
     id: string

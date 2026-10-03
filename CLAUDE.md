@@ -527,10 +527,9 @@ chrome fixed over it is a sibling and a wheel landing there reaches nothing on i
 The island and the rail both hand it on from there.
 
 **The accent is a reader's choice, out of four presets.** `lib/hues.ts` is the whole
-list; everything else reads it. One command per preset in the palette's registry, and
-the one in force withholds itself through `when`, the way `Go to top` does to a reader
-already at the top: the palette offers what would change something, so no checkmark had
-to be invented and `Command` did not have to grow.
+list; everything else reads it. One row in `Tools` opens a page of the palette, and the
+choosing happens there: four rows as commands kept the palette permanently three rows
+heavier for a thing most readers set once.
 
 - **Only the hue rotates.** Chroma and lightness are fixed on every token, so a preset
   is an angle and never a mood: a muted or pastel option is not reachable this way.
@@ -543,8 +542,11 @@ to be invented and `Command` did not have to grow.
   page paints the default and corrects it on hydration, which is a flash of the wrong
   colour. Measured on a cold load with a preset stored: the right hue at readyState
   `interactive`, at the first frame, at first contentful paint, in both themes.
-- **The swap goes through `withThemeTransition`**, the same sweep `⌘D` uses, so
-  changing the accent and changing the theme are one gesture rather than two.
+- **Picking applies in place and the page stays open.** Every other command acts and
+  the palette shuts behind it; a chooser has to let one accent be compared with the
+  next, and the whole surface rethemes under the reader's eyes, which is the answer.
+  The row in force is marked rather than withheld, for the same reason: a chooser says
+  where you are where the root palette only offers what would change something.
 - **Nothing else had to change**, which was the point of the token architecture: the
   shader follows because `Backdrop` reads the accent every frame, and the syntax
   highlighting follows because `config/code-theme.ts` emits `var(--shiki-token-*)`
@@ -603,6 +605,27 @@ carries `--primary` rather than `--foreground`. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.
+
+**A page of the palette is an entry in `lib/commands/pages.ts`**, holding its prompt and
+whether it ranks its own rows. `Page` is the map's keys, so a page that is not described
+there cannot be opened, and a new one is a line plus a branch rather than a condition
+spread across the view. `search` ranks for itself and tells cmdk to stand down; `accent`
+lets cmdk filter four names.
+
+- **One pane is mounted at a time, which `AnimatePresence mode="wait"` is for.** A page
+  is a `CommandList`, and two of them inside one `Command` would have cmdk ranking and
+  arrowing through rows nobody can see. The reveal reads the same for it: the pane
+  leaves to one side under a blur, the next arrives from the other.
+- **The blur is the movement's own**, so it resolves to `none` through `transitionEnd`
+  rather than resting at `blur(0)`, which would leave every pane holding a composited
+  layer for the life of the palette.
+- **The box travels with its contents, and `layout` cannot do it.** Motion's layout
+  animation transforms the element and lets the real box jump, which is exactly what
+  the dialog sizes itself to: measured, it still took 222px in a single frame. The
+  height is measured off the pane with a `ResizeObserver` and animated for real, and it
+  holds through the gap between one pane leaving and the next arriving because the
+  observer has nothing to watch there. 33 frames where there was one, and typing in the
+  root stopped snapping as well.
 
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
