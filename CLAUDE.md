@@ -980,9 +980,14 @@ so a per-frame read is well under the noise. Reduced motion draws once, so it ke
 whatever the accent was at mount.
 
 **A visual in an article is one of three things, and the frame is all they share.**
-`components/Figure` holds a surface, a row for whatever drives it, and a caption, and
-**it never knows what it contains**: the moment it starts to, it is the catch-all this
+`components/Figure` holds a block of rhythm, a row for whatever drives it, and a
+caption, and **it never knows what it contains**: the moment it starts to, it is the catch-all this
 file spends its length avoiding. On top of it:
+
+**A figure draws no surface.** It sits in the prose rather than in a box: a card around
+it fences it off from the paragraph that introduces it, and a figure above a `Card`
+reads as a list of panels rather than as an article. One that genuinely needs an edge,
+such as a canvas whose content runs to its own bounds, draws its own.
 
 - **A chart carries axes**, so it is `components/Chart` on Recharts, through shadcn's
   `ui/chart.tsx`. `type` picks the plot and the mark together, which is the whole of
@@ -1002,10 +1007,26 @@ What the shape forces:
   construction and keeps doing so when the width changes. **It only paints on the
   client**, `usePlotArea` having nothing to measure on the server, which is fine for a
   decoration and would not be for the data.
-- **The legend is ours**, for three reasons that turned up at once: Recharts orders it
-  by payload rather than by the series as declared, it sits above anything we put under
-  the plot, and a series a reader can switch off is most of the point on an explanatory
-  chart. The last visible series cannot be hidden, an empty plot reading as a bug.
+- **The legend and the tooltip are both ours**, and `ui/chart.tsx` stays at CLI output
+  but for its `cn` import. Recharts orders its legend by payload rather than by the
+  series as declared, and a series a reader can switch off is most of the point on an
+  explanatory chart; its tooltip marks series with 2px-radius squares and lets the name
+  push the value along the line, which reads as a debug readout. Ours mark with the
+  legend's own disc and lay label against value in a subgrid, so the numbers line up
+  down the panel however long the names are. The last visible series cannot be hidden,
+  an empty plot reading as a bug.
+- **The legend sits above the plot**, being the key to what follows: read after the
+  curves it explains something already guessed at, and under them it competes with the
+  caption for the same job.
+- **Both wear `components/ui/glass`**, the site's one translucent material, which
+  `ui/select.tsx` also takes. The 115% saturation is load-bearing: a plain blur greys
+  what it covers, and putting the colour back is what makes it read as glass rather
+  than as fog. `BeforeAfterSlider`'s handle deliberately keeps its own heavier fill,
+  floating over photography rather than over the page.
+- **The tick numbers are the axis labels' own type**, Departure Mono on the third text
+  tier, which is what makes an axis read as one thing rather than as a chart's numbers
+  beside our words. Set through a class on the container, since `XAxis`'s `tick` prop
+  takes SVG attributes and cannot name a font variable.
   **Its colours are resolved rather than named**: `--color-<key>` is scoped to the chart
   container by `ChartStyle`, and the legend is outside it, so `var(--color-webgl)` there
   resolves to nothing and the dots come out blank.
@@ -1013,7 +1034,10 @@ What the shape forces:
   the whole is, so the figure would quietly answer a different question than its caption.
 - **The axis labels are ours too.** `XAxis`'s own `label` positions against the plot and
   lands on top of the tick text at this size. Ours are boxes in the layout, so they
-  cannot collide, and they carry the figure's typography rather than the chart's.
+  cannot collide, and they carry the figure's typography rather than the chart's. They
+  live in **a grid, not in nested boxes**: the vertical one then centres on the plot's
+  own row rather than on the whole column, which had been putting it a legend and an
+  axis label too low.
 - **The five chart tokens are shades of one accent**, not five hues, so a sixth series
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
@@ -1025,14 +1049,25 @@ What the shape forces:
   stays uncontrolled without them. Named after the primitive rather than `onChange`,
   which would shadow the DOM handler of the same name on its root.
 
-**`components/figures/ConfusionMatrix` is a table, not a drawing.** It is tabular data:
-the counts stay selectable, a screen reader reads each with its headers, and it ships no
-JavaScript. **The tint stops at 45% of the accent**, which is what lets every cell keep
-`--foreground`. Inverting the hottest cells to `--primary-foreground` instead was built
-and measured first: white on full `--primary` is 3.79:1 in both themes, and 2.16:1 on a
-half-mixed cell in light. Capped, the fill can never climb far enough to fight the body
-tier, and the scale still reads because the eye compares cells against each other. The
-worst cell now measures 6.85:1 in dark and 10.98:1 in light.
+**`components/figures/ConfusionMatrix` is a heatmap and a table at once.** It is the
+form this data is read in everywhere it appears, so the cells sit flush as a grid with
+a scale bar beside them; it is also tabular, so underneath it is a real `table` whose
+counts stay selectable and whose cells a screen reader reads with their row and column.
+No JavaScript.
+
+**`--heat-from` and `--heat-to` exist because no other token can stand in.** The ramp
+has to run from the page toward a far end that stays legible under inverted text, and
+**the direction of that run flips with the theme**: pale to deep in light, deep to
+bright in dark. That flip is what lets one threshold serve both, the count going to
+`--background` past 58% of the ramp, `--background` being the opposite of the far end
+in either theme. Measured across 36 cells, the worst is 8.5:1 in dark and 6.78:1 in
+light. An earlier version mixed `--primary` into the surface and inverted to
+`--primary-foreground`: white on full `--primary` is 3.79:1 in both themes and 2.16:1
+on a half-mixed cell in light.
+
+**Its column headers are named above them, not below.** A browser renders `thead`
+first whatever the source order, so an axis named at the far end of the grid from the
+labels it names belongs to neither.
 
 **Measure a `color-mix` through a canvas, never through `getComputedStyle` alone.**
 Chrome hands back `oklab(...)` and `lab(...)`, so a contrast check that parses the

@@ -24,11 +24,11 @@ describe('ConfusionMatrix', () => {
     expect(screen.getByRole('cell', { name: '437' })).toBeInTheDocument();
   });
 
-  it('tints every cell against the peak, so the scale is the data and not the count', () => {
+  it('tints every cell across the data\'s own range, not against an absolute', () => {
     const { container } = render(<ConfusionMatrix matrix={matrix} labels={labels} />);
     const mix = (text: string) =>
       Number(
-        /--primary\) ([\d.]+)%/.exec(
+        /--heat-to\) ([\d.]+)%/.exec(
           cellsOf(container).find((td) => td.textContent?.trim() === text)!.style.backgroundColor
         )![1]
       );
@@ -40,20 +40,23 @@ describe('ConfusionMatrix', () => {
   });
 
   /**
-   * The cap is what lets every cell keep one text colour. Inverting the hottest
-   * ones instead measured 3.79:1 in both themes and 2.16:1 in light, so a
-   * regression here is a contrast failure rather than a cosmetic one.
+   * The ramp runs the other way in each theme, so one swap covers both: the
+   * far end is dark on a light page and bright on a dark one, and
+   * `--background` is the opposite of whichever it is. Measured at this
+   * threshold, the worst of 36 cells is 8.5:1 in dark and 6.78:1 in light.
    */
-  it('never mixes the accent deep enough to fight the body text', () => {
+  it('flips the count to the page colour only at the far end of the ramp', () => {
     const { container } = render(<ConfusionMatrix matrix={matrix} labels={labels} />);
-    const deepest = Math.max(
-      ...cellsOf(container).map((td) => Number(/--primary\) ([\d.]+)%/.exec(td.style.backgroundColor)![1]))
-    );
+    const cells = cellsOf(container);
+    const mix = (td: HTMLElement) =>
+      Number(/--heat-to\) ([\d.]+)%/.exec(td.style.backgroundColor)![1]) / 100;
 
-    expect(deepest).toBeLessThanOrEqual(45);
-    for (const cell of cellsOf(container)) {
-      expect(cell).toHaveClass('text-foreground');
+    for (const cell of cells) {
+      expect(cell).toHaveClass(mix(cell) > 0.58 ? 'text-background' : 'text-foreground');
     }
+    // Both sides of the threshold are exercised, or the test proves nothing.
+    expect(cells.some((c) => mix(c) > 0.58)).toBe(true);
+    expect(cells.some((c) => mix(c) <= 0.58)).toBe(true);
   });
 
   it('survives a matrix of zeroes rather than dividing by one', () => {

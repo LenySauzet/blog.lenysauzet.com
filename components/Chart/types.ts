@@ -11,13 +11,15 @@ export interface Series {
 export interface Axis {
   key: string;
   label?: string;
+  /** Appended to the tooltip's heading, e.g. `nm`. */
+  unit?: string;
 }
 
 export interface ChartProps {
   data: Record<string, unknown>[];
   series: Series[];
   x: Axis;
-  y?: { label?: string; min?: number; max?: number };
+  y?: { label?: string; min?: number; max?: number; unit?: string };
   type?: 'area' | 'bar' | 'line';
   caption?: ReactNode;
   controls?: ReactNode;

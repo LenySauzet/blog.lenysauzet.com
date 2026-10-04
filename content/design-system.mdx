@@ -245,13 +245,10 @@ export const frameTimes = [
   { size: '4096', webgl: 15.9, canvas: 29.4 },
 ];
 
-export const spectral = Array.from({ length: 31 }, (_, i) => {
-  const nm = 400 + i * 10;
-  return {
-    nm,
-    green: Math.round(95 * Math.exp(-(((nm - 540) / 55) ** 2))),
-    blue: Math.round(97 * Math.exp(-(((nm - 420) / 60) ** 2))),
-  };
+export const spectral = Array.from({ length: 61 }, (_, i) => {
+  const nm = 400 + i * 5;
+  const at = (peak, width, height) => +(height * Math.exp(-(((nm - peak) / width) ** 2))).toFixed(2);
+  return { nm, red: at(640, 70, 96), green: at(540, 55, 95), blue: at(450, 50, 97) };
 });
 
 ## Charts
@@ -269,7 +266,7 @@ The same data, the same props, one word apart: `area`, `bar`, `line`.
     { key: 'canvas', label: 'Canvas 2D' },
   ]}
   x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)' }}
+  y={{ label: 'Frame time (ms)', unit: ' ms' }}
   caption="Sample data. An area chart reads as a quantity over a progression."
 />
 
@@ -281,7 +278,7 @@ The same data, the same props, one word apart: `area`, `bar`, `line`.
     { key: 'canvas', label: 'Canvas 2D' },
   ]}
   x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)' }}
+  y={{ label: 'Frame time (ms)', unit: ' ms' }}
   caption="Bars compare discrete things, so the x axis is a set of names rather than a scale."
 />
 
@@ -293,7 +290,7 @@ The same data, the same props, one word apart: `area`, `bar`, `line`.
     { key: 'canvas', label: 'Canvas 2D' },
   ]}
   x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)' }}
+  y={{ label: 'Frame time (ms)', unit: ' ms' }}
   caption="A line keeps the shape of a trend without claiming the area underneath means anything."
 />
 
@@ -330,11 +327,12 @@ would be absurd, and a wavelength does not follow the reader's theme.
   type="line"
   data={spectral}
   series={[
+    { key: 'red', label: 'Red', color: 'oklch(0.63 0.24 27)' },
     { key: 'green', label: 'Green', color: 'oklch(0.78 0.21 145)' },
     { key: 'blue', label: 'Blue', color: 'oklch(0.62 0.21 258)' },
   ]}
-  x={{ key: 'nm', label: 'Wavelength (nm)' }}
-  y={{ label: 'Reflectance (%)', min: 0, max: 100 }}
+  x={{ key: 'nm', label: 'Wavelength (nm)', unit: 'nm' }}
+  y={{ label: 'Reflectance (%)', min: 0, max: 100, unit: '%' }}
   caption="The band is a child of the chart, not a layer beside it."
 >
   <SpectrumBand from={400} to={700} />
@@ -342,18 +340,23 @@ would be absurd, and a wavelength does not follow the reader's theme.
 
 ## Confusion matrix
 
-Not every figure is a chart, and not every figure is a drawing. This one is
-tabular data, so it is a real `table`: the counts stay selectable, a screen
-reader reads each cell with its headers, and it ships no JavaScript at all. The
-tint is the only graphic, and it is `--primary` mixed against the surface.
+A heatmap, which is the form this data is read in everywhere it appears, and
+still a real `table` underneath: the counts stay selectable, a screen reader
+reads each with its row and column, and it ships no JavaScript. The ramp is
+`--heat-from` to `--heat-to`, a pair that exists because no other token can
+stand in: it has to run from the page toward a far end that stays legible
+under inverted text, and **the direction of that run flips with the theme**.
 
 <ConfusionMatrix
   matrix={[
-    [259, 7, 3],
-    [10, 141, 118],
-    [9, 60, 437],
+    [412, 29, 23, 45, 36, 34],
+    [40, 388, 25, 42, 38, 23],
+    [33, 34, 426, 31, 44, 32],
+    [34, 38, 36, 401, 36, 22],
+    [42, 33, 24, 25, 395, 38],
+    [28, 33, 29, 42, 23, 433],
   ]}
-  labels={['Normal', 'Viral', 'Bacterial']}
+  labels={['Buildings', 'Forest', 'Glacier', 'Mountain', 'Sea', 'Street']}
   caption="Sample data. Shadcn has no heatmap, and this needed no library to not have one."
 />
 

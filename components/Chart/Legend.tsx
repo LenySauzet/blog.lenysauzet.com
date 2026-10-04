@@ -1,5 +1,6 @@
 'use client';
 
+import { glassSurface } from '@/components/ui/glass';
 import { cn } from '@/lib/utils';
 
 export interface LegendEntry {
@@ -31,7 +32,10 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
   return (
     <div
       data-slot="chart-legend"
-      className="bg-wash/30 mx-auto flex w-fit flex-wrap items-center gap-1 rounded-full p-1"
+      className={cn(
+        glassSurface,
+        'mx-auto mb-4 flex w-fit flex-wrap items-center justify-center gap-1 rounded-full p-1.5'
+      )}
     >
       {series.map(({ key, label, color }) => {
         const off = hidden?.has(key) ?? false;
@@ -45,8 +49,11 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
             {label}
           </>
         );
+        // The pill's own radius less its padding, so a row's corner sits
+        // concentric with the container's rather than inside a slightly
+        // squarer one.
         const shared = cn(
-          'flex items-center gap-2 rounded-full px-3 py-1 text-sm',
+          'flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm',
           off ? 'text-subtle-foreground' : 'text-foreground'
         );
 

@@ -5,14 +5,10 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, 
 
 import Figure from '@/components/Figure';
 import { cn } from '@/lib/utils';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
 
 import Legend from './Legend';
+import Tooltip from './Tooltip';
 import { colourOf, toggled } from './series';
 
 import type { ChartProps, Series } from './types';
@@ -79,44 +75,59 @@ export default function Chart({
 
   return (
     <Figure caption={caption} controls={controls}>
-      <div className="flex gap-2">
-        {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : null}
-        <div className="min-w-0 flex-1">
-          <ChartContainer config={configOf(series)}>
-            <Plot data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey={x.key} tickLine={false} axisLine={false} tickMargin={8} />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                width={44}
-                domain={[y?.min ?? 'auto', y?.max ?? 'auto']}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              {children}
-              {shown.map(mark)}
-            </Plot>
-          </ChartContainer>
-          {x.label ? <AxisLabel>{x.label}</AxisLabel> : null}
-          {legend && series.length > 1 ? (
-            <div className="pt-3">
-              <Legend
-                series={series.map((entry, index) => ({
-                  key: entry.key,
-                  label: entry.label,
-                  color: colourOf(entry, index),
-                }))}
-                hidden={hidden}
-                onToggle={toggle}
-              />
-            </div>
-          ) : null}
-        </div>
+      {legend && series.length > 1 ? (
+        // Above the plot, because it is the key to what follows: read after
+        // the curves, it explains something already guessed at, and under the
+        // plot it competes with the caption for the same job.
+        <Legend
+          series={series.map((entry, index) => ({
+            key: entry.key,
+            label: entry.label,
+            color: colourOf(entry, index),
+          }))}
+          hidden={hidden}
+          onToggle={toggle}
+        />
+      ) : null}
+      {/* A grid rather than nested boxes: the vertical label then centres on
+          the plot's own row instead of on the whole column, which put it a
+          legend and an axis label too low. */}
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
+        {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
+        <ChartContainer config={configOf(series)} className={TICKS}>
+          <Plot data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey={x.key} tickLine={false} axisLine={false} tickMargin={10} />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              width={44}
+              domain={[y?.min ?? 'auto', y?.max ?? 'auto']}
+            />
+            <ChartTooltip
+              cursor={{ strokeDasharray: '3 3' }}
+              content={<Tooltip unit={y?.unit} labelUnit={x.unit} />}
+            />
+            {children}
+            {shown.map(mark)}
+          </Plot>
+        </ChartContainer>
+        <span />
+        {x.label ? <AxisLabel>{x.label}</AxisLabel> : null}
       </div>
     </Figure>
   );
 }
+
+/**
+ * The tick numbers are the axis labels' own type, which is what makes an axis
+ * read as one thing: Departure Mono on the third text tier, not the page's
+ * sans on the second. Set here rather than through `XAxis`'s `tick` prop,
+ * which takes an object of SVG attributes and cannot name a font variable.
+ */
+const TICKS =
+  '[&_.recharts-cartesian-axis-tick_text]:fill-subtle-foreground [&_.recharts-cartesian-axis-tick_text]:font-mono [&_.recharts-cartesian-axis-tick_text]:text-[0.625rem] [&_.recharts-cartesian-axis-tick_text]:tracking-wider';
 
 /**
  * Written by us rather than by `XAxis`'s own `label`, which positions against
@@ -131,7 +142,7 @@ function AxisLabel({ children, vertical }: { children: ReactNode; vertical?: boo
         'text-subtle-foreground block font-mono text-[0.625rem] tracking-[0.12em] uppercase',
         vertical
           ? 'grid shrink-0 place-items-center [writing-mode:vertical-rl] [transform:rotate(180deg)]'
-          : 'pt-1 text-center'
+          : 'pt-2 text-center'
       )}
     >
       {children}

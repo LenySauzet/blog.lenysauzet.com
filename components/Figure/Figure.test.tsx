@@ -12,12 +12,18 @@ describe('Figure', () => {
     expect(figure.querySelector('figcaption')).toHaveTextContent('What this shows');
   });
 
-  it('draws no caption and no controls row when given neither', () => {
-    const { container } = render(<Figure>content</Figure>);
+  /** It is a frame, not a box: given only content, it adds nothing around it. */
+  it('wraps its content in nothing at all when given neither caption nor controls', () => {
+    render(
+      <Figure>
+        <p>content</p>
+      </Figure>
+    );
 
-    expect(container.querySelector('figcaption')).toBeNull();
-    // The surface, and nothing beside it.
-    expect(screen.getByRole('figure').children).toHaveLength(1);
+    const figure = screen.getByRole('figure');
+    expect(figure.querySelector('figcaption')).toBeNull();
+    expect(figure.children).toHaveLength(1);
+    expect(figure.firstElementChild?.tagName).toBe('P');
   });
 
   /**

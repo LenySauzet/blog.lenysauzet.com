@@ -12,10 +12,16 @@ export interface FigureProps {
 }
 
 /**
- * The frame every visual in an article shares, and nothing else: it holds a
- * surface, a row for whatever drives it, and a caption. It never knows what it
+ * The frame every visual in an article shares, and nothing else: a block of
+ * rhythm, a row for whatever drives it, and a caption. It never knows what it
  * contains, which is what lets a chart, a drawing and a canvas sit in the same
  * family without one of them dragging its own layout in.
+ *
+ * **It draws no surface.** A figure sits in the prose rather than in a box:
+ * a card around it fences it off from the paragraph that introduces it, and
+ * two framed things in a row (a figure above a `Card`) read as a list of
+ * panels rather than as an article. A figure that genuinely needs an edge,
+ * such as a canvas whose content runs to its own bounds, draws its own.
  *
  * Server Component. Content that needs state brings its own `'use client'`.
  */
@@ -27,9 +33,7 @@ export default function Figure({
 }: FigureProps) {
   return (
     <figure className={cn('my-6 flex flex-col gap-3', className)}>
-      <div className="bg-card overflow-hidden rounded-xl border p-4">
-        {children}
-      </div>
+      {children}
       {controls ? (
         // Each control stretches rather than shrinking to its content: a
         // slider with no width is a label and a readout jammed together, which
