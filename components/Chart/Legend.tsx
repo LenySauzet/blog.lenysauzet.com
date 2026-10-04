@@ -34,7 +34,7 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
       data-slot="chart-legend"
       className={cn(
         glassSurface,
-        'mx-auto mb-4 flex w-fit flex-wrap items-center justify-center gap-1 rounded-full p-1.5'
+        'mx-auto mb-4 flex w-fit flex-wrap items-center justify-center gap-0.5 rounded-2xl p-1'
       )}
     >
       {series.map(({ key, label, color }) => {
@@ -49,11 +49,10 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
             {label}
           </>
         );
-        // The pill's own radius less its padding, so a row's corner sits
-        // concentric with the container's rather than inside a slightly
-        // squarer one.
+        // The container's radius less its padding, so a row's corner sits
+        // concentric with it rather than inside a slightly squarer one.
         const shared = cn(
-          'flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm',
+          'flex items-center gap-2 rounded-xl px-2.5 py-1 text-sm',
           off ? 'text-subtle-foreground' : 'text-foreground'
         );
 

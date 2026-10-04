@@ -1,14 +1,17 @@
 'use client';
 
-import { usePlotArea, useXAxisScale } from 'recharts';
+import { usePlotArea, useXAxisScale, useYAxisScale } from 'recharts';
 
 export interface SpectrumBandProps {
   /** Wavelengths in nanometres, read on the chart's own x axis. */
   from: number;
   to: number;
-  height?: number;
+  /** Where the band's top sits, read on the y axis rather than in pixels, so
+      it keeps its meaning when the domain changes. */
+  upTo?: number;
   /** One stop every `step` nm. Finer than the eye needs is wasted markup. */
   step?: number;
+  opacity?: number;
 }
 
 /**
@@ -19,15 +22,23 @@ export interface SpectrumBandProps {
  * This is the whole extension story for `Chart`. Anything a plot can be
  * annotated with is a component like this one.
  */
-export default function SpectrumBand({ from, to, height = 28, step = 5 }: SpectrumBandProps) {
+export default function SpectrumBand({
+  from,
+  to,
+  upTo = 20,
+  step = 5,
+  opacity = 0.3,
+}: SpectrumBandProps) {
   const scale = useXAxisScale();
+  const y = useYAxisScale();
   const plot = usePlotArea();
 
-  if (!scale || !plot) return null;
+  if (!scale || !y || !plot) return null;
 
   const left = scale(from);
   const right = scale(to);
-  if (typeof left !== 'number' || typeof right !== 'number') return null;
+  const top = y(upTo);
+  if (typeof left !== 'number' || typeof right !== 'number' || typeof top !== 'number') return null;
 
   const stops = [];
   for (let nm = from; nm <= to; nm += step) {
@@ -44,10 +55,10 @@ export default function SpectrumBand({ from, to, height = 28, step = 5 }: Spectr
       <rect
         x={Math.min(left, right)}
         width={Math.abs(right - left)}
-        y={plot.y + plot.height - height}
-        height={height}
+        y={top}
+        height={Math.max(0, plot.y + plot.height - top)}
         fill="url(#spectrum-band)"
-        opacity={0.55}
+        opacity={opacity}
       />
     </>
   );

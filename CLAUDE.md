@@ -1007,21 +1007,31 @@ What the shape forces:
   construction and keeps doing so when the width changes. **It only paints on the
   client**, `usePlotArea` having nothing to measure on the server, which is fine for a
   decoration and would not be for the data.
-- **The legend and the tooltip are both ours**, and `ui/chart.tsx` stays at CLI output
-  but for its `cn` import. Recharts orders its legend by payload rather than by the
-  series as declared, and a series a reader can switch off is most of the point on an
-  explanatory chart; its tooltip marks series with 2px-radius squares and lets the name
-  push the value along the line, which reads as a debug readout. Ours mark with the
-  legend's own disc and lay label against value in a subgrid, so the numbers line up
-  down the panel however long the names are. The last visible series cannot be hidden,
-  an empty plot reading as a bug.
+- **The legend is ours, the tooltip is shadcn's customised.** Recharts orders its legend
+  by payload rather than by the series as declared, and a series a reader can switch off
+  is most of the point on an explanatory chart, so that one is written here; the last
+  visible series cannot be hidden, an empty plot reading as a bug. The tooltip stays
+  theirs because everything wrong with it was skin: `ui/chart.tsx` now gives it the
+  glass, a round mark and the heading set off by a rule, and is updated with
+  `bunx shadcn@latest add chart --diff` like `badge`, `card` and `command`.
+- **Its mark is drawn outside the `formatter` branch**, which is a real fix rather than
+  a restyle: upstream renders the indicator only in the else of `formatter`, so the
+  moment a caller wants a unit on its numbers the coloured dot silently disappears.
+- **`ui/chart.tsx` ships a selector Recharts 3.8 no longer matches.** The generated file
+  styles `.recharts-cartesian-axis-tick text`, but the tick's text now carries
+  `.recharts-cartesian-axis-tick-value` under a `.recharts-cartesian-axis-tick-label`
+  layer, so neither the fill nor anything else landed: the grey ticks were Recharts'
+  own default, not a token. Measure a computed style before believing a class applied.
 - **The legend sits above the plot**, being the key to what follows: read after the
   curves it explains something already guessed at, and under them it competes with the
   caption for the same job.
-- **Both wear `components/ui/glass`**, the site's one translucent material, which
-  `ui/select.tsx` also takes. The 115% saturation is load-bearing: a plain blur greys
-  what it covers, and putting the colour back is what makes it read as glass rather
-  than as fog. `BeforeAfterSlider`'s handle deliberately keeps its own heavier fill,
+- **Both wear `components/ui/glass`**, the site's one translucent material: the Dynamic
+  Island's own recipe, which the island, `ui/select.tsx`, the tooltip and the legend all
+  now take. It is `--card/75` rather than a `--wash` step **because `--card` is defined
+  in both themes**: a single translucency cannot be right over a light page and a dark
+  one, and a panel that has to be read needs the surface under its text to follow the
+  theme rather than tint it. The 115% saturation is load-bearing, a plain blur greying
+  what it covers. `BeforeAfterSlider`'s handle deliberately keeps its own heavier fill,
   floating over photography rather than over the page.
 - **The tick numbers are the axis labels' own type**, Departure Mono on the third text
   tier, which is what makes an axis read as one thing rather than as a chart's numbers
@@ -1042,6 +1052,13 @@ What the shape forces:
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
   and a wavelength does not follow the reader's theme.
+- **A derived series is named, never handed in as a function.** `combine` is
+  `'sum' | 'max' | 'min' | 'mean'` with an optional ceiling, because a post is a Server
+  Component and React cannot pass a function across that boundary. `components/Slider`
+  learned this first and this file already said so; the build caught the second
+  instance, which is what that note is for. It is recomputed from whatever the legend
+  leaves visible, so switching a channel off changes the answer rather than uncovering
+  a line that was already drawn.
 - **A control in the frame's row stretches.** Flex children shrink to their content by
   default, which rendered the sampling diagram's slider as a label and a readout jammed
   together with no bar between them.
@@ -1068,6 +1085,14 @@ on a half-mixed cell in light.
 **Its column headers are named above them, not below.** A browser renders `thead`
 first whatever the source order, so an axis named at the far end of the grid from the
 labels it names belongs to neither.
+
+**Its cells are square and spaced**, a continuous field reading as an image where
+separated tiles read as counts. `table-fixed` sizes columns from the header row, so a
+short label gave a narrow column and the squares stopped being square: each header
+names its share instead. It is a client component **only for the hover readout**, which
+earns itself: every row of a confusion matrix means "of all the Xs, how many were
+called Y", and the grid alone makes a reader count along two axes to recover that
+sentence.
 
 **Measure a `color-mix` through a canvas, never through `getComputedStyle` alone.**
 Chrome hands back `oklab(...)` and `lab(...)`, so a contrast check that parses the

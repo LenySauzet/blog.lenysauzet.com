@@ -15,6 +15,20 @@ export interface Axis {
   unit?: string;
 }
 
+export interface Derived {
+  key: string;
+  label: string;
+  color?: string;
+  /**
+   * Named rather than handed in as a callback: a post is a Server Component,
+   * and React cannot pass a function across that boundary. `components/Slider`
+   * learned this first, which is why its readout takes `unit` and `decimals`.
+   */
+  combine: 'sum' | 'max' | 'min' | 'mean';
+  /** Ceiling for the result, e.g. 100 for a percentage that cannot exceed full. */
+  max?: number;
+}
+
 export interface ChartProps {
   data: Record<string, unknown>[];
   series: Series[];
@@ -24,6 +38,12 @@ export interface ChartProps {
   caption?: ReactNode;
   controls?: ReactNode;
   legend?: boolean;
+  /**
+   * A series computed from whichever others are visible, recomputed as the
+   * legend is used. It carries the reader's question when the chart is about
+   * how the parts add up rather than about any one of them.
+   */
+  derived?: Derived;
   /** Drawn inside the plot, in its coordinate space. */
   children?: ReactNode;
 }

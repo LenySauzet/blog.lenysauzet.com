@@ -1,7 +1,15 @@
-import type { ReactNode } from "react";
+'use client';
 
-import Figure from "@/components/Figure";
-import { cn } from "@/lib/utils";
+import type { ReactNode } from 'react';
+
+import Figure from '@/components/Figure';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export interface ConfusionMatrixProps {
   /** Rows are the true class, columns the predicted one. */
@@ -13,11 +21,9 @@ export interface ConfusionMatrixProps {
 }
 
 /**
- * Past this share of the ramp a cell is near `--heat-to`, which is the end
- * that approaches the page's own extreme, so the count flips to
- * `--background`. That one swap is right in both themes because the ramp runs
- * the other way in each: the far end is dark on a light page and bright on a
- * dark one, and `--background` is the opposite of both.
+ * Past this share of the ramp a cell is near `--heat-to`, the end that
+ * approaches the page's own extreme, so the count flips to `--background`.
+ * One swap serves both themes because the ramp runs the other way in each.
  */
 const INVERTS_AT = 0.58;
 
@@ -25,94 +31,115 @@ const heat = (ratio: number) =>
   `color-mix(in oklab, var(--heat-to) ${ratio * 100}%, var(--heat-from))`;
 
 /**
- * A heatmap, which is the form this data is read in everywhere it appears, and
- * still a real `table` underneath: the counts stay selectable and a screen
- * reader reads each with its row and column. The cells sit flush, as a grid
- * rather than as a row of chips, and a bar beside them carries the scale.
+ * A heatmap, which is the form this data is read in everywhere it appears,
+ * and a real `table` underneath: the counts stay selectable and a screen
+ * reader reads each with its row and column.
+ *
+ * **The cells are square and spaced**, not a flush grid: a continuous field
+ * reads as an image, where separated tiles read as counts, which is what they
+ * are. The square is `aspect-square` on the cell rather than a fixed size, so
+ * the matrix fills the column at any order.
+ *
+ * It is a client component only for the hover readout. Every row of a
+ * confusion matrix means "of all the Xs, how many were called Y", and that
+ * sentence is what a reader actually wants; the grid alone makes them count
+ * along two axes to recover it.
  */
 export default function ConfusionMatrix({
   matrix,
   labels,
   caption,
-  rowLabel = "True",
-  columnLabel = "Predicted",
+  rowLabel = 'True',
+  columnLabel = 'Predicted',
 }: ConfusionMatrixProps) {
-  const peak = Math.max(...matrix.flat(), 1);
-  const floor = Math.min(...matrix.flat(), 0);
+  const flat = matrix.flat();
+  const peak = Math.max(...flat, 1);
+  const floor = Math.min(...flat, 0);
 
   return (
     <Figure caption={caption}>
-      {/* Above its own headers, which the browser renders first whatever the
-          source order: an axis named at the far end of the grid from the
-          labels it names reads as belonging to neither. */}
       <AxisLabel>{columnLabel}</AxisLabel>
-      <div className="flex items-stretch gap-3">
-        <AxisLabel vertical>{rowLabel}</AxisLabel>
-        <table className="min-w-0 flex-1 table-fixed border-separate border-spacing-0 text-center">
-          <tbody>
-            {matrix.map((row, y) => (
-              <tr key={labels[y]}>
-                <th
-                  scope="row"
-                  className="text-subtle-foreground w-px pr-2 text-right font-mono text-[0.625rem] font-normal tracking-wider whitespace-nowrap uppercase"
-                >
-                  {labels[y]}
-                </th>
-                {row.map((count, x) => {
-                  const ratio = (count - floor) / (peak - floor || 1);
-                  return (
-                    <td
-                      key={labels[x]}
-                      className={cn(
-                        "p-2 text-sm tabular-nums sm:p-3",
-                        ratio > INVERTS_AT
-                          ? "text-background"
-                          : "text-foreground",
-                      )}
-                      style={{ backgroundColor: heat(ratio) }}
-                    >
-                      {count}
-                    </td>
-                  );
-                })}
+      <TooltipProvider delayDuration={120}>
+        <div className="flex items-stretch gap-3">
+          <AxisLabel vertical>{rowLabel}</AxisLabel>
+          <table className="w-full table-fixed border-separate border-spacing-1 text-center">
+            <tbody>
+              {matrix.map((row, y) => {
+                const total = row.reduce((a, b) => a + b, 0);
+                return (
+                  <tr key={labels[y]}>
+                    <Label as="th" scope="row" className="w-0 pr-1 text-right">
+                      {labels[y]}
+                    </Label>
+                    {row.map((count, x) => {
+                      const ratio = (count - floor) / (peak - floor || 1);
+                      return (
+                        <td key={labels[x]} className="p-0">
+                          <Tooltip>
+                            <TooltipTrigger
+                              className={cn(
+                                'flex aspect-square w-full items-center justify-center rounded-md text-sm tabular-nums',
+                                'transition-[scale,box-shadow] duration-150 motion-reduce:transition-none',
+                                'hover:ring-primary hover:scale-[1.06] hover:ring-2',
+                                'focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none',
+                                ratio > INVERTS_AT ? 'text-background' : 'text-foreground'
+                              )}
+                              style={{ backgroundColor: heat(ratio) }}
+                            >
+                              {count}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <span className="font-mono">
+                                {count} of {total} {labels[y].toLowerCase()} called{' '}
+                                {labels[x].toLowerCase()} ({Math.round((count / total) * 100)}%)
+                              </span>
+                            </TooltipContent>
+                          </Tooltip>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+            <thead>
+              <tr>
+                <td />
+                {/* `table-fixed` sizes columns from the header row, so a short
+                    label gave a narrow column and the cells stopped being
+                    square. The share is named instead. */}
+                {labels.map((label) => (
+                  <Label
+                    key={label}
+                    as="th"
+                    scope="col"
+                    className="pb-1.5"
+                    style={{ width: `${100 / labels.length}%` }}
+                  >
+                    {label}
+                  </Label>
+                ))}
               </tr>
-            ))}
-          </tbody>
-          <thead>
-            <tr>
-              <td />
-              {labels.map((label) => (
-                <th
-                  key={label}
-                  scope="col"
-                  className="text-subtle-foreground pb-2 font-mono text-[0.625rem] font-normal tracking-wider uppercase"
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        </table>
-        <ColourBar from={floor} to={peak} />
-      </div>
+            </thead>
+          </table>
+          <ColourBar from={floor} to={peak} />
+        </div>
+      </TooltipProvider>
     </Figure>
   );
 }
 
 /**
- * The scale, as the gradient itself rather than as a list of swatches: the
- * reader matches a cell against it by eye, which only works if the bar is
- * continuous.
+ * The scale as the gradient itself rather than as a list of swatches: a reader
+ * matches a cell against it by eye, which only works if it is continuous.
  */
 function ColourBar({ from, to }: { from: number; to: number }) {
   return (
-    <div className="flex shrink-0 items-stretch gap-1.5">
+    <div className="flex shrink-0 items-stretch gap-2">
       <div
         aria-hidden
-        className="w-2.5 rounded-sm"
-        style={{
-          background: `linear-gradient(to top, var(--heat-from), var(--heat-to))`,
-        }}
+        className="w-2 rounded-full"
+        style={{ background: 'linear-gradient(to top, var(--heat-from), var(--heat-to))' }}
       />
       <div className="text-subtle-foreground flex flex-col justify-between font-mono text-[0.625rem] tracking-wider tabular-nums">
         <span>{to}</span>
@@ -122,20 +149,33 @@ function ColourBar({ from, to }: { from: number; to: number }) {
   );
 }
 
-function AxisLabel({
+function Label({
+  as: Tag,
   children,
-  vertical,
-}: {
-  children: ReactNode;
-  vertical?: boolean;
-}) {
+  className,
+  ...props
+}: { as: 'th'; children: ReactNode; className?: string } & React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <Tag
+      className={cn(
+        'text-subtle-foreground font-mono text-[0.625rem] font-normal tracking-wider whitespace-nowrap uppercase',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+function AxisLabel({ children, vertical }: { children: ReactNode; vertical?: boolean }) {
   return (
     <span
       className={cn(
-        "text-subtle-foreground block font-mono text-[0.625rem] tracking-[0.12em] uppercase",
+        'text-subtle-foreground block font-mono text-[0.625rem] tracking-[0.12em] uppercase',
         vertical
-          ? "grid shrink-0 place-items-center [writing-mode:vertical-rl] [transform:rotate(180deg)]"
-          : "pt-2 text-center",
+          ? 'grid shrink-0 place-items-center [writing-mode:vertical-rl] [transform:rotate(180deg)]'
+          : 'pb-2 text-center'
       )}
     >
       {children}

@@ -5,17 +5,24 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, 
 
 import Figure from '@/components/Figure';
 import { cn } from '@/lib/utils';
-import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 
 import Legend from './Legend';
-import Tooltip from './Tooltip';
-import { colourOf, toggled } from './series';
+import { colourOf, combine, toggled } from './series';
 
-import type { ChartProps, Series } from './types';
+import type { ChartProps, Derived, Series } from './types';
 
-const configOf = (series: Series[]): ChartConfig =>
+const configOf = (series: Series[], derived?: Derived): ChartConfig =>
   Object.fromEntries(
-    series.map((entry, index) => [entry.key, { label: entry.label, color: colourOf(entry, index) }])
+    [...series, ...(derived ? [derived] : [])].map((entry, index) => [
+      entry.key,
+      { label: entry.label, color: colourOf(entry, index) },
+    ])
   );
 
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
@@ -64,12 +71,26 @@ export default function Chart({
   caption,
   controls,
   legend = true,
+  derived,
   children,
 }: ChartProps) {
   const Plot = PLOTS[type];
   const mark = MARKS[type];
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const shown = series.filter(({ key }) => !hidden.has(key));
+
+  // Recomputed from whatever is visible, so switching a channel off changes
+  // the answer rather than merely hiding one of its terms.
+  const plotted = derived
+    ? data.map((datum) => ({
+        ...datum,
+        [derived.key]: combine(
+          derived.combine,
+          shown.map(({ key }) => Number(datum[key]) || 0),
+          derived.max
+        ),
+      }))
+    : data;
 
   const toggle = (key: string) => setHidden((current) => toggled(current, key, series.length));
 
@@ -94,10 +115,19 @@ export default function Chart({
           legend and an axis label too low. */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
-        <ChartContainer config={configOf(series)} className={TICKS}>
-          <Plot data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
+        <ChartContainer config={configOf(series, derived)}>
+          <Plot data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey={x.key} tickLine={false} axisLine={false} tickMargin={10} />
+            {/* Recharts labels every datum it has room for, which on a curve
+                sampled every few units is a wall of numbers. A gap in pixels
+                thins them by how wide they actually are. */}
+            <XAxis
+              dataKey={x.key}
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              minTickGap={40}
+            />
             <YAxis
               tickLine={false}
               axisLine={false}
@@ -107,10 +137,26 @@ export default function Chart({
             />
             <ChartTooltip
               cursor={{ strokeDasharray: '3 3' }}
-              content={<Tooltip unit={y?.unit} labelUnit={x.unit} />}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(value) => `${value}${x.unit ?? ''}`}
+                  formatter={(value, name) => (
+                    <>
+                      <span className="text-muted-foreground">{name}</span>
+                      <span className="text-foreground ml-auto font-medium tabular-nums">
+                        {value}
+                        {y?.unit ?? ''}
+                      </span>
+                    </>
+                  )}
+                />
+              }
             />
             {children}
             {shown.map(mark)}
+            {/* Last, so it reads over the terms it sums rather than under
+                them, which is what makes it legible where they coincide. */}
+            {derived ? mark({ ...derived, color: colourOf(derived, series.length) }) : null}
           </Plot>
         </ChartContainer>
         <span />
@@ -119,15 +165,6 @@ export default function Chart({
     </Figure>
   );
 }
-
-/**
- * The tick numbers are the axis labels' own type, which is what makes an axis
- * read as one thing: Departure Mono on the third text tier, not the page's
- * sans on the second. Set here rather than through `XAxis`'s `tick` prop,
- * which takes an object of SVG attributes and cannot name a font variable.
- */
-const TICKS =
-  '[&_.recharts-cartesian-axis-tick_text]:fill-subtle-foreground [&_.recharts-cartesian-axis-tick_text]:font-mono [&_.recharts-cartesian-axis-tick_text]:text-[0.625rem] [&_.recharts-cartesian-axis-tick_text]:tracking-wider';
 
 /**
  * Written by us rather than by `XAxis`'s own `label`, which positions against

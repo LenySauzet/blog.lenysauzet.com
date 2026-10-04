@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import ConfusionMatrix from './ConfusionMatrix';
@@ -10,8 +11,9 @@ const matrix = [
 ];
 const labels = ['Normal', 'Viral', 'Bacterial'];
 
+/** The tinted surface is the trigger inside the cell, not the cell itself. */
 const cellsOf = (container: HTMLElement) =>
-  [...container.querySelectorAll('td')].filter((td) => td.textContent?.trim());
+  [...container.querySelectorAll<HTMLElement>('td [style*="color-mix"]')];
 
 describe('ConfusionMatrix', () => {
   it('is a table, so each count is read with its row and column', () => {
@@ -21,7 +23,7 @@ describe('ConfusionMatrix', () => {
       expect(screen.getByRole('columnheader', { name: label })).toBeInTheDocument();
       expect(screen.getByRole('rowheader', { name: label })).toBeInTheDocument();
     }
-    expect(screen.getByRole('cell', { name: '437' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '437' })).toBeInTheDocument();
   });
 
   it('tints every cell across the data\'s own range, not against an absolute', () => {
@@ -29,7 +31,8 @@ describe('ConfusionMatrix', () => {
     const mix = (text: string) =>
       Number(
         /--heat-to\) ([\d.]+)%/.exec(
-          cellsOf(container).find((td) => td.textContent?.trim() === text)!.style.backgroundColor
+          cellsOf(container).find((cell) => cell.textContent?.trim() === text)!.style
+            .backgroundColor
         )![1]
       );
 
@@ -48,8 +51,8 @@ describe('ConfusionMatrix', () => {
   it('flips the count to the page colour only at the far end of the ramp', () => {
     const { container } = render(<ConfusionMatrix matrix={matrix} labels={labels} />);
     const cells = cellsOf(container);
-    const mix = (td: HTMLElement) =>
-      Number(/--heat-to\) ([\d.]+)%/.exec(td.style.backgroundColor)![1]) / 100;
+    const mix = (cell: HTMLElement) =>
+      Number(/--heat-to\) ([\d.]+)%/.exec(cell.style.backgroundColor)![1]) / 100;
 
     for (const cell of cells) {
       expect(cell).toHaveClass(mix(cell) > 0.58 ? 'text-background' : 'text-foreground');
@@ -60,7 +63,27 @@ describe('ConfusionMatrix', () => {
   });
 
   it('survives a matrix of zeroes rather than dividing by one', () => {
-    const { container } = render(<ConfusionMatrix matrix={[[0, 0], [0, 0]]} labels={['a', 'b']} />);
+    const { container } = render(
+      <ConfusionMatrix
+        matrix={[
+          [0, 0],
+          [0, 0],
+        ]}
+        labels={['a', 'b']}
+      />
+    );
     expect(cellsOf(container)).toHaveLength(4);
+  });
+
+  /** Every row answers "of all the Xs, how many were called Y". */
+  it('names the row, the column and the share on each cell', async () => {
+    const user = userEvent.setup();
+    render(<ConfusionMatrix matrix={matrix} labels={labels} />);
+
+    await user.hover(screen.getByRole('button', { name: '118' }));
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      '118 of 269 viral called bacterial (44%)'
+    );
   });
 });

@@ -247,8 +247,10 @@ export const frameTimes = [
 
 export const spectral = Array.from({ length: 61 }, (_, i) => {
   const nm = 400 + i * 5;
-  const at = (peak, width, height) => +(height * Math.exp(-(((nm - peak) / width) ** 2))).toFixed(2);
-  return { nm, red: at(640, 70, 96), green: at(540, 55, 95), blue: at(450, 50, 97) };
+  const rise = (mid, width) => +(97 / (1 + Math.exp(-(nm - mid) / width))).toFixed(2);
+  const fall = (mid, width) => +(97 / (1 + Math.exp((nm - mid) / width))).toFixed(2);
+  const bump = (mid, width) => +(95 * Math.exp(-(((nm - mid) / width) ** 2))).toFixed(2);
+  return { nm, red: rise(570, 24), green: bump(540, 52), blue: fall(495, 8) };
 });
 
 ## Charts
@@ -317,7 +319,14 @@ lines up with the curve above it by construction and keeps doing so when the
 width changes.
 
 `SpectrumBand` is the whole idea in sixty lines: it asks the x axis where 400nm
-and 700nm land, and paints a gradient between them.
+and 700nm land, asks the y axis where 20% sits, and paints a gradient between
+them. Reading both scales rather than counting pixels is what keeps it in place
+when the domain changes.
+
+A chart may also carry **a series computed from the others**, recomputed as the
+legend is used: `Result` here is the three channels summed and clamped, so
+switching one off changes the answer rather than uncovering a line that was
+already drawn.
 
 A series can also name its own colour, which is the right call exactly once: when
 the colour is the subject. A curve labelled Green drawn in the site's accent
@@ -333,7 +342,14 @@ would be absurd, and a wavelength does not follow the reader's theme.
   ]}
   x={{ key: 'nm', label: 'Wavelength (nm)', unit: 'nm' }}
   y={{ label: 'Reflectance (%)', min: 0, max: 100, unit: '%' }}
-  caption="The band is a child of the chart, not a layer beside it."
+  derived={{
+    key: 'result',
+    label: 'Result',
+    color: 'oklch(0.78 0.2 330)',
+    combine: 'sum',
+    max: 100,
+  }}
+  caption="Switch a channel off: the result is recomputed, not merely uncovered."
 >
   <SpectrumBand from={400} to={700} />
 </Chart>
@@ -341,20 +357,23 @@ would be absurd, and a wavelength does not follow the reader's theme.
 ## Confusion matrix
 
 A heatmap, which is the form this data is read in everywhere it appears, and
-still a real `table` underneath: the counts stay selectable, a screen reader
-reads each with its row and column, and it ships no JavaScript. The ramp is
+still a real `table` underneath: the counts stay selectable and a screen reader
+reads each with its row and column. The cells are square and spaced rather than
+flush, a continuous field reading as an image where separated tiles read as
+counts. Hover one: every row means *of all the Xs, how many were called Y*, and
+the grid alone makes a reader count along two axes to recover that. The ramp is
 `--heat-from` to `--heat-to`, a pair that exists because no other token can
 stand in: it has to run from the page toward a far end that stays legible
 under inverted text, and **the direction of that run flips with the theme**.
 
 <ConfusionMatrix
   matrix={[
-    [412, 29, 23, 45, 36, 34],
-    [40, 388, 25, 42, 38, 23],
-    [33, 34, 426, 31, 44, 32],
-    [34, 38, 36, 401, 36, 22],
-    [42, 33, 24, 25, 395, 38],
-    [28, 33, 29, 42, 23, 433],
+    [284, 12, 9, 97, 14, 61],
+    [7, 331, 48, 23, 11, 6],
+    [5, 52, 268, 19, 142, 8],
+    [88, 26, 31, 295, 17, 12],
+    [11, 9, 134, 21, 309, 7],
+    [74, 8, 6, 14, 10, 318],
   ]}
   labels={['Buildings', 'Forest', 'Glacier', 'Mountain', 'Sea', 'Street']}
   caption="Sample data. Shadcn has no heatmap, and this needed no library to not have one."

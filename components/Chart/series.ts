@@ -25,3 +25,21 @@ export const toggled = (
   if (!next.delete(key)) next.add(key);
   return next.size === total ? hidden : next;
 };
+
+const COMBINERS = {
+  sum: (values: number[]) => values.reduce((a, b) => a + b, 0),
+  max: (values: number[]) => Math.max(...values),
+  min: (values: number[]) => Math.min(...values),
+  mean: (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length,
+} as const;
+
+/** Rounded to two places, since a float's tail is noise in a readout. */
+export const combine = (
+  how: keyof typeof COMBINERS,
+  values: number[],
+  ceiling?: number
+): number => {
+  if (!values.length) return 0;
+  const raw = COMBINERS[how](values);
+  return +Math.min(raw, ceiling ?? Infinity).toFixed(2);
+};

@@ -3,10 +3,14 @@
 import { Cell, Pie, PieChart as PiePlot } from 'recharts';
 
 import Figure from '@/components/Figure';
-import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 
 import Legend from './Legend';
-import Tooltip from './Tooltip';
 import { colourOf } from './series';
 import type { PieProps } from './types';
 
@@ -29,7 +33,7 @@ export default function PieChart({ data, caption, controls, donut = true, legend
       {legend ? <Legend series={entries} /> : null}
       <ChartContainer config={config}>
         <PiePlot accessibilityLayer>
-          <ChartTooltip content={<Tooltip />} />
+          <ChartTooltip content={<ChartTooltipContent nameKey="key" hideLabel />} />
           <Pie data={data} dataKey="value" nameKey="key" innerRadius={donut ? '55%' : 0} strokeWidth={0}>
             {data.map(({ key }) => (
               <Cell key={key} fill={`var(--color-${key})`} />
