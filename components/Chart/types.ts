@@ -32,6 +32,12 @@ export interface Derived {
   combine: 'sum' | 'max' | 'min' | 'mean';
   /** Ceiling for the result, e.g. 100 for a percentage that cannot exceed full. */
   max?: number;
+  /**
+   * How many series must be visible before it is drawn at all. Below two it
+   * lies exactly on the one series it combines, which reads as a rendering
+   * fault rather than as a result.
+   */
+  from?: number;
 }
 
 export interface ChartProps {

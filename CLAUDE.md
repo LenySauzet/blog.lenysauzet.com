@@ -1029,11 +1029,18 @@ What the shape forces:
   the server, so a colour only the browser can resolve never reached the line: the
   additive result stayed on its fallback token while the mix itself computed correctly.
 - **`color: 'additive'` on a derived series adds the visible series' colours the way
-  light adds**, so a sum of channels looks like the light it sums: measured, all three
-  give `rgb(255 255 255)`, green and blue `rgb(104 255 255)`, red and blue
-  `rgb(255 166 255)`. CSS cannot do it, `color-mix` interpolating rather than adding,
-  so the browser resolves each colour through a one-pixel canvas and the channels are
-  summed in `series.ts`. It is undefined on the server, and the fallback covers that.
+  light adds**, so a sum of channels looks like the light it sums. CSS cannot do it,
+  `color-mix` interpolating rather than adding, so the browser resolves each colour
+  through a one-pixel canvas and `series.ts` sums the channels; it is undefined on the
+  server and the fallback covers that. **The series have to be the pure primaries for
+  it to come out right**: measured on approximations in the site's colour space, three
+  channels gave `rgb(255 166 255)` where the answer is white. On the primaries it is
+  `rgb(255 255 255)`, and red with blue `rgb(255 0 255)`.
+- **A derived series waits for two.** Below that it lies exactly on the one curve it
+  combines, which reads as a rendering fault rather than as a result.
+- **Nothing animates its own drawing.** Recharts redraws a line from its start on every
+  data change, so toggling one series showed the others half-drawn for a few hundred
+  milliseconds: a curve cut off in mid-air, which reads as a glitch.
 - **The tooltip's heading is read off the payload, not from its `label`.** Shadcn
   resolves that label through the config whenever it is not a string, so on a numeric
   axis the panel was headed with a series' name rather than with the x value.
@@ -1080,6 +1087,19 @@ What the shape forces:
 - **`components/Slider` can now be driven**, through `value` and `onValueChange`, and
   stays uncontrolled without them. Named after the primitive rather than `onChange`,
   which would shadow the DOM handler of the same name on its root.
+
+**`components/figures/reflectance.ts` is measurements, not formulas**, and that is the
+difference between a figure that looks right and one that is right. Three curves each
+fitted to look good alone all saturate together, and their sum becomes a flat line
+saying nothing; sixteen readings per channel, interpolated with Catmull-Rom because it
+passes *through* every point rather than near it, leave the sum the shape it actually
+has. The spline can overshoot between two close readings, so the result is clamped: a
+reflectance above one is not a reading.
+
+**The three primaries cover the visible range between them**, which is why the result
+saturates at 100 with all three on and the figure only starts teaching once a channel
+is switched off. That is true of the reference too, and `reflectance.test.ts` asserts
+both halves: the coverage, and the trough that opens in the green band without green.
 
 **`components/figures/ConfusionMatrix` is a heatmap and a table at once.** It is the
 form this data is read in everywhere it appears, so the cells sit flush as a grid with

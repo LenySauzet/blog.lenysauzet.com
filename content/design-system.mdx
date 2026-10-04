@@ -245,14 +245,6 @@ export const frameTimes = [
   { size: '4096', webgl: 15.9, canvas: 29.4 },
 ];
 
-export const spectral = Array.from({ length: 61 }, (_, i) => {
-  const nm = 400 + i * 5;
-  const rise = (mid, width) => +(97 / (1 + Math.exp(-(nm - mid) / width))).toFixed(2);
-  const fall = (mid, width) => +(97 / (1 + Math.exp((nm - mid) / width))).toFixed(2);
-  const bump = (mid, width) => +(95 * Math.exp(-(((nm - mid) / width) ** 2))).toFixed(2);
-  return { nm, red: rise(560, 22), green: bump(540, 54.1), blue: fall(515.3, 16.7) };
-});
-
 ## Charts
 
 A chart is a figure that carries axes. It owns the grid, the tooltip and the
@@ -324,35 +316,19 @@ them. Reading both scales rather than counting pixels is what keeps it in place
 when the domain changes.
 
 A chart may also carry **a series computed from the others**, recomputed as the
-legend is used: `Result` here is the three channels summed and clamped, so
-switching one off changes the answer rather than uncovering a line that was
-already drawn.
+legend is used. `Result` is the visible channels summed and clamped, it wears the
+colour that sum would actually be, and it appears only from two channels on:
+below that it lies exactly on the one curve it combines, which reads as a
+rendering fault rather than as a result.
 
 A series can also name its own colour, which is the right call exactly once: when
-the colour is the subject. A curve labelled Green drawn in the site's accent
-would be absurd, and a wavelength does not follow the reader's theme.
+the colour is the subject. Here they are **the pure sRGB primaries**, because the
+result is their additive sum and summing anything else gives a wash rather than
+white. The data are measured points interpolated with Catmull-Rom, not three
+formulas fitted to look right: curves tuned one at a time all saturate together,
+and their sum becomes a flat line that says nothing.
 
-<Chart
-  type="line"
-  data={spectral}
-  series={[
-    { key: 'red', label: 'Red', color: 'oklch(0.63 0.24 27)' },
-    { key: 'green', label: 'Green', color: 'oklch(0.78 0.21 145)' },
-    { key: 'blue', label: 'Blue', color: 'oklch(0.62 0.21 258)' },
-  ]}
-  x={{ key: 'nm', label: 'Wavelength (nm)', unit: 'nm' }}
-  y={{ label: 'Reflectance (%)', min: 0, max: 100, unit: '%' }}
-  derived={{
-    key: 'result',
-    label: 'Result',
-    color: 'additive',
-    combine: 'sum',
-    max: 100,
-  }}
-  caption="Switch a channel off: the result is recomputed, not merely uncovered."
->
-  <SpectrumBand from={400} to={700} />
-</Chart>
+<ReflectanceChart />
 
 ## Confusion matrix
 

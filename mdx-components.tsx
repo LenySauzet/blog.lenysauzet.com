@@ -15,6 +15,7 @@ import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
 import Figure from '@/components/Figure';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
+import ReflectanceChart from '@/components/figures/ReflectanceChart';
 import SamplingDiagram from '@/components/figures/SamplingDiagram';
 import SpectrumBand from '@/components/figures/SpectrumBand';
 import Fullbleed from '@/components/Fullbleed';
@@ -55,6 +56,7 @@ const components = {
   Fullbleed,
   Image,
   PieChart,
+  ReflectanceChart,
   Sandpack,
   SamplingDiagram,
   SpectrumBand,

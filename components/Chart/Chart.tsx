@@ -28,6 +28,11 @@ const configOf = (series: Series[], derived?: Derived): ChartConfig =>
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
 
 /**
+ * Nothing animates its own drawing. Recharts redraws a line from its start on
+ * every data change, so toggling a series showed the others half-drawn for a
+ * few hundred milliseconds, which reads as a glitch rather than as a
+ * transition.
+ *
  * Each mark is handed the colour to paint rather than deriving
  * `var(--color-<key>)` from its key. The variable is written by `ChartStyle`
  * from the config, which is built once on the server: a colour only the
@@ -43,13 +48,22 @@ const MARKS = {
       fill={colour}
       fillOpacity={0.2}
       strokeWidth={2}
+      isAnimationActive={false}
     />
   ),
   bar: (s: Series, colour: string) => (
-    <Bar key={s.key} dataKey={s.key} fill={colour} radius={4} />
+    <Bar key={s.key} dataKey={s.key} fill={colour} radius={4} isAnimationActive={false} />
   ),
   line: (s: Series, colour: string) => (
-    <Line key={s.key} dataKey={s.key} type="monotone" stroke={colour} strokeWidth={2} dot={false} />
+    <Line
+      key={s.key}
+      dataKey={s.key}
+      type="monotone"
+      stroke={colour}
+      strokeWidth={2}
+      dot={false}
+      isAnimationActive={false}
+    />
   ),
 } as const;
 
@@ -91,6 +105,7 @@ export default function Chart({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derived?.color, hidden, series]);
 
+  const combining = shown.length >= (derived?.from ?? 2);
   const plotted = derived
     ? data.map((datum) => ({
         ...datum,
@@ -171,7 +186,7 @@ export default function Chart({
             {shown.map((entry) => mark(entry, `var(--color-${entry.key})`))}
             {/* Last, so it reads over the terms it sums rather than under
                 them, which is what makes it legible where they coincide. */}
-            {derived
+            {derived && combining
               ? mark(derived, derivedColour ?? colourOf(derived, series.length))
               : null}
           </Plot>
