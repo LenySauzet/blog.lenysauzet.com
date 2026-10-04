@@ -43,3 +43,34 @@ export const combine = (
   const raw = COMBINERS[how](values);
   return +Math.min(raw, ceiling ?? Infinity).toFixed(2);
 };
+
+/**
+ * Adds colours the way light adds, which is what a chart summing channels
+ * needs: red and blue give magenta, all three give white. CSS cannot do it,
+ * `color-mix` interpolating rather than adding, so the browser resolves each
+ * colour for us through a one-pixel canvas and the channels are summed here.
+ *
+ * Returns undefined before a canvas exists, which is the server and the first
+ * paint; the caller falls back until then.
+ */
+export const additive = (colours: string[]): string | undefined => {
+  if (typeof document === 'undefined' || !colours.length) return undefined;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return undefined;
+
+  const total = [0, 0, 0];
+  for (const colour of colours) {
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = colour;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    total[0] += r;
+    total[1] += g;
+    total[2] += b;
+  }
+
+  return `rgb(${total.map((c) => Math.min(255, Math.round(c))).join(' ')})`;
+};

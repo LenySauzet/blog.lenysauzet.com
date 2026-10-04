@@ -1022,6 +1022,21 @@ What the shape forces:
   `.recharts-cartesian-axis-tick-value` under a `.recharts-cartesian-axis-tick-label`
   layer, so neither the fill nor anything else landed: the grey ticks were Recharts'
   own default, not a token. Measure a computed style before believing a class applied.
+  **The font is set on `svg text` rather than on any of those names**, which is both
+  broader (a pie's own labels are not axis ticks) and proof against the next rename.
+- **A mark is handed the colour to paint**, never `var(--color-<key>)` built from its
+  key. That variable is written by `ChartStyle` out of the config, which is built on
+  the server, so a colour only the browser can resolve never reached the line: the
+  additive result stayed on its fallback token while the mix itself computed correctly.
+- **`color: 'additive'` on a derived series adds the visible series' colours the way
+  light adds**, so a sum of channels looks like the light it sums: measured, all three
+  give `rgb(255 255 255)`, green and blue `rgb(104 255 255)`, red and blue
+  `rgb(255 166 255)`. CSS cannot do it, `color-mix` interpolating rather than adding,
+  so the browser resolves each colour through a one-pixel canvas and the channels are
+  summed in `series.ts`. It is undefined on the server, and the fallback covers that.
+- **The tooltip's heading is read off the payload, not from its `label`.** Shadcn
+  resolves that label through the config whenever it is not a string, so on a numeric
+  axis the panel was headed with a series' name rather than with the x value.
 - **The legend sits above the plot**, being the key to what follows: read after the
   curves it explains something already guessed at, and under them it competes with the
   caption for the same job.
@@ -1087,9 +1102,12 @@ first whatever the source order, so an axis named at the far end of the grid fro
 labels it names belongs to neither.
 
 **Its cells are square and spaced**, a continuous field reading as an image where
-separated tiles read as counts. `table-fixed` sizes columns from the header row, so a
-short label gave a narrow column and the squares stopped being square: each header
-names its share instead. It is a client component **only for the hover readout**, which
+separated tiles read as counts. A `colgroup` carries the widths: `table-fixed` gives an
+unsized column no width at all, so the row labels had been overflowing onto the first
+cell, and sizing from the header row made a short label like SEA a narrow column.
+**Nothing moves on hover** either, a tile that grows pushing its neighbours' edges out
+of line so the grid stops reading as a grid; a hairline drawn inside its own bounds
+says the same and leaves the field still. It is a client component **only for the hover readout**, which
 earns itself: every row of a confusion matrix means "of all the Xs, how many were
 called Y", and the grid alone makes a reader count along two axes to recover that
 sentence.

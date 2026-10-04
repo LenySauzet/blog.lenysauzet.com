@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import Figure from '@/components/Figure';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/chart';
 
 import Legend from './Legend';
-import { colourOf, combine, toggled } from './series';
+import { additive, colourOf, combine, toggled } from './series';
 
 import type { ChartProps, Derived, Series } from './types';
 
@@ -27,28 +27,29 @@ const configOf = (series: Series[], derived?: Derived): ChartConfig =>
 
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
 
+/**
+ * Each mark is handed the colour to paint rather than deriving
+ * `var(--color-<key>)` from its key. The variable is written by `ChartStyle`
+ * from the config, which is built once on the server: a colour only the
+ * browser can resolve, such as an additive mix, never reached the line.
+ */
 const MARKS = {
-  area: (s: Series) => (
+  area: (s: Series, colour: string) => (
     <Area
       key={s.key}
       dataKey={s.key}
       type="monotone"
-      stroke={`var(--color-${s.key})`}
-      fill={`var(--color-${s.key})`}
+      stroke={colour}
+      fill={colour}
       fillOpacity={0.2}
       strokeWidth={2}
     />
   ),
-  bar: (s: Series) => <Bar key={s.key} dataKey={s.key} fill={`var(--color-${s.key})`} radius={4} />,
-  line: (s: Series) => (
-    <Line
-      key={s.key}
-      dataKey={s.key}
-      type="monotone"
-      stroke={`var(--color-${s.key})`}
-      strokeWidth={2}
-      dot={false}
-    />
+  bar: (s: Series, colour: string) => (
+    <Bar key={s.key} dataKey={s.key} fill={colour} radius={4} />
+  ),
+  line: (s: Series, colour: string) => (
+    <Line key={s.key} dataKey={s.key} type="monotone" stroke={colour} strokeWidth={2} dot={false} />
   ),
 } as const;
 
@@ -81,6 +82,15 @@ export default function Chart({
 
   // Recomputed from whatever is visible, so switching a channel off changes
   // the answer rather than merely hiding one of its terms.
+  // Resolved in the browser, so the first paint falls back to the accent and
+  // the mix lands on hydration. The series' own colours are literals here, so
+  // nothing but the legend can change it afterwards.
+  const derivedColour = useMemo(() => {
+    if (derived?.color !== 'additive') return derived?.color;
+    return additive(shown.map((entry) => colourOf(entry, series.indexOf(entry))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [derived?.color, hidden, series]);
+
   const plotted = derived
     ? data.map((datum) => ({
         ...datum,
@@ -115,7 +125,7 @@ export default function Chart({
           legend and an axis label too low. */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
-        <ChartContainer config={configOf(series, derived)}>
+        <ChartContainer config={configOf(series, derived && { ...derived, color: derivedColour })}>
           <Plot data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             {/* Recharts labels every datum it has room for, which on a curve
@@ -139,12 +149,17 @@ export default function Chart({
               cursor={{ strokeDasharray: '3 3' }}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(value) => `${value}${x.unit ?? ''}`}
+                  // Shadcn resolves the heading through the config when the
+                  // label is not a string, which on a numeric axis hands back
+                  // a series' name. The x value is read off the payload.
+                  labelFormatter={(_, items) =>
+                    `${items?.[0]?.payload?.[x.key] ?? ''}${x.unit ?? ''}`
+                  }
                   formatter={(value, name) => (
                     <>
                       <span className="text-muted-foreground">{name}</span>
                       <span className="text-foreground ml-auto font-medium tabular-nums">
-                        {value}
+                        {Math.round(Number(value))}
                         {y?.unit ?? ''}
                       </span>
                     </>
@@ -153,10 +168,12 @@ export default function Chart({
               }
             />
             {children}
-            {shown.map(mark)}
+            {shown.map((entry) => mark(entry, `var(--color-${entry.key})`))}
             {/* Last, so it reads over the terms it sums rather than under
                 them, which is what makes it legible where they coincide. */}
-            {derived ? mark({ ...derived, color: colourOf(derived, series.length) }) : null}
+            {derived
+              ? mark(derived, derivedColour ?? colourOf(derived, series.length))
+              : null}
           </Plot>
         </ChartContainer>
         <span />

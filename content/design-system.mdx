@@ -250,7 +250,7 @@ export const spectral = Array.from({ length: 61 }, (_, i) => {
   const rise = (mid, width) => +(97 / (1 + Math.exp(-(nm - mid) / width))).toFixed(2);
   const fall = (mid, width) => +(97 / (1 + Math.exp((nm - mid) / width))).toFixed(2);
   const bump = (mid, width) => +(95 * Math.exp(-(((nm - mid) / width) ** 2))).toFixed(2);
-  return { nm, red: rise(570, 24), green: bump(540, 52), blue: fall(495, 8) };
+  return { nm, red: rise(560, 22), green: bump(540, 54.1), blue: fall(515.3, 16.7) };
 });
 
 ## Charts
@@ -345,7 +345,7 @@ would be absurd, and a wavelength does not follow the reader's theme.
   derived={{
     key: 'result',
     label: 'Result',
-    color: 'oklch(0.78 0.2 330)',
+    color: 'additive',
     combine: 'sum',
     max: 100,
   }}
@@ -368,12 +368,12 @@ under inverted text, and **the direction of that run flips with the theme**.
 
 <ConfusionMatrix
   matrix={[
-    [284, 12, 9, 97, 14, 61],
-    [7, 331, 48, 23, 11, 6],
-    [5, 52, 268, 19, 142, 8],
-    [88, 26, 31, 295, 17, 12],
-    [11, 9, 134, 21, 309, 7],
-    [74, 8, 6, 14, 10, 318],
+    [182, 24, 9, 61, 17, 38],
+    [14, 203, 57, 31, 8, 11],
+    [7, 44, 166, 22, 94, 13],
+    [52, 29, 26, 174, 19, 41],
+    [11, 12, 88, 16, 191, 9],
+    [47, 15, 7, 35, 12, 196],
   ]}
   labels={['Buildings', 'Forest', 'Glacier', 'Mountain', 'Sea', 'Street']}
   caption="Sample data. Shadcn has no heatmap, and this needed no library to not have one."

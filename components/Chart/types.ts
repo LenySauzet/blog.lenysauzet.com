@@ -18,7 +18,12 @@ export interface Axis {
 export interface Derived {
   key: string;
   label: string;
-  color?: string;
+  /**
+   * `'additive'` adds the visible series' own colours channel-wise, so a sum
+   * of light looks like the light it sums: red and blue give magenta, all
+   * three give white. Anything else is taken as a colour.
+   */
+  color?: string | 'additive';
   /**
    * Named rather than handed in as a callback: a post is a Server Component,
    * and React cannot pass a function across that boundary. `components/Slider`

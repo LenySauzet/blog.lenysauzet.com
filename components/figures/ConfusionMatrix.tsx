@@ -62,13 +62,22 @@ export default function ConfusionMatrix({
       <TooltipProvider delayDuration={120}>
         <div className="flex items-stretch gap-3">
           <AxisLabel vertical>{rowLabel}</AxisLabel>
-          <table className="w-full table-fixed border-separate border-spacing-1 text-center">
+          <table className="mx-auto w-full max-w-lg table-fixed border-separate border-spacing-1.5 text-center">
+            {/* The row labels need a column of their own. Left to shrink to
+                nothing they overflowed onto the first cell, `table-fixed`
+                giving an unsized column no width at all. */}
+            <colgroup>
+              <col className="w-[5.5rem]" />
+              {labels.map((label) => (
+                <col key={label} style={{ width: `${100 / labels.length}%` }} />
+              ))}
+            </colgroup>
             <tbody>
               {matrix.map((row, y) => {
                 const total = row.reduce((a, b) => a + b, 0);
                 return (
                   <tr key={labels[y]}>
-                    <Label as="th" scope="row" className="w-0 pr-1 text-right">
+                    <Label as="th" scope="row" className="pr-2 text-right">
                       {labels[y]}
                     </Label>
                     {row.map((count, x) => {
@@ -79,9 +88,14 @@ export default function ConfusionMatrix({
                             <TooltipTrigger
                               className={cn(
                                 'flex aspect-square w-full items-center justify-center rounded-md text-sm tabular-nums',
-                                'transition-[scale,box-shadow] duration-150 motion-reduce:transition-none',
-                                'hover:ring-primary hover:scale-[1.06] hover:ring-2',
-                                'focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none',
+                                // Nothing moves. A tile that grows pushes its
+                                // neighbours' edges out of line and the grid
+                                // stops reading as a grid; a hairline drawn
+                                // inside its own bounds says the same thing
+                                // and leaves the field still.
+                                'ring-foreground/0 ring-1 transition-[--tw-ring-color] duration-150 ring-inset',
+                                'hover:ring-foreground/35 focus-visible:ring-foreground/35',
+                                'focus-visible:outline-none motion-reduce:transition-none',
                                 ratio > INVERTS_AT ? 'text-background' : 'text-foreground'
                               )}
                               style={{ backgroundColor: heat(ratio) }}
@@ -105,17 +119,8 @@ export default function ConfusionMatrix({
             <thead>
               <tr>
                 <td />
-                {/* `table-fixed` sizes columns from the header row, so a short
-                    label gave a narrow column and the cells stopped being
-                    square. The share is named instead. */}
                 {labels.map((label) => (
-                  <Label
-                    key={label}
-                    as="th"
-                    scope="col"
-                    className="pb-1.5"
-                    style={{ width: `${100 / labels.length}%` }}
-                  >
+                  <Label key={label} as="th" scope="col" className="pb-1.5">
                     {label}
                   </Label>
                 ))}
