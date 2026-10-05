@@ -11,16 +11,27 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import type { Section } from './rail';
 
-/** Seconds from one title to the next, so the beat holds whatever the count. */
+/** Seconds from one title to the next, where the walk has room for it. */
 const BEAT = 0.0375;
+
+/** A ceiling on the walk, so a long article does not cost more to reveal.
+    Bounded rather than fixed: fixed, this whole span would fall between the
+    only two titles of a short post. */
+const WALK = 0.22;
+
+const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
+/** The boundary's travel, which is how long titles keep being told. */
+export const walkDuration = (count: number) =>
+  beatOf(count) * Math.max(0, count - 1);
+
 /** The walk plus the last title's own fade. Anything waiting for the rail to
-    empty waits on this, the pace being per title. */
+    empty waits on this. */
 export const passDuration = (count: number) =>
-  BEAT * Math.max(0, count - 1) + FADE.duration;
+  walkDuration(count) + FADE.duration;
 
 /**
  * A boundary walks the titles and tells each one, once, what to do as it
@@ -55,7 +66,7 @@ export function useCascade(
     boundary.set(0);
 
     const running = animate(boundary, last, {
-      duration: still ? 0 : BEAT * last,
+      duration: still ? 0 : beatOf(count) * last,
       ease: 'linear',
       onComplete: () => boundary.set(count - 1),
     });

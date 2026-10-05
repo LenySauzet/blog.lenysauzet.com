@@ -520,10 +520,22 @@ What the shape forces:
   it is mounted even at no radius at all. The titles' own blur is `none` at both ends for
   the same reason: left at `blur(0)` every one of them holds a composited layer for the
   life of the page.
-- **Leaving is ordered, and the order is the cascade's to set.** The veil and the scroll
-  figure both wait for the titles, the figure on `passDuration(count)` rather than a
-  figure picked for one post: the walk is paced per title, so thirteen sections empty at
-  750ms and three at 375.
+- **Leaving is ordered, and the order is the cascade's to set**, each part waiting on
+  the cascade rather than on a figure picked for one post. **The scroll figure waits on
+  `passDuration`**, the last title's fade included, since it is clutter beside a column
+  that must be gone. **The veil waits on `walkDuration`**, which is where the boundary
+  finishes telling the titles and the column starts emptying everywhere at once: it has
+  to outlast them a little, so the rail empties before it lifts rather than under a
+  column that has already come back. Named instead of derived, that delay strands itself
+  the moment the cascade is repaced, which is exactly what happened: held at 450ms
+  against a walk bounded down to 220, it outlasted the titles by 430ms where it was
+  tuned for 200. Derived, the gap holds at 200 whatever the count.
+- **That walk is bounded, not paced per title alone.** Measured on the design system's
+  twenty-five sections, a per-title beat took 908ms to open them all, which reads as the
+  rail labouring rather than as a cascade; bounded, the same page opens in 233ms and
+  nothing above seven sections costs more than anything else. Bounded rather than fixed,
+  because a fixed walk would put that whole span between the only two titles of a short
+  post, where the beat should stay brisk: below the bound nothing changes at all.
 - **Each title carries a halo in `--background`.** Local contrast at the glyphs is
   cheaper than asking the veil to cover more, and it follows the theme on its own. It
   does nothing above `xl`, nothing being behind it there; judge it at 820, where 231px
@@ -942,6 +954,14 @@ which the live payload does send and which reads as a privacy flag, and it shows
 "1". `per_page` is fixed at 5 and ignored when passed, so more names means walking pages.
 **Never widen what the band shows on the strength of that reference alone** — verify
 against a live response first, and when a privacy field is ambiguous, exclude.
+
+**`support_visibility` is not that field, and treating it as one emptied the band.**
+Their two endpoints give one name opposite meanings: the developer API returned 0 for
+a supporter that `app.buymeacoffee.com/api/creators/slug/<name>/coffees`, which needs
+no token and feeds their own public widget, returns as 1 and publishes. A field they
+contradict themselves on cannot carry a privacy decision, so only `support_hidden` and
+`is_refunded` do. That public endpoint is also the way to settle the next such
+question: if it publishes a name without a token, the name is public.
 
 **`components/SupportCallout` fetches from the browser on purpose.** Posts are statically
 generated, so reading the supporter list at build time would freeze the names until the

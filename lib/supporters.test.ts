@@ -79,11 +79,21 @@ describe('normaliseSupporters', () => {
   // The one failure here that cannot be undone, so each errs towards showing nobody.
   it.each([
     ['refunded', { is_refunded: 1 }],
-    ['marked not visible', { support_visibility: 0 }],
     ['hidden', { support_hidden: 1 }],
   ])('drops a support that is %s', (_label, override) => {
     expect(normaliseSupporters([{ ...COFFEE, ...override }])).toEqual([]);
   });
+
+  // `support_visibility` is not a privacy signal: their two endpoints return
+  // opposite values for one row.
+  it.each([0, 1, undefined])(
+    'keeps a support whose visibility reads %p',
+    (visibility) => {
+      expect(
+        normaliseSupporters([{ ...COFFEE, support_visibility: visibility }])
+      ).toHaveLength(1);
+    }
+  );
 
   // `Number('')` is 0 and a negative is finite, so neither is caught by "is it a number".
   it.each([null, '', '0', 0, '-5', -5])(

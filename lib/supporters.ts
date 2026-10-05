@@ -32,10 +32,10 @@ function rowsOf(payload: unknown): Record<string, unknown>[] {
 // Excluded on a signal rather than included on one: guessing wrong this way shows
 // nobody, guessing wrong the other way publishes a name someone hid. `support_hidden`
 // is undocumented and came back on the live payload, so it is read here too.
+// `support_visibility` is not among them: their developer API and their own public
+// widget endpoint return opposite values for one row, so it cannot carry this.
 const isPrivate = (row: Record<string, unknown>) =>
-  Boolean(row.support_hidden) ||
-  Boolean(row.is_refunded) ||
-  readNumber(row.support_visibility) === 0;
+  Boolean(row.support_hidden) || Boolean(row.is_refunded);
 
 /** `supporter_name` is null on plenty of real rows, the name being in `payer_name`. */
 const readName = (row: Record<string, unknown>) =>
