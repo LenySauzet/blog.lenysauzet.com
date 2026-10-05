@@ -1017,6 +1017,11 @@ What the shape forces:
 - **Its mark is drawn outside the `formatter` branch**, which is a real fix rather than
   a restyle: upstream renders the indicator only in the else of `formatter`, so the
   moment a caller wants a unit on its numbers the coloured dot silently disappears.
+- **The type is set on `svg text`, which is the only rule that holds.** Naming a class
+  means naming the wrong one: the generated file styles
+  `.recharts-cartesian-axis-tick text`, which Recharts 3.8 does not emit, and a rule
+  scoped to the cartesian tick leaves a radar's own labels on Recharts' default grey.
+  Measured across radar and radial: DepartureMono on `--subtle-foreground` throughout.
 - **`ui/chart.tsx` ships a selector Recharts 3.8 no longer matches.** The generated file
   styles `.recharts-cartesian-axis-tick text`, but the tick's text now carries
   `.recharts-cartesian-axis-tick-value` under a `.recharts-cartesian-axis-tick-label`
@@ -1038,9 +1043,14 @@ What the shape forces:
   `rgb(255 255 255)`, and red with blue `rgb(255 0 255)`.
 - **A derived series waits for two.** Below that it lies exactly on the one curve it
   combines, which reads as a rendering fault rather than as a result.
-- **Nothing animates its own drawing.** Recharts redraws a line from its start on every
-  data change, so toggling one series showed the others half-drawn for a few hundred
-  milliseconds: a curve cut off in mid-air, which reads as a glitch.
+- **A chart draws itself once, when it is first scrolled to.** `use-entry.ts` holds the
+  marks back until an `IntersectionObserver` sees the plot, which costs nothing:
+  measured, the static HTML carries the frame, the grid, the axes and the legend but
+  **no series path at all**, so there is no server-rendered curve for an entry to reset
+  and no layout to shift when one arrives. It then stops: Recharts redraws a line from
+  its start on every data change, so a legend toggle would otherwise show every other
+  series half-drawn, a curve cut off in mid-air. Reduced motion skips straight to
+  settled.
 - **The tooltip's heading is read off the payload, not from its `label`.** Shadcn
   resolves that label through the config whenever it is not a string, so on a numeric
   axis the panel was headed with a series' name rather than with the x value.

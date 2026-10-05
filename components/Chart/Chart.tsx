@@ -1,5 +1,6 @@
 'use client';
 
+import { useReducedMotion } from 'motion/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/chart';
 
 import Legend from './Legend';
+import { ENTRY_MS, useEntry } from './use-entry';
 import { additive, colourOf, combine, toggled } from './series';
 
 import type { ChartProps, Derived, Series } from './types';
@@ -28,18 +30,13 @@ const configOf = (series: Series[], derived?: Derived): ChartConfig =>
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
 
 /**
- * Nothing animates its own drawing. Recharts redraws a line from its start on
- * every data change, so toggling a series showed the others half-drawn for a
- * few hundred milliseconds, which reads as a glitch rather than as a
- * transition.
- *
  * Each mark is handed the colour to paint rather than deriving
  * `var(--color-<key>)` from its key. The variable is written by `ChartStyle`
  * from the config, which is built once on the server: a colour only the
  * browser can resolve, such as an additive mix, never reached the line.
  */
 const MARKS = {
-  area: (s: Series, colour: string) => (
+  area: (s: Series, colour: string, animate: boolean) => (
     <Area
       key={s.key}
       dataKey={s.key}
@@ -48,13 +45,21 @@ const MARKS = {
       fill={colour}
       fillOpacity={0.2}
       strokeWidth={2}
-      isAnimationActive={false}
+      isAnimationActive={animate}
+      animationDuration={ENTRY_MS}
     />
   ),
-  bar: (s: Series, colour: string) => (
-    <Bar key={s.key} dataKey={s.key} fill={colour} radius={4} isAnimationActive={false} />
+  bar: (s: Series, colour: string, animate: boolean) => (
+    <Bar
+      key={s.key}
+      dataKey={s.key}
+      fill={colour}
+      radius={4}
+      isAnimationActive={animate}
+      animationDuration={ENTRY_MS}
+    />
   ),
-  line: (s: Series, colour: string) => (
+  line: (s: Series, colour: string, animate: boolean) => (
     <Line
       key={s.key}
       dataKey={s.key}
@@ -62,7 +67,8 @@ const MARKS = {
       stroke={colour}
       strokeWidth={2}
       dot={false}
-      isAnimationActive={false}
+      isAnimationActive={animate}
+      animationDuration={ENTRY_MS}
     />
   ),
 } as const;
@@ -105,6 +111,8 @@ export default function Chart({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derived?.color, hidden, series]);
 
+  const reduced = useReducedMotion();
+  const { ref, drawn, animating } = useEntry(!reduced);
   const combining = shown.length >= (derived?.from ?? 2);
   const plotted = derived
     ? data.map((datum) => ({
@@ -138,7 +146,7 @@ export default function Chart({
       {/* A grid rather than nested boxes: the vertical label then centres on
           the plot's own row instead of on the whole column, which put it a
           legend and an axis label too low. */}
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
+      <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
         <ChartContainer config={configOf(series, derived && { ...derived, color: derivedColour })}>
           <Plot data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
@@ -183,11 +191,13 @@ export default function Chart({
               }
             />
             {children}
-            {shown.map((entry) => mark(entry, `var(--color-${entry.key})`))}
+            {drawn
+              ? shown.map((entry) => mark(entry, `var(--color-${entry.key})`, animating))
+              : null}
             {/* Last, so it reads over the terms it sums rather than under
                 them, which is what makes it legible where they coincide. */}
-            {derived && combining
-              ? mark(derived, derivedColour ?? colourOf(derived, series.length))
+            {drawn && derived && combining
+              ? mark(derived, derivedColour ?? colourOf(derived, series.length), animating)
               : null}
           </Plot>
         </ChartContainer>
