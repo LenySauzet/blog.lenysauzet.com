@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { headingsOf, scrollColumn, travelOf } from '@/lib/scroll-column';
+import { headingsOf, scrollColumn, travelOf } from "@/lib/scroll-column";
 
-import { sameSections, type Section } from './rail';
+import { sameSections, type Section } from "./rail";
 
 /**
  * Clear of the island, and the rail's alone: a heading's own scroll margin is
@@ -26,7 +26,7 @@ const read = (): Section[] => {
     const top = Math.max(0, heading.getBoundingClientRect().top - origin);
 
     return {
-      label: heading.textContent?.trim() ?? '',
+      label: heading.textContent?.trim() ?? "",
       level: Number(heading.tagName.slice(1)),
       progress: Math.min(1, Math.max(0, (top - LANDING) / travel)),
       top,

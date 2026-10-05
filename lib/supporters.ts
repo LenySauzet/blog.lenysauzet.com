@@ -13,7 +13,7 @@ export interface SupportersResponse {
 /** Carries the sort key only as far as the merge. */
 export type Dated<T> = T & { at: string };
 
-const FALLBACK_CURRENCY = 'USD';
+const FALLBACK_CURRENCY = "USD";
 
 // Buy Me a Coffee answers 200 to everything: no rows is `{ error: "No supporters" }`,
 // and a stale token is their login page. Only the body tells them apart.
@@ -22,7 +22,7 @@ function rowsOf(payload: unknown): Record<string, unknown>[] {
     ? payload
     : (payload as { data?: unknown })?.data;
   return Array.isArray(data)
-    ? (data.filter((row) => typeof row === 'object' && row !== null) as Record<
+    ? (data.filter((row) => typeof row === "object" && row !== null) as Record<
         string,
         unknown
       >[])
@@ -33,16 +33,14 @@ function rowsOf(payload: unknown): Record<string, unknown>[] {
 // nobody, guessing wrong the other way publishes a name someone hid. `support_hidden`
 // is undocumented and came back on the live payload, so it is read here too.
 //
-// `support_visibility` is deliberately not read, and reading it emptied the band. The
-// two endpoints give one name opposite meanings: the developer API returned 0 for a
-// supporter that the public widget endpoint, which needs no token at all, returns as 1
-// and publishes. A field they contradict themselves on cannot be a privacy signal.
+// `support_visibility` is not among them: their developer API and their own public
+// widget endpoint return opposite values for one row, so it cannot carry this.
 const isPrivate = (row: Record<string, unknown>) =>
   Boolean(row.support_hidden) || Boolean(row.is_refunded);
 
 /** `supporter_name` is null on plenty of real rows, the name being in `payer_name`. */
 const readName = (row: Record<string, unknown>) =>
-  readString(row.supporter_name) ?? readString(row.payer_name) ?? 'Anonymous';
+  readString(row.supporter_name) ?? readString(row.payer_name) ?? "Anonymous";
 
 export function normaliseSupporters(payload: unknown): Dated<Supporter>[] {
   return rowsOf(payload).flatMap((row) => {
@@ -58,7 +56,7 @@ export function normaliseSupporters(payload: unknown): Dated<Supporter>[] {
         amount: (readPositive(row.support_coffees) ?? 1) * price,
         currency: readString(row.support_currency) ?? FALLBACK_CURRENCY,
         recurring: false,
-        at: readString(row.support_created_on) ?? '',
+        at: readString(row.support_created_on) ?? "",
       },
     ];
   });
@@ -70,7 +68,10 @@ export function normaliseMembers(payload: unknown): Dated<Supporter>[] {
   return rowsOf(payload).flatMap((row) => {
     if (isPrivate(row)) return [];
     // Cancelled at period end is paid up and still support; cancelled outright is not.
-    if (row.subscription_is_cancelled && !row.subscription_is_cancelled_at_period_end)
+    if (
+      row.subscription_is_cancelled &&
+      !row.subscription_is_cancelled_at_period_end
+    )
       return [];
 
     const price = readPositive(row.subscription_coffee_price);
@@ -82,7 +83,7 @@ export function normaliseMembers(payload: unknown): Dated<Supporter>[] {
         amount: (readPositive(row.subscription_coffee_num) ?? 1) * price,
         currency: readString(row.subscription_currency) ?? FALLBACK_CURRENCY,
         recurring: true,
-        at: readString(row.subscription_created_on) ?? '',
+        at: readString(row.subscription_created_on) ?? "",
       },
     ];
   });
@@ -104,7 +105,7 @@ export function mergeRecent(...groups: Dated<Supporter>[][]): Supporter[] {
 
 /** Everyone who ever gave, which is not the rows in hand: the endpoint pages by five. */
 export function readTotal(payload: unknown, fallback: number): number {
-  if (typeof payload !== 'object' || payload === null) return fallback;
+  if (typeof payload !== "object" || payload === null) return fallback;
   return readNumber((payload as Record<string, unknown>).total) ?? fallback;
 }
 
@@ -113,16 +114,16 @@ export function readTotal(payload: unknown, fallback: number): number {
 export function formatAmount({
   amount,
   currency,
-}: Pick<Supporter, 'amount' | 'currency'>): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+}: Pick<Supporter, "amount" | "currency">): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: /^[A-Za-z]{3}$/.test(currency) ? currency : FALLBACK_CURRENCY,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 function readString(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 // `Number('')` is 0, and a negative is finite, so a malformed row would otherwise
@@ -134,6 +135,8 @@ function readPositive(value: unknown) {
 
 function readNumber(value: unknown) {
   // Prices arrive as strings ("5.0000"), counts as numbers.
-  const parsed = typeof value === 'string' ? Number(value) : value;
-  return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : undefined;
+  const parsed = typeof value === "string" ? Number(value) : value;
+  return typeof parsed === "number" && Number.isFinite(parsed)
+    ? parsed
+    : undefined;
 }

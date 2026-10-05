@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   animate,
@@ -6,23 +6,17 @@ import {
   useMotionValue,
   useMotionValueEvent,
   type MotionValue,
-} from 'motion/react';
-import { useEffect, useMemo, useRef } from 'react';
+} from "motion/react";
+import { useEffect, useMemo, useRef } from "react";
 
-import type { Section } from './rail';
+import type { Section } from "./rail";
 
 /** Seconds from one title to the next, where the walk has room for it. */
 const BEAT = 0.0375;
 
-/**
- * The walk is bounded, so revealing a long article costs what revealing a
- * short one does. Paced per title alone, the design system's twenty-five
- * sections took 1200ms to unfold, which reads as the rail labouring rather
- * than as a cascade.
- *
- * Bounded rather than fixed: a fixed walk would put this whole span between
- * the only two titles of a short post, where the beat should stay brisk.
- */
+/** A ceiling on the walk, so a long article does not cost more to reveal.
+    Bounded rather than fixed: fixed, this whole span would fall between the
+    only two titles of a short post. */
 const WALK = 0.22;
 
 const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
@@ -30,12 +24,14 @@ const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-/** The boundary's own travel, which is how long titles keep being told. */
-export const walkDuration = (count: number) => beatOf(count) * Math.max(0, count - 1);
+/** The boundary's travel, which is how long titles keep being told. */
+export const walkDuration = (count: number) =>
+  beatOf(count) * Math.max(0, count - 1);
 
 /** The walk plus the last title's own fade. Anything waiting for the rail to
     empty waits on this. */
-export const passDuration = (count: number) => walkDuration(count) + FADE.duration;
+export const passDuration = (count: number) =>
+  walkDuration(count) + FADE.duration;
 
 /**
  * A boundary walks the titles and tells each one, once, what to do as it
@@ -49,11 +45,12 @@ export const passDuration = (count: number) => walkDuration(count) + FADE.durati
 export function useCascade(
   sections: Section[],
   opened: boolean,
-  still: boolean
+  still: boolean,
 ): Map<Section, MotionValue<number>> {
   const shown = useMemo(
-    () => new Map(sections.map((section) => [section, motionValue(0)] as const)),
-    [sections]
+    () =>
+      new Map(sections.map((section) => [section, motionValue(0)] as const)),
+    [sections],
   );
   const walk = useMemo(() => [...shown.values()], [shown]);
 
@@ -71,14 +68,14 @@ export function useCascade(
 
     const running = animate(boundary, last, {
       duration: still ? 0 : beatOf(count) * last,
-      ease: 'linear',
+      ease: "linear",
       onComplete: () => boundary.set(count - 1),
     });
 
     return () => running.stop();
   }, [opened, still, count, boundary]);
 
-  useMotionValueEvent(boundary, 'change', (reached) => {
+  useMotionValueEvent(boundary, "change", (reached) => {
     while (told.current < count && told.current <= reached) {
       animate(walk[told.current], opened ? 1 : 0, still ? AT_ONCE : FADE);
       told.current += 1;

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   animate,
@@ -7,18 +7,18 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useTransform,
-} from 'motion/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+} from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { blurRamp, EASED } from '@/components/ScrollFade';
-import { scrollProgress } from '@/hooks/use-scroll-tracking';
-import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
-import { cn } from '@/lib/utils';
+import { blurRamp, EASED } from "@/components/ScrollFade";
+import { scrollProgress } from "@/hooks/use-scroll-tracking";
+import { handOnWheel, scrollColumn, travelOf } from "@/lib/scroll-column";
+import { cn } from "@/lib/utils";
 
-import { layOutTicks, tickAt } from './rail';
-import { Tick } from './Tick';
-import { passDuration, useCascade, walkDuration } from './use-cascade';
-import { LANDING, useSections } from './use-sections';
+import { layOutTicks, tickAt } from "./rail";
+import { Tick } from "./Tick";
+import { passDuration, useCascade, walkDuration } from "./use-cascade";
+import { LANDING, useSections } from "./use-sections";
 
 const SPACING = 14;
 
@@ -31,7 +31,7 @@ const VEIL_MARGIN = 120;
 /** Held as far as the longest title, the veil is a slab, not a dissolve. */
 const VEIL_SOLID = 0.28;
 
-const RAMP = blurRamp('to left', VEIL_SOLID * 100, EASED);
+const RAMP = blurRamp("to left", VEIL_SOLID * 100, EASED);
 
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
@@ -53,7 +53,9 @@ export function ReadingRail() {
     const node = field.current;
     if (!node) return;
 
-    const resized = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
+    const resized = new ResizeObserver(([entry]) =>
+      setHeight(entry.contentRect.height),
+    );
     resized.observe(node);
 
     return () => resized.disconnect();
@@ -65,15 +67,15 @@ export function ReadingRail() {
   const cascade = useCascade(sections, unfolded, Boolean(still));
   const veil = useMotionValue(0);
 
-  // The veil waits for the titles to be visibly going, not for the last of
-  // them, which is what the figure waits for: once the boundary has finished
-  // telling them, the column is emptying everywhere at once. Held at a named
-  // 450ms instead, it outlasted a repaced cascade by twice what it was set to.
+  // The veil waits on the walk, where the figure waits on the whole pass: once
+  // every title has been told, the column is emptying everywhere at once.
   useEffect(() => {
     const running = animate(
       veil,
       unfolded ? 1 : 0,
-      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : walkDuration(sections.length) }
+      still
+        ? AT_ONCE
+        : { ...VEIL, delay: unfolded ? 0 : walkDuration(sections.length) },
     );
 
     return () => running.stop();
@@ -86,8 +88,8 @@ export function ReadingRail() {
       if (!node) return;
 
       const right = node.getBoundingClientRect().right;
-      const reaches = [...node.querySelectorAll('[data-title]')].map(
-        (title) => right - title.getBoundingClientRect().left
+      const reaches = [...node.querySelectorAll("[data-title]")].map(
+        (title) => right - title.getBoundingClientRect().left,
       );
 
       setWidest(reaches.length ? Math.round(Math.max(...reaches)) : 0);
@@ -100,17 +102,17 @@ export function ReadingRail() {
   // blurred at half of it. `none` at rest, a backdrop filter re-blurring its
   // backdrop every frame it is mounted.
   const backdrop = useTransform(veil, (shown) =>
-    shown === 0 ? 'none' : `blur(${(shown * VEIL_BLUR).toFixed(2)}px)`
+    shown === 0 ? "none" : `blur(${(shown * VEIL_BLUR).toFixed(2)}px)`,
   );
 
   const anchored = useTransform(scrollProgress, (progress) =>
-    count < 2 ? 0 : tickAt(count, progress) / (count - 1)
+    count < 2 ? 0 : tickAt(count, progress) / (count - 1),
   );
   const top = useTransform(anchored, (progress) => `${progress * 100}%`);
   const readout = useTransform(anchored, (progress) => progress.toFixed(2));
 
-  useMotionValueEvent(anchored, 'change', (progress) =>
-    setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
+  useMotionValueEvent(anchored, "change", (progress) =>
+    setReached(count < 2 ? 0 : Math.round(progress * (count - 1))),
   );
 
   /** Read off the event, not the state the pointer last set: a click arriving
@@ -118,7 +120,9 @@ export function ReadingRail() {
   const under = (event: { clientY: number }) => {
     const box = field.current?.getBoundingClientRect();
 
-    return box ? tickAt(count, (event.clientY - box.top) / box.height) : undefined;
+    return box
+      ? tickAt(count, (event.clientY - box.top) / box.height)
+      : undefined;
   };
 
   const go = (event: React.MouseEvent) => {
@@ -131,7 +135,7 @@ export function ReadingRail() {
       top: tick.section
         ? Math.max(0, tick.section.top - LANDING)
         : tick.progress * travelOf(column),
-      behavior: still ? 'auto' : 'smooth',
+      behavior: still ? "auto" : "smooth",
     });
   };
 
@@ -167,8 +171,8 @@ export function ReadingRail() {
       <div
         style={{ width: widest || undefined }}
         className={cn(
-          'absolute inset-y-0 right-0',
-          unfolded ? 'pointer-events-auto' : 'pointer-events-none'
+          "absolute inset-y-0 right-0",
+          unfolded ? "pointer-events-auto" : "pointer-events-none",
         )}
       />
 
