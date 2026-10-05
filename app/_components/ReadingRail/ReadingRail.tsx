@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
 import { Tick } from './Tick';
-import { passDuration, useCascade } from './use-cascade';
+import { passDuration, useCascade, walkDuration } from './use-cascade';
 import { LANDING, useSections } from './use-sections';
 
 const SPACING = 14;
@@ -36,10 +36,6 @@ const RAMP = blurRamp('to left', VEIL_SOLID * 100, EASED);
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const VEIL = { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
-
-/** The veil waits for the titles to be visibly going, not for the last of
-    them, which is what the figure waits for. */
-const EXIT_DELAY = 0.45;
 
 export function ReadingRail() {
   const sections = useSections();
@@ -69,15 +65,19 @@ export function ReadingRail() {
   const cascade = useCascade(sections, unfolded, Boolean(still));
   const veil = useMotionValue(0);
 
+  // The veil waits for the titles to be visibly going, not for the last of
+  // them, which is what the figure waits for: once the boundary has finished
+  // telling them, the column is emptying everywhere at once. Held at a named
+  // 450ms instead, it outlasted a repaced cascade by twice what it was set to.
   useEffect(() => {
     const running = animate(
       veil,
       unfolded ? 1 : 0,
-      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : EXIT_DELAY }
+      still ? AT_ONCE : { ...VEIL, delay: unfolded ? 0 : walkDuration(sections.length) }
     );
 
     return () => running.stop();
-  }, [unfolded, still, veil]);
+  }, [unfolded, still, veil, sections.length]);
 
   // A title hanging past the veil leaves the column legible through the words.
   useEffect(() => {

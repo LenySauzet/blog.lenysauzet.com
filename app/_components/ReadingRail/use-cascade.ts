@@ -30,10 +30,12 @@ const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
+/** The boundary's own travel, which is how long titles keep being told. */
+export const walkDuration = (count: number) => beatOf(count) * Math.max(0, count - 1);
+
 /** The walk plus the last title's own fade. Anything waiting for the rail to
     empty waits on this. */
-export const passDuration = (count: number) =>
-  beatOf(count) * Math.max(0, count - 1) + FADE.duration;
+export const passDuration = (count: number) => walkDuration(count) + FADE.duration;
 
 /**
  * A boundary walks the titles and tells each one, once, what to do as it
