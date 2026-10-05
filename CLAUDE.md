@@ -1122,9 +1122,6 @@ What the shape forces:
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
   and a wavelength does not follow the reader's theme.
-- **`components/Slider` can now be driven**, through `value` and `onValueChange`, and
-  stays uncontrolled without them. Named after the primitive rather than `onChange`,
-  which would shadow the DOM handler of the same name on its root.
 
 **`components/figures/ConfusionMatrix` is finished but unlisted.** Registered in
 `mdx-components.tsx`, absent from the design system: a figure waiting for the post that
