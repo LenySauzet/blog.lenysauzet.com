@@ -1051,6 +1051,13 @@ What the shape forces:
 - **A mark is handed the colour to paint**, never `var(--color-<key>)` built from its
   key. That variable is written by `ChartStyle` out of the config, which is built on
   the server, so a colour only the browser can resolve would never reach the line.
+- **A pie needs `animationBegin={0}`.** Recharts holds one back before it starts where
+  every other mark begins at once: `Pie.d.ts` declares `animationBegin: 400` against
+  `RadialBar`'s 0. Measured from the same visibility gate, a pie's sectors arrived
+  441ms after its container where bars took 8, a line 11 and a radial 44, which reads
+  as the chart having stalled. At 0 it is 40ms. **Its sectors still appear fully formed
+  rather than sweeping**, which is unresolved: `d` is constant across the entry, and
+  neither feeding the mark an empty array first nor holding the mark back changes it.
 - **A chart draws itself when it is first scrolled to**, cartesian and pie alike.
   `use-entry.ts` holds the marks back until an `IntersectionObserver` sees the plot,
   which costs nothing: measured, the static HTML carries the frame, the grid, the axes

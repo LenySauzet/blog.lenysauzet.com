@@ -47,19 +47,27 @@ export default function PieChart({
             <ChartTooltip
               content={<ChartTooltipContent nameKey="key" hideLabel />}
             />
-            <Pie
-              data={drawn ? data : []}
-              dataKey="value"
-              nameKey="key"
-              innerRadius={donut ? "55%" : 0}
-              strokeWidth={0}
-              isAnimationActive={!reduced}
-              animationDuration={ENTRY_MS}
-            >
-              {data.map(({ key }) => (
-                <Cell key={key} fill={`var(--color-${key})`} />
-              ))}
-            </Pie>
+            {drawn ? (
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="key"
+                innerRadius={donut ? "55%" : 0}
+                strokeWidth={0}
+                isAnimationActive={!reduced}
+                animationDuration={ENTRY_MS}
+                // Recharts holds a pie back before it starts, where every other
+                // mark begins at once: `Pie.d.ts` declares `animationBegin: 400`
+                // against `RadialBar`'s 0. Measured against the others from the
+                // same gate, a pie's sectors arrived 441ms after its container
+                // where bars took 8 and a line 11, which reads as a stall.
+                animationBegin={0}
+              >
+                {data.map(({ key }) => (
+                  <Cell key={key} fill={`var(--color-${key})`} />
+                ))}
+              </Pie>
+            ) : null}
           </PiePlot>
         </ChartContainer>
       </div>
