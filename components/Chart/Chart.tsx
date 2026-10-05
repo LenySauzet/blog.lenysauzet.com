@@ -55,9 +55,14 @@ const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
  * from the config, which is built once on the server: a colour only the
  * browser can resolve, such as an additive mix, never reached the line.
  */
-type Mark = (series: Series, colour: string, animate: boolean, fill?: string) => ReactNode;
+type Mark = (
+  series: Series,
+  colour: string,
+  animate: boolean,
+  fill?: string,
+) => ReactNode;
 
-const MARKS: Record<NonNullable<ChartProps['type']>, Mark> = {
+const MARKS: Record<NonNullable<ChartProps["type"]>, Mark> = {
   area: (s, colour, animate, fill = colour) => (
     <Area
       key={s.key}
@@ -137,7 +142,7 @@ export default function Chart({
   }, [derived?.color, hidden, series]);
 
   const reduced = useReducedMotion();
-  const { ref, drawn, animating } = useEntry(!reduced);
+  const { ref, drawn } = useEntry(!reduced);
   const combining = shown.length >= (derived?.from ?? 2);
   // Scoped to this chart: a fixed id would be reused by every other chart on
   // the page, and the first one to render would own the fill for all of them.
@@ -274,7 +279,7 @@ export default function Chart({
             {children}
             {drawn
               ? painted.map(([entry, colour]) =>
-                  mark(entry, colour, animating, fillOf(entry.key)),
+                  mark(entry, colour, !reduced, fillOf(entry.key)),
                 )
               : null}
             {/* Last, so it reads over the terms it sums rather than under
@@ -283,7 +288,7 @@ export default function Chart({
               ? mark(
                   derived,
                   derivedColour ?? colourOf(derived, series.length),
-                  animating,
+                  !reduced,
                   fillOf(derived.key),
                 )
               : null}

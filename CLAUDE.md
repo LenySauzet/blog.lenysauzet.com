@@ -1055,14 +1055,17 @@ What the shape forces:
   `rgb(255 255 255)`, and red with blue `rgb(255 0 255)`.
 - **A derived series waits for two.** Below that it lies exactly on the one curve it
   combines, which reads as a rendering fault rather than as a result.
-- **A chart draws itself once, when it is first scrolled to.** `use-entry.ts` holds the
-  marks back until an `IntersectionObserver` sees the plot, which costs nothing:
-  measured, the static HTML carries the frame, the grid, the axes and the legend but
-  **no series path at all**, so there is no server-rendered curve for an entry to reset
-  and no layout to shift when one arrives. It then stops: Recharts redraws a line from
-  its start on every data change, so a legend toggle would otherwise show every other
-  series half-drawn, a curve cut off in mid-air. Reduced motion skips straight to
-  settled.
+- **A chart draws itself when it is first scrolled to**, cartesian and pie alike.
+  `use-entry.ts` holds the marks back until an `IntersectionObserver` sees the plot,
+  which costs nothing: measured, the static HTML carries the frame, the grid, the axes
+  and the legend but **no series path at all**, so there is no server-rendered curve
+  for an entry to reset and no layout to shift when one arrives.
+- **Nothing needs to stop afterwards, and an earlier version of this file said it did.**
+  Recharts interpolates a path toward its new shape rather than redrawing it from the
+  start: measured across a toggle, the surviving series hold a `stroke-dasharray` equal
+  to their own length throughout, fully drawn, while the axis rescales under them. That
+  rescale is the transition worth seeing, and killing it to prevent a redraw that does
+  not happen cost the site every chart's animation.
 - **The tooltip's heading is read off the payload, not from its `label`.** Shadcn
   resolves that label through the config whenever it is not a string, so on a numeric
   axis the panel was headed with a series' name rather than with the x value.
