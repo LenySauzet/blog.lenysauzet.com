@@ -22,7 +22,7 @@ export const sameSections = (a: Section[], b: Section[]) =>
     (section, index) =>
       section.top === b[index].top &&
       section.label === b[index].label &&
-      section.progress === b[index].progress,
+      section.progress === b[index].progress
   );
 
 export const tickAt = (count: number, progress: number) =>
@@ -32,12 +32,9 @@ export const tickAt = (count: number, progress: number) =>
     the tick nearest it, or the next one down when that is spoken for: two
     headings a paragraph apart stay two marks. */
 export function layOutTicks(count: number, sections: Section[]): Tick[] {
-  const ticks: Tick[] = Array.from(
-    { length: Math.max(0, count) },
-    (_, index) => ({
-      progress: count < 2 ? 0 : index / (count - 1),
-    }),
-  );
+  const ticks: Tick[] = Array.from({ length: Math.max(0, count) }, (_, index) => ({
+    progress: count < 2 ? 0 : index / (count - 1),
+  }));
 
   for (const section of [...sections].sort((a, b) => a.progress - b.progress)) {
     let index = tickAt(count, section.progress);

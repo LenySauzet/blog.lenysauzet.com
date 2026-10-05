@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   animate,
@@ -6,10 +6,10 @@ import {
   useMotionValue,
   useMotionValueEvent,
   type MotionValue,
-} from "motion/react";
-import { useEffect, useMemo, useRef } from "react";
+} from 'motion/react';
+import { useEffect, useMemo, useRef } from 'react';
 
-import type { Section } from "./rail";
+import type { Section } from './rail';
 
 /** Seconds from one title to the next, where the walk has room for it. */
 const BEAT = 0.0375;
@@ -45,12 +45,11 @@ export const passDuration = (count: number) =>
 export function useCascade(
   sections: Section[],
   opened: boolean,
-  still: boolean,
+  still: boolean
 ): Map<Section, MotionValue<number>> {
   const shown = useMemo(
-    () =>
-      new Map(sections.map((section) => [section, motionValue(0)] as const)),
-    [sections],
+    () => new Map(sections.map((section) => [section, motionValue(0)] as const)),
+    [sections]
   );
   const walk = useMemo(() => [...shown.values()], [shown]);
 
@@ -68,14 +67,14 @@ export function useCascade(
 
     const running = animate(boundary, last, {
       duration: still ? 0 : beatOf(count) * last,
-      ease: "linear",
+      ease: 'linear',
       onComplete: () => boundary.set(count - 1),
     });
 
     return () => running.stop();
   }, [opened, still, count, boundary]);
 
-  useMotionValueEvent(boundary, "change", (reached) => {
+  useMotionValueEvent(boundary, 'change', (reached) => {
     while (told.current < count && told.current <= reached) {
       animate(walk[told.current], opened ? 1 : 0, still ? AT_ONCE : FADE);
       told.current += 1;

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 
 import {
   formatAmount,
@@ -6,150 +6,142 @@ import {
   normaliseMembers,
   normaliseSupporters,
   readTotal,
-} from "./supporters";
+} from './supporters';
 
 // From the live /v1/supporters response, personal fields replaced. Their reference
 // omits `support_hidden` entirely, so only a real payload can be trusted as a fixture.
 const COFFEE = {
   support_id: 10030855,
   support_coffees: 1,
-  support_coffee_price: "5.0000",
-  support_currency: "EUR",
+  support_coffee_price: '5.0000',
+  support_currency: 'EUR',
   support_visibility: 1,
   support_hidden: 0,
   is_refunded: null,
-  support_created_on: "2025-03-31 10:18:36",
-  supporter_name: "Louis Yvelin",
-  payer_name: "Louis Yvelin",
+  support_created_on: '2025-03-31 10:18:36',
+  supporter_name: 'Louis Yvelin',
+  payer_name: 'Louis Yvelin',
 };
 
 // From their reference: no real member exists yet to read one from.
 const MEMBER = {
   subscription_id: 10647,
-  subscription_coffee_price: "5.000",
+  subscription_coffee_price: '5.000',
   subscription_coffee_num: 1,
-  subscription_currency: "EUR",
+  subscription_currency: 'EUR',
   subscription_is_cancelled: null,
   subscription_is_cancelled_at_period_end: null,
-  subscription_created_on: "2026-08-22 12:40:00",
-  payer_name: "Ingrid Holm",
+  subscription_created_on: '2026-08-22 12:40:00',
+  payer_name: 'Ingrid Holm',
 };
 
-describe("normaliseSupporters", () => {
-  it("reads the live payload", () => {
+describe('normaliseSupporters', () => {
+  it('reads the live payload', () => {
     expect(normaliseSupporters({ current_page: 1, data: [COFFEE] })).toEqual([
       {
-        name: "Louis Yvelin",
+        name: 'Louis Yvelin',
         amount: 5,
-        currency: "EUR",
+        currency: 'EUR',
         recurring: false,
-        at: "2025-03-31 10:18:36",
+        at: '2025-03-31 10:18:36',
       },
     ]);
   });
 
-  it("multiplies the coffees by their price", () => {
+  it('multiplies the coffees by their price', () => {
     const [row] = normaliseSupporters([
-      { ...COFFEE, support_coffees: 3, support_coffee_price: "5.0000" },
+      { ...COFFEE, support_coffees: 3, support_coffee_price: '5.0000' },
     ]);
     expect(row.amount).toBe(15);
   });
 
-  it("falls back to the payer when the supporter did not name themselves", () => {
+  it('falls back to the payer when the supporter did not name themselves', () => {
     const [row] = normaliseSupporters([
-      { ...COFFEE, supporter_name: null, payer_name: "Yuki Tanaka" },
+      { ...COFFEE, supporter_name: null, payer_name: 'Yuki Tanaka' },
     ]);
-    expect(row.name).toBe("Yuki Tanaka");
+    expect(row.name).toBe('Yuki Tanaka');
   });
 
-  it("prefers the chosen name over the billing one", () => {
+  it('prefers the chosen name over the billing one', () => {
     const [row] = normaliseSupporters([
-      { ...COFFEE, supporter_name: "Ella", payer_name: "Eleanor Novak" },
+      { ...COFFEE, supporter_name: 'Ella', payer_name: 'Eleanor Novak' },
     ]);
-    expect(row.name).toBe("Ella");
+    expect(row.name).toBe('Ella');
   });
 
-  it.each([null, "", "   "])(
-    "names a supporter with %p as Anonymous",
-    (name) => {
-      const [row] = normaliseSupporters([
-        { ...COFFEE, supporter_name: name, payer_name: name },
-      ]);
-      expect(row.name).toBe("Anonymous");
-    },
-  );
+  it.each([null, '', '   '])('names a supporter with %p as Anonymous', (name) => {
+    const [row] = normaliseSupporters([
+      { ...COFFEE, supporter_name: name, payer_name: name },
+    ]);
+    expect(row.name).toBe('Anonymous');
+  });
 
   // The one failure here that cannot be undone, so each errs towards showing nobody.
   it.each([
-    ["refunded", { is_refunded: 1 }],
-    ["hidden", { support_hidden: 1 }],
-  ])("drops a support that is %s", (_label, override) => {
+    ['refunded', { is_refunded: 1 }],
+    ['hidden', { support_hidden: 1 }],
+  ])('drops a support that is %s', (_label, override) => {
     expect(normaliseSupporters([{ ...COFFEE, ...override }])).toEqual([]);
   });
 
   // `support_visibility` is not a privacy signal: their two endpoints return
   // opposite values for one row.
   it.each([0, 1, undefined])(
-    "keeps a support whose visibility reads %p",
+    'keeps a support whose visibility reads %p',
     (visibility) => {
       expect(
-        normaliseSupporters([{ ...COFFEE, support_visibility: visibility }]),
+        normaliseSupporters([{ ...COFFEE, support_visibility: visibility }])
       ).toHaveLength(1);
-    },
+    }
   );
 
   // `Number('')` is 0 and a negative is finite, so neither is caught by "is it a number".
-  it.each([null, "", "0", 0, "-5", -5])(
-    "drops a row priced %p rather than publishing it",
+  it.each([null, '', '0', 0, '-5', -5])(
+    'drops a row priced %p rather than publishing it',
     (price) => {
       expect(
-        normaliseSupporters([{ ...COFFEE, support_coffee_price: price }]),
+        normaliseSupporters([{ ...COFFEE, support_coffee_price: price }])
       ).toEqual([]);
-    },
+    }
   );
 
-  it.each(["", 0, -3])(
-    "ignores a coffee count of %p and assumes one",
-    (count) => {
-      const [row] = normaliseSupporters([
-        { ...COFFEE, support_coffees: count },
-      ]);
-      expect(row.amount).toBe(5);
-    },
-  );
+  it.each(['', 0, -3])('ignores a coffee count of %p and assumes one', (count) => {
+    const [row] = normaliseSupporters([{ ...COFFEE, support_coffees: count }]);
+    expect(row.amount).toBe(5);
+  });
 
   // All real answers from their API, every one served as HTTP 200.
   it.each([
-    ["no supporters", { error: "No supporters" }],
-    ["a page past the end", { error: "No supporters" }],
-    ["a failed content-type check", null],
-    ["nonsense", 42],
-    ["a string", "nope"],
-    ["a bad data key", { data: "nope" }],
-  ])("returns nothing for %s rather than throwing", (_label, payload) => {
+    ['no supporters', { error: 'No supporters' }],
+    ['a page past the end', { error: 'No supporters' }],
+    ['a failed content-type check', null],
+    ['nonsense', 42],
+    ['a string', 'nope'],
+    ['a bad data key', { data: 'nope' }],
+  ])('returns nothing for %s rather than throwing', (_label, payload) => {
     expect(normaliseSupporters(payload)).toEqual([]);
   });
 });
 
-describe("normaliseMembers", () => {
-  it("reads a member and marks them recurring", () => {
+describe('normaliseMembers', () => {
+  it('reads a member and marks them recurring', () => {
     expect(normaliseMembers({ data: [MEMBER] })).toEqual([
       {
-        name: "Ingrid Holm",
+        name: 'Ingrid Holm',
         amount: 5,
-        currency: "EUR",
+        currency: 'EUR',
         recurring: true,
-        at: "2026-08-22 12:40:00",
+        at: '2026-08-22 12:40:00',
       },
     ]);
   });
 
-  it("multiplies the coffee count by its price", () => {
+  it('multiplies the coffee count by its price', () => {
     const [row] = normaliseMembers([{ ...MEMBER, subscription_coffee_num: 3 }]);
     expect(row.amount).toBe(15);
   });
 
-  it("keeps a membership cancelled at period end", () => {
+  it('keeps a membership cancelled at period end', () => {
     const rows = normaliseMembers([
       {
         ...MEMBER,
@@ -160,77 +152,71 @@ describe("normaliseMembers", () => {
     expect(rows).toHaveLength(1);
   });
 
-  it.each([null, "", "0", -5])("drops a member priced %p", (price) => {
+  it.each([null, '', '0', -5])('drops a member priced %p', (price) => {
     expect(
-      normaliseMembers([{ ...MEMBER, subscription_coffee_price: price }]),
+      normaliseMembers([{ ...MEMBER, subscription_coffee_price: price }])
     ).toEqual([]);
   });
 
-  it("drops one cancelled outright", () => {
+  it('drops one cancelled outright', () => {
     expect(
-      normaliseMembers([{ ...MEMBER, subscription_is_cancelled: 1 }]),
+      normaliseMembers([{ ...MEMBER, subscription_is_cancelled: 1 }])
     ).toEqual([]);
   });
 
   // Their reference lists no privacy field for a member, and has been wrong before.
-  it.each(["support_hidden", "is_refunded"])(
-    "honours %s if it is present",
-    (field) => {
-      expect(normaliseMembers([{ ...MEMBER, [field]: 1 }])).toEqual([]);
-    },
-  );
+  it.each(['support_hidden', 'is_refunded'])('honours %s if it is present', (field) => {
+    expect(normaliseMembers([{ ...MEMBER, [field]: 1 }])).toEqual([]);
+  });
 
   it('returns nothing for the "No subscriptions" answer', () => {
-    expect(normaliseMembers({ error: "No subscriptions" })).toEqual([]);
+    expect(normaliseMembers({ error: 'No subscriptions' })).toEqual([]);
   });
 });
 
-describe("mergeRecent", () => {
-  it("orders newest first, whichever endpoint it came from", () => {
+describe('mergeRecent', () => {
+  it('orders newest first, whichever endpoint it came from', () => {
     const merged = mergeRecent(
       normaliseMembers([MEMBER]),
-      normaliseSupporters([COFFEE]),
+      normaliseSupporters([COFFEE])
     );
-    expect(merged.map((s) => s.name)).toEqual(["Ingrid Holm", "Louis Yvelin"]);
+    expect(merged.map((s) => s.name)).toEqual(['Ingrid Holm', 'Louis Yvelin']);
   });
 
-  it("does not leak the timestamp to the client", () => {
+  it('does not leak the timestamp to the client', () => {
     const [row] = mergeRecent(normaliseSupporters([COFFEE]));
-    expect(row).not.toHaveProperty("at");
+    expect(row).not.toHaveProperty('at');
   });
 
-  it("survives both lists being empty", () => {
+  it('survives both lists being empty', () => {
     expect(mergeRecent([], [])).toEqual([]);
   });
 });
 
-describe("readTotal", () => {
-  it("prefers the count the API reports", () => {
+describe('readTotal', () => {
+  it('prefers the count the API reports', () => {
     expect(readTotal({ total: 1284, data: [COFFEE] }, 1)).toBe(1284);
   });
 
-  it("falls back to what actually arrived", () => {
+  it('falls back to what actually arrived', () => {
     expect(readTotal({ data: [COFFEE, COFFEE] }, 2)).toBe(2);
   });
 
-  it("survives a payload that is not an object", () => {
-    expect(readTotal("nope", 7)).toBe(7);
+  it('survives a payload that is not an object', () => {
+    expect(readTotal('nope', 7)).toBe(7);
   });
 
-  it("keeps a reported zero, which is a real answer", () => {
+  it('keeps a reported zero, which is a real answer', () => {
     expect(readTotal({ total: 0 }, 9)).toBe(0);
   });
 });
 
-describe("formatAmount", () => {
-  it("renders the row in the currency it was given", () => {
-    expect(formatAmount({ amount: 5, currency: "EUR" })).toBe("€5");
+describe('formatAmount', () => {
+  it('renders the row in the currency it was given', () => {
+    expect(formatAmount({ amount: 5, currency: 'EUR' })).toBe('€5');
   });
 
-  it.each(["nope", "", "E€R"])(
-    "falls back rather than throwing on %p",
-    (currency) => {
-      expect(formatAmount({ amount: 5, currency })).toBe("$5");
-    },
-  );
+  it.each(['nope', '', 'E€R'])('falls back rather than throwing on %p', (currency) => {
+    expect(formatAmount({ amount: 5, currency })).toBe('$5');
+  });
 });
