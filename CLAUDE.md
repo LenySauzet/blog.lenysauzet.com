@@ -520,9 +520,16 @@ What the shape forces:
   it is mounted even at no radius at all. The titles' own blur is `none` at both ends for
   the same reason: left at `blur(0)` every one of them holds a composited layer for the
   life of the page.
-- **Leaving is ordered, and the order is the cascade's to set.** The veil and the scroll
-  figure both wait for the titles, on `passDuration(count)` rather than on a figure
-  picked for one post.
+- **Leaving is ordered, and the order is the cascade's to set**, each part waiting on
+  the cascade rather than on a figure picked for one post. **The scroll figure waits on
+  `passDuration`**, the last title's fade included, since it is clutter beside a column
+  that must be gone. **The veil waits on `walkDuration`**, which is where the boundary
+  finishes telling the titles and the column starts emptying everywhere at once: it has
+  to outlast them a little, so the rail empties before it lifts rather than under a
+  column that has already come back. Named instead of derived, that delay strands itself
+  the moment the cascade is repaced, which is exactly what happened: held at 450ms
+  against a walk bounded down to 220, it outlasted the titles by 430ms where it was
+  tuned for 200. Derived, the gap holds at 200 whatever the count.
 - **That walk is bounded, not paced per title alone.** Measured on the design system's
   twenty-five sections, a per-title beat took 908ms to open them all, which reads as the
   rail labouring rather than as a cascade; bounded, the same page opens in 233ms and
