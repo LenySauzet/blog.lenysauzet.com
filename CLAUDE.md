@@ -1029,6 +1029,14 @@ What the shape forces:
   own default, not a token. Measure a computed style before believing a class applied.
   **The font is set on `svg text` rather than on any of those names**, which is both
   broader (a pie's own labels are not axis ticks) and proof against the next rename.
+- **An area's gradient is a word, not markup.** Recharts has no gradient prop, so
+  shadcn's "gradient" block is a `<defs>` a caller copies; owning the marks turns it
+  into `fill="gradient"`. **The ids come from `useId()`**, where their example hardcodes
+  `fillDesktop` and `fillMobile`: an id is document-wide, so a second chart on the page
+  would take the first one's fill. Two other deliberate departures from that example:
+  the curve stays `monotone` rather than `natural`, which swings past a reading, and
+  the areas overlay rather than stacking, stacking being a different claim about the
+  data than these figures make.
 - **A mark is handed the colour to paint**, never `var(--color-<key>)` built from its
   key. That variable is written by `ChartStyle` out of the config, which is built on
   the server, so a colour only the browser can resolve never reached the line: the

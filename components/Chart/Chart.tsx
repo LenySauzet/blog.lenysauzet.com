@@ -1,23 +1,33 @@
-'use client';
+"use client";
 
-import { useReducedMotion } from 'motion/react';
-import { useMemo, useState, type ReactNode } from 'react';
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { useReducedMotion } from "motion/react";
+import { useId, useMemo, useState, type ReactNode } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-import Figure from '@/components/Figure';
-import { cn } from '@/lib/utils';
+import Figure from "@/components/Figure";
+import { cn } from "@/lib/utils";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart';
+} from "@/components/ui/chart";
 
-import Legend from './Legend';
-import { ENTRY_MS, useEntry } from './use-entry';
-import { additive, colourOf, combine, toggled } from './series';
+import Legend from "./Legend";
+import { ENTRY_MS, useEntry } from "./use-entry";
+import { additive, colourOf, combine, toggled } from "./series";
 
-import type { ChartProps, Derived, Series } from './types';
+import type { ChartProps, Derived, Series } from "./types";
 
 /**
  * The derived series is named here but never coloured. `ChartStyle` writes
@@ -29,7 +39,10 @@ import type { ChartProps, Derived, Series } from './types';
  */
 const configOf = (series: Series[], derived?: Derived): ChartConfig => ({
   ...Object.fromEntries(
-    series.map((entry, index) => [entry.key, { label: entry.label, color: colourOf(entry, index) }])
+    series.map((entry, index) => [
+      entry.key,
+      { label: entry.label, color: colourOf(entry, index) },
+    ]),
   ),
   ...(derived ? { [derived.key]: { label: derived.label } } : {}),
 });
@@ -42,21 +55,23 @@ const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
  * from the config, which is built once on the server: a colour only the
  * browser can resolve, such as an additive mix, never reached the line.
  */
-const MARKS = {
-  area: (s: Series, colour: string, animate: boolean) => (
+type Mark = (series: Series, colour: string, animate: boolean, fill?: string) => ReactNode;
+
+const MARKS: Record<NonNullable<ChartProps['type']>, Mark> = {
+  area: (s, colour, animate, fill = colour) => (
     <Area
       key={s.key}
       dataKey={s.key}
       type="monotone"
       stroke={colour}
-      fill={colour}
-      fillOpacity={0.2}
+      fill={fill}
+      fillOpacity={0.4}
       strokeWidth={2}
       isAnimationActive={animate}
       animationDuration={ENTRY_MS}
     />
   ),
-  bar: (s: Series, colour: string, animate: boolean) => (
+  bar: (s, colour, animate) => (
     <Bar
       key={s.key}
       dataKey={s.key}
@@ -66,7 +81,7 @@ const MARKS = {
       animationDuration={ENTRY_MS}
     />
   ),
-  line: (s: Series, colour: string, animate: boolean) => (
+  line: (s, colour, animate) => (
     <Line
       key={s.key}
       dataKey={s.key}
@@ -78,7 +93,7 @@ const MARKS = {
       animationDuration={ENTRY_MS}
     />
   ),
-} as const;
+};
 
 /**
  * A figure that carries axes. It owns the grid, the tooltip and the legend so
@@ -95,7 +110,8 @@ export default function Chart({
   series,
   x,
   y,
-  type = 'area',
+  type = "area",
+  fill = "gradient",
   caption,
   controls,
   legend = true,
@@ -113,29 +129,49 @@ export default function Chart({
   // the mix lands on hydration. The series' own colours are literals here, so
   // nothing but the legend can change it afterwards.
   const derivedColour = useMemo(() => {
-    if (derived?.color !== 'additive') return derived?.color;
-    return additive(shown.map((entry) => colourOf(entry, series.indexOf(entry))));
+    if (derived?.color !== "additive") return derived?.color;
+    return additive(
+      shown.map((entry) => colourOf(entry, series.indexOf(entry))),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derived?.color, hidden, series]);
 
   const reduced = useReducedMotion();
   const { ref, drawn, animating } = useEntry(!reduced);
   const combining = shown.length >= (derived?.from ?? 2);
+  // Scoped to this chart: a fixed id would be reused by every other chart on
+  // the page, and the first one to render would own the fill for all of them.
+  const gradients = useId().replace(/:/g, "");
+  const fading = type === "area" && fill === "gradient";
+  const fillOf = (key: string) =>
+    fading ? `url(#${gradients}-${key})` : undefined;
+
   const labels = Object.fromEntries(
-    [...series, ...(derived ? [derived] : [])].map(({ key, label }) => [key, label])
+    [...series, ...(derived ? [derived] : [])].map(({ key, label }) => [
+      key,
+      label,
+    ]),
   );
+
+  /** Each visible series beside the colour it paints with, which the gradient
+      stops and the mark both need. */
+  const painted: [Series, string][] = shown.map((entry) => [
+    entry,
+    `var(--color-${entry.key})`,
+  ]);
   const plotted = derived
     ? data.map((datum) => ({
         ...datum,
         [derived.key]: combine(
           derived.combine,
           shown.map(({ key }) => Number(datum[key]) || 0),
-          derived.max
+          derived.max,
         ),
       }))
     : data;
 
-  const toggle = (key: string) => setHidden((current) => toggled(current, key, series.length));
+  const toggle = (key: string) =>
+    setHidden((current) => toggled(current, key, series.length));
 
   return (
     <Figure caption={caption} controls={controls}>
@@ -159,7 +195,38 @@ export default function Chart({
       <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
         <ChartContainer config={configOf(series, derived)}>
-          <Plot data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
+          <Plot
+            data={plotted}
+            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            accessibilityLayer
+          >
+            {fading ? (
+              <defs>
+                {[
+                  ...painted,
+                  ...(derived && combining
+                    ? ([
+                        [
+                          derived,
+                          derivedColour ?? colourOf(derived, series.length),
+                        ],
+                      ] as [Series, string][])
+                    : []),
+                ].map(([entry, colour]) => (
+                  <linearGradient
+                    key={entry.key}
+                    id={`${gradients}-${entry.key}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor={colour} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={colour} stopOpacity={0.1} />
+                  </linearGradient>
+                ))}
+              </defs>
+            ) : null}
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             {/* Recharts labels every datum it has room for, which on a curve
                 sampled every few units is a wall of numbers. A gap in pixels
@@ -176,26 +243,28 @@ export default function Chart({
               axisLine={false}
               tickMargin={10}
               width={44}
-              domain={[y?.min ?? 'auto', y?.max ?? 'auto']}
+              domain={[y?.min ?? "auto", y?.max ?? "auto"]}
             />
             <ChartTooltip
-              cursor={{ strokeDasharray: '3 3' }}
+              cursor={{ strokeDasharray: "3 3" }}
               content={
                 <ChartTooltipContent
                   // Shadcn resolves the heading through the config when the
                   // label is not a string, which on a numeric axis hands back
                   // a series' name. The x value is read off the payload.
                   labelFormatter={(_, items) =>
-                    `${items?.[0]?.payload?.[x.key] ?? ''}${x.unit ?? ''}`
+                    `${items?.[0]?.payload?.[x.key] ?? ""}${x.unit ?? ""}`
                   }
                   // `name` is the data key; the label is what the reader was
                   // shown in the legend.
                   formatter={(value, name) => (
                     <>
-                      <span className="text-muted-foreground">{labels[String(name)] ?? name}</span>
+                      <span className="text-muted-foreground">
+                        {labels[String(name)] ?? name}
+                      </span>
                       <span className="text-foreground ml-auto font-medium tabular-nums">
                         {Math.round(Number(value))}
-                        {y?.unit ?? ''}
+                        {y?.unit ?? ""}
                       </span>
                     </>
                   )}
@@ -204,12 +273,19 @@ export default function Chart({
             />
             {children}
             {drawn
-              ? shown.map((entry) => mark(entry, `var(--color-${entry.key})`, animating))
+              ? painted.map(([entry, colour]) =>
+                  mark(entry, colour, animating, fillOf(entry.key)),
+                )
               : null}
             {/* Last, so it reads over the terms it sums rather than under
                 them, which is what makes it legible where they coincide. */}
             {drawn && derived && combining
-              ? mark(derived, derivedColour ?? colourOf(derived, series.length), animating)
+              ? mark(
+                  derived,
+                  derivedColour ?? colourOf(derived, series.length),
+                  animating,
+                  fillOf(derived.key),
+                )
               : null}
           </Plot>
         </ChartContainer>
@@ -226,14 +302,20 @@ export default function Chart({
  * the layout, so it cannot collide, and it carries the figure's typography
  * instead of inheriting the chart's.
  */
-function AxisLabel({ children, vertical }: { children: ReactNode; vertical?: boolean }) {
+function AxisLabel({
+  children,
+  vertical,
+}: {
+  children: ReactNode;
+  vertical?: boolean;
+}) {
   return (
     <span
       className={cn(
-        'text-subtle-foreground block font-mono text-[0.625rem] tracking-[0.12em] uppercase',
+        "text-subtle-foreground block font-mono text-[0.625rem] tracking-[0.12em] uppercase",
         vertical
-          ? 'grid shrink-0 place-items-center [writing-mode:vertical-rl] [transform:rotate(180deg)]'
-          : 'pt-2 text-center'
+          ? "grid shrink-0 place-items-center [writing-mode:vertical-rl] [transform:rotate(180deg)]"
+          : "pt-2 text-center",
       )}
     >
       {children}

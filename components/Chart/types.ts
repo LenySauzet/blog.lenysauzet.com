@@ -46,6 +46,12 @@ export interface ChartProps {
   x: Axis;
   y?: { label?: string; min?: number; max?: number; unit?: string };
   type?: 'area' | 'bar' | 'line';
+  /**
+   * How an area is filled. Recharts has no gradient prop, so shadcn's own
+   * "gradient" example is markup a caller copies; owning the marks turns it
+   * into a word here.
+   */
+  fill?: 'gradient' | 'flat';
   caption?: ReactNode;
   controls?: ReactNode;
   legend?: boolean;
