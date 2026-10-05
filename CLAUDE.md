@@ -1026,6 +1026,13 @@ What the shape forces:
   `.recharts-cartesian-axis-tick text`, which Recharts 3.8 does not emit, and a rule
   scoped to the cartesian tick leaves a radar's own labels on Recharts' default grey.
   Measured across radar and radial: DepartureMono on `--subtle-foreground` throughout.
+- **Recharts' tooltip cursor defaults to a hardcoded `#ccc`**, and the generated file
+  tokenises it for rectangles and curves but not for sectors, which is what a polar
+  chart draws: measured, a radar's cursor computes to `--border` while a radial's stayed
+  on `rgb(204,204,204)`, a pale ring over a dark page. The rule covers sectors now.
+  **The radial then turns its cursor off anyway**: Recharts draws it as the whole band
+  at the hovered radius rather than as the arc under the pointer, so even tokenised it
+  is a stray ring around a chart that already highlights itself.
 - **`ui/chart.tsx` ships a selector Recharts 3.8 no longer matches.** The generated file
   styles `.recharts-cartesian-axis-tick text`, but the tick's text now carries
   `.recharts-cartesian-axis-tick-value` under a `.recharts-cartesian-axis-tick-label`

@@ -98,7 +98,11 @@ export function RadialChart({ data, caption, legend = true, max = 100 }: RadialP
                 off, every row fills its own ring and the comparison the chart
                 exists for disappears. */}
             <PolarAngleAxis type="number" domain={[0, max]} dataKey="value" tick={false} />
-            <ChartTooltip content={<ChartTooltipContent nameKey="key" hideLabel />} />
+            {/* Recharts draws its polar cursor as the whole band at the
+                hovered radius rather than as the arc under the pointer, so it
+                reads as a stray ring around a chart that already highlights
+                itself. The arc and the tooltip are the answer. */}
+            <ChartTooltip cursor={false} content={<ChartTooltipContent nameKey="key" hideLabel />} />
             <RadialBar
               dataKey="value"
               background
