@@ -1,6 +1,7 @@
 'use client';
 
 import { useReducedMotion } from 'motion/react';
+import { useState } from 'react';
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -14,7 +15,7 @@ import Figure from '@/components/Figure';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 import Legend from './Legend';
-import { colourOf } from './series';
+import { colourOf, toggled } from './series';
 import type { PolarProps, RadialProps } from './types';
 import { ENTRY_MS, useEntry } from './use-entry';
 
@@ -32,15 +33,27 @@ const configFrom = (entries: { key: string; label: string; color: string }[]) =>
  * One value per series on each of several named axes, which is the only shape
  * a radar says anything about: it compares profiles, so the axes have to be
  * commensurate and few enough to read around the ring.
+ *
+ * Its legend switches profiles off, the same as a cartesian chart's: hiding
+ * one of two overlaid shapes is how a reader isolates the other, and nothing
+ * about the remaining one changes meaning when it goes.
  */
 export function RadarChart({ data, series, axis, caption, legend = true }: PolarProps) {
   const reduced = useReducedMotion();
   const { ref, drawn } = useEntry(!reduced);
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const entries = entriesOf(series);
+  const shown = entries.filter(({ key }) => !hidden.has(key));
 
   return (
     <Figure caption={caption}>
-      {legend && series.length > 1 ? <Legend series={entries} /> : null}
+      {legend && series.length > 1 ? (
+        <Legend
+          series={entries}
+          hidden={hidden}
+          onToggle={(key) => setHidden((current) => toggled(current, key, series.length))}
+        />
+      ) : null}
       <div ref={ref}>
         <ChartContainer config={configFrom(entries)}>
           <RadarPlot data={data}>
@@ -48,7 +61,7 @@ export function RadarChart({ data, series, axis, caption, legend = true }: Polar
             <PolarAngleAxis dataKey={axis} />
             <ChartTooltip content={<ChartTooltipContent />} />
             {drawn
-              ? entries.map(({ key }) => (
+              ? shown.map(({ key }) => (
                   <Radar
                     key={key}
                     dataKey={key}
@@ -76,15 +89,23 @@ export function RadarChart({ data, series, axis, caption, legend = true }: Polar
 export function RadialChart({ data, caption, legend = true, max = 100 }: RadialProps) {
   const reduced = useReducedMotion();
   const { ref, drawn } = useEntry(!reduced);
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const entries = entriesOf(data);
-  const rows = data.map((row, index) => ({
-    ...row,
-    fill: colourOf(row, index),
-  }));
+  // Each arc is its own gauge against a shared track, so dropping one leaves
+  // the others saying exactly what they said before.
+  const rows = data
+    .map((row, index) => ({ ...row, fill: colourOf(row, index) }))
+    .filter(({ key }) => !hidden.has(key));
 
   return (
     <Figure caption={caption}>
-      {legend ? <Legend series={entries} /> : null}
+      {legend && data.length > 1 ? (
+        <Legend
+          series={entries}
+          hidden={hidden}
+          onToggle={(key) => setHidden((current) => toggled(current, key, data.length))}
+        />
+      ) : null}
       <div ref={ref}>
         <ChartContainer config={configFrom(entries)}>
           <RadialPlot

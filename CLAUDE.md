@@ -1083,8 +1083,11 @@ What the shape forces:
   **Its colours are resolved rather than named**: `--color-<key>` is scoped to the chart
   container by `ChartStyle`, and the legend is outside it, so `var(--color-webgl)` there
   resolves to nothing and the dots come out blank.
-- **A pie's legend is a key, not a set of toggles.** Switching a slice off changes what
-  the whole is, so the figure would quietly answer a different question than its caption.
+- **A pie's legend is a key, not a set of toggles**, and it is the only one. Switching a
+  slice off changes what the whole is, so the figure would quietly answer a different
+  question than its caption. A radar's profiles and a radial's gauges carry no such
+  claim about each other, so both switch off like a cartesian series: hiding one of two
+  overlaid shapes is how a reader isolates the other.
 - **The axis labels are ours too.** `XAxis`'s own `label` positions against the plot and
   lands on top of the tick text at this size. Ours are boxes in the layout, so they
   cannot collide, and they carry the figure's typography rather than the chart's. They
