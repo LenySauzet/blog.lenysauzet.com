@@ -19,13 +19,20 @@ import { additive, colourOf, combine, toggled } from './series';
 
 import type { ChartProps, Derived, Series } from './types';
 
-const configOf = (series: Series[], derived?: Derived): ChartConfig =>
-  Object.fromEntries(
-    [...series, ...(derived ? [derived] : [])].map((entry, index) => [
-      entry.key,
-      { label: entry.label, color: colourOf(entry, index) },
-    ])
-  );
+/**
+ * The derived series is named here but never coloured. `ChartStyle` writes
+ * the config's colours into a `<style>` block, and a colour the browser alone
+ * can resolve makes that block differ between the server's HTML and the
+ * client's, which is a hydration mismatch. It skips an entry with no colour,
+ * the mark is handed the resolved one directly, and the tooltip reads it back
+ * off the mark.
+ */
+const configOf = (series: Series[], derived?: Derived): ChartConfig => ({
+  ...Object.fromEntries(
+    series.map((entry, index) => [entry.key, { label: entry.label, color: colourOf(entry, index) }])
+  ),
+  ...(derived ? { [derived.key]: { label: derived.label } } : {}),
+});
 
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
 
@@ -114,6 +121,9 @@ export default function Chart({
   const reduced = useReducedMotion();
   const { ref, drawn, animating } = useEntry(!reduced);
   const combining = shown.length >= (derived?.from ?? 2);
+  const labels = Object.fromEntries(
+    [...series, ...(derived ? [derived] : [])].map(({ key, label }) => [key, label])
+  );
   const plotted = derived
     ? data.map((datum) => ({
         ...datum,
@@ -148,7 +158,7 @@ export default function Chart({
           legend and an axis label too low. */}
       <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
-        <ChartContainer config={configOf(series, derived && { ...derived, color: derivedColour })}>
+        <ChartContainer config={configOf(series, derived)}>
           <Plot data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             {/* Recharts labels every datum it has room for, which on a curve
@@ -178,9 +188,11 @@ export default function Chart({
                   labelFormatter={(_, items) =>
                     `${items?.[0]?.payload?.[x.key] ?? ''}${x.unit ?? ''}`
                   }
+                  // `name` is the data key; the label is what the reader was
+                  // shown in the legend.
                   formatter={(value, name) => (
                     <>
-                      <span className="text-muted-foreground">{name}</span>
+                      <span className="text-muted-foreground">{labels[String(name)] ?? name}</span>
                       <span className="text-foreground ml-auto font-medium tabular-nums">
                         {Math.round(Number(value))}
                         {y?.unit ?? ''}

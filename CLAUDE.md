@@ -1036,8 +1036,12 @@ What the shape forces:
 - **`color: 'additive'` on a derived series adds the visible series' colours the way
   light adds**, so a sum of channels looks like the light it sums. CSS cannot do it,
   `color-mix` interpolating rather than adding, so the browser resolves each colour
-  through a one-pixel canvas and `series.ts` sums the channels; it is undefined on the
-  server and the fallback covers that. **The series have to be the pure primaries for
+  through a one-pixel canvas and `series.ts` sums the channels. **It is undefined on
+  the server, and a fallback does not cover that**: routed through the config it
+  reached `ChartStyle`, whose `<style>` block then differed between the server's HTML
+  and the client's, which is a hydration mismatch. A derived series is named in the
+  config and never coloured there; `ChartStyle` skips an entry with no colour, the mark
+  takes the resolved one directly, and the tooltip reads it back off the mark. **The series have to be the pure primaries for
   it to come out right**: measured on approximations in the site's colour space, three
   channels gave `rgb(255 166 255)` where the answer is white. On the primaries it is
   `rgb(255 255 255)`, and red with blue `rgb(255 0 255)`.
