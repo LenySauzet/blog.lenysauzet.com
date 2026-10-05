@@ -247,113 +247,16 @@ export const frameTimes = [
 
 ## Charts
 
-A chart is a figure that carries axes. It owns the grid, the tooltip and the
-legend, and takes its colours from the five chart tokens, so every chart on the
-site reads the same and follows the accent without being told.
+A chart is a figure that carries axes, and `components/Chart` owns everything
+around them: the grid, the tooltip, the legend, and the five chart tokens that
+make every chart on the site read the same and follow the accent without being
+told.
 
-The same data, the same props, one word apart: `area`, `bar`, `line`.
+The same props give three cartesian shapes one word apart, and the kinds that
+have no axes at all carry their own component, since a pie's parts and a
+radar's spokes are not the same claim about data as a series over a scale.
 
-<Chart
-  data={frameTimes}
-  series={[
-    { key: 'webgl', label: 'WebGL' },
-    { key: 'canvas', label: 'Canvas 2D' },
-  ]}
-  x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)', unit: ' ms' }}
-  caption="Sample data. An area chart reads as a quantity over a progression."
-/>
-
-<Chart
-  type="bar"
-  data={frameTimes}
-  series={[
-    { key: 'webgl', label: 'WebGL' },
-    { key: 'canvas', label: 'Canvas 2D' },
-  ]}
-  x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)', unit: ' ms' }}
-  caption="Bars compare discrete things, so the x axis is a set of names rather than a scale."
-/>
-
-<Chart
-  type="line"
-  data={frameTimes}
-  series={[
-    { key: 'webgl', label: 'WebGL' },
-    { key: 'canvas', label: 'Canvas 2D' },
-  ]}
-  x={{ key: 'size', label: 'Texture size (px)' }}
-  y={{ label: 'Frame time (ms)', unit: ' ms' }}
-  caption="A line keeps the shape of a trend without claiming the area underneath means anything."
-/>
-
-## Pie chart
-
-Parts of a whole, so it has no axes and shares none of the cartesian chart's
-shape beyond the frame and the tooltip.
-
-<PieChart
-  data={[
-    { key: 'shaders', label: 'Shaders', value: 42 },
-    { key: 'react', label: 'React', value: 28 },
-    { key: 'maths', label: 'Maths', value: 18 },
-    { key: 'other', label: 'Other', value: 12 },
-  ]}
-  caption="Sample data. The hole keeps the slices comparable by angle alone."
-/>
-
-## A decorated chart
-
-A chart accepts children, and they are drawn **inside the plot**. They read the
-scales the chart already built, through Recharts' own hooks, so a decoration
-lines up with the curve above it by construction and keeps doing so when the
-width changes.
-
-`SpectrumBand` is the whole idea in sixty lines: it asks the x axis where 400nm
-and 700nm land, asks the y axis where 20% sits, and paints a gradient between
-them. Reading both scales rather than counting pixels is what keeps it in place
-when the domain changes.
-
-A chart may also carry **a series computed from the others**, recomputed as the
-legend is used. `Result` is the visible channels summed and clamped, it wears the
-colour that sum would actually be, and it appears only from two channels on:
-below that it lies exactly on the one curve it combines, which reads as a
-rendering fault rather than as a result.
-
-A series can also name its own colour, which is the right call exactly once: when
-the colour is the subject. Here they are **the pure sRGB primaries**, because the
-result is their additive sum and summing anything else gives a wash rather than
-white. The data are measured points interpolated with Catmull-Rom, not three
-formulas fitted to look right: curves tuned one at a time all saturate together,
-and their sum becomes a flat line that says nothing.
-
-<ReflectanceChart />
-
-## Confusion matrix
-
-A heatmap, which is the form this data is read in everywhere it appears, and
-still a real `table` underneath: the counts stay selectable and a screen reader
-reads each with its row and column. The cells are square and spaced rather than
-flush, a continuous field reading as an image where separated tiles read as
-counts. Hover one: every row means *of all the Xs, how many were called Y*, and
-the grid alone makes a reader count along two axes to recover that. The ramp is
-`--heat-from` to `--heat-to`, a pair that exists because no other token can
-stand in: it has to run from the page toward a far end that stays legible
-under inverted text, and **the direction of that run flips with the theme**.
-
-<ConfusionMatrix
-  matrix={[
-    [182, 24, 9, 61, 17, 38],
-    [14, 203, 57, 31, 8, 11],
-    [7, 44, 166, 22, 94, 13],
-    [52, 29, 26, 174, 19, 41],
-    [11, 12, 88, 16, 191, 9],
-    [47, 15, 7, 35, 12, 196],
-  ]}
-  labels={['Buildings', 'Forest', 'Glacier', 'Mountain', 'Sea', 'Street']}
-  caption="Sample data. Shadcn has no heatmap, and this needed no library to not have one."
-/>
+<ChartShowcase />
 
 ## A diagram with controls
 

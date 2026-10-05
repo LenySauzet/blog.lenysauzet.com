@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   Area,
   AreaChart,
@@ -25,26 +25,17 @@ import {
 
 import Legend from "./Legend";
 import { ENTRY_MS, useEntry } from "./use-entry";
-import { additive, colourOf, combine, toggled } from "./series";
+import { colourOf, toggled } from "./series";
 
-import type { ChartProps, Derived, Series } from "./types";
+import type { ChartProps, Series } from "./types";
 
-/**
- * The derived series is named here but never coloured. `ChartStyle` writes
- * the config's colours into a `<style>` block, and a colour the browser alone
- * can resolve makes that block differ between the server's HTML and the
- * client's, which is a hydration mismatch. It skips an entry with no colour,
- * the mark is handed the resolved one directly, and the tooltip reads it back
- * off the mark.
- */
-const configOf = (series: Series[], derived?: Derived): ChartConfig => ({
+const configOf = (series: Series[]): ChartConfig => ({
   ...Object.fromEntries(
     series.map((entry, index) => [
       entry.key,
       { label: entry.label, color: colourOf(entry, index) },
     ]),
   ),
-  ...(derived ? { [derived.key]: { label: derived.label } } : {}),
 });
 
 const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
@@ -53,7 +44,7 @@ const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
  * Each mark is handed the colour to paint rather than deriving
  * `var(--color-<key>)` from its key. The variable is written by `ChartStyle`
  * from the config, which is built once on the server: a colour only the
- * browser can resolve, such as an additive mix, never reached the line.
+ * browser can resolve would never reach the line.
  */
 type Mark = (
   series: Series,
@@ -120,30 +111,14 @@ export default function Chart({
   caption,
   controls,
   legend = true,
-  derived,
   children,
 }: ChartProps) {
   const Plot = PLOTS[type];
   const mark = MARKS[type];
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const shown = series.filter(({ key }) => !hidden.has(key));
-
-  // Recomputed from whatever is visible, so switching a channel off changes
-  // the answer rather than merely hiding one of its terms.
-  // Resolved in the browser, so the first paint falls back to the accent and
-  // the mix lands on hydration. The series' own colours are literals here, so
-  // nothing but the legend can change it afterwards.
-  const derivedColour = useMemo(() => {
-    if (derived?.color !== "additive") return derived?.color;
-    return additive(
-      shown.map((entry) => colourOf(entry, series.indexOf(entry))),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [derived?.color, hidden, series]);
-
   const reduced = useReducedMotion();
   const { ref, drawn } = useEntry(!reduced);
-  const combining = shown.length >= (derived?.from ?? 2);
   // Scoped to this chart: a fixed id would be reused by every other chart on
   // the page, and the first one to render would own the fill for all of them.
   const gradients = useId().replace(/:/g, "");
@@ -152,10 +127,7 @@ export default function Chart({
     fading ? `url(#${gradients}-${key})` : undefined;
 
   const labels = Object.fromEntries(
-    [...series, ...(derived ? [derived] : [])].map(({ key, label }) => [
-      key,
-      label,
-    ]),
+    series.map(({ key, label }) => [key, label]),
   );
 
   /** Each visible series beside the colour it paints with, which the gradient
@@ -164,16 +136,6 @@ export default function Chart({
     entry,
     `var(--color-${entry.key})`,
   ]);
-  const plotted = derived
-    ? data.map((datum) => ({
-        ...datum,
-        [derived.key]: combine(
-          derived.combine,
-          shown.map(({ key }) => Number(datum[key]) || 0),
-          derived.max,
-        ),
-      }))
-    : data;
 
   const toggle = (key: string) =>
     setHidden((current) => toggled(current, key, series.length));
@@ -199,25 +161,15 @@ export default function Chart({
           legend and an axis label too low. */}
       <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
-        <ChartContainer config={configOf(series, derived)}>
+        <ChartContainer config={configOf(series)}>
           <Plot
-            data={plotted}
+            data={data}
             margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
             accessibilityLayer
           >
             {fading ? (
               <defs>
-                {[
-                  ...painted,
-                  ...(derived && combining
-                    ? ([
-                        [
-                          derived,
-                          derivedColour ?? colourOf(derived, series.length),
-                        ],
-                      ] as [Series, string][])
-                    : []),
-                ].map(([entry, colour]) => (
+                {painted.map(([entry, colour]) => (
                   <linearGradient
                     key={entry.key}
                     id={`${gradients}-${entry.key}`}
@@ -284,14 +236,6 @@ export default function Chart({
               : null}
             {/* Last, so it reads over the terms it sums rather than under
                 them, which is what makes it legible where they coincide. */}
-            {drawn && derived && combining
-              ? mark(
-                  derived,
-                  derivedColour ?? colourOf(derived, series.length),
-                  !reduced,
-                  fillOf(derived.key),
-                )
-              : null}
           </Plot>
         </ChartContainer>
         <span />

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 /** Long enough to read as drawing, short enough not to delay a reader. */
 export const ENTRY_MS = 650;
@@ -25,7 +25,7 @@ export function useEntry(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const node = ref.current;
-    if (!node || typeof IntersectionObserver === 'undefined') {
+    if (!node || typeof IntersectionObserver === "undefined") {
       // Off the microtask queue rather than inline: a state change during an
       // effect's own pass is a cascading render, and this one only ever fires
       // where the observer is missing.
@@ -41,7 +41,7 @@ export function useEntry(enabled: boolean) {
       },
       // A sliver is enough: waiting for the whole chart means a tall one
       // never draws on a short viewport.
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
     observer.observe(node);
     return () => observer.disconnect();

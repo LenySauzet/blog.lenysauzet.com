@@ -5,6 +5,7 @@ import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
 import {
   ButtonShowcase,
+  ChartShowcase,
   InputShowcase,
   SelectShowcase,
   SliderShowcase,
@@ -15,9 +16,7 @@ import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
 import Figure from '@/components/Figure';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
-import ReflectanceChart from '@/components/figures/ReflectanceChart';
 import SamplingDiagram from '@/components/figures/SamplingDiagram';
-import SpectrumBand from '@/components/figures/SpectrumBand';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -46,6 +45,7 @@ const components = {
   Callout,
   Card,
   Chart,
+  ChartShowcase,
   ConfusionMatrix,
   Details,
   Figure,
@@ -56,10 +56,8 @@ const components = {
   Fullbleed,
   Image,
   PieChart,
-  ReflectanceChart,
   Sandpack,
   SamplingDiagram,
-  SpectrumBand,
   SupportCallout,
 
   a: Anchor,

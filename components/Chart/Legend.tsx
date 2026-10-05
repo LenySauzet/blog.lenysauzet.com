@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { glassSurface } from '@/components/ui/glass';
-import { cn } from '@/lib/utils';
+import { glassSurface } from "@/components/ui/glass";
+import { cn } from "@/lib/utils";
 
 export interface LegendEntry {
   key: string;
@@ -34,7 +34,7 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
       data-slot="chart-legend"
       className={cn(
         glassSurface,
-        'mx-auto mb-4 flex w-fit flex-wrap items-center justify-center gap-0.5 rounded-2xl p-1'
+        "mx-auto mb-4 flex w-fit flex-wrap items-center justify-center gap-0.5 rounded-2xl p-1",
       )}
     >
       {series.map(({ key, label, color }) => {
@@ -44,7 +44,7 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
             <span
               aria-hidden
               className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: off ? 'var(--border)' : color }}
+              style={{ backgroundColor: off ? "var(--border)" : color }}
             />
             {label}
           </>
@@ -52,8 +52,8 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
         // The container's radius less its padding, so a row's corner sits
         // concentric with it rather than inside a slightly squarer one.
         const shared = cn(
-          'flex items-center gap-2 rounded-xl px-2.5 py-1 text-sm',
-          off ? 'text-subtle-foreground' : 'text-foreground'
+          "flex items-center gap-2 rounded-xl px-2.5 py-1 text-sm",
+          off ? "text-subtle-foreground" : "text-foreground",
         );
 
         return onToggle ? (
@@ -65,7 +65,7 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
             aria-pressed={!off}
             className={cn(
               shared,
-              'focus-visible:outline-primary cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2'
+              "focus-visible:outline-primary cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2",
             )}
           >
             {content}
