@@ -26,6 +26,15 @@ import SupportCallout from '@/components/SupportCallout';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
+import Table from '@/components/Table';
+import {
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 /**
  * Bridges markdown `![alt](src)` onto Image. `src` is narrowed because the HTML
@@ -36,7 +45,7 @@ function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
   return <Image src={src} alt={alt ?? ''} />;
 }
 
-const components = {
+export const components = {
   Anchor,
   Badge,
   BeforeAfterImage,
@@ -92,6 +101,15 @@ const components = {
     <span className="italic font-medium text-subtle-foreground">{children}</span>
   ),
   blockquote: Blockquote,
+  table: Table,
+  thead: TableHeader,
+  tbody: TableBody,
+  tfoot: TableFooter,
+  // Spread rather than children alone: GFM carries a column's alignment as an
+  // inline style on every cell, and a mapping that drops props drops it.
+  tr: (props) => <TableRow {...props} />,
+  th: (props) => <TableHead {...props} />,
+  td: (props) => <TableCell {...props} />,
   figure: CodeBlock,
   ul: ({ children }) => <List variant="unordered">{children}</List>,
   ol: ({ children }) => <List variant="ordered">{children}</List>,

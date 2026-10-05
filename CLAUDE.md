@@ -228,6 +228,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
+| `components/Table` | A table as an article reads it: block rhythm and the cells' one type |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
@@ -1147,6 +1148,45 @@ What the shape forces:
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
   and a wavelength does not follow the reader's theme.
+
+**A table is written as a table.** GFM pipes map onto the shadcn primitive through
+`mdx-components.tsx`, the way `![alt](src)` maps onto `Image` and `>` onto
+`Blockquote`. `remark-gfm` runs at build and ships nothing, and the source round-trips:
+`/posts/<slug>/index.md` serves a pipe table back untouched, where a component arrives
+as a line of JSX and tells a reader nothing. Measured on the design system, which is
+the whole argument for preferring the markdown form to a `<Table>` a post composes.
+
+**`data-table` is not a component to reach for**, and shadcn says so on the page: it is
+a guide to composing their `Table` with TanStack Table yourself, a `columns.tsx` and a
+feature registration per table. It is 31 kB and `'use client'` for the whole table,
+against pipes that cost nothing, so a six-row comparison in an article is the wrong
+place for it. It composes **on top of this same primitive** when a post genuinely needs
+to sort or filter fifty rows, which is why nothing has to be undone to get there.
+
+- **`bunx shadcn@latest add table` repeats the `cn` trap**, exactly as `add chart` does:
+  it imports from a npm package called `cn` and installs it. Repoint to `@/lib/utils`
+  and remove the package.
+- **The primitive carries no `"use client"` here.** A table has no behaviour, and the
+  generated file's directive would put every table in an article on the client. The
+  other edits to re-apply on `--diff`: the row hover and the footer take
+  `--foreground/5` rather than `--muted`, for the asymmetry measured on the chart's own
+  hover band; cells are `px-4 py-3 align-top` on the article's rhythm rather than `p-2`;
+  and **`whitespace-nowrap` stays on `th` alone**, a header being a short label where a
+  cell holds prose that has to wrap.
+- **The cells' type is declared once on the table**, in `components/Table`, and every
+  cell inherits it. Only a header says anything about itself.
+- **The mapping spreads its props, never its children alone.** GFM carries a column's
+  alignment as an inline style on each cell, so `({ children }) => ...` renders a table
+  that silently ignores its own delimiter row. `Table.test.tsx` guards it.
+- **The cells reach the column's edge, the primitive's padding notwithstanding.** The
+  rules already run the full width, so a first cell held at `px-4` reads as a table
+  indented 16px from the paragraph that introduces it. Measured before and after.
+- **`remark-gfm` also brings strikethrough, task lists and autolink literals.** None
+  appears in `content/` today, so nothing changed under it, but a bare URL in prose is
+  a link from now on.
+- **GFM footnotes are not the site's.** `FootnoteRef` and `FootnotesList` are components
+  taking an id, so they never collided; `[^1]` now parses too, and writing one would put
+  a second, differently styled set of notes in the same article.
 
 **`components/figures/ConfusionMatrix` is finished but unlisted.** Registered in
 `mdx-components.tsx`, absent from the design system: a figure waiting for the post that

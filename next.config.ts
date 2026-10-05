@@ -16,7 +16,7 @@ const withMDX = createMDX({
     // cannot cross into Rust, and this config compiles to CommonJS, which cannot
     // require an ESM-only package. remark-unwrap-images lifts markdown images out
     // of the <p> remark wraps them in, where our <figure> would be invalid.
-    remarkPlugins: ['remark-unwrap-images', 'remark-math'],
+    remarkPlugins: ['remark-unwrap-images', 'remark-math', 'remark-gfm'],
     rehypePlugins: [
       // Renders to SVG at build time: no client JS, no CLS, no web-font loading.
       // Chosen over KaTeX for deeply-nested radicals. MUST run before

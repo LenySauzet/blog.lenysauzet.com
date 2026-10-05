@@ -258,6 +258,29 @@ radar's spokes are not the same claim about data as a series over a scale.
 
 <ChartShowcase />
 
+## Tables
+
+A table is written as a table. GFM pipes map onto the shadcn primitive through
+`mdx-components.tsx`, the way `![alt](src)` maps onto `Image` and `>` onto
+`Blockquote`, so the source stays the thing a reader and an agent both get: it
+is already Markdown, and `/posts/design-system/index.md` serves it back
+untouched where a component would arrive as a line of JSX.
+
+| Approach | Ships to the browser | Authoring |
+| --- | --- | --- |
+| GFM pipes | nothing, the plugin runs at build | a row per line |
+| `<Table>` composed by hand | nothing, still a Server Component | JSX, for what pipes cannot say |
+| TanStack Table | 31 kB, and `'use client'` | a column definition per table |
+
+Alignment is the delimiter row's to set, and every cell carries it as an inline
+style, so a mapping has to pass its props through rather than its children
+alone.
+
+| Left | Centre | Right |
+| :--- | :----: | ----: |
+| `--primary` | 262.04 | 1.0 |
+| `--border` | 17 presets | 0.5 |
+
 ## Dividers
 
 ---
