@@ -26,19 +26,4 @@ describe('Figure', () => {
     expect(figure.firstElementChild?.tagName).toBe('P');
   });
 
-  /**
-   * A control shrinks to its content in a plain flex row, which left the
-   * sampling diagram's slider rendered as a label and a readout jammed
-   * together with no bar between them.
-   */
-  it('lets each control stretch rather than shrink to its content', () => {
-    render(
-      <Figure controls={<input aria-label="Steps" />}>
-        content
-      </Figure>
-    );
-
-    const row = screen.getByLabelText('Steps').parentElement!;
-    expect(row.className).toContain('[&>*]:flex-1');
-  });
 });

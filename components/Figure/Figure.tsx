@@ -6,14 +6,12 @@ export interface FigureProps {
   children: ReactNode;
   /** Sits under the surface, in the article's own caption type. */
   caption?: ReactNode;
-  /** Inputs that drive the content, laid out in a row under it. */
-  controls?: ReactNode;
   className?: string;
 }
 
 /**
  * The frame every visual in an article shares, and nothing else: a block of
- * rhythm, a row for whatever drives it, and a caption. It never knows what it
+ * rhythm and a caption. It never knows what it
  * contains, which is what lets a chart, a drawing and a canvas sit in the same
  * family without one of them dragging its own layout in.
  *
@@ -28,20 +26,11 @@ export interface FigureProps {
 export default function Figure({
   children,
   caption,
-  controls,
   className,
 }: FigureProps) {
   return (
     <figure className={cn('my-6 flex flex-col gap-3', className)}>
       {children}
-      {controls ? (
-        // Each control stretches rather than shrinking to its content: a
-        // slider with no width is a label and a readout jammed together, which
-        // is what a row of `flex` children defaults to.
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 [&>*]:min-w-0 [&>*]:flex-1">
-          {controls}
-        </div>
-      ) : null}
       {caption ? (
         <figcaption className="text-subtle-foreground text-sm leading-6">
           {caption}

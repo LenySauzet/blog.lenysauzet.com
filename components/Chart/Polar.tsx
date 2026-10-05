@@ -19,23 +19,9 @@ import {
 } from "@/components/ui/chart";
 
 import Legend from "./Legend";
-import { colourOf, toggled } from "./series";
+import { configOf, resolve, toggled } from "./series";
 import type { PolarProps, RadialProps } from "./types";
 import { ENTRY_MS, useEntry } from "./use-entry";
-
-const entriesOf = <T extends { key: string; label: string; color?: string }>(
-  items: T[],
-) =>
-  items.map((item, index) => ({
-    key: item.key,
-    label: item.label,
-    color: colourOf(item, index),
-  }));
-
-const configFrom = (entries: { key: string; label: string; color: string }[]) =>
-  Object.fromEntries(
-    entries.map(({ key, label, color }) => [key, { label, color }]),
-  );
 
 /**
  * One value per series on each of several named axes, which is the only shape
@@ -53,10 +39,10 @@ export function RadarChart({
   caption,
   legend = true,
 }: PolarProps) {
-  const reduced = useReducedMotion();
-  const { ref, drawn, settled } = useEntry(!reduced);
+  const animated = !useReducedMotion();
+  const { ref, drawn, settled } = useEntry(animated);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
-  const entries = entriesOf(series);
+  const entries = resolve(series);
   const shown = entries.filter(({ key }) => !hidden.has(key));
 
   return (
@@ -72,7 +58,7 @@ export function RadarChart({
       ) : null}
       <div ref={ref}>
         <ChartContainer
-          config={configFrom(entries)}
+          config={configOf(entries)}
           className={
             settled
               ? "[&_.recharts-radar-polygon]:[stroke-dasharray:none]!"
@@ -92,7 +78,7 @@ export function RadarChart({
                     fill={`var(--color-${key})`}
                     fillOpacity={0.25}
                     strokeWidth={2}
-                    isAnimationActive={!reduced}
+                    isAnimationActive={animated}
                     animationDuration={ENTRY_MS}
                   />
                 ))
@@ -115,14 +101,14 @@ export function RadialChart({
   legend = true,
   max = 100,
 }: RadialProps) {
-  const reduced = useReducedMotion();
-  const { ref, drawn } = useEntry(!reduced);
+  const animated = !useReducedMotion();
+  const { ref, drawn } = useEntry(animated);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
-  const entries = entriesOf(data);
+  const entries = resolve(data);
   // Each arc is its own gauge against a shared track, so dropping one leaves
   // the others saying exactly what they said before.
   const rows = data
-    .map((row, index) => ({ ...row, fill: colourOf(row, index) }))
+    .map((row, index) => ({ ...row, fill: entries[index].color }))
     .filter(({ key }) => !hidden.has(key));
 
   return (
@@ -137,7 +123,7 @@ export function RadialChart({
         />
       ) : null}
       <div ref={ref}>
-        <ChartContainer config={configFrom(entries)}>
+        <ChartContainer config={configOf(entries)}>
           <RadialPlot
             data={drawn ? rows : []}
             innerRadius="30%"
@@ -166,7 +152,7 @@ export function RadialChart({
               dataKey="value"
               background
               cornerRadius={8}
-              isAnimationActive={!reduced}
+              isAnimationActive={animated}
               animationDuration={ENTRY_MS}
             />
           </RadialPlot>

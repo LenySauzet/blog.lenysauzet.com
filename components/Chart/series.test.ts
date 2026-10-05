@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { TOKENS, colourOf, toggled } from "./series";
+import { TOKENS, colourOf, configOf, resolve, toggled } from "./series";
 
 const series = (key: string, color?: string) => ({ key, label: key, color });
 
@@ -18,6 +18,30 @@ describe("colourOf", () => {
     expect(colourOf(series("green", "oklch(0.78 0.21 145)"), 0)).toBe(
       "oklch(0.78 0.21 145)",
     );
+  });
+});
+
+describe("resolve", () => {
+  it("hands every item the colour it will paint with", () => {
+    expect(resolve([series("a"), series("b", "red")])).toEqual([
+      { key: "a", label: "a", color: TOKENS[0] },
+      { key: "b", label: "b", color: "red" },
+    ]);
+  });
+
+  it("counts an overridden colour as a place in the rotation", () => {
+    const [, second] = resolve([series("a", "red"), series("b")]);
+    expect(second.color).toBe(TOKENS[1]);
+  });
+});
+
+describe("configOf", () => {
+  /** `ChartStyle` reads this to write each `--color-<key>`. */
+  it("keys the config by series, carrying label and colour", () => {
+    expect(configOf(resolve([series("webgl"), series("canvas")]))).toEqual({
+      webgl: { label: "webgl", color: TOKENS[0] },
+      canvas: { label: "canvas", color: TOKENS[1] },
+    });
   });
 });
 

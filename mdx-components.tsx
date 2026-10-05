@@ -16,7 +16,6 @@ import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
 import Figure from '@/components/Figure';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
-import SamplingDiagram from '@/components/figures/SamplingDiagram';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -57,7 +56,6 @@ const components = {
   Image,
   PieChart,
   Sandpack,
-  SamplingDiagram,
   SupportCallout,
 
   a: Anchor,

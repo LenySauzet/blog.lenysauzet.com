@@ -15,11 +15,19 @@ export interface Axis {
   unit?: string;
 }
 
+/** The value axis, which names no key: it reads whatever the series hold. */
+export interface Scale {
+  label?: string;
+  unit?: string;
+  min?: number;
+  max?: number;
+}
+
 export interface ChartProps {
   data: Record<string, unknown>[];
   series: Series[];
   x: Axis;
-  y?: { label?: string; min?: number; max?: number; unit?: string };
+  y?: Scale;
   type?: "area" | "bar" | "line";
   /**
    * How an area is filled. Recharts has no gradient prop, so shadcn's own
@@ -28,7 +36,6 @@ export interface ChartProps {
    */
   fill?: "gradient" | "flat";
   caption?: ReactNode;
-  controls?: ReactNode;
   legend?: boolean;
   /** Drawn inside the plot, in its coordinate space. */
   children?: ReactNode;
@@ -44,7 +51,6 @@ export interface Slice {
 export interface PieProps {
   data: Slice[];
   caption?: ReactNode;
-  controls?: ReactNode;
   /** A hole in the middle, which keeps the slices comparable by angle alone. */
   donut?: boolean;
   legend?: boolean;

@@ -226,7 +226,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 |---|---|
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts all MDX posts |
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
-| `components/Figure` | The frame every visual shares: surface, controls row, caption |
+| `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
@@ -980,8 +980,8 @@ so a per-frame read is well under the noise. Reduced motion draws once, so it ke
 whatever the accent was at mount.
 
 **A visual in an article is one of three things, and the frame is all they share.**
-`components/Figure` holds a block of rhythm, a row for whatever drives it, and a
-caption, and **it never knows what it contains**: the moment it starts to, it is the catch-all this
+`components/Figure` holds a block of rhythm and a caption, and **it never knows what
+it contains**: the moment it starts to, it is the catch-all this
 file spends its length avoiding. On top of it:
 
 **A figure draws no surface.** It sits in the prose rather than in a box: a card around
@@ -1011,6 +1011,10 @@ What the shape forces:
   the scales the chart already built, through `useXAxisScale`, `usePlotArea` and the
   rest, so a child paints into the plot's own SVG and lines up by construction. It
   paints on the client only, `usePlotArea` having nothing to measure on the server.
+- **A series, a slice and a spoke are the same thing to `series.ts`.** `resolve` hands
+  each the colour it will paint with and `configOf` turns that into the config
+  `ChartStyle` reads, so the cartesian chart, the pie and the two polar charts share one
+  definition of what a series is rather than three near-copies of it.
 - **The legend is ours, the tooltip is shadcn's customised.** Recharts orders its legend
   by payload rather than by the series as declared, and a series a reader can switch off
   is most of the point on an explanatory chart, so that one is written here; the last
@@ -1118,9 +1122,6 @@ What the shape forces:
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
   and a wavelength does not follow the reader's theme.
-- **A control in the frame's row stretches.** Flex children shrink to their content by
-  default, which rendered the sampling diagram's slider as a label and a readout jammed
-  together with no bar between them.
 - **`components/Slider` can now be driven**, through `value` and `onValueChange`, and
   stays uncontrolled without them. Named after the primitive rather than `onChange`,
   which would shadow the DOM handler of the same name on its root.

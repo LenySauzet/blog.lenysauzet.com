@@ -6,59 +6,43 @@ import { useEffect, useRef, useState } from "react";
 export const ENTRY_MS = 650;
 
 /**
- * A chart's marks wait until the plot is scrolled to, then mount and draw
- * themselves in. Holding them back costs nothing: measured, the static HTML
- * carries the frame, the grid, the axes and the legend but no series path at
- * all, so there is no server-rendered curve for an entry to reset and no
- * layout to shift when one arrives.
+ * Marks wait until the plot is scrolled to, which costs nothing: the static
+ * HTML carries the frame and the axes but no series path.
  *
- * The animation itself never stops: Recharts interpolates a path toward its
- * new shape rather than redrawing it from the start, and the axis rescaling
- * under a toggle is the transition worth seeing.
- *
- * `settled` exists for one thing, and it is measured. The draw-in runs on a
- * `stroke-dasharray` set to the path's whole length, which Recharts computes
- * at the start and the end of an animation but not per frame. A rescale
- * lengthens the path while that figure stands still, so the tail beyond it
- * falls in the gap: 647px of path against a dasharray of 627 left 20px of
- * curve unpainted, short of the last tick. The dasharray has no job once the
- * entry is over, so it goes.
+ * `settled` then clears the dash the draw-in leaves behind. Recharts sets it
+ * to the path's whole length and recomputes that only at an animation's ends,
+ * so a rescale lengthens the path under a stale figure and the tail falls in
+ * the gap.
  */
-export function useEntry(enabled: boolean) {
+export function useEntry(animated: boolean) {
   const ref = useRef<HTMLDivElement>(null);
-  const [drawn, setDrawn] = useState(!enabled);
-  const [settled, setSettled] = useState(!enabled);
+  const [seen, setSeen] = useState(false);
+  const [held, setHeld] = useState(true);
 
   useEffect(() => {
-    if (!enabled) return;
     const node = ref.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      // Off the microtask queue rather than inline: a state change during an
-      // effect's own pass is a cascading render, and this one only ever fires
-      // where the observer is missing.
-      queueMicrotask(() => setDrawn(true));
-      return;
-    }
+    if (!node) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         observer.disconnect();
-        setDrawn(true);
+        setSeen(true);
       },
-      // A sliver is enough: waiting for the whole chart means a tall one
-      // never draws on a short viewport.
+      // A tall chart on a short viewport never reaches a higher threshold.
       { threshold: 0.1 },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [enabled]);
+  }, []);
 
   useEffect(() => {
-    if (!drawn || settled) return;
-    const timer = setTimeout(() => setSettled(true), ENTRY_MS);
+    if (!seen) return;
+    const timer = setTimeout(() => setHeld(false), ENTRY_MS);
     return () => clearTimeout(timer);
-  }, [drawn, settled]);
+  }, [seen]);
 
-  return { ref, drawn, settled };
+  // Derived rather than stored: a preference resolving after the first render
+  // would otherwise strand the marks unmounted.
+  return { ref, drawn: seen || !animated, settled: !held || !animated };
 }
