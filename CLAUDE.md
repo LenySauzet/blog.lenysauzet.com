@@ -1037,6 +1037,11 @@ What the shape forces:
   **The radial then turns its cursor off anyway**: Recharts draws it as the whole band
   at the hovered radius rather than as the arc under the pointer, so even tokenised it
   is a stray ring around a chart that already highlights itself.
+- **A bar's hover band is a wash of `--foreground`, not `--muted`.** The generated file
+  reaches for `--muted`, which is not symmetric between the themes: measured against
+  its own page, that band is 1.32:1 in dark and 1.099:1 in light, so the dark one reads
+  a third stronger. An alpha of the foreground inverts with the theme by construction
+  and lands at 1.087 and 1.11.
 - **`ui/chart.tsx` ships a selector Recharts 3.8 no longer matches.** The generated file
   styles `.recharts-cartesian-axis-tick text`, but the tick's text now carries
   `.recharts-cartesian-axis-tick-value` under a `.recharts-cartesian-axis-tick-label`
