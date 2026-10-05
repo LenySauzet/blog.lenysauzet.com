@@ -991,7 +991,13 @@ such as a canvas whose content runs to its own bounds, draws its own.
 
 - **A chart carries axes**, so it is `components/Chart` on Recharts, through shadcn's
   `ui/chart.tsx`. `type` picks the plot and the mark together, which is the whole of
-  Recharts' model: `AreaChart` plus `Area`, `BarChart` plus `Bar`.
+  Recharts' model: `AreaChart` plus `Area`, `BarChart` plus `Bar`. **A kind with no
+  axes gets its own component** rather than a fourth value of `type`: a pie's parts and
+  a radar's spokes are different claims about data than a series over a scale, and
+  forcing them through one prop shape would make that shape a lie. `PieChart` and
+  `Polar.tsx`'s `RadarChart` and `RadialChart` share the frame, the legend and the
+  tooltip, and nothing else. **A radial's scale lives on a hidden `PolarAngleAxis`**:
+  left off, every arc fills its own ring and the comparison the chart exists for goes.
 - **A drawn figure carries none**, so it is a component in `components/figures/` and no
   library at all. The scale is a subtraction and a multiply; reach for `d3-scale` when
   the mapping stops being linear, not before.
@@ -1001,12 +1007,10 @@ such as a canvas whose content runs to its own bounds, draws its own.
 
 What the shape forces:
 
-- **A decoration goes inside the chart, never beside it.** Recharts v3 exposes
-  `useXAxisScale`, `usePlotArea` and friends to any child, so `figures/SpectrumBand`
-  reads the scales the chart already built and paints into its SVG. It lines up by
-  construction and keeps doing so when the width changes. **It only paints on the
-  client**, `usePlotArea` having nothing to measure on the server, which is fine for a
-  decoration and would not be for the data.
+- **A decoration goes inside the chart, never beside it.** Recharts v3 hands any child
+  the scales the chart already built, through `useXAxisScale`, `usePlotArea` and the
+  rest, so a child paints into the plot's own SVG and lines up by construction. It
+  paints on the client only, `usePlotArea` having nothing to measure on the server.
 - **The legend is ours, the tooltip is shadcn's customised.** Recharts orders its legend
   by payload rather than by the series as declared, and a series a reader can switch off
   is most of the point on an explanatory chart, so that one is written here; the last
@@ -1040,21 +1044,7 @@ What the shape forces:
 - **A mark is handed the colour to paint**, never `var(--color-<key>)` built from its
   key. That variable is written by `ChartStyle` out of the config, which is built on
   the server, so a colour only the browser can resolve never reached the line: the
-  additive result stayed on its fallback token while the mix itself computed correctly.
-- **`color: 'additive'` on a derived series adds the visible series' colours the way
-  light adds**, so a sum of channels looks like the light it sums. CSS cannot do it,
-  `color-mix` interpolating rather than adding, so the browser resolves each colour
-  through a one-pixel canvas and `series.ts` sums the channels. **It is undefined on
-  the server, and a fallback does not cover that**: routed through the config it
-  reached `ChartStyle`, whose `<style>` block then differed between the server's HTML
-  and the client's, which is a hydration mismatch. A derived series is named in the
-  config and never coloured there; `ChartStyle` skips an entry with no colour, the mark
-  takes the resolved one directly, and the tooltip reads it back off the mark. **The series have to be the pure primaries for
-  it to come out right**: measured on approximations in the site's colour space, three
-  channels gave `rgb(255 166 255)` where the answer is white. On the primaries it is
-  `rgb(255 255 255)`, and red with blue `rgb(255 0 255)`.
-- **A derived series waits for two.** Below that it lies exactly on the one curve it
-  combines, which reads as a rendering fault rather than as a result.
+  a colour resolvable only in the browser would never reach the line.
 - **A chart draws itself when it is first scrolled to**, cartesian and pie alike.
   `use-entry.ts` holds the marks back until an `IntersectionObserver` sees the plot,
   which costs nothing: measured, the static HTML carries the frame, the grid, the axes
@@ -1099,13 +1089,6 @@ What the shape forces:
   repeats the first. A series may name its own colour, and should **only** when the
   colour is the subject: a curve labelled Green drawn in the site's accent is absurd,
   and a wavelength does not follow the reader's theme.
-- **A derived series is named, never handed in as a function.** `combine` is
-  `'sum' | 'max' | 'min' | 'mean'` with an optional ceiling, because a post is a Server
-  Component and React cannot pass a function across that boundary. `components/Slider`
-  learned this first and this file already said so; the build caught the second
-  instance, which is what that note is for. It is recomputed from whatever the legend
-  leaves visible, so switching a channel off changes the answer rather than uncovering
-  a line that was already drawn.
 - **A control in the frame's row stretches.** Flex children shrink to their content by
   default, which rendered the sampling diagram's slider as a label and a readout jammed
   together with no bar between them.
@@ -1113,20 +1096,10 @@ What the shape forces:
   stays uncontrolled without them. Named after the primitive rather than `onChange`,
   which would shadow the DOM handler of the same name on its root.
 
-**`components/figures/reflectance.ts` is measurements, not formulas**, and that is the
-difference between a figure that looks right and one that is right. Three curves each
-fitted to look good alone all saturate together, and their sum becomes a flat line
-saying nothing; sixteen readings per channel, interpolated with Catmull-Rom because it
-passes *through* every point rather than near it, leave the sum the shape it actually
-has. The spline can overshoot between two close readings, so the result is clamped: a
-reflectance above one is not a reading.
-
-**The three primaries cover the visible range between them**, which is why the result
-saturates at 100 with all three on and the figure only starts teaching once a channel
-is switched off. That is true of the reference too, and `reflectance.test.ts` asserts
-both halves: the coverage, and the trough that opens in the green band without green.
-
-**`components/figures/ConfusionMatrix` is a heatmap and a table at once.** It is the
+**`components/figures/ConfusionMatrix` is finished but unlisted.** Registered in
+`mdx-components.tsx`, absent from the design system: a figure waiting for the post that
+needs it, not something the system should show off before one does. It is a heatmap and
+a table at once. It is the
 form this data is read in everywhere it appears, so the cells sit flush as a grid with
 a scale bar beside them; it is also tabular, so underneath it is a real `table` whose
 counts stay selectable and whose cells a screen reader reads with their row and column.
