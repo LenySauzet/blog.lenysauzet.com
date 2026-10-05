@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { glassSurface } from '@/components/ui/glass';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
@@ -92,7 +93,10 @@ export function DynamicIsland() {
             minWidth: state.id === hint.id ? widthWhenPointed : undefined,
             maxWidth: state.maxWidth ?? MAX_WIDTH,
           }}
-          className="flex items-center overflow-hidden border border-border/60 bg-card/75 backdrop-blur-[6px] backdrop-saturate-[115%] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+          className={cn(
+            glassSurface,
+            "flex items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+          )}
         >
           <div aria-hidden className="pointer-events-none flex w-full items-center text-left">
             <Presentation key={state.id}>{state.render(context)}</Presentation>

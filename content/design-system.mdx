@@ -237,6 +237,27 @@ $$
 A footnote reference marks a spot in the text <FootnoteRef id="1" />, and the
 list at the end resolves it — the reference and the entry link to each other.
 
+export const frameTimes = [
+  { size: '256', webgl: 1.4, canvas: 4.1 },
+  { size: '512', webgl: 2.1, canvas: 6.8 },
+  { size: '1024', webgl: 3.8, canvas: 11.2 },
+  { size: '2048', webgl: 7.2, canvas: 18.5 },
+  { size: '4096', webgl: 15.9, canvas: 29.4 },
+];
+
+## Charts
+
+A chart is a figure that carries axes, and `components/Chart` owns everything
+around them: the grid, the tooltip, the legend, and the five chart tokens that
+make every chart on the site read the same and follow the accent without being
+told.
+
+The same props give three cartesian shapes one word apart, and the kinds that
+have no axes at all carry their own component, since a pie's parts and a
+radar's spokes are not the same claim about data as a series over a scale.
+
+<ChartShowcase />
+
 ## Dividers
 
 ---

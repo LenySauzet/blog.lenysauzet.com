@@ -141,6 +141,11 @@
      track without introducing a second colour. */
   --wash: oklch(0.6257 0.038 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
+  /* A heatmap ramp, which no other token can stand in for: it has to run from
+     the page toward a far end that stays legible under inverted text, and the
+     direction of that run flips with the theme. Pale to deep in light. */
+  --heat-from: oklch(0.965 0.012 var(--base-hue));
+  --heat-to: oklch(0.42 0.17 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
   --chart-3: oklch(0.546 0.245 var(--base-hue));
@@ -214,6 +219,10 @@
   --input-icon: oklch(35.33% 0.028 var(--base-hue));
   --wash: oklch(56.78% 0.05 var(--base-hue));
   --ring: oklch(0.552 0.016 var(--base-hue));
+  /* Deep to bright in dark, the mirror of light's run: a dark end here would
+     vanish into the page instead of reading as the top of the scale. */
+  --heat-from: oklch(0.225 0.018 var(--base-hue));
+  --heat-to: oklch(0.80 0.145 var(--base-hue));
   --chart-1: oklch(0.809 0.105 var(--base-hue));
   --chart-2: oklch(0.623 0.214 var(--base-hue));
   --chart-3: oklch(0.546 0.245 var(--base-hue));

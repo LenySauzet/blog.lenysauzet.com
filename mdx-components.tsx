@@ -5,13 +5,17 @@ import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
 import {
   ButtonShowcase,
+  ChartShowcase,
   InputShowcase,
   SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
 } from '@/components/ComponentShowcase';
 import Card from '@/components/Card';
+import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
+import Figure from '@/components/Figure';
+import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -39,13 +43,18 @@ const components = {
   ButtonShowcase,
   Callout,
   Card,
+  Chart,
+  ChartShowcase,
+  ConfusionMatrix,
   Details,
+  Figure,
   InputShowcase,
   SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
   Fullbleed,
   Image,
+  PieChart,
   Sandpack,
   SupportCallout,
 
