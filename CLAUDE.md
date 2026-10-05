@@ -1043,8 +1043,7 @@ What the shape forces:
   data than these figures make.
 - **A mark is handed the colour to paint**, never `var(--color-<key>)` built from its
   key. That variable is written by `ChartStyle` out of the config, which is built on
-  the server, so a colour only the browser can resolve never reached the line: the
-  a colour resolvable only in the browser would never reach the line.
+  the server, so a colour only the browser can resolve would never reach the line.
 - **A chart draws itself when it is first scrolled to**, cartesian and pie alike.
   `use-entry.ts` holds the marks back until an `IntersectionObserver` sees the plot,
   which costs nothing: measured, the static HTML carries the frame, the grid, the axes
