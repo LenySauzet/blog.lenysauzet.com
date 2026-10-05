@@ -12,15 +12,22 @@ export const ENTRY_MS = 650;
  * all, so there is no server-rendered curve for an entry to reset and no
  * layout to shift when one arrives.
  *
- * Nothing needs to stop afterwards. Recharts interpolates a path toward its
- * new shape rather than redrawing it from the start, measured on a toggle:
- * the surviving series keep a `stroke-dasharray` equal to their own length
- * throughout, and what moves is the axis rescaling under them, which is the
- * transition worth seeing.
+ * The animation itself never stops: Recharts interpolates a path toward its
+ * new shape rather than redrawing it from the start, and the axis rescaling
+ * under a toggle is the transition worth seeing.
+ *
+ * `settled` exists for one thing, and it is measured. The draw-in runs on a
+ * `stroke-dasharray` set to the path's whole length, which Recharts computes
+ * at the start and the end of an animation but not per frame. A rescale
+ * lengthens the path while that figure stands still, so the tail beyond it
+ * falls in the gap: 647px of path against a dasharray of 627 left 20px of
+ * curve unpainted, short of the last tick. The dasharray has no job once the
+ * entry is over, so it goes.
  */
 export function useEntry(enabled: boolean) {
   const ref = useRef<HTMLDivElement>(null);
   const [drawn, setDrawn] = useState(!enabled);
+  const [settled, setSettled] = useState(!enabled);
 
   useEffect(() => {
     if (!enabled) return;
@@ -47,5 +54,11 @@ export function useEntry(enabled: boolean) {
     return () => observer.disconnect();
   }, [enabled]);
 
-  return { ref, drawn };
+  useEffect(() => {
+    if (!drawn || settled) return;
+    const timer = setTimeout(() => setSettled(true), ENTRY_MS);
+    return () => clearTimeout(timer);
+  }, [drawn, settled]);
+
+  return { ref, drawn, settled };
 }

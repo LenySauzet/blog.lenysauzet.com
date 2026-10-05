@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useReducedMotion } from 'motion/react';
-import { useState } from 'react';
+import { useReducedMotion } from "motion/react";
+import { useState } from "react";
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -9,17 +9,23 @@ import {
   RadarChart as RadarPlot,
   RadialBar,
   RadialBarChart as RadialPlot,
-} from 'recharts';
+} from "recharts";
 
-import Figure from '@/components/Figure';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import Figure from "@/components/Figure";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
-import Legend from './Legend';
-import { colourOf, toggled } from './series';
-import type { PolarProps, RadialProps } from './types';
-import { ENTRY_MS, useEntry } from './use-entry';
+import Legend from "./Legend";
+import { colourOf, toggled } from "./series";
+import type { PolarProps, RadialProps } from "./types";
+import { ENTRY_MS, useEntry } from "./use-entry";
 
-const entriesOf = <T extends { key: string; label: string; color?: string }>(items: T[]) =>
+const entriesOf = <T extends { key: string; label: string; color?: string }>(
+  items: T[],
+) =>
   items.map((item, index) => ({
     key: item.key,
     label: item.label,
@@ -27,7 +33,9 @@ const entriesOf = <T extends { key: string; label: string; color?: string }>(ite
   }));
 
 const configFrom = (entries: { key: string; label: string; color: string }[]) =>
-  Object.fromEntries(entries.map(({ key, label, color }) => [key, { label, color }]));
+  Object.fromEntries(
+    entries.map(({ key, label, color }) => [key, { label, color }]),
+  );
 
 /**
  * One value per series on each of several named axes, which is the only shape
@@ -38,9 +46,15 @@ const configFrom = (entries: { key: string; label: string; color: string }[]) =>
  * one of two overlaid shapes is how a reader isolates the other, and nothing
  * about the remaining one changes meaning when it goes.
  */
-export function RadarChart({ data, series, axis, caption, legend = true }: PolarProps) {
+export function RadarChart({
+  data,
+  series,
+  axis,
+  caption,
+  legend = true,
+}: PolarProps) {
   const reduced = useReducedMotion();
-  const { ref, drawn } = useEntry(!reduced);
+  const { ref, drawn, settled } = useEntry(!reduced);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const entries = entriesOf(series);
   const shown = entries.filter(({ key }) => !hidden.has(key));
@@ -51,11 +65,20 @@ export function RadarChart({ data, series, axis, caption, legend = true }: Polar
         <Legend
           series={entries}
           hidden={hidden}
-          onToggle={(key) => setHidden((current) => toggled(current, key, series.length))}
+          onToggle={(key) =>
+            setHidden((current) => toggled(current, key, series.length))
+          }
         />
       ) : null}
       <div ref={ref}>
-        <ChartContainer config={configFrom(entries)}>
+        <ChartContainer
+          config={configFrom(entries)}
+          className={
+            settled
+              ? "[&_.recharts-radar-polygon]:[stroke-dasharray:none]!"
+              : undefined
+          }
+        >
           <RadarPlot data={data}>
             <PolarGrid />
             <PolarAngleAxis dataKey={axis} />
@@ -86,7 +109,12 @@ export function RadarChart({ data, series, axis, caption, legend = true }: Polar
  * of a whole: each row is measured against the same full turn, so unlike a
  * pie they need not sum to anything.
  */
-export function RadialChart({ data, caption, legend = true, max = 100 }: RadialProps) {
+export function RadialChart({
+  data,
+  caption,
+  legend = true,
+  max = 100,
+}: RadialProps) {
   const reduced = useReducedMotion();
   const { ref, drawn } = useEntry(!reduced);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
@@ -103,7 +131,9 @@ export function RadialChart({ data, caption, legend = true, max = 100 }: RadialP
         <Legend
           series={entries}
           hidden={hidden}
-          onToggle={(key) => setHidden((current) => toggled(current, key, data.length))}
+          onToggle={(key) =>
+            setHidden((current) => toggled(current, key, data.length))
+          }
         />
       ) : null}
       <div ref={ref}>
@@ -118,12 +148,20 @@ export function RadialChart({ data, caption, legend = true, max = 100 }: RadialP
             {/* The scale lives on a hidden angle axis, not on the chart: left
                 off, every row fills its own ring and the comparison the chart
                 exists for disappears. */}
-            <PolarAngleAxis type="number" domain={[0, max]} dataKey="value" tick={false} />
+            <PolarAngleAxis
+              type="number"
+              domain={[0, max]}
+              dataKey="value"
+              tick={false}
+            />
             {/* Recharts draws its polar cursor as the whole band at the
                 hovered radius rather than as the arc under the pointer, so it
                 reads as a stray ring around a chart that already highlights
                 itself. The arc and the tooltip are the answer. */}
-            <ChartTooltip cursor={false} content={<ChartTooltipContent nameKey="key" hideLabel />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent nameKey="key" hideLabel />}
+            />
             <RadialBar
               dataKey="value"
               background

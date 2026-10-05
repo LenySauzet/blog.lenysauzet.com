@@ -29,6 +29,19 @@ import { colourOf, toggled } from "./series";
 
 import type { ChartProps, Series } from "./types";
 
+/**
+ * Clears the entry animation's leftover dash once it is over. Recharts sets
+ * it inline, so the override has to be marked, and **the mark is a trailing
+ * `!` on the utility**: `[stroke-dasharray:none!important]` is not a class
+ * Tailwind v4 compiles, so it lands in the DOM and generates no rule at all,
+ * which looks exactly like a fix that works until the value is measured.
+ *
+ * It names the series marks rather than every path: the grid and the tooltip
+ * cursor are dashed on purpose.
+ */
+const PAINTED =
+  "[&_.recharts-line-curve]:[stroke-dasharray:none]! [&_.recharts-area-area]:[stroke-dasharray:none]! [&_.recharts-area-curve]:[stroke-dasharray:none]!";
+
 const configOf = (series: Series[]): ChartConfig => ({
   ...Object.fromEntries(
     series.map((entry, index) => [
@@ -118,7 +131,7 @@ export default function Chart({
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const shown = series.filter(({ key }) => !hidden.has(key));
   const reduced = useReducedMotion();
-  const { ref, drawn } = useEntry(!reduced);
+  const { ref, drawn, settled } = useEntry(!reduced);
   // Scoped to this chart: a fixed id would be reused by every other chart on
   // the page, and the first one to render would own the fill for all of them.
   const gradients = useId().replace(/:/g, "");
@@ -161,7 +174,10 @@ export default function Chart({
           legend and an axis label too low. */}
       <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
-        <ChartContainer config={configOf(series)}>
+        <ChartContainer
+          config={configOf(series)}
+          className={settled ? PAINTED : undefined}
+        >
           <Plot
             data={data}
             margin={{ top: 8, right: 8, bottom: 0, left: 0 }}

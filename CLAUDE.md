@@ -1056,6 +1056,19 @@ What the shape forces:
   which costs nothing: measured, the static HTML carries the frame, the grid, the axes
   and the legend but **no series path at all**, so there is no server-rendered curve
   for an entry to reset and no layout to shift when one arrives.
+- **The entry's dash is cleared once it is over**, which is the one thing `settled`
+  exists for. Recharts drives the draw-in with a `stroke-dasharray` set to the path's
+  whole length, and recomputes that figure at the start and the end of an animation but
+  not per frame. A toggle rescales the axis, which lengthens the path while the figure
+  stands still, so the tail beyond it falls in the gap: measured, 702px of path against
+  a dasharray of 627 left **75px of curve unpainted**, stopping short of the last tick.
+  Cleared, the worst gap across a toggle and back is 0px and the path still moves over
+  157 frames.
+- **The mark for that override is a trailing `!`.** `[stroke-dasharray:none!important]`
+  is not a class Tailwind v4 compiles: it lands in the DOM and generates no rule at
+  all, which looks exactly like a working fix until the computed value is read. Same
+  family as `outline-none` and `blur(0)`: a class that is valid to the eye and absent
+  from the stylesheet.
 - **Nothing needs to stop afterwards, and an earlier version of this file said it did.**
   Recharts interpolates a path toward its new shape rather than redrawing it from the
   start: measured across a toggle, the surviving series hold a `stroke-dasharray` equal
