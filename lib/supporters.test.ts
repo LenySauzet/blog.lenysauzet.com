@@ -79,10 +79,20 @@ describe('normaliseSupporters', () => {
   // The one failure here that cannot be undone, so each errs towards showing nobody.
   it.each([
     ['refunded', { is_refunded: 1 }],
-    ['marked not visible', { support_visibility: 0 }],
     ['hidden', { support_hidden: 1 }],
   ])('drops a support that is %s', (_label, override) => {
     expect(normaliseSupporters([{ ...COFFEE, ...override }])).toEqual([]);
+  });
+
+  /**
+   * `support_visibility` is not a privacy signal, and reading it as one emptied
+   * the band. Their developer API returned 0 for a supporter their own public
+   * widget endpoint, which needs no token, returns as 1 and publishes.
+   */
+  it.each([0, 1, undefined])('keeps a support whose visibility reads %p', (visibility) => {
+    expect(
+      normaliseSupporters([{ ...COFFEE, support_visibility: visibility }])
+    ).toHaveLength(1);
   });
 
   // `Number('')` is 0 and a negative is finite, so neither is caught by "is it a number".

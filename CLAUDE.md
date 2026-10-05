@@ -955,6 +955,14 @@ which the live payload does send and which reads as a privacy flag, and it shows
 **Never widen what the band shows on the strength of that reference alone** — verify
 against a live response first, and when a privacy field is ambiguous, exclude.
 
+**`support_visibility` is not that field, and treating it as one emptied the band.**
+Their two endpoints give one name opposite meanings: the developer API returned 0 for
+a supporter that `app.buymeacoffee.com/api/creators/slug/<name>/coffees`, which needs
+no token and feeds their own public widget, returns as 1 and publishes. A field they
+contradict themselves on cannot carry a privacy decision, so only `support_hidden` and
+`is_refunded` do. That public endpoint is also the way to settle the next such
+question: if it publishes a name without a token, the name is public.
+
 **`components/SupportCallout` fetches from the browser on purpose.** Posts are statically
 generated, so reading the supporter list at build time would freeze the names until the
 next deploy. The card itself stays a Server Component; only the band is a client.

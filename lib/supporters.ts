@@ -32,10 +32,13 @@ function rowsOf(payload: unknown): Record<string, unknown>[] {
 // Excluded on a signal rather than included on one: guessing wrong this way shows
 // nobody, guessing wrong the other way publishes a name someone hid. `support_hidden`
 // is undocumented and came back on the live payload, so it is read here too.
+//
+// `support_visibility` is deliberately not read, and reading it emptied the band. The
+// two endpoints give one name opposite meanings: the developer API returned 0 for a
+// supporter that the public widget endpoint, which needs no token at all, returns as 1
+// and publishes. A field they contradict themselves on cannot be a privacy signal.
 const isPrivate = (row: Record<string, unknown>) =>
-  Boolean(row.support_hidden) ||
-  Boolean(row.is_refunded) ||
-  readNumber(row.support_visibility) === 0;
+  Boolean(row.support_hidden) || Boolean(row.is_refunded);
 
 /** `supporter_name` is null on plenty of real rows, the name being in `payer_name`. */
 const readName = (row: Record<string, unknown>) =>
