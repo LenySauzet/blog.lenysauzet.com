@@ -521,9 +521,14 @@ What the shape forces:
   the same reason: left at `blur(0)` every one of them holds a composited layer for the
   life of the page.
 - **Leaving is ordered, and the order is the cascade's to set.** The veil and the scroll
-  figure both wait for the titles, the figure on `passDuration(count)` rather than a
-  figure picked for one post: the walk is paced per title, so thirteen sections empty at
-  750ms and three at 375.
+  figure both wait for the titles, on `passDuration(count)` rather than on a figure
+  picked for one post.
+- **That walk is bounded, not paced per title alone.** Measured on the design system's
+  twenty-five sections, a per-title beat took 908ms to open them all, which reads as the
+  rail labouring rather than as a cascade; bounded, the same page opens in 233ms and
+  nothing above seven sections costs more than anything else. Bounded rather than fixed,
+  because a fixed walk would put that whole span between the only two titles of a short
+  post, where the beat should stay brisk: below the bound nothing changes at all.
 - **Each title carries a halo in `--background`.** Local contrast at the glyphs is
   cheaper than asking the veil to cover more, and it follows the theme on its own. It
   does nothing above `xl`, nothing being behind it there; judge it at 820, where 231px
