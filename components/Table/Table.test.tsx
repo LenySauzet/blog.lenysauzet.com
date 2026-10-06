@@ -3,10 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { components } from '@/mdx-components';
 
-const Table = components.table as React.ComponentType<React.ComponentProps<'table'>>;
-const Row = components.tr as React.ComponentType<React.ComponentProps<'tr'>>;
-const Cell = components.td as React.ComponentType<React.ComponentProps<'td'>>;
-const Head = components.th as React.ComponentType<React.ComponentProps<'th'>>;
+const { table: Table, tr: Row, td: Cell, th: Head } = components;
 
 describe('a markdown table', () => {
   it('renders as one, so a screen reader reads rows and columns', () => {
@@ -30,8 +27,8 @@ describe('a markdown table', () => {
    * table that silently ignores its own delimiter row.
    */
   it.each([
-    ['td', (props: React.ComponentProps<'td'>) => <Cell {...props} />],
-    ['th', (props: React.ComponentProps<'th'>) => <Head {...props} />],
+    ['td', Cell],
+    ['th', Head],
   ])('keeps the alignment GFM puts on a %s', (_name, Mapped) => {
     render(
       <table>

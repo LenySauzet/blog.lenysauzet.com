@@ -1175,9 +1175,10 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
   cell holds prose that has to wrap.
 - **The cells' type is declared once on the table**, in `components/Table`, and every
   cell inherits it. Only a header says anything about itself.
-- **The mapping spreads its props, never its children alone.** GFM carries a column's
-  alignment as an inline style on each cell, so `({ children }) => ...` renders a table
-  that silently ignores its own delimiter row. `Table.test.tsx` guards it.
+- **A cell is mapped whole, never as `({ children }) => ...`.** GFM carries a column's
+  alignment as an inline style on each cell, and rewriting the mapping in this file's
+  prevailing shape drops it, rendering a table that ignores its own delimiter row.
+  `Table.test.tsx` guards it.
 - **A table is a surface, and it is the code block's.** `--card` and `--border` are
   what `--code-bg` and `--code-border` already resolve to, so a table and a fenced
   block are the same panel in an article rather than two near-misses. Flush to the

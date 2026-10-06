@@ -247,24 +247,13 @@ export const frameTimes = [
 
 ## Charts
 
-A chart is a figure that carries axes, and `components/Chart` owns everything
-around them: the grid, the tooltip, the legend, and the five chart tokens that
-make every chart on the site read the same and follow the accent without being
-told.
-
-The same props give three cartesian shapes one word apart, and the kinds that
-have no axes at all carry their own component, since a pie's parts and a
-radar's spokes are not the same claim about data as a series over a scale.
+A figure that carries axes.
 
 <ChartShowcase />
 
 ## Tables
 
-A table is written as a table. GFM pipes map onto the shadcn primitive through
-`mdx-components.tsx`, the way `![alt](src)` maps onto `Image` and `>` onto
-`Blockquote`, so the source stays the thing a reader and an agent both get: it
-is already Markdown, and `/posts/design-system/index.md` serves it back
-untouched where a component would arrive as a line of JSX.
+GFM pipes, mapped onto the shadcn primitive.
 
 | Approach | Ships to the browser | Authoring |
 | --- | --- | --- |
@@ -272,18 +261,14 @@ untouched where a component would arrive as a line of JSX.
 | `<Table>` composed by hand | nothing, still a Server Component | JSX, for what pipes cannot say |
 | TanStack Table | 31 kB, and `'use client'` | a column definition per table |
 
-Alignment is the delimiter row's to set, and every cell carries it as an inline
-style, so a mapping has to pass its props through rather than its children
-alone.
+Alignment comes from the delimiter row.
 
 | Left | Centre | Right |
 | :--- | :----: | ----: |
 | `--primary` | 262.04 | 1.0 |
 | `--border` | 17 presets | 0.5 |
 
-A column has a floor, so a table with more of them than the measure can hold
-scrolls inside its own edge rather than wrapping every sentence into a column
-of single words.
+Past the measure, a table scrolls inside its own edge.
 
 | Preset | Hue | Lightness | Light | Dark | Floor | Tailwind |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |

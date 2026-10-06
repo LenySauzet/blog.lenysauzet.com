@@ -648,14 +648,10 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   height: 100dvh !important;
 }
 
-/* A table wider than the measure scrolls inside its own edge, and the edge it
-   can still travel to dissolves rather than cutting a column in half. Two
-   registered lengths rather than two mask values: a mask interpolates between
-   `calc(100% - 48px)` and `100%` by not interpolating at all, flipping in one
-   step halfway down the scroll, where a registered `<length>` travels. Each
-   runs over its own 3rem of the scroll and then holds, so the middle of a long
-   table keeps both edges open instead of easing them back out. A mask rather
-   than a colour ramp, for the banding `ScrollFade` was built around. */
+/* The edge a scrolling table can still travel to. Two registered lengths and
+   not two mask values: a mask does not interpolate between `calc(100% - 48px)`
+   and `100%`, it flips. Each runs over its own 3rem of the scroll and holds,
+   or both edges sit half open down the middle of a long table. */
 @property --table-fade-start {
   syntax: '<length>';
   inherits: false;
