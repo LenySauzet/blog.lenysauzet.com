@@ -1178,9 +1178,28 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
 - **The mapping spreads its props, never its children alone.** GFM carries a column's
   alignment as an inline style on each cell, so `({ children }) => ...` renders a table
   that silently ignores its own delimiter row. `Table.test.tsx` guards it.
-- **The cells reach the column's edge, the primitive's padding notwithstanding.** The
-  rules already run the full width, so a first cell held at `px-4` reads as a table
-  indented 16px from the paragraph that introduces it. Measured before and after.
+- **A table is a surface, where a figure is not.** It takes the rounded edge and the
+  header takes `--wash/30`, the raised surface Select and Slider already sit on. Flush
+  to the prose it was tried first and reads as cramped: the rules run the measure, the
+  cells sit on it, and nothing separates the header from the first row.
+- **A column has a floor, and that is what makes a wide table scroll.** Without one the
+  cells simply wrap, and a seven-column table turns every sentence into a column of
+  single words rather than overflowing. At `min-w-36` a three-column table still fits
+  the measure exactly and a seven-column one runs to 1008px inside it.
+- **The edge it can still travel to dissolves, with no JavaScript and no client
+  component.** `app/globals.css` carries the keyframes, a deliberate exception like the
+  ordered-list counters, because `animation-timeline` is not a Tailwind class. Three
+  things make it work: **the mask is declared only inside the keyframes**, since a
+  scroll timeline with nothing to scroll is inactive and a table that fits then carries
+  no mask at all (measured: `none` on both narrow tables, a right-hand ramp on the wide
+  one); **both steps hold the same four stops**, or there is nothing to interpolate and
+  the mask jumps; and it is **a mask rather than a colour ramp**, for the banding
+  `ScrollFade` was built around.
+- **The scroll region is left to the browser for its keyboard path.** Chrome puts a
+  scrollable container in the tab order on its own and leaves one that fits out of it,
+  which is the discrimination an unconditional `tabIndex={0}` would destroy: every
+  table in every article would take a tab stop to scroll nothing. Verified by tabbing,
+  not by reading the property, `tabIndex` reporting -1 either way.
 - **`remark-gfm` also brings strikethrough, task lists and autolink literals.** None
   appears in `content/` today, so nothing changed under it, but a bare URL in prose is
   a link from now on.

@@ -647,3 +647,35 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root.sandpack-fullscreen .sp-layout iframe {
   height: 100dvh !important;
 }
+
+/* A table wider than the measure scrolls inside its own edge, and the edge it
+   can still travel to dissolves rather than cutting a column in half. Declared
+   only in the keyframes: a scroll timeline with nothing to scroll is inactive,
+   so a table that fits carries no mask at all. Both steps hold the same four
+   stops, or there is nothing to interpolate and the mask jumps. A mask rather
+   than a colour ramp, for the banding `ScrollFade` was built around. */
+@keyframes table-scroll-edges {
+  from {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 0,
+      #000 calc(100% - 3rem),
+      transparent 100%
+    );
+  }
+  to {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 3rem,
+      #000 100%,
+      transparent 100%
+    );
+  }
+}
+
+[data-slot='table-container'] {
+  animation: table-scroll-edges linear both;
+  animation-timeline: scroll(self inline);
+}
