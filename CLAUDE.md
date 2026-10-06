@@ -1187,6 +1187,9 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
   tried, the raised surface Select and Slider sit on, and measured 1.328 against the
   page in dark where the header now reads 1.086. A control a pointer can press earns
   that lift; a column name does not.
+- **Only what GFM emits is mapped.** `tfoot` and `caption` have no markdown syntax, so
+  nothing can reach them from a post; the primitive still exports both, the way
+  `ui/card.tsx` keeps `CardFooter`, for the day a post composes a table by hand.
 - **The row hover belongs to `tbody`, not to the row.** Mapped from markdown, a header
   is a `tr` like any other, so a hover declared on `TableRow` lit the header too and
   promised an interaction that is not there.
@@ -1207,8 +1210,12 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
     `animation-range`. Spread across the whole range instead, both edges sit at half
     width in the middle of a long table and read as the fade backing out.
   - **A mask, not a colour ramp**, for the banding `ScrollFade` was built around. The
-    mask is always declared, and at rest both lengths are 0, so a table that fits
-    carries an opaque no-op rather than nothing at all.
+    mask is always declared, since composing it from the lengths is what buys the
+    interpolation, so a table that fits carries an opaque no-op rather than nothing at
+    all. That is the trade and it is a cheap one: **no layer is promoted**, where a
+    `blur(0)` left in place would hold one for the life of the page, and the style
+    recalculation costs **0.004ms per table per repaint**, measured over four
+    interleaved passes on 60 tables, twenty times what an article carries.
 - **The scroll region is left to the browser for its keyboard path.** Chrome puts a
   scrollable container in the tab order on its own and leaves one that fits out of it,
   which is the discrimination an unconditional `tabIndex={0}` would destroy: every

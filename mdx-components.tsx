@@ -30,7 +30,6 @@ import Table from '@/components/Table';
 import {
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -104,7 +103,6 @@ export const components = {
   table: Table,
   thead: TableHeader,
   tbody: TableBody,
-  tfoot: TableFooter,
   // Spread rather than children alone: GFM carries a column's alignment as an
   // inline style on every cell, and a mapping that drops props drops it.
   tr: (props) => <TableRow {...props} />,

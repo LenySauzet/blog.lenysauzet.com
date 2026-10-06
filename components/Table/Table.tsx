@@ -18,9 +18,8 @@ export default function Table({
       <TablePrimitive
         className={cn(
           'font-display text-muted-foreground leading-6',
-          // The code block's own surface and edge, and its header is marked the
-          // same way: the rule under it and the type on it, not a fill bright
-          // enough to read as a second panel.
+          // Faint enough that the rule under it and the type on it still do the
+          // marking. A raised surface would read as a second panel inside one.
           '[&_thead]:bg-foreground/[0.03]',
           // A column narrower than this wraps a sentence into a column of
           // single words, so a wide table scrolls inside its own edge instead.
