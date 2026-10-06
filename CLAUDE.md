@@ -950,10 +950,10 @@ own modal goes up over the page. `config/site.ts` holds the handle, the embed ta
 path rather than a URL, and the page rather than one event type so a visitor picks the
 length they need.
 
-- **The embed is fetched, never imported.** `import('@calcom/embed-react')` inside
-  `run` keeps a reader who never books from asking cal.com for anything. Only the thin
-  wrapper is in the bundle; `getCalApi()` pulls their `embed.js` at the press, and
-  their booker is their own app in an iframe behind it.
+- **A plain import, and the deferral is `getCalApi()`'s.** It pulls their `embed.js`
+  only when called, so a reader who never books asks cal.com for nothing: measured, no
+  request and no `window.Cal` on load or on opening the palette. A dynamic `import()`
+  was there first and bought none of that, costing 4 KB over the static one.
 - **Nothing is focused once it is up, and that is the fix rather than the bug.**
   cal.com reads Escape on the parent document, so handing the iframe the focus sends
   the key to a cross-origin document and the modal can no longer be dismissed:
