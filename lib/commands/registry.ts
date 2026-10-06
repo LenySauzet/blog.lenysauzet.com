@@ -1,8 +1,8 @@
 import {
     ArrowRight02Icon,
     BlueskyIcon,
-    Calendar01Icon,
     ArrowUp01Icon,
+    Calendar01Icon,
     Coffee01Icon,
     ColorsIcon,
     CopyLinkIcon,
@@ -19,8 +19,8 @@ import {
 } from '@hugeicons/core-free-icons'
 
 import { announce } from '@/app/_components/DynamicIsland'
-import { openBooking } from '@/lib/booking'
 import siteConfig from '@/config/site'
+import { openBooking } from '@/lib/booking'
 import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
 

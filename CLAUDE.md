@@ -947,8 +947,8 @@ rather than a band across it.
 **Booking is one row in `Tools` and nothing else.** `lib/booking.ts` is the whole of
 it: the command's `run` hands it the theme the palette already carries, and cal.com's
 own modal goes up over the page. `config/site.ts` holds the handle, the embed taking a
-path rather than a URL, and `social.booking` is derived from it so the two cannot name
-different people.
+path rather than a URL, and the page rather than one event type so a visitor picks the
+length they need.
 
 - **The embed is fetched, never imported.** `import('@calcom/embed-react')` inside
   `run` keeps a reader who never books from asking cal.com for anything. Only the thin

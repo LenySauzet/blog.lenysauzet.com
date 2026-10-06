@@ -4,12 +4,11 @@ import { announce } from '@/app/_components/DynamicIsland';
 import siteConfig from '@/config/site';
 
 /**
- * Opens cal.com over the page. The embed is fetched here rather than imported, so a
- * reader who never books never asks cal.com for anything.
+ * Opens cal.com over the page, fetching the embed rather than importing it so a reader
+ * who never books never asks them for anything.
  *
- * Nothing is focused once it is up, deliberately: cal.com reads Escape on the parent
- * document, and handing the iframe the focus sends the key to a cross-origin document
- * instead, which trades a working dismissal for the three tabs it saves.
+ * Nothing is focused once it is up: cal.com reads Escape on the parent document, so
+ * giving the iframe the focus sends the key across origins and the modal stops closing.
  */
 export async function openBooking(theme: string | undefined) {
   try {
@@ -19,9 +18,7 @@ export async function openBooking(theme: string | undefined) {
     cal('ui', { theme: theme === 'light' ? 'light' : 'dark' });
     cal('modal', { calLink: siteConfig.calHandle });
   } catch {
-    // Not a new tab: the gesture is spent by the time we know, so the popup would be
-    // blocked. Reaching cal.com is what just failed, so sending them there is no
-    // answer either.
+    // Not a new tab: the gesture is spent by now, so the popup would be blocked.
     announce('Booking is unreachable', Calendar01Icon);
   }
 }

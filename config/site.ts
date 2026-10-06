@@ -10,9 +10,8 @@ const cdnUrl = 'https://cdn.lenysauzet.com'
 const supportUrl = 'https://buymeacoffee.com/lenysauzet'
 const membershipUrl = `${supportUrl}/membership`
 
-// The embed takes a path on cal.com rather than a URL, and the page rather than one
-// event type, so a visitor picks the length they need. The link is derived from it so
-// the two cannot name different people.
+// A path on cal.com, which is what the embed takes, and the page rather than one
+// event type so a visitor picks the length they need.
 const calHandle = 'lenysauzet'
 
 // Everywhere the site points at me. One list, so the command palette, the footer and
@@ -27,7 +26,6 @@ const social = {
   roadmap:
     'https://www.figma.com/board/CCTdvk3lomDhgiCsQu9hlb/Leny-s-Public-Roadmap',
   support: supportUrl,
-  booking: `https://cal.com/${calHandle}`,
 }
 
 const resumeUrl = `${cdnUrl}/files/Leny-Sauzet-Resume.pdf`
