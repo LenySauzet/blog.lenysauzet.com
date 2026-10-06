@@ -647,3 +647,54 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 .sandpack-root.sandpack-fullscreen .sp-layout iframe {
   height: 100dvh !important;
 }
+
+/* The edge a scrolling table can still travel to. Two registered lengths and
+   not two mask values: a mask does not interpolate between `calc(100% - 48px)`
+   and `100%`, it flips. Each runs over its own 3rem of the scroll and holds,
+   or both edges sit half open down the middle of a long table. */
+@property --table-fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --table-fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes table-fade-start {
+  from {
+    --table-fade-start: 0px;
+  }
+  to {
+    --table-fade-start: 3rem;
+  }
+}
+
+@keyframes table-fade-end {
+  from {
+    --table-fade-end: 3rem;
+  }
+  to {
+    --table-fade-end: 0px;
+  }
+}
+
+[data-slot='table-container'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--table-fade-start),
+    #000 calc(100% - var(--table-fade-end)),
+    transparent 100%
+  );
+  animation:
+    table-fade-start linear both,
+    table-fade-end linear both;
+  animation-timeline: scroll(self inline), scroll(self inline);
+  animation-range:
+    0 3rem,
+    calc(100% - 3rem) 100%;
+}

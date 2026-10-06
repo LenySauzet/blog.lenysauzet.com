@@ -232,35 +232,44 @@ $$
   height={398}
 />
 
-## Footnotes
-
-A footnote reference marks a spot in the text <FootnoteRef id="1" />, and the
-list at the end resolves it — the reference and the entry link to each other.
-
-export const frameTimes = [
-  { size: '256', webgl: 1.4, canvas: 4.1 },
-  { size: '512', webgl: 2.1, canvas: 6.8 },
-  { size: '1024', webgl: 3.8, canvas: 11.2 },
-  { size: '2048', webgl: 7.2, canvas: 18.5 },
-  { size: '4096', webgl: 15.9, canvas: 29.4 },
-];
-
 ## Charts
 
-A chart is a figure that carries axes, and `components/Chart` owns everything
-around them: the grid, the tooltip, the legend, and the five chart tokens that
-make every chart on the site read the same and follow the accent without being
-told.
-
-The same props give three cartesian shapes one word apart, and the kinds that
-have no axes at all carry their own component, since a pie's parts and a
-radar's spokes are not the same claim about data as a series over a scale.
+A figure that carries axes.
 
 <ChartShowcase />
+
+## Tables
+
+GFM pipes, mapped onto the shadcn primitive.
+
+| Approach | Ships to the browser | Authoring |
+| --- | --- | --- |
+| GFM pipes | nothing, the plugin runs at build | a row per line |
+| `<Table>` composed by hand | nothing, still a Server Component | JSX, for what pipes cannot say |
+| TanStack Table | 31 kB, and `'use client'` | a column definition per table |
+
+Alignment comes from the delimiter row.
+
+| Left | Centre | Right |
+| :--- | :----: | ----: |
+| `--primary` | 262.04 | 1.0 |
+| `--border` | 17 presets | 0.5 |
+
+Past the measure, a table scrolls inside its own edge.
+
+| Preset | Hue | Lightness | Light | Dark | Floor | Tailwind |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Blue | 259.8 | default | 4.06 | 7.21 | 3.79 | blue-500 |
+| Violet | 292.7 | +0.02 | 3.91 | 6.88 | 3.79 | violet-500 |
+| Teal | 182.5 | +0.05 | 3.84 | 6.44 | 3.79 | teal-500 |
 
 ## Dividers
 
 ---
+
+## Footnotes
+
+A reference marks a spot <FootnoteRef id="1" />, and the list below resolves it.
 
 <FootnotesList
   notes={[

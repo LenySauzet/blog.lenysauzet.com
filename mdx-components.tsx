@@ -1,6 +1,13 @@
 import Anchor from '@/components/Anchor/Anchor';
 import BeforeAfterImage from '@/components/BeforeAfterImage';
 import { Badge } from '@/components/ui/badge';
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import Blockquote from '@/components/Blockquote';
 import { Callout } from '@/components/Callout';
 import {
@@ -23,6 +30,7 @@ import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
 import { Sandpack } from '@/components/Sandpack';
 import SupportCallout from '@/components/SupportCallout';
+import Table from '@/components/Table';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
@@ -36,7 +44,7 @@ function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
   return <Image src={src} alt={alt ?? ''} />;
 }
 
-const components = {
+export const components = {
   Anchor,
   Badge,
   BeforeAfterImage,
@@ -92,6 +100,14 @@ const components = {
     <span className="italic font-medium text-subtle-foreground">{children}</span>
   ),
   blockquote: Blockquote,
+  table: Table,
+  thead: TableHeader,
+  tbody: TableBody,
+  // Mapped whole, never as `({ children }) => ...`: GFM carries a column's
+  // alignment as an inline style on each cell, and that drops it.
+  tr: TableRow,
+  th: TableHead,
+  td: TableCell,
   figure: CodeBlock,
   ul: ({ children }) => <List variant="unordered">{children}</List>,
   ol: ({ children }) => <List variant="ordered">{children}</List>,
