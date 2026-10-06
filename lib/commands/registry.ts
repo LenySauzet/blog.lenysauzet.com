@@ -1,6 +1,7 @@
 import {
     ArrowRight02Icon,
     BlueskyIcon,
+    Calendar01Icon,
     ArrowUp01Icon,
     Coffee01Icon,
     ColorsIcon,
@@ -18,6 +19,7 @@ import {
 } from '@hugeicons/core-free-icons'
 
 import { announce } from '@/app/_components/DynamicIsland'
+import { openBooking } from '@/lib/booking'
 import siteConfig from '@/config/site'
 import { pickAnother } from '@/lib/search/random'
 import { withThemeTransition } from '@/lib/theme-transition'
@@ -71,6 +73,16 @@ export const commands: Command[] = [
             withThemeTransition(() =>
                 setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
             ),
+    },
+    {
+        id: 'book-a-call',
+        label: 'Book a call',
+        icon: Calendar01Icon,
+        group: 'Tools',
+        keywords: ['meeting', 'calendar', 'schedule', 'talk', 'cal.com'],
+        run: ({ resolvedTheme }) => {
+            void openBooking(resolvedTheme)
+        },
     },
     {
         id: 'accent',
