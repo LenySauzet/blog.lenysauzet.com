@@ -95,6 +95,11 @@ export interface SliderProps
   /** Appended to the readout, e.g. `%` or `px`. */
   unit?: string;
   decimals?: number;
+  /**
+   * Told what the reader moved it to. The slider still owns its value, so a post
+   * stays a Server Component and only a figure that listens has to be a client.
+   */
+  onValueChange?: (value: number) => void;
 }
 
 /**
@@ -114,6 +119,7 @@ export default function Slider({
   decimals = 0,
   disabled,
   className,
+  onValueChange,
   ...props
 }: SliderProps) {
   const [value, setValue] = useState(defaultValue);
@@ -342,7 +348,10 @@ export default function Slider({
       >
         <SliderRoot
           value={[value]}
-          onValueChange={([next]) => setValue(next)}
+          onValueChange={([next]) => {
+            setValue(next);
+            onValueChange?.(next);
+          }}
           min={min}
           max={max}
           step={step}
