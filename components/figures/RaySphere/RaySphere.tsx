@@ -27,14 +27,15 @@ const RAY_LENGTH = 820;
 const LABEL_GAP = 20;
 
 export default function RaySphere() {
-  const [degrees, setDegrees] = useState(14);
+  const [degrees, setDegrees] = useState(9);
 
   const geometry = useMemo(() => {
     // Negative: the slider counts upward, and SVG's y axis points down.
     const direction = fromAngle((-degrees * Math.PI) / 180);
     const along = (t: number) => add(ORIGIN, scale(direction, t));
-    const hit = rayCircle(ORIGIN, direction, CENTRE, ATMOSPHERE);
-    const closest = along(hit.closest);
+    const sky = rayCircle(ORIGIN, direction, CENTRE, ATMOSPHERE);
+    const ground = rayCircle(ORIGIN, direction, CENTRE, PLANET);
+    const closest = along(sky.closest);
 
     // Each name is pushed away from the other rather than to a fixed side. C and
     // H are already apart along this same perpendicular, so opposite fixed
@@ -49,15 +50,22 @@ export default function RaySphere() {
       closest,
       centreLabel: scale(away, LABEL_GAP),
       closestLabel: scale(away, -LABEL_GAP),
-      chord: hit.hits ? ([along(hit.near), along(hit.far)] as const) : null,
-      // Near tangency the chord vanishes and p1, p2 and H are one point, so
+      crossings: sky.hits ? ([along(sky.near), along(sky.far)] as const) : null,
+      // The planet occludes, so the air a ray actually travels through ends
+      // where the ground starts. That truncation is the whole lesson: without
+      // it the segment runs clean through a solid body.
+      ground: ground.hits ? ([along(ground.near), along(ground.far)] as const) : null,
+      lit: sky.hits
+        ? ([along(sky.near), along(ground.hits ? ground.near : sky.far)] as const)
+        : null,
+      // Near tangency the chord vanishes and the crossings are one point, so
       // naming H there claims a distinction the drawing no longer makes.
-      namesClosest: !hit.hits || hit.far - hit.near > 2 * LABEL_GAP,
+      namesClosest: !sky.hits || sky.far - sky.near > 2 * LABEL_GAP,
     };
   }, [degrees]);
 
   return (
-    <Figure caption="A ray meets a sphere twice, once or never, and which of the three is the sign of the discriminant. Orange marks where it crosses; H is the point on the ray nearest the centre, and exists whether or not it ever gets there.">
+    <Figure caption="A ray meets a sphere twice, once or never, and which of the three is the sign of the discriminant. It crosses the atmosphere at p1 and p2 and the ground at g1 and g2, and orange is the air it actually travels through, which ends where the planet begins. H is the point nearest the centre, and exists whether or not the ray ever gets there.">
       <Diagram
         width={WIDTH}
         height={HEIGHT}
@@ -71,11 +79,21 @@ export default function RaySphere() {
         <Line from={CENTRE} to={geometry.closest} tone="guide" dashed />
         <Line from={ORIGIN} to={geometry.end} tone="blue" width={1.5} />
 
-        {geometry.chord ? (
+        {geometry.lit ? (
+          <Line from={geometry.lit[0]} to={geometry.lit[1]} tone="orange" width={4} />
+        ) : null}
+
+        {geometry.ground ? (
           <>
-            <Line from={geometry.chord[0]} to={geometry.chord[1]} tone="orange" width={4} />
-            <Point at={geometry.chord[0]} label="p1" tone="orange" />
-            <Point at={geometry.chord[1]} label="p2" tone="orange" />
+            <Point at={geometry.ground[0]} label="g1" tone="structure" r={4} offset={vec2(0, 18)} />
+            <Point at={geometry.ground[1]} label="g2" tone="structure" r={4} offset={vec2(0, 18)} />
+          </>
+        ) : null}
+
+        {geometry.crossings ? (
+          <>
+            <Point at={geometry.crossings[0]} label="p1" tone="orange" />
+            <Point at={geometry.crossings[1]} label="p2" tone="orange" />
           </>
         ) : null}
 
@@ -98,7 +116,7 @@ export default function RaySphere() {
         min={-26}
         max={26}
         step={0.1}
-        defaultValue={14}
+        defaultValue={9}
         decimals={1}
         unit="°"
         onValueChange={setDegrees}
