@@ -16,7 +16,7 @@ const WIDTH = 672;
 const HEIGHT = 384;
 
 /** O and C share a height, so the axis between them is the figure's horizon. */
-const ORIGIN = vec2(44, 192);
+const ORIGIN = vec2(58, 192);
 const CENTRE = vec2(430, 192);
 const PLANET = 86;
 const ATMOSPHERE = 124;
@@ -85,7 +85,9 @@ export default function RaySphere() {
 
         {geometry.ground ? (
           <>
-            <Point at={geometry.ground[0]} label="g1" tone="structure" r={4} offset={vec2(0, 18)} />
+            {/* g1 closes the lit segment, so it belongs to it. g2 is where the
+                ray would leave a planet the light never reached. */}
+            <Point at={geometry.ground[0]} label="g1" tone="orange" r={4} offset={vec2(0, 18)} />
             <Point at={geometry.ground[1]} label="g2" tone="structure" r={4} offset={vec2(0, 18)} />
           </>
         ) : null}
@@ -107,14 +109,17 @@ export default function RaySphere() {
         <Point at={ORIGIN} label="O" tone="blue" />
         <Point at={CENTRE} label="C" tone="blue" offset={geometry.centreLabel} />
 
-        <Leader at={add(CENTRE, vec2(-PLANET * 0.6, PLANET * 0.6))} from={vec2(168, 338)} label="Planet" />
-        <Leader at={add(CENTRE, vec2(ATMOSPHERE * 0.74, ATMOSPHERE * 0.74))} from={vec2(540, 344)} label="Atmosphere" />
+        {/* Both reach in from the right and below. The ray leaves upward across
+            the whole slider, so a leader from the left crosses it and its
+            crossings at most angles. */}
+        <Leader at={add(CENTRE, vec2(PLANET * 0.52, PLANET * 0.86))} from={vec2(556, 292)} label="Planet" />
+        <Leader at={add(CENTRE, vec2(ATMOSPHERE * 0.66, ATMOSPHERE * 0.75))} from={vec2(528, 348)} label="Atmosphere" />
       </Diagram>
 
       <Slider
         label="Ray angle"
-        min={-26}
-        max={26}
+        min={-22}
+        max={22}
         step={0.1}
         defaultValue={9}
         decimals={1}

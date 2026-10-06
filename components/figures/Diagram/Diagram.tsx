@@ -30,8 +30,11 @@ export interface DiagramProps {
  * drawing that is wider than it is tall. A mask and not a colour ramp, for the
  * banding `ScrollFade` was built around.
  */
+/* Narrow on purpose. The band has to catch a ray on its way out and nothing
+   else: anything named sits inside it otherwise, and a figure that dissolves
+   its own labels is worse than one that cuts a line. */
 const FADE = ['to right', 'to left', 'to bottom', 'to top']
-  .map((direction) => blurRamp(direction, 88, EASED))
+  .map((direction) => blurRamp(direction, 94, EASED))
   .join(', ');
 export default function Diagram({
   width,

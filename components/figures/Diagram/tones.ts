@@ -24,8 +24,12 @@ export const TONES = {
   red: '[--tone:var(--color-figure-red)]',
   /** The geometry a figure is drawn on. */
   structure: '[--tone:var(--muted-foreground)]',
-  /** Construction: an axis, a radius, anything the reader is not meant to read. */
-  guide: '[--tone:var(--border)]',
+  /**
+   * Construction: an axis, a radius, anything the reader is not meant to read
+   * but does have to see. `--border` is the edge of a surface and measures 1.23
+   * against the page, which is a line nobody can follow.
+   */
+  guide: '[--tone:color-mix(in_oklab,var(--muted-foreground)_55%,var(--background))]',
 } as const;
 
 export type Tone = keyof typeof TONES;
