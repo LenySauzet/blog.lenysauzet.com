@@ -9,6 +9,19 @@
    time. Declared in :root they are inert and the utilities silently fall back
    to Tailwind's stock ramp. */
 @theme {
+  /* A figure's colours mean things: in a diagram the blue is the ray and the
+     orange is what the maths found. Fixed hues rather than the accent, which has
+     one hue by definition and seventeen presets to turn it through. Only the hue
+     is named; a fill is that hue mixed toward the page, which flips with the
+     theme on its own, the way `--heat-from` does. */
+  --color-figure-blue: #5686f4;
+  --color-figure-green: #00c23a;
+  --color-figure-yellow: #e5b800;
+  --color-figure-orange: #ff6813;
+  --color-figure-cyan: #2aa7d8;
+  --color-figure-purple: #d402d6;
+  --color-figure-red: #ff5657;
+
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 1px 3px oklch(0 0 0 / 0.06);
   --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);

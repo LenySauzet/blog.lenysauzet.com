@@ -64,7 +64,7 @@ export function Line({
 export function Point({
   at,
   label,
-  tone = 'subject',
+  tone = 'blue',
   r = 5,
   /** Where the name sits relative to the dot, in the figure's own units. */
   offset = { x: 0, y: -14 },
