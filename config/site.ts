@@ -10,6 +10,10 @@ const cdnUrl = 'https://cdn.lenysauzet.com'
 const supportUrl = 'https://buymeacoffee.com/lenysauzet'
 const membershipUrl = `${supportUrl}/membership`
 
+// A path on cal.com, which is what the embed takes, and the page rather than one
+// event type so a visitor picks the length they need.
+const calHandle = 'lenysauzet'
+
 // Everywhere the site points at me. One list, so the command palette, the footer and
 // anything after them cannot drift apart.
 const social = {
@@ -142,6 +146,7 @@ const siteConfig = {
   membershipUrl,
   resumeUrl,
   social,
+  calHandle,
   title,
   description,
   descriptionShort,

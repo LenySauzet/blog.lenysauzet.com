@@ -944,6 +944,34 @@ lifting to `/40` rather than taking an edge. The panel wears the same wash over
 and its items are inset by `mx-1` so a highlight reads as a card lifting out of the list
 rather than a band across it.
 
+**Booking is one row in `Tools` and nothing else.** `lib/booking.ts` is the whole of
+it: the command's `run` hands it the theme the palette already carries, and cal.com's
+own modal goes up over the page. `config/site.ts` holds the handle, the embed taking a
+path rather than a URL, and the page rather than one event type so a visitor picks the
+length they need.
+
+- **A plain import, and the deferral is `getCalApi()`'s.** It pulls their `embed.js`
+  only when called, so a reader who never books asks cal.com for nothing: measured, no
+  request and no `window.Cal` on load or on opening the palette. A dynamic `import()`
+  was there first and bought none of that, costing 4 KB over the static one.
+- **Nothing is focused once it is up, and that is the fix rather than the bug.**
+  cal.com reads Escape on the parent document, so handing the iframe the focus sends
+  the key to a cross-origin document and the modal can no longer be dismissed:
+  measured, Escape closes it untouched and fails the moment the iframe is focused.
+  Tab reaches the booker in three presses on its own, which is the cheaper half of
+  that trade.
+- **A dismissed modal is `visibility: hidden`, never `display: none`**, and the host
+  stays in the DOM. Reading the wrong property reported Escape and their own close
+  button as both broken when all three paths work.
+- **The failure answers on the island.** A new tab cannot: the gesture is spent by the
+  time the import rejects, so the popup is blocked, and cal.com is what just failed to
+  answer anyway.
+- **It is the first third party on any page here.** The modal is cal.com's surface,
+  not ours, and it will not follow the accent. Only the theme is passed, which is all
+  `cssVarsPerTheme` could carry honestly: every token here is oklch derived from
+  `--base-hue`, the reader picks one of seventeen, and an iframe reads its variables
+  once.
+
 **Buy Me a Coffee answers 200 to everything.** `lib/supporters.ts` and
 `app/api/supporters/route.ts` read their API, and `response.ok` proves nothing there: an
 empty result is `{ error: "No supporters" }` and a stale token is a 200 carrying their
