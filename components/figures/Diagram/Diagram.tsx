@@ -15,24 +15,12 @@ export interface DiagramProps {
 }
 
 /**
- * A plane to draw a figure on. It owns the coordinate space and the type, and
- * nothing else: no surface, no caption, no state. `Figure` frames it.
- *
- * The box scales with the column while the figure keeps its own units, so a
- * drawing is authored once at whatever size suits it. Lines hold their width
- * through that scaling, which is what `vector-effect` is for; text does not,
- * being the one thing a reader has to read at any width.
- *
- * Every edge dissolves. A ray leaving the frame is cut by the viewBox whatever
- * is drawn, and a line stopping dead at an invisible boundary reads as a bug
- * where a fade reads as the figure continuing past what is shown. Four ramps
- * intersected rather than one: a radial mask would pull the corners in on a
- * drawing that is wider than it is tall. A mask and not a colour ramp, for the
- * banding `ScrollFade` was built around.
+ * A plane to draw a figure on: the coordinate space and the type, nothing else.
+ * It never shrinks below its own width, scrolling instead, because text scales
+ * with the box and a label is unreadable long before the drawing is.
  */
-/* Narrow on purpose. The band has to catch a ray on its way out and nothing
-   else: anything named sits inside it otherwise, and a figure that dissolves
-   its own labels is worse than one that cuts a line. */
+/* Four ramps intersected, not one radial, which pulls the corners in on a wide
+   drawing. Narrow: it has to catch a line leaving and nothing named. */
 const FADE = ['to right', 'to left', 'to bottom', 'to top']
   .map((direction) => blurRamp(direction, 94, EASED))
   .join(', ');
@@ -45,20 +33,22 @@ export default function Diagram({
   className,
 }: DiagramProps) {
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={title}
-      style={{ maskImage: FADE, maskComposite: 'intersect' }}
-      className={cn(
-        'h-auto w-full [&_*]:[vector-effect:non-scaling-stroke]',
-        'font-mono text-[13px]',
-        className
-      )}
-    >
-      <title>{title}</title>
-      {description ? <desc>{description}</desc> : null}
-      {children}
-    </svg>
+    <div className="overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={title}
+        style={{ maskImage: FADE, maskComposite: 'intersect', minWidth: width }}
+        className={cn(
+          'h-auto w-full [&_*]:[vector-effect:non-scaling-stroke]',
+          'font-mono text-[13px]',
+          className,
+        )}
+      >
+        <title>{title}</title>
+        {description ? <desc>{description}</desc> : null}
+        {children}
+      </svg>
+    </div>
   );
 }

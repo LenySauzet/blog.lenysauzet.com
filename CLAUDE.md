@@ -1257,6 +1257,47 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
   taking an id, so they never collided; `[^1]` now parses too, and writing one would put
   a second, differently styled set of notes in the same article.
 
+**A geometric figure is drawn in SVG, from maths a test can read.**
+`components/figures/Diagram` is the plane and its marks; `lib/vec2.ts` is the plane
+maths; the figure's own geometry sits beside it, pure, the way `rail.ts` sits beside
+the reading rail. `RaySphere` is the first and the shape the next ones copy.
+
+**SVG rather than a canvas**, which is what the reference draws these on. Ten marks
+redrawn on a slider need no raster, and the trade is all one way: the colours become
+tokens, the labels stay selectable, and the whole is one `role="img"` with a title
+rather than a surface a screen reader cannot enter.
+
+- **A figure's colours are fixed hues, never the accent.** In a diagram a colour names
+  something, and one that turns with the reader's preset renames it; the accent has a
+  single hue anyway, where a figure separating four notions needs four.
+  `--color-figure-*` is the palette, and **only the hue is declared**: a fill is that
+  hue mixed toward the page, so it lightens on a light page and darkens on a dark one
+  from one definition, the way `--heat-from` runs both ways. That is also why no light
+  slab is needed, the figure staying in the prose.
+- **They have to live in the existing `@theme` block.** A second one appended to
+  `globals.css` emits nothing and the utilities fall back to Tailwind's stock ramp in
+  silence, which the comment above that block already warns about.
+- **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
+  against the page, which is a line nobody can follow. The construction lines take a
+  mix of `--muted-foreground`, 2.20 in light and 3.16 in dark, which is where the
+  reference's own `#ACB5CA` lands.
+- **The frame is cut to hold the drawing across the whole control, not at rest.** Every
+  defect in this figure came from that: two names colliding at one angle out of a
+  hundred, a label outside the frame at the extremes, another inside the edge fade at
+  all of them. **Sweep the control and assert on `getBBox`**, which is the only way any
+  of it showed up.
+- **Names are pushed apart from each other, never to fixed sides.** Two points already
+  separated along one axis come back together at whatever angle leaves them twice the
+  offset apart.
+- **A figure keeps its own width and scrolls.** Text scales with the box, so a label
+  is illegible long before the drawing is: 6.6px at 375. The edges dissolve through
+  `ScrollFade`'s ramp, four of them intersected rather than one radial, which pulls the
+  corners in on a wide drawing, and the band is narrow enough to catch a line leaving
+  and nothing named.
+- **There is no prettier config here and the repo writes single quotes.** Running
+  `npx prettier` without `--single-quote` turns a file against the house style, and
+  running it on a directory reformats every neighbour.
+
 **`components/figures/ConfusionMatrix` is finished but unlisted.** Registered in
 `mdx-components.tsx`, absent from the design system: a figure waiting for the post that
 needs it, not something the system should show off before one does. It is a heatmap and

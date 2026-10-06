@@ -1,13 +1,7 @@
 import { dot, lengthSq, sub, type Vec2 } from '@/lib/vec2';
 
-/**
- * Where a ray meets a circle, as distances along it rather than as points: the
- * figure needs the same `t` on two radii, and a scalar is what the drawing turns
- * into whatever it is hanging there.
- *
- * `near` and `far` live behind `hits`, so neither can be read without the proof
- * that there is anything to read.
- */
+/** Distances along the ray, not points: the drawing hangs its own marks on them.
+    `near` and `far` sit behind `hits`, so neither reads without the proof. */
 export type RayCircle =
   | { readonly hits: false; readonly closest: number }
   | {
@@ -17,20 +11,18 @@ export type RayCircle =
       readonly far: number;
     };
 
-/**
- * A ray, not a line: a circle behind the origin is a miss. `direction` is assumed
- * unit length, which makes the quadratic's leading coefficient 1 and `closest` a
- * distance rather than a parameter to be scaled back.
- */
+/** A ray, not a line: a circle behind the origin is a miss. `direction` must be
+    unit length, which is what makes `closest` a distance. */
 export function rayCircle(
   origin: Vec2,
   direction: Vec2,
   centre: Vec2,
-  radius: number
+  radius: number,
 ): RayCircle {
   const toCentre = sub(origin, centre);
   const closest = -dot(toCentre, direction);
-  const discriminant = closest * closest - (lengthSq(toCentre) - radius * radius);
+  const discriminant =
+    closest * closest - (lengthSq(toCentre) - radius * radius);
 
   if (discriminant < 0) return { hits: false, closest };
 
@@ -38,5 +30,7 @@ export function rayCircle(
   const near = closest - offset;
   const far = closest + offset;
 
-  return far < 0 ? { hits: false, closest } : { hits: true, closest, near, far };
+  return far < 0
+    ? { hits: false, closest }
+    : { hits: true, closest, near, far };
 }

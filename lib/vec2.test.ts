@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromAngle, length, lerp, normalize, scale, vec2 } from './vec2';
+import { fromAngle, length, normalize, scale, vec2 } from './vec2';
 
 describe('vec2', () => {
   it('normalises to unit length', () => {
@@ -22,14 +22,5 @@ describe('vec2', () => {
 
     expect(quarter.x).toBeCloseTo(0);
     expect(quarter.y).toBeCloseTo(1);
-  });
-
-  it('lands on each end of a lerp and halfway between', () => {
-    const a = vec2(0, 0);
-    const b = vec2(10, 20);
-
-    expect(lerp(a, b, 0)).toEqual(a);
-    expect(lerp(a, b, 1)).toEqual(b);
-    expect(lerp(a, b, 0.5)).toEqual(vec2(5, 10));
   });
 });

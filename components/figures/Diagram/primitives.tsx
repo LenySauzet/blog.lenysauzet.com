@@ -29,7 +29,12 @@ export function Circle({
       cx={at.x}
       cy={at.y}
       r={r}
-      className={cn(TONES[tone], 'stroke-(--tone) stroke-2', FILLS[fill], className)}
+      className={cn(
+        TONES[tone],
+        'stroke-(--tone) stroke-2',
+        FILLS[fill],
+        className,
+      )}
     />
   );
 }
@@ -54,7 +59,7 @@ export function Line({
         TONES[tone],
         'stroke-(--tone)',
         dashed && '[stroke-dasharray:4_6]',
-        className
+        className,
       )}
     />
   );

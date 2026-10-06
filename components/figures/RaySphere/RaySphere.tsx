@@ -4,8 +4,21 @@ import { useMemo, useState } from 'react';
 
 import Figure from '@/components/Figure';
 import Slider from '@/components/Slider';
-import Diagram, { Circle, Leader, Line, Point } from '@/components/figures/Diagram';
-import { add, length, normalize, scale, sub, vec2, fromAngle } from '@/lib/vec2';
+import Diagram, {
+  Circle,
+  Leader,
+  Line,
+  Point,
+} from '@/components/figures/Diagram';
+import {
+  add,
+  length,
+  normalize,
+  scale,
+  sub,
+  vec2,
+  fromAngle,
+} from '@/lib/vec2';
 
 import { rayCircle } from './ray-circle';
 
@@ -43,7 +56,9 @@ export default function RaySphere() {
     // offset apart. A ray through the centre leaves no direction to push along.
     const apart = sub(CENTRE, closest);
     const away =
-      length(apart) > 1 ? normalize(apart) : { x: -direction.y, y: direction.x };
+      length(apart) > 1
+        ? normalize(apart)
+        : { x: -direction.y, y: direction.x };
 
     return {
       end: along(RAY_LENGTH),
@@ -54,9 +69,14 @@ export default function RaySphere() {
       // The planet occludes, so the air a ray actually travels through ends
       // where the ground starts. That truncation is the whole lesson: without
       // it the segment runs clean through a solid body.
-      ground: ground.hits ? ([along(ground.near), along(ground.far)] as const) : null,
+      ground: ground.hits
+        ? ([along(ground.near), along(ground.far)] as const)
+        : null,
       lit: sky.hits
-        ? ([along(sky.near), along(ground.hits ? ground.near : sky.far)] as const)
+        ? ([
+            along(sky.near),
+            along(ground.hits ? ground.near : sky.far),
+          ] as const)
         : null,
       // Near tangency the chord vanishes and the crossings are one point, so
       // naming H there claims a distinction the drawing no longer makes.
@@ -80,15 +100,32 @@ export default function RaySphere() {
         <Line from={ORIGIN} to={geometry.end} tone="blue" width={1.5} />
 
         {geometry.lit ? (
-          <Line from={geometry.lit[0]} to={geometry.lit[1]} tone="orange" width={4} />
+          <Line
+            from={geometry.lit[0]}
+            to={geometry.lit[1]}
+            tone="orange"
+            width={4}
+          />
         ) : null}
 
         {geometry.ground ? (
           <>
             {/* g1 closes the lit segment, so it belongs to it. g2 is where the
                 ray would leave a planet the light never reached. */}
-            <Point at={geometry.ground[0]} label="g1" tone="orange" r={4} offset={vec2(0, 18)} />
-            <Point at={geometry.ground[1]} label="g2" tone="structure" r={4} offset={vec2(0, 18)} />
+            <Point
+              at={geometry.ground[0]}
+              label="g1"
+              tone="orange"
+              r={4}
+              offset={vec2(0, 18)}
+            />
+            <Point
+              at={geometry.ground[1]}
+              label="g2"
+              tone="structure"
+              r={4}
+              offset={vec2(0, 18)}
+            />
           </>
         ) : null}
 
@@ -107,13 +144,26 @@ export default function RaySphere() {
           offset={geometry.closestLabel}
         />
         <Point at={ORIGIN} label="O" tone="blue" />
-        <Point at={CENTRE} label="C" tone="blue" offset={geometry.centreLabel} />
+        <Point
+          at={CENTRE}
+          label="C"
+          tone="blue"
+          offset={geometry.centreLabel}
+        />
 
         {/* Both reach in from the right and below. The ray leaves upward across
             the whole slider, so a leader from the left crosses it and its
             crossings at most angles. */}
-        <Leader at={add(CENTRE, vec2(PLANET * 0.52, PLANET * 0.86))} from={vec2(556, 292)} label="Planet" />
-        <Leader at={add(CENTRE, vec2(ATMOSPHERE * 0.66, ATMOSPHERE * 0.75))} from={vec2(528, 348)} label="Atmosphere" />
+        <Leader
+          at={add(CENTRE, vec2(PLANET * 0.52, PLANET * 0.86))}
+          from={vec2(556, 292)}
+          label="Planet"
+        />
+        <Leader
+          at={add(CENTRE, vec2(ATMOSPHERE * 0.66, ATMOSPHERE * 0.75))}
+          from={vec2(528, 348)}
+          label="Atmosphere"
+        />
       </Diagram>
 
       <Slider
