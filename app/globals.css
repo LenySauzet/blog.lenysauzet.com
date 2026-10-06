@@ -649,33 +649,56 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
 }
 
 /* A table wider than the measure scrolls inside its own edge, and the edge it
-   can still travel to dissolves rather than cutting a column in half. Declared
-   only in the keyframes: a scroll timeline with nothing to scroll is inactive,
-   so a table that fits carries no mask at all. Both steps hold the same four
-   stops, or there is nothing to interpolate and the mask jumps. A mask rather
+   can still travel to dissolves rather than cutting a column in half. Two
+   registered lengths rather than two mask values: a mask interpolates between
+   `calc(100% - 48px)` and `100%` by not interpolating at all, flipping in one
+   step halfway down the scroll, where a registered `<length>` travels. Each
+   runs over its own 3rem of the scroll and then holds, so the middle of a long
+   table keeps both edges open instead of easing them back out. A mask rather
    than a colour ramp, for the banding `ScrollFade` was built around. */
-@keyframes table-scroll-edges {
+@property --table-fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --table-fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes table-fade-start {
   from {
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      #000 0,
-      #000 calc(100% - 3rem),
-      transparent 100%
-    );
+    --table-fade-start: 0px;
   }
   to {
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      #000 3rem,
-      #000 100%,
-      transparent 100%
-    );
+    --table-fade-start: 3rem;
+  }
+}
+
+@keyframes table-fade-end {
+  from {
+    --table-fade-end: 3rem;
+  }
+  to {
+    --table-fade-end: 0px;
   }
 }
 
 [data-slot='table-container'] {
-  animation: table-scroll-edges linear both;
-  animation-timeline: scroll(self inline);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--table-fade-start),
+    #000 calc(100% - var(--table-fade-end)),
+    transparent 100%
+  );
+  animation:
+    table-fade-start linear both,
+    table-fade-end linear both;
+  animation-timeline: scroll(self inline), scroll(self inline);
+  animation-range:
+    0 3rem,
+    calc(100% - 3rem) 100%;
 }

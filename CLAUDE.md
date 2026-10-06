@@ -1178,23 +1178,37 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
 - **The mapping spreads its props, never its children alone.** GFM carries a column's
   alignment as an inline style on each cell, so `({ children }) => ...` renders a table
   that silently ignores its own delimiter row. `Table.test.tsx` guards it.
-- **A table is a surface, where a figure is not.** It takes the rounded edge and the
-  header takes `--wash/30`, the raised surface Select and Slider already sit on. Flush
-  to the prose it was tried first and reads as cramped: the rules run the measure, the
-  cells sit on it, and nothing separates the header from the first row.
+- **A table is a surface, and it is the code block's.** `--card` and `--border` are
+  what `--code-bg` and `--code-border` already resolve to, so a table and a fenced
+  block are the same panel in an article rather than two near-misses. Flush to the
+  prose it was tried first and reads as cramped.
+- **Its header is marked the way the code block's is**, by the rule under it and the
+  type on it, over a fill faint enough not to read as a second panel. `--wash/30` was
+  tried, the raised surface Select and Slider sit on, and measured 1.328 against the
+  page in dark where the header now reads 1.086. A control a pointer can press earns
+  that lift; a column name does not.
+- **The row hover belongs to `tbody`, not to the row.** Mapped from markdown, a header
+  is a `tr` like any other, so a hover declared on `TableRow` lit the header too and
+  promised an interaction that is not there.
 - **A column has a floor, and that is what makes a wide table scroll.** Without one the
   cells simply wrap, and a seven-column table turns every sentence into a column of
   single words rather than overflowing. At `min-w-36` a three-column table still fits
   the measure exactly and a seven-column one runs to 1008px inside it.
 - **The edge it can still travel to dissolves, with no JavaScript and no client
-  component.** `app/globals.css` carries the keyframes, a deliberate exception like the
-  ordered-list counters, because `animation-timeline` is not a Tailwind class. Three
-  things make it work: **the mask is declared only inside the keyframes**, since a
-  scroll timeline with nothing to scroll is inactive and a table that fits then carries
-  no mask at all (measured: `none` on both narrow tables, a right-hand ramp on the wide
-  one); **both steps hold the same four stops**, or there is nothing to interpolate and
-  the mask jumps; and it is **a mask rather than a colour ramp**, for the banding
-  `ScrollFade` was built around.
+  component.** `app/globals.css` carries it, a deliberate exception like the
+  ordered-list counters, `animation-timeline` being no more a Tailwind class than
+  `content: counter()`. Three things it forces:
+  - **Two registered `<length>`s, never two mask values.** A mask interpolates between
+    `calc(100% - 48px)` and `100%` by not interpolating at all: sampled across the
+    scroll, it held the first keyframe to halfway and flipped to the second in one
+    step. `@property` with `syntax: '<length>'` travels, and the mask is composed from
+    the pair.
+  - **Each runs over its own 3rem of the scroll and then holds**, through
+    `animation-range`. Spread across the whole range instead, both edges sit at half
+    width in the middle of a long table and read as the fade backing out.
+  - **A mask, not a colour ramp**, for the banding `ScrollFade` was built around. The
+    mask is always declared, and at rest both lengths are 0, so a table that fits
+    carries an opaque no-op rather than nothing at all.
 - **The scroll region is left to the browser for its keyboard path.** Chrome puts a
   scrollable container in the tab order on its own and leaves one that fits out of it,
   which is the discrimination an unconditional `tabIndex={0}` would destroy: every
