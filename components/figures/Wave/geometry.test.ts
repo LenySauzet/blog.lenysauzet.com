@@ -8,16 +8,19 @@ import { AXES, FREQUENCY, HEIGHT, SHAPES, TURN, wave, type Shape } from './geome
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
 
-const sweep = (Object.keys(SHAPES) as Shape[]).flatMap((shape) =>
-  steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
-    steps(TURN.min, TURN.max, 8).map((turn) => ({ shape, frequency, turn })),
-  ),
-);
-
 const drawn = (shape: Shape, frequency: number, turn: number) => {
   const { grid, camera } = wave(shape, frequency, turn);
   return scene(grid, camera, AXES);
 };
+
+const sweep = (Object.keys(SHAPES) as Shape[]).flatMap((shape) =>
+  steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
+    steps(TURN.min, TURN.max, 8).map((turn) => ({
+      at: `${shape} at ${frequency}, ${turn}°`,
+      ...drawn(shape, frequency, turn),
+    })),
+  ),
+);
 
 const extent = (piece: Piece) => {
   switch (piece.kind) {
@@ -46,22 +49,28 @@ describe('the wave', () => {
   });
 
   it('stays clear of the faded edges, whatever the shape, frequency and turn', () => {
-    for (const { shape, frequency, turn } of sweep)
-      for (const { x, y } of drawn(shape, frequency, turn).pieces.flatMap(extent))
-        expect(
-          clearOfFade({ name: 'surface', left: x, right: x, top: y, bottom: y }, HEIGHT),
-          `${shape} at ${frequency}, ${turn}°`,
-        ).toBe(true);
+    for (const { at, pieces } of sweep) {
+      const points = pieces.flatMap(extent);
+      const xs = points.map(({ x }) => x);
+      const ys = points.map(({ y }) => y);
+      const bounds = {
+        name: 'surface',
+        left: Math.min(...xs),
+        right: Math.max(...xs),
+        top: Math.min(...ys),
+        bottom: Math.max(...ys),
+      };
+
+      expect(clearOfFade(bounds, HEIGHT), at).toBe(true);
+    }
   });
 
   it('names each axis apart from the others and clear of the fade', () => {
-    for (const { shape, frequency, turn } of sweep)
+    for (const { at, names } of sweep)
       for (const size of SIZES) {
-        const boxes = drawn(shape, frequency, turn).names.map(({ name, label }) =>
-          textBox(name, label, size),
-        );
+        const boxes = names.map(({ name, label }) => textBox(name, label, size));
         for (const [i, a] of boxes.entries()) {
-          expect(clearOfFade(a, HEIGHT), `${a.name} at ${turn}° in ${size}`).toBe(true);
+          expect(clearOfFade(a, HEIGHT), `${a.name} ${at} in ${size}`).toBe(true);
           for (const b of boxes.slice(i + 1)) expect(overlap(a, b)).toBe(false);
         }
       }
