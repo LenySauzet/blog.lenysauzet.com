@@ -22,6 +22,7 @@ import Card from '@/components/Card';
 import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
 import Figure from '@/components/Figure';
+import Bezier from '@/components/figures/Bezier';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
 import RaySphere from '@/components/figures/RaySphere';
 import Fullbleed from '@/components/Fullbleed';
@@ -61,6 +62,7 @@ export const components = {
   SelectShowcase,
   SliderShowcase,
   ToggleShowcase,
+  Bezier,
   Fullbleed,
   Image,
   PieChart,

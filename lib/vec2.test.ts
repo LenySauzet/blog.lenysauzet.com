@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromAngle, length, normalize, scale, vec2 } from './vec2';
+import { fromAngle, length, lerp, normalize, scale, vec2 } from './vec2';
 
 describe('vec2', () => {
+  it('interpolates from one point to the other as t runs from 0 to 1', () => {
+    const [a, b] = [vec2(0, 0), vec2(10, 20)];
+
+    expect(lerp(a, b, 0)).toEqual(a);
+    expect(lerp(a, b, 1)).toEqual(b);
+    expect(lerp(a, b, 0.25)).toEqual(vec2(2.5, 5));
+  });
+
   it('normalises to unit length', () => {
     expect(length(normalize(vec2(3, 4)))).toBeCloseTo(1);
   });
