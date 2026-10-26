@@ -1360,6 +1360,12 @@ rather than a surface a screen reader cannot enter.
 - **Everything that lives in the scene is painted in its order**: faces, silhouette,
   vertices, and the axes cut into short segments, so an axis passing under the
   surface is tinted by the faces in front of it. Only the names sit on top.
+- **A mark sits over the faces it belongs to, and under the ones in front of it.** A
+  face strokes its own edges, so a neighbour a hair nearer would paint its edges across
+  the vertex and the silhouette they share. Both are offset toward the eye by the depth
+  one cell spans, the way a GPU offsets polygons: a silhouette by one cell from its
+  nearer end, a vertex by two, which clears every face and silhouette meeting at it
+  while a fold genuinely in front still fades it. The tests pin both halves.
 - **A figure is rendered twice, by Node and by the browser, and their floats differ.**
   `Math.sin` and `Math.cos` disagree in the last digits between the two, which hydration
   reports as a mismatch on every attribute they reach. The primitives therefore write

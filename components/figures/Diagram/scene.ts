@@ -29,32 +29,38 @@ export const paintOrder = (a: Piece, b: Piece) =>
 
 export function scene(grid: Grid, camera: Camera, axes: readonly Axis[] = []) {
   const project = view(camera);
-  const depthOf = (points: readonly Vec3[]) =>
-    points.reduce((sum, point) => sum + project(point).depth, 0) / points.length;
-  const edge = (a: Vec3, b: Vec3, above = 0) => ({
+  const depths = (points: readonly Vec3[]) => points.map((point) => project(point).depth);
+  const mean = (points: readonly Vec3[]) =>
+    depths(points).reduce((sum, depth) => sum + depth, 0) / points.length;
+  const nearest = (points: readonly Vec3[]) => Math.max(...depths(points));
+  const edge = (a: Vec3, b: Vec3) => ({
     from: project(a).at,
     to: project(b).at,
-    depth: depthOf([a, b]) + above,
+    depth: mean([a, b]),
   });
 
-  const surface: Piece[] = faces(grid)
-    .flat()
-    .map((face, index) => ({
-      id: `face${index}`,
-      kind: 'face',
-      corners: face.corners.map((corner) => project(corner).at),
-      depth: depthOf(face.corners),
-    }));
+  const mesh = faces(grid).flat();
+  const cell = Math.max(
+    ...mesh.map(({ corners }) => nearest(corners) - Math.min(...depths(corners))),
+  );
+
+  const surface: Piece[] = mesh.map((face, index) => ({
+    id: `face${index}`,
+    kind: 'face',
+    corners: face.corners.map((corner) => project(corner).at),
+    depth: mean(face.corners),
+  }));
   const outline: Piece[] = silhouette(grid, towardViewer(camera)).map(([a, b]) => ({
     id: `silhouette${a.x},${a.z},${b.x},${b.z}`,
     kind: 'silhouette',
-    ...edge(a, b, 1e-3),
+    ...edge(a, b),
+    depth: nearest([a, b]) + cell,
   }));
   const vertices: Piece[] = grid.flat().map((point, index) => ({
     id: `vertex${index}`,
     kind: 'vertex',
     at: project(point).at,
-    depth: project(point).depth + 2e-3,
+    depth: project(point).depth + 2 * cell,
   }));
   const lines: Piece[] = axes.flatMap(({ name, tip }) =>
     Array.from({ length: 2 * AXIS_STEPS }, (_, step) => {

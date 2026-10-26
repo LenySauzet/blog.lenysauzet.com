@@ -51,6 +51,47 @@ describe('scene', () => {
         expect(length(sub(arrow.to, origin))).toBeGreaterThan(length(sub(arrow.from, origin)));
   });
 
+  it('paints every vertex over the faces and silhouettes that meet at it', () => {
+    const where = (piece: Piece) => pieces.indexOf(piece);
+    const touches = (piece: Piece, at: { x: number; y: number }) => {
+      const same = (p: { x: number; y: number }) => p.x === at.x && p.y === at.y;
+      if (piece.kind === 'face') return piece.corners.some(same);
+      if (piece.kind === 'silhouette') return same(piece.from) || same(piece.to);
+      return false;
+    };
+
+    for (const vertex of pieces)
+      if (vertex.kind === 'vertex')
+        for (const piece of pieces)
+          if (touches(piece, vertex.at)) expect(where(vertex)).toBeGreaterThan(where(piece));
+  });
+
+  it('paints a silhouette over the faces on either side of it', () => {
+    const where = (piece: Piece) => pieces.indexOf(piece);
+
+    for (const line of pieces)
+      if (line.kind === 'silhouette')
+        for (const face of pieces)
+          if (
+            face.kind === 'face' &&
+            [line.from, line.to].every((end) =>
+              face.corners.some(({ x, y }) => x === end.x && y === end.y),
+            )
+          )
+            expect(where(line)).toBeGreaterThan(where(face));
+  });
+
+  it('still lets a fold in front fade the vertices behind it', () => {
+    const fold = scene(heightfield((x) => 0.6 * Math.sin(4 * x), 1, [9, 9]), CAMERA).pieces;
+    const lastVertex = fold.findLastIndex(({ kind }) => kind === 'vertex');
+    const firstFace = fold.findIndex(({ kind }) => kind === 'face');
+
+    expect(fold.slice(firstFace, lastVertex).some(({ kind }) => kind === 'vertex')).toBe(true);
+    expect(
+      fold.slice(fold.findIndex(({ kind }) => kind === 'vertex')).some(({ kind }) => kind === 'face'),
+    ).toBe(true);
+  });
+
   it('passes the axes under the surface where it lies in front of them', () => {
     const order = pieces.map(({ kind }) => kind);
     const between = order
