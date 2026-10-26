@@ -4,59 +4,51 @@ import { useState } from 'react';
 
 import Figure from '@/components/Figure';
 import Slider from '@/components/Slider';
-import Diagram, {
-  Arrow,
-  Label,
-  Line,
-  Point,
-  Polygon,
-} from '@/components/figures/Diagram';
+import Diagram, { Surface } from '@/components/figures/Diagram';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-import { FREQUENCY, HEIGHT, TURN, wave } from './geometry';
+import { AXES, FREQUENCY, HEIGHT, SHAPES, TURN, wave, type Shape } from './geometry';
 
 export interface WaveProps {
   className?: string;
 }
 
 export default function Wave({ className }: WaveProps) {
+  const [shape, setShape] = useState<Shape>('plane');
   const [frequency, setFrequency] = useState(FREQUENCY.initial);
   const [turn, setTurn] = useState(TURN.initial);
-  const { pieces, names } = wave(frequency, turn);
+  const { grid, camera } = wave(shape, frequency, turn);
 
   return (
     <Figure
       className={className}
-      caption="A flat grid, every point lifted by a sine of where it sits, which is the whole of what a vertex shader does to it. Each face takes the light by how squarely it meets it, and the heavier line is the silhouette: the border, and every fold where the surface turns away from the eye.">
+      caption="A flat grid, every point lifted by a sine of where it sits, which is the whole of what a vertex shader does to it: along one axis for a plane wave, or by its distance from the centre for a ripple. The faces are the page, so whatever lies behind the surface fades, and the heavier line is the silhouette.">
       <Diagram height={HEIGHT} title="A grid displaced by a sine wave">
-        {pieces.map((piece) => {
-          switch (piece.kind) {
-            case 'tile':
-              return (
-                <Polygon
-                  key={piece.id}
-                  corners={piece.corners}
-                  tone="ink"
-                  fill={piece.shade}
-                  width={0.75}
-                />
-              );
-            case 'edge':
-              return <Line key={piece.id} from={piece.from} to={piece.to} tone="ink" width={2} />;
-            case 'vertex':
-              return <Point key={piece.id} at={piece.at} r={1.6} />;
-            case 'axis':
-              return <Line key={piece.id} from={piece.from} to={piece.to} width={1.5} />;
-            case 'arrow':
-              return <Arrow key={piece.id} from={piece.from} to={piece.to} width={1.5} />;
-          }
-        })}
-        {names.map(({ name, label }) => (
-          <Label key={name} {...label}>
-            {name}
-          </Label>
-        ))}
+        <Surface grid={grid} camera={camera} axes={AXES} />
       </Diagram>
 
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="wave-shape">Wave</Label>
+        <Select value={shape} onValueChange={(next) => setShape(next as Shape)}>
+          <SelectTrigger id="wave-shape" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(SHAPES).map((name) => (
+              <SelectItem key={name} value={name} className="capitalize">
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <Slider
         label="Frequency"
         min={FREQUENCY.min}

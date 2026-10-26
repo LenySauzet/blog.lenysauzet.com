@@ -1,19 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
+import { scene, type Piece } from '@/components/figures/Diagram';
 import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
 
-import { FREQUENCY, HEIGHT, paintOrder, TURN, wave, type Piece } from './geometry';
+import { AXES, FREQUENCY, HEIGHT, SHAPES, TURN, wave, type Shape } from './geometry';
 
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
 
-const sweep = steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
-  steps(TURN.min, TURN.max, 8).map((turn) => ({ frequency, turn })),
+const sweep = (Object.keys(SHAPES) as Shape[]).flatMap((shape) =>
+  steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
+    steps(TURN.min, TURN.max, 8).map((turn) => ({ shape, frequency, turn })),
+  ),
 );
+
+const drawn = (shape: Shape, frequency: number, turn: number) => {
+  const { grid, camera } = wave(shape, frequency, turn);
+  return scene(grid, camera, AXES);
+};
 
 const extent = (piece: Piece) => {
   switch (piece.kind) {
-    case 'tile':
+    case 'face':
       return piece.corners;
     case 'vertex':
       return [piece.at];
@@ -22,73 +30,36 @@ const extent = (piece: Piece) => {
   }
 };
 
-const points = (frequency: number, turn: number) =>
-  wave(frequency, turn).pieces.flatMap(extent);
+describe('the wave', () => {
+  it('folds away from the eye once it is steep enough', () => {
+    const folds = (frequency: number) =>
+      drawn('plane', frequency, 0).pieces.filter(({ kind }) => kind === 'silhouette').length;
 
-describe('the surface', () => {
-  it('is painted from the back forward, so nearer faces cover farther ones', () => {
-    for (const { frequency, turn } of sweep) {
-      const { pieces } = wave(frequency, turn);
-      expect(pieces).toEqual(pieces.toSorted(paintOrder));
-    }
+    expect(folds(FREQUENCY.max)).toBeGreaterThan(folds(FREQUENCY.min));
   });
 
-  it('shades every face within the range a fill can take', () => {
-    for (const { frequency, turn } of sweep)
-      for (const piece of wave(frequency, turn).pieces)
-        if (piece.kind === 'tile') {
-          expect(piece.shade).toBeGreaterThan(0);
-          expect(piece.shade).toBeLessThanOrEqual(1);
-        }
+  it('ripples outward from the centre, the same at every distance', () => {
+    const height = SHAPES.ripple(1.5);
+
+    expect(height(0.6, 0)).toBeCloseTo(height(0, 0.6));
+    expect(height(0.3, 0.4)).toBeCloseTo(height(0.5, 0));
   });
 
-  it('draws a silhouette inside the border once the wave is steep enough to fold away', () => {
-    const edges = (frequency: number) =>
-      wave(frequency, 0).pieces.filter(({ kind }) => kind === 'edge').length;
-
-    expect(edges(FREQUENCY.max)).toBeGreaterThan(edges(FREQUENCY.min));
-  });
-
-  it('stays clear of the faded edges at every frequency and turn', () => {
-    for (const { frequency, turn } of sweep)
-      for (const { x, y } of points(frequency, turn))
+  it('stays clear of the faded edges, whatever the shape, frequency and turn', () => {
+    for (const { shape, frequency, turn } of sweep)
+      for (const { x, y } of drawn(shape, frequency, turn).pieces.flatMap(extent))
         expect(
           clearOfFade({ name: 'surface', left: x, right: x, top: y, bottom: y }, HEIGHT),
-          `at ${frequency}, ${turn}°`,
+          `${shape} at ${frequency}, ${turn}°`,
         ).toBe(true);
   });
 
-  it('orders pieces the same on the server and in the browser, whose floats differ in the last digits', () => {
-    const vertex = (id: string, depth: number): Piece => ({ id, kind: 'vertex', at: { x: 0, y: 0 }, depth });
-
-    expect(paintOrder(vertex('b', 0.5), vertex('a', 0.5 + 1e-12))).toBeGreaterThan(0);
-    expect(paintOrder(vertex('b', 0.5 + 1e-12), vertex('a', 0.5))).toBeGreaterThan(0);
-    expect(paintOrder(vertex('a', 0.4), vertex('b', 0.5))).toBeLessThan(0);
-  });
-
-  it('names every piece uniquely, so a re-sort moves pieces rather than rebuilding them', () => {
-    for (const { frequency, turn } of sweep) {
-      const ids = wave(frequency, turn).pieces.map(({ id }) => id);
-      expect(new Set(ids).size).toBe(ids.length);
-    }
-  });
-});
-
-describe('the axes', () => {
-  it('run under the surface where it lies in front of them', () => {
-    const { pieces } = wave(FREQUENCY.initial, TURN.initial);
-    const order = pieces.map(({ kind }) => kind);
-    const firstTile = order.indexOf('tile');
-    const lastTile = order.lastIndexOf('tile');
-    const between = order.slice(firstTile, lastTile).filter((kind) => kind === 'axis');
-
-    expect(between.length).toBeGreaterThan(0);
-  });
-
-  it('name each axis apart from the others and clear of the fade', () => {
-    for (const { frequency, turn } of sweep)
+  it('names each axis apart from the others and clear of the fade', () => {
+    for (const { shape, frequency, turn } of sweep)
       for (const size of SIZES) {
-        const boxes = wave(frequency, turn).names.map(({ name, label }) => textBox(name, label, size));
+        const boxes = drawn(shape, frequency, turn).names.map(({ name, label }) =>
+          textBox(name, label, size),
+        );
         for (const [i, a] of boxes.entries()) {
           expect(clearOfFade(a, HEIGHT), `${a.name} at ${turn}° in ${size}`).toBe(true);
           for (const b of boxes.slice(i + 1)) expect(overlap(a, b)).toBe(false);

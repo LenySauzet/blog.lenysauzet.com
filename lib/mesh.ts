@@ -39,9 +39,6 @@ export function faces(grid: Grid): Face[][] {
   );
 }
 
-export const lambert = ({ normal }: Face, light: Vec3) =>
-  Math.max(0, dot3(normal, light));
-
 export function silhouette(grid: Grid, toward: Vec3): Edge[] {
   const facing = faces(grid).map((row) =>
     row.map(({ normal }) => dot3(normal, toward) > 0),

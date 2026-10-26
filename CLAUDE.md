@@ -1305,9 +1305,25 @@ rather than a surface a screen reader cannot enter.
   because the type is CSS's to choose and the layout is not, and a leader runs level
   then turns once, just short of what it names. Leaders are drawn first, under the
   construction they point into.
+- **A figure is assembled from the toolbox, never drawn inline.** `components/figures/
+  Diagram` holds the atoms (`Point`, `Line`, `Curve`, `Arrow`, `Polygon`, `Circle`,
+  `Label`), the parts built from them (`Leader`, `Magnifier`, `Detail`, `Surface`) and
+  the pure geometry each one rests on. A figure is its subject, its controls and a
+  composition of those; when it needs a way of drawing the toolbox lacks, the way is
+  added there, tested, and the figure uses it. One change then reaches every figure.
+- **Tones are CSS values in one map, applied as two variables.** `tones.ts` maps each
+  tone to a value and `paint()` sets `--fill` and `--edge` on the element, so the
+  classes stay `fill-(--fill)` and `stroke-(--edge)` whatever the tone. A tone as a
+  class could not give one element two tones, which cost every face of a surface a
+  second polygon: 2670 elements and 25ms a step, against 1518 and 16.9 once a shape
+  could take an `outline` of its own.
 - **Every shape takes one stroke and one fill.** Tone, width and dash are shared by
   `Circle`, `Polygon`, `Line`, `Curve` and `Arrow`; a fill is `none`, `soft`, `solid`,
-  `hatched`, or a number for the tone at that share. `width={0}` leaves the fill alone.
+  `hatched`, or a number for the tone at that share, and `outline` gives the edge a
+  tone of its own. `width={0}` leaves the fill alone.
+- **Parts that differ in kind differ in weight or tone.** A vertex is full ink, a mesh
+  line `ink-soft`, the silhouette full ink and heavier, a construction line `guide`.
+  Drawn in one ink at one weight, a mesh is a single texture and nothing in it reads.
 - **Hatching is the drawing-office mark for a cut**, so `hatched` is for a section or
   for the part of something a figure singles out, never for decoration. Its pattern
   takes an id from `useId`, so every copy of a drawing gets its own.
@@ -1331,8 +1347,11 @@ rather than a surface a screen reader cannot enter.
   the border**, drawn one weight heavier than the mesh: it is the line that detaches a
   form from its ground. Faces and edges are sorted together, back to front, so a fold
   behind a crest is covered by it rather than drawn across it.
-- **A face is shaded with the share fill**, a floor plus how squarely it meets the
-  light, an underside at a fixed low share. No token was needed.
+- **A face is the page, not the ink.** `Surface` fills faces with `page` at
+  `occlusion`, so whatever lies behind a surface, its far side and the axes alike,
+  fades rather than takes a tint: 0.8 ghosts the back, 1 removes it, which is
+  hidden-line removal by the painter's algorithm alone. An axis runs out both ways,
+  an arrow at each end, named at its positive one.
 - **A grid's cells are square, and fine enough for the highest frequency.** Nineteen
   points a side aliased the wave into a zigzag; twenty-five keep eight cells to a
   period. Forty-one columns over eleven rows was smoother and cheaper, and read as a
@@ -1350,9 +1369,9 @@ rather than a surface a screen reader cannot enter.
   design system, none once rounded.
 - **Every piece carries a stable id and is keyed by it.** The list is re-sorted on
   every step, so an index key hands one position to a different piece, and a polygon
-  turning into a circle there is a remount. Keyed, React moves nodes instead: at about
-  1660 elements the p90 per slider step fell from 21.8ms to 17.4, the median holding
-  at 16.7, two frames of wait included.
+  turning into a circle there is a remount. Keyed, React moves nodes instead: the p90
+  per slider step fell from 21.8ms to 17.4 when it landed. The scene and its keys
+  live in `Diagram/scene.ts`, so every surface inherits both.
 - **Keep a turn well short of edge-on.** Within about twenty degrees of looking along
   the crests, faces flip between facing and not from one to the next and the
   silhouette breaks into ticks.

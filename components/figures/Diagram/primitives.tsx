@@ -5,7 +5,7 @@ import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
 
 import { LEADER_GAP, leaderPath } from './leaders';
 import { tangents, type Disc } from './magnifier';
-import { TONES, type Tone } from './tones';
+import { paint, type Tone } from './tones';
 
 interface Stroke {
   tone?: Tone;
@@ -22,9 +22,9 @@ const stroke = ({
 }: Stroke) => ({
   strokeWidth: width,
   strokeLinecap: 'round' as const,
+  style: paint(tone),
   className: cn(
-    TONES[tone],
-    'stroke-(--tone)',
+    'stroke-(--edge)',
     dashed && '[stroke-dasharray:4_6]',
     className,
   ),
@@ -32,8 +32,8 @@ const stroke = ({
 
 const FILLS = {
   none: 'fill-none',
-  soft: 'fill-(--tone)/12',
-  solid: 'fill-(--tone)/25',
+  soft: 'fill-(--fill)/12',
+  solid: 'fill-(--fill)/25',
   hatched: '',
 } as const;
 
@@ -50,7 +50,7 @@ function useFill(tone: Tone, fill: Fill) {
   const hatch = useId();
 
   if (typeof fill === 'number') {
-    return { className: 'fill-(--tone)', fillOpacity: fixed(fill, 3) };
+    return { className: 'fill-(--fill)', fillOpacity: fixed(fill, 3) };
   }
 
   if (fill !== 'hatched') return { className: FILLS[fill] };
@@ -65,21 +65,27 @@ function useFill(tone: Tone, fill: Fill) {
         patternUnits="userSpaceOnUse"
         patternTransform="rotate(45)"
       >
-        <line y2={HATCH} className={cn(TONES[tone], 'stroke-(--tone)')} />
+        <line y2={HATCH} style={paint(tone)} className="stroke-(--edge)" />
       </pattern>
     ),
   };
 }
 
-type Shape = Stroke & { fill?: Fill };
+type Shape = Stroke & { fill?: Fill; outline?: Tone };
 
-function useShape({ fill = 'none', ...rest }: Shape) {
-  const { pattern, className, ...paint } = useFill(rest.tone ?? 'structure', fill);
-  const outline = stroke(rest);
+function useShape({ fill = 'none', outline, ...rest }: Shape) {
+  const tone = rest.tone ?? 'structure';
+  const { pattern, className, ...surface } = useFill(tone, fill);
+  const edge = stroke(rest);
 
   return {
     pattern,
-    paint: { ...outline, ...paint, className: cn(className, outline.className) },
+    paint: {
+      ...edge,
+      ...surface,
+      style: paint(tone, outline ?? tone),
+      className: cn(className, edge.className),
+    },
   };
 }
 
@@ -149,7 +155,8 @@ export function Arrow({
       <line x1={fixed(from.x)} y1={fixed(from.y)} x2={fixed(base.x)} y2={fixed(base.y)} {...stroke(rest)} />
       <polygon
         points={points([to, add(base, side), sub(base, side)])}
-        className={cn(TONES[rest.tone ?? 'structure'], 'fill-(--tone)')}
+        style={paint(rest.tone ?? 'structure')}
+        className="fill-(--fill)"
       />
     </g>
   );
@@ -171,7 +178,8 @@ export function Point({
       cx={fixed(at.x)}
       cy={fixed(at.y)}
       r={r}
-      className={cn(TONES[tone], 'fill-(--tone)', className)}
+      style={paint(tone)}
+      className={cn('fill-(--fill)', className)}
     />
   );
 }
@@ -219,10 +227,10 @@ export function Leader({
   const rightward = label.x > target.x;
 
   return (
-    <g className={cn(TONES.structure, className)}>
+    <g style={paint('structure')} className={className}>
       <polyline
         points={points(leaderPath(target, label))}
-        className="fill-none stroke-(--tone)"
+        className="fill-none stroke-(--edge)"
       />
       <text
         x={fixed(label.x)}
@@ -253,10 +261,10 @@ function Lens({
   children,
 }: LensProps & { transform: string }) {
   const clip = useId();
-  const edge = 'fill-none stroke-(--tone)';
+  const edge = 'fill-none stroke-(--edge)';
 
   return (
-    <g className={cn(TONES.structure, className)}>
+    <g style={paint('structure')} className={className}>
       {tangents(source, lens).map(([near, far], index) => (
         <line
           key={index}

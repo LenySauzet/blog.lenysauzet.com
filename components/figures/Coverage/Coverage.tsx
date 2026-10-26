@@ -33,7 +33,7 @@ export default function Coverage({ className }: CoverageProps) {
           tone="ink"
           fill={tile(share)}
           width={1.5}
-          className="stroke-background"
+          outline="page"
         />
       ))}
       <Polygon corners={focus.covered} tone="second" fill="hatched" width={0} />

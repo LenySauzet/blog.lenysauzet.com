@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { faces, heightfield, lambert, silhouette } from './mesh';
+import { faces, heightfield, silhouette } from './mesh';
 import { vec3 } from './vec3';
 
 const ABOVE = vec3(0, 1, 0);
@@ -28,13 +28,6 @@ describe('heightfield', () => {
 describe('faces', () => {
   it('face up on a flat ground', () => {
     for (const face of faces(FLAT).flat()) expect(face.normal).toEqual(vec3(0, 1, 0));
-  });
-
-  it('take the most light where they face it', () => {
-    const [face] = faces(FLAT)[0];
-
-    expect(lambert(face, ABOVE)).toBe(1);
-    expect(lambert(face, vec3(0, -1, 0))).toBe(0);
   });
 });
 
