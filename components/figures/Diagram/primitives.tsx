@@ -64,7 +64,7 @@ export function Line({
 
 export function Point({
   at,
-  tone = 'blue',
+  tone = 'ink',
   r = 5,
 }: {
   at: Vec2;
@@ -81,11 +81,21 @@ export function Point({
   );
 }
 
-export function Label({ at, children }: { at: Vec2; children: ReactNode }) {
+export function Label({
+  at,
+  offset = { x: 0, y: 0 },
+  children,
+}: {
+  at: Vec2;
+  offset?: Vec2;
+  children: ReactNode;
+}) {
   return (
     <text
       x={at.x}
       y={at.y}
+      dx={`${offset.x}em`}
+      dy={`${offset.y}em`}
       textAnchor="middle"
       dominantBaseline="central"
       className="fill-foreground stroke-background stroke-3 [paint-order:stroke] [stroke-linejoin:round]"

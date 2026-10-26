@@ -1267,17 +1267,14 @@ redrawn on a slider need no raster, and the trade is all one way: the colours be
 tokens, the labels stay selectable, and the whole is one `role="img"` with a title
 rather than a surface a screen reader cannot enter.
 
-- **A figure's colours are fixed hues, never the accent.** In a diagram a colour names
-  something, and one that turns with the reader's preset renames it; the accent has a
-  single hue anyway, where a figure separating four notions needs four.
-  `--color-figure-*` is the palette, and **only the hue is declared**: a fill is that
-  hue mixed toward the page, so it lightens on a light page and darkens on a dark one
-  from one definition, the way `--heat-from` runs both ways. That is also why no light
-  slab is needed, the figure staying in the prose. **A hue is declared when a figure
-  first needs it**, never ahead: two today.
-- **They have to live in the existing `@theme` block.** A second one appended to
-  `globals.css` emits nothing and the utilities fall back to Tailwind's stock ramp in
-  silence, which the comment above that block already warns about.
+- **A figure is drawn in one ink, and the ink is the accent.** The structure takes
+  `ink`, which is `--primary`, so every figure carries the colour the reader chose, the
+  way Making Software draws everything in its own cobalt. What the figure found takes
+  `contrast`, **the accent's complement** rather than a fixed hue: with seventeen
+  presets any fixed hue is somebody's accent, and an orange result vanishes into an
+  Orange ink. A hue that names something in the world (a pixel's R, G and B) is fixed,
+  and is declared the day a figure needs one. A fill is the tone mixed toward the page,
+  so one definition lightens on a light page and darkens on a dark one.
 - **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
   against the page, which is a line nobody can follow. The construction lines take a
   mix of `--muted-foreground`, 2.20 in light and 3.16 in dark, which is where the
@@ -1286,8 +1283,8 @@ rather than a surface a screen reader cannot enter.
   defect in this figure came from that: two names colliding at one angle out of a
   hundred, a label outside the frame at the extremes, another inside the edge fade at
   all of them. **Sweep the control in the geometry's own test**: `RaySphere/geometry.test.ts`
-  boxes every name at every tenth of a degree and asserts they never overlap, never
-  meet the ray and never reach the fade.
+  boxes every name at every tenth of a degree, at each of the three type sizes, and
+  asserts they never overlap, never meet the ray and never reach the fade.
 - **Names are pushed apart from each other, never to fixed sides.** Two points already
   separated along one axis come back together at whatever angle leaves them twice the
   offset apart.
@@ -1297,11 +1294,15 @@ rather than a surface a screen reader cannot enter.
 - **A name wears a halo in `--background`**, through `paint-order`, so a stroke passing
   under it is knocked out rather than read through. A point on a circle is named
   across that circle's edge at some angle, and no placement avoids it.
-- **A figure keeps its own width and scrolls.** Text scales with the box, so a label
-  is illegible long before the drawing is: 6.6px at 375. The edges dissolve through
-  `ScrollFade`'s ramp, four of them intersected rather than one radial, which pulls the
-  corners in on a wide drawing, and the band is narrow enough to catch a line leaving
-  and nothing named.
+- **A figure scales and never scrolls, and its type does not shrink with it.** Every
+  diagram is drawn at `MEASURE`, the prose width, so one set of `@container` steps can
+  raise the type in the drawing's own units as the column narrows: 13, 16, then 20,
+  which never lets a name fall far under 10px down to 336. A name sits off its point by an offset in
+  `em`, so the gap grows with the type it separates. A fixed width is what lets the
+  steps be shared: a container query cannot read a figure's own viewBox.
+- **The edges dissolve** through `ScrollFade`'s ramp, four of them intersected rather
+  than one radial, which pulls the corners in on a wide drawing, and the band is narrow
+  enough to catch a line leaving and nothing named.
 - **There is no prettier config here and the repo writes single quotes.** Running
   `npx prettier` without `--single-quote` turns a file against the house style, and
   running it on a directory reformats every neighbour.

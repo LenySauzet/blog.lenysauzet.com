@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 
 import { EASED, blurRamp } from '@/components/ScrollFade/gradients';
 
+export const MEASURE = 672;
+
 export interface DiagramProps {
-  width: number;
   height: number;
   title: string;
   children: ReactNode;
@@ -14,19 +15,18 @@ const FADE = ['to right', 'to left', 'to bottom', 'to top']
   .join(', ');
 
 export default function Diagram({
-  width,
   height,
   title,
   children,
 }: DiagramProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="@container">
       <svg
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 0 ${MEASURE} ${height}`}
         role="img"
         aria-label={title}
-        style={{ maskImage: FADE, maskComposite: 'intersect', minWidth: width }}
-        className="h-auto w-full font-mono text-[13px] [&_*]:[vector-effect:non-scaling-stroke]"
+        style={{ maskImage: FADE, maskComposite: 'intersect' }}
+        className="h-auto w-full font-mono text-[13px] @max-lg:text-[16px] @max-md:text-[20px] [&_*]:[vector-effect:non-scaling-stroke]"
       >
         {children}
       </svg>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { vec2, type Vec2 } from '@/lib/vec2';
+import { add, scale, vec2, type Vec2 } from '@/lib/vec2';
 
 import {
   ANGLE,
@@ -10,18 +10,24 @@ import {
   ORIGIN,
   WIDTH,
   raySphere,
+  type Placement,
 } from './geometry';
 
-const GLYPH = { width: 8.5, height: 17 };
+const SIZES = [13, 16, 20];
+const GLYPH = { width: 0.65, height: 1.3 };
 const FADE = { x: WIDTH * 0.06, y: HEIGHT * 0.06 };
 
-const box = (name: string, at: Vec2) => ({
-  name,
-  left: at.x - (name.length * GLYPH.width) / 2,
-  right: at.x + (name.length * GLYPH.width) / 2,
-  top: at.y - GLYPH.height / 2,
-  bottom: at.y + GLYPH.height / 2,
-});
+const box = (name: string, { at, offset }: Placement, size: number) => {
+  const centre = add(at, scale(offset, size));
+  const half = { x: (name.length * GLYPH.width * size) / 2, y: (GLYPH.height * size) / 2 };
+  return {
+    name,
+    left: centre.x - half.x,
+    right: centre.x + half.x,
+    top: centre.y - half.y,
+    bottom: centre.y + half.y,
+  };
+};
 type Box = ReturnType<typeof box>;
 
 const corners = ({ left, right, top, bottom }: Box) => [
@@ -41,14 +47,16 @@ const crossesLine = (b: Box, from: Vec2, to: Vec2) => {
   return sides.includes(1) && sides.includes(-1);
 };
 
-const sweep = Array.from(
-  { length: (ANGLE.max - ANGLE.min) * 10 + 1 },
-  (_, i) => ANGLE.min + i / 10,
+const sweep = SIZES.flatMap((size) =>
+  Array.from({ length: (ANGLE.max - ANGLE.min) * 10 + 1 }, (_, i) => ({
+    size,
+    degrees: ANGLE.min + i / 10,
+  })),
 );
 
-const named = (degrees: number) =>
-  Object.entries(raySphere(degrees).labels).flatMap(([name, at]) =>
-    at ? [box(name, at)] : [],
+const named = (degrees: number, size: number) =>
+  Object.entries(raySphere(degrees).labels).flatMap(([name, placement]) =>
+    placement ? [box(name, placement, size)] : [],
   );
 
 describe('the ray against the planet', () => {
@@ -81,29 +89,29 @@ describe('the ray against the planet', () => {
 
 describe('the names, across the whole slider', () => {
   it('never overlap each other', () => {
-    for (const degrees of sweep) {
-      const boxes = named(degrees);
+    for (const { degrees, size } of sweep) {
+      const boxes = named(degrees, size);
       for (const [i, a] of boxes.entries())
         for (const b of boxes.slice(i + 1))
-          expect(overlap(a, b), `${a.name} and ${b.name} at ${degrees}°`).toBe(false);
+          expect(overlap(a, b), `${a.name} and ${b.name} at ${degrees}° in ${size}`).toBe(false);
     }
   });
 
   it('are never crossed by the ray', () => {
-    for (const degrees of sweep) {
+    for (const { degrees, size } of sweep) {
       const { end } = raySphere(degrees);
-      for (const b of named(degrees))
-        expect(crossesLine(b, ORIGIN, end), `${b.name} at ${degrees}°`).toBe(false);
+      for (const b of named(degrees, size))
+        expect(crossesLine(b, ORIGIN, end), `${b.name} at ${degrees}° in ${size}`).toBe(false);
     }
   });
 
   it('stay clear of the faded edges', () => {
-    for (const degrees of sweep)
-      for (const b of named(degrees)) {
-        expect(b.left, `${b.name} at ${degrees}°`).toBeGreaterThan(FADE.x);
-        expect(b.right, `${b.name} at ${degrees}°`).toBeLessThan(WIDTH - FADE.x);
-        expect(b.top, `${b.name} at ${degrees}°`).toBeGreaterThan(FADE.y);
-        expect(b.bottom, `${b.name} at ${degrees}°`).toBeLessThan(HEIGHT - FADE.y);
+    for (const { degrees, size } of sweep)
+      for (const b of named(degrees, size)) {
+        expect(b.left, `${b.name} at ${degrees}° in ${size}`).toBeGreaterThan(FADE.x);
+        expect(b.right, `${b.name} at ${degrees}° in ${size}`).toBeLessThan(WIDTH - FADE.x);
+        expect(b.top, `${b.name} at ${degrees}° in ${size}`).toBeGreaterThan(FADE.y);
+        expect(b.bottom, `${b.name} at ${degrees}° in ${size}`).toBeLessThan(HEIGHT - FADE.y);
       }
   });
 });

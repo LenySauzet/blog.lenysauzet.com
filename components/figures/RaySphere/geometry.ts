@@ -1,3 +1,4 @@
+import { MEASURE } from '@/components/figures/Diagram/Diagram';
 import {
   add,
   fromAngle,
@@ -11,19 +12,24 @@ import {
 
 import { rayCircle } from './ray-circle';
 
-export const WIDTH = 672;
-export const HEIGHT = 384;
-export const ORIGIN = vec2(58, 192);
-export const CENTRE = vec2(430, 192);
+export const WIDTH = MEASURE;
+export const HEIGHT = 408;
+export const ORIGIN = vec2(58, 204);
+export const CENTRE = vec2(430, 204);
 export const PLANET = 86;
 export const ATMOSPHERE = 124;
 export const ANGLE = { min: -22, max: 22, initial: 9 };
 
 const RAY_LENGTH = 820;
-const GAP = 20;
-const STAGGER = 12;
+const GAP = 1.5;
+const STAGGER = 0.9;
+const CHORD_FLOOR = 40;
 
 type Pair = readonly [Vec2, Vec2];
+export interface Placement {
+  at: Vec2;
+  offset: Vec2;
+}
 
 export function raySphere(degrees: number) {
   const direction = fromAngle((-degrees * Math.PI) / 180);
@@ -36,10 +42,14 @@ export function raySphere(degrees: number) {
   const away =
     length(toCentre) > 1 ? normalize(toCentre) : vec2(-direction.y, direction.x);
   const below = away.y >= 0 ? 1 : -1;
-  const beside = (point: Vec2, side: number, ahead: number) =>
-    add(point, add(scale(away, side * GAP), scale(direction, ahead * STAGGER)));
-  const underCentre = (distance: number) =>
-    add(CENTRE, vec2(0, below * distance));
+  const beside = (at: Vec2, side: number, ahead: number): Placement => ({
+    at,
+    offset: add(scale(away, side * GAP), scale(direction, ahead * STAGGER)),
+  });
+  const underCentre = (em: number, distance = 0): Placement => ({
+    at: add(CENTRE, vec2(0, below * distance)),
+    offset: vec2(0, below * em),
+  });
 
   const crossings: Pair | null = sky.hits
     ? [along(sky.near), along(sky.far)]
@@ -55,18 +65,16 @@ export function raySphere(degrees: number) {
     landings,
     lit: crossings && ([crossings[0], landings?.[0] ?? crossings[1]] as Pair),
     labels: {
-      O: add(ORIGIN, vec2(0, -GAP)),
+      O: { at: ORIGIN, offset: vec2(0, -GAP) },
       C: underCentre(GAP),
       H:
-        sky.hits && sky.far - sky.near <= 2 * GAP
-          ? null
-          : beside(closest, -1, 0),
+        sky.hits && sky.far - sky.near <= CHORD_FLOOR ? null : beside(closest, -1, 0),
       p1: crossings && beside(crossings[0], -1, -1),
       p2: crossings && beside(crossings[1], -1, 1),
       g1: landings && beside(landings[0], 1, -1),
       g2: landings && beside(landings[1], 1, 1),
-      Planet: underCentre(PLANET * 0.55),
-      Atmosphere: underCentre((PLANET + ATMOSPHERE) / 2),
-    },
+      Planet: underCentre(3),
+      Atmosphere: underCentre(1.2, ATMOSPHERE),
+    } satisfies Record<string, Placement | null>,
   };
 }

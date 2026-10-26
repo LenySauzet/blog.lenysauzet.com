@@ -9,9 +9,6 @@
    time. Declared in :root they are inert and the utilities silently fall back
    to Tailwind's stock ramp. */
 @theme {
-  --color-figure-blue: #5686f4;
-  --color-figure-orange: #ff6813;
-
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 1px 3px oklch(0 0 0 / 0.06);
   --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.12), 0 4px 8px oklch(0 0 0 / 0.08);
@@ -109,6 +106,7 @@
      only the hue turns for every other token, and the cool end of the circle
      loses a third of its contrast on white at a fixed lightness. */
   --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
+  --figure-contrast: oklch(var(--accent-l, 0.615) 0.168 calc(var(--base-hue) + 180));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));

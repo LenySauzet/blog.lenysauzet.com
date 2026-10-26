@@ -1,6 +1,6 @@
 export const TONES = {
-  blue: '[--tone:var(--color-figure-blue)]',
-  orange: '[--tone:var(--color-figure-orange)]',
+  ink: '[--tone:var(--primary)]',
+  contrast: '[--tone:var(--figure-contrast)]',
   structure: '[--tone:var(--muted-foreground)]',
   guide:
     '[--tone:color-mix(in_oklab,var(--muted-foreground)_55%,var(--background))]',
