@@ -26,6 +26,7 @@ import Bezier from '@/components/figures/Bezier';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
 import Coverage from '@/components/figures/Coverage';
 import RaySphere from '@/components/figures/RaySphere';
+import Wave from '@/components/figures/Wave';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -69,6 +70,7 @@ export const components = {
   Image,
   PieChart,
   RaySphere,
+  Wave,
   Sandpack,
   SupportCallout,
 

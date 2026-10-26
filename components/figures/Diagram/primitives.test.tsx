@@ -44,6 +44,18 @@ describe('a share of the tone', () => {
   });
 });
 
+describe('what reaches the page', () => {
+  it('is rounded, so the server and the browser write the same digits', () => {
+    const svg = draw(
+      <Polygon corners={[vec2(1 / 3, 2 / 3), vec2(10.123456, 0), vec2(0, 7.98765)]} fill={0.123456789} />,
+    );
+    const polygon = svg.querySelector('polygon');
+
+    expect(polygon?.getAttribute('points')).toBe('0.33,0.67 10.12,0 0,7.99');
+    expect(polygon?.getAttribute('fill-opacity')).toBe('0.123');
+  });
+});
+
 describe('className', () => {
   it('reaches the plane and the shapes drawn on it', () => {
     const svg = draw(
