@@ -1270,9 +1270,12 @@ rather than a surface a screen reader cannot enter.
 - **A figure is drawn in one ink, and the ink is the accent.** The structure takes
   `ink`, which is `--primary`, so every figure carries the colour the reader chose, the
   way Making Software draws everything in its own cobalt. What the figure found takes
-  `contrast`, **the accent's complement** rather than a fixed hue: with seventeen
-  presets any fixed hue is somebody's accent, and an orange result vanishes into an
-  Orange ink. A hue that names something in the world (a pixel's R, G and B) is fixed,
+  `contrast`, **picked per preset in `lib/hues.ts`**: of orange, emerald and violet,
+  the one furthest round the wheel, as Tailwind's 600 in light and 400 in dark. A fixed
+  hue fails because with seventeen presets it is somebody's accent; the plain
+  complement fails because it lands in the yellows for a blue, and a yellow at the
+  accent's lightness is mustard. `hues.test.ts` holds it 90 degrees away and over 3:1
+  in both themes. A hue that names something in the world (a pixel's R, G and B) is fixed,
   and is declared the day a figure needs one. A fill is the tone mixed toward the page,
   so one definition lightens on a light page and darkens on a dark one.
 - **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
