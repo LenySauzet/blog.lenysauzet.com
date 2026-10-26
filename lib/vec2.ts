@@ -17,14 +17,11 @@ export const lengthSq = (v: Vec2) => dot(v, v);
 
 export const length = (v: Vec2) => Math.sqrt(lengthSq(v));
 
-/** A zero vector normalises to itself, not to `NaN`. */
 export const normalize = (v: Vec2): Vec2 => {
   const len = length(v);
   return len === 0 ? v : scale(v, 1 / len);
 };
 
-/** Clockwise on screen: SVG's y axis points down, and flipping it would carry
-    every label upside down. */
 export const fromAngle = (radians: number, len = 1): Vec2 => ({
   x: Math.cos(radians) * len,
   y: Math.sin(radians) * len,

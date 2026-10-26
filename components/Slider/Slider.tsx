@@ -95,10 +95,6 @@ export interface SliderProps
   /** Appended to the readout, e.g. `%` or `px`. */
   unit?: string;
   decimals?: number;
-  /**
-   * Told what the reader moved it to. The slider still owns its value, so a post
-   * stays a Server Component and only a figure that listens has to be a client.
-   */
   onValueChange?: (value: number) => void;
 }
 

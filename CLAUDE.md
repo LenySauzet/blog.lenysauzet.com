@@ -1273,7 +1273,8 @@ rather than a surface a screen reader cannot enter.
   `--color-figure-*` is the palette, and **only the hue is declared**: a fill is that
   hue mixed toward the page, so it lightens on a light page and darkens on a dark one
   from one definition, the way `--heat-from` runs both ways. That is also why no light
-  slab is needed, the figure staying in the prose.
+  slab is needed, the figure staying in the prose. **A hue is declared when a figure
+  first needs it**, never ahead: two today.
 - **They have to live in the existing `@theme` block.** A second one appended to
   `globals.css` emits nothing and the utilities fall back to Tailwind's stock ramp in
   silence, which the comment above that block already warns about.
@@ -1284,11 +1285,18 @@ rather than a surface a screen reader cannot enter.
 - **The frame is cut to hold the drawing across the whole control, not at rest.** Every
   defect in this figure came from that: two names colliding at one angle out of a
   hundred, a label outside the frame at the extremes, another inside the edge fade at
-  all of them. **Sweep the control and assert on `getBBox`**, which is the only way any
-  of it showed up.
+  all of them. **Sweep the control in the geometry's own test**: `RaySphere/geometry.test.ts`
+  boxes every name at every tenth of a degree and asserts they never overlap, never
+  meet the ray and never reach the fade.
 - **Names are pushed apart from each other, never to fixed sides.** Two points already
   separated along one axis come back together at whatever angle leaves them twice the
   offset apart.
+- **A region is named in place, never by a leader.** Both circles lie wholly inside the
+  ray's sweep, so any line pointing at them is crossed at some angle. The name sits
+  on the far side of the centre from the ray, which can then never reach it.
+- **A name wears a halo in `--background`**, through `paint-order`, so a stroke passing
+  under it is knocked out rather than read through. A point on a circle is named
+  across that circle's edge at some angle, and no placement avoids it.
 - **A figure keeps its own width and scrolls.** Text scales with the box, so a label
   is illegible long before the drawing is: 6.6px at 375. The edges dissolve through
   `ScrollFade`'s ramp, four of them intersected rather than one radial, which pulls the
