@@ -14,6 +14,7 @@ export {
   Magnifier,
   Point,
   Polygon,
+  Title,
   type Placement,
 } from "./primitives";
 export type { DiagramProps } from "./Diagram";

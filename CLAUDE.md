@@ -1324,6 +1324,10 @@ rather than a surface a screen reader cannot enter.
 - **Parts that differ in kind differ in weight or tone.** A vertex is full ink, a mesh
   line `ink-soft`, the silhouette full ink and heavier, a construction line `guide`.
   Drawn in one ink at one weight, a mesh is a single texture and nothing in it reads.
+- **`Title` is the figure's own lettering**: uppercase Departure Mono, tracked, the
+  way Making Software names a panel or a count ("625 VERTICES"). A number in it is
+  formatted with a fixed locale, never the runtime's, or the server and the browser
+  write it differently.
 - **Hatching is the drawing-office mark for a cut**, so `hatched` is for a section or
   for the part of something a figure singles out, never for decoration. Its pattern
   takes an id from `useId`, so every copy of a drawing gets its own.

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { scene, type Piece } from '@/components/figures/Diagram';
 import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
 
-import { AXES, FREQUENCY, HEIGHT, ripple, TURN, wave } from './geometry';
+import { AXES, FREQUENCY, HEIGHT, ripple, TITLE, TURN, wave } from './geometry';
 
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
@@ -72,5 +72,19 @@ describe('the wave', () => {
           for (const b of boxes.slice(i + 1)) expect(overlap(a, b)).toBe(false);
         }
       }
+  });
+
+  it('counts the vertices beneath the surface, clear of it and of the fade', () => {
+    const lowest = sweep.reduce(
+      (low, { pieces }) => pieces.flatMap(extent).reduce((y, point) => Math.max(y, point.y), low),
+      -Infinity,
+    );
+
+    for (const size of SIZES) {
+      const title = textBox('625 vertices', { at: TITLE, offset: { x: 0, y: 0 } }, size);
+
+      expect(clearOfFade(title, HEIGHT), `in ${size}`).toBe(true);
+      expect(title.top, `in ${size}`).toBeGreaterThan(lowest);
+    }
   });
 });

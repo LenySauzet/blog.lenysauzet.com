@@ -213,6 +213,28 @@ export function Label({
   );
 }
 
+export function Title({
+  at,
+  className,
+  children,
+}: {
+  at: Vec2;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <text
+      x={fixed(at.x)}
+      y={fixed(at.y)}
+      textAnchor="middle"
+      dominantBaseline="central"
+      className={cn('fill-foreground uppercase tracking-[0.12em]', className)}
+    >
+      {children}
+    </text>
+  );
+}
+
 export function Leader({
   target,
   label,

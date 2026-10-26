@@ -9,13 +9,14 @@ export interface SurfaceProps {
   camera: Camera;
   axes?: readonly Axis[];
   occlusion?: number;
+  className?: string;
 }
 
-export function Surface({ grid, camera, axes, occlusion = 0.8 }: SurfaceProps) {
+export function Surface({ grid, camera, axes, occlusion = 0.8, className }: SurfaceProps) {
   const { pieces, names } = scene(grid, camera, axes);
 
   return (
-    <>
+    <g className={className}>
       {pieces.map((piece) => {
         switch (piece.kind) {
           case 'face':
@@ -44,6 +45,6 @@ export function Surface({ grid, camera, axes, occlusion = 0.8 }: SurfaceProps) {
           {name}
         </Label>
       ))}
-    </>
+    </g>
   );
 }

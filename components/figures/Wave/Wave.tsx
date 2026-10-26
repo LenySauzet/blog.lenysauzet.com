@@ -4,9 +4,11 @@ import { useState } from 'react';
 
 import Figure from '@/components/Figure';
 import Slider from '@/components/Slider';
-import Diagram, { Surface } from '@/components/figures/Diagram';
+import Diagram, { Surface, Title } from '@/components/figures/Diagram';
 
-import { AXES, FREQUENCY, HEIGHT, TURN, wave } from './geometry';
+import { AXES, FREQUENCY, HEIGHT, TITLE, TURN, wave } from './geometry';
+
+const count = new Intl.NumberFormat('en-US');
 
 export interface WaveProps {
   className?: string;
@@ -23,6 +25,7 @@ export default function Wave({ className }: WaveProps) {
       caption="A flat grid, every point lifted by a wave of its distance from the centre, which is the whole of what a vertex shader does to it. The faces are the page, so whatever lies behind the surface fades, and the heavier line is the silhouette.">
       <Diagram height={HEIGHT} title="A grid displaced by a ripple">
         <Surface grid={grid} camera={camera} axes={AXES} />
+        <Title at={TITLE}>{`${count.format(grid.flat().length)} vertices`}</Title>
       </Diagram>
 
       <Slider

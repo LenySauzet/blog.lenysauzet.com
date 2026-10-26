@@ -3,7 +3,8 @@ import { heightfield } from '@/lib/mesh';
 import { vec2 } from '@/lib/vec2';
 import { ISOMETRIC, vec3, type Camera } from '@/lib/vec3';
 
-export const HEIGHT = 420;
+export const HEIGHT = 440;
+export const TITLE = vec2(MEASURE / 2, 390);
 export const FREQUENCY = { min: 0.5, max: 3, initial: 1.5 };
 export const TURN = { min: -25, max: 25, initial: 0 };
 
@@ -26,6 +27,6 @@ export const wave = (frequency: number, turn: number) => ({
     ...ISOMETRIC,
     yaw: ISOMETRIC.yaw + (turn * Math.PI) / 180,
     scale: 140,
-    origin: vec2(MEASURE / 2, HEIGHT / 2),
+    origin: vec2(MEASURE / 2, 200),
   } satisfies Camera,
 });

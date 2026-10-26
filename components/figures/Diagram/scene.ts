@@ -30,7 +30,13 @@ export const paintOrder = (a: Piece, b: Piece) =>
   rank(a) - rank(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 export function scene(grid: Grid, camera: Camera, axes: readonly Axis[] = []) {
-  const project = view(camera);
+  const lens = view(camera);
+  const seen = new Map<Vec3, ReturnType<typeof lens>>();
+  const project = (point: Vec3) => {
+    let projected = seen.get(point);
+    if (!projected) seen.set(point, (projected = lens(point)));
+    return projected;
+  };
   const depths = (points: readonly Vec3[]) => points.map((point) => project(point).depth);
   const mean = (points: readonly Vec3[]) =>
     depths(points).reduce((sum, depth) => sum + depth, 0) / points.length;

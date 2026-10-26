@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-export const TONES = {
+const TONES = {
   ink: 'var(--primary)',
   'ink-soft': 'color-mix(in oklab, var(--primary) 45%, var(--background))',
   page: 'var(--background)',

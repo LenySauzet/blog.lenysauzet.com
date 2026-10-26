@@ -22,4 +22,10 @@ describe('Wave', () => {
 
     expect(first()).not.toBe(before);
   });
+
+  it('counts its vertices', () => {
+    render(<Wave />);
+
+    expect(screen.getByText('625 vertices')).toBeInTheDocument();
+  });
 });
