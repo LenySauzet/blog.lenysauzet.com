@@ -1370,8 +1370,10 @@ rather than a surface a screen reader cannot enter.
   `Math.sin` and `Math.cos` disagree in the last digits between the two, which hydration
   reports as a mismatch on every attribute they reach. The primitives therefore write
   every coordinate at two decimals and every opacity at three, a hundredth of a unit
-  being invisible, and a depth sort breaks its ties on rounded depth and then on id,
-  never on the raw difference. Reproduced at three mismatches in three loads of the
+  being invisible, and a depth sort compares each depth rounded on its own, then the
+  ids by code unit. Rounding the difference instead is not transitive (0, 0.4e-6 and
+  0.8e-6 tie pairwise and not end to end), and `localeCompare` follows the runtime's
+  locale; either lets the two sorts part. Reproduced at three mismatches in three loads of the
   design system, none once rounded.
 - **Every piece carries a stable id and is keyed by it.** The list is re-sorted on
   every step, so an index key hands one position to a different piece, and a polygon

@@ -24,8 +24,10 @@ export type Piece = { id: string; depth: number } & (
 
 const AXIS_STEPS = 24;
 
+const rank = ({ depth }: Piece) => Math.round(depth * 1e6);
+
 export const paintOrder = (a: Piece, b: Piece) =>
-  Math.round((a.depth - b.depth) * 1e6) || a.id.localeCompare(b.id);
+  rank(a) - rank(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 export function scene(grid: Grid, camera: Camera, axes: readonly Axis[] = []) {
   const project = view(camera);

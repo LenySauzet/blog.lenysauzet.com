@@ -21,6 +21,14 @@ describe('paintOrder', () => {
     expect(paintOrder(vertex('a', 0.4), vertex('b', 0.5))).toBeLessThan(0);
   });
 
+  it('is a consistent order whatever order the pieces arrive in', () => {
+    const pieces = [vertex('c', 0), vertex('b', 0.4e-6), vertex('a', 0.8e-6)];
+    const sorted = pieces.toSorted(paintOrder).map(({ id }) => id);
+
+    expect(pieces.toReversed().toSorted(paintOrder).map(({ id }) => id)).toEqual(sorted);
+    expect([pieces[1], pieces[2], pieces[0]].toSorted(paintOrder).map(({ id }) => id)).toEqual(sorted);
+  });
+
   it('breaks a tie the same way on the server and in the browser, whose floats differ in the last digits', () => {
     expect(paintOrder(vertex('b', 0.5), vertex('a', 0.5 + 1e-12))).toBeGreaterThan(0);
     expect(paintOrder(vertex('b', 0.5 + 1e-12), vertex('a', 0.5))).toBeGreaterThan(0);
