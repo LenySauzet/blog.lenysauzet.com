@@ -1305,6 +1305,18 @@ rather than a surface a screen reader cannot enter.
   because the type is CSS's to choose and the layout is not, and a leader runs level
   then turns once, just short of what it names. Leaders are drawn first, under the
   construction they point into.
+- **Every shape takes one stroke and one fill.** Tone, width and dash are shared by
+  `Circle`, `Polygon`, `Line`, `Curve` and `Arrow`; a fill is `none`, `soft`, `solid`,
+  `hatched`, or a number for the tone at that share. `width={0}` leaves the fill alone.
+- **Hatching is the drawing-office mark for a cut**, so `hatched` is for a section or
+  for the part of something a figure singles out, never for decoration. Its pattern
+  takes an id from `useId`, so every copy of a drawing gets its own.
+- **A loupe redraws, it does not picture.** `Magnifier` renders its children a second
+  time, scaled about the focus inside a clip, so the detail follows any control the
+  figure has. Strokes keep their own width at any zoom, through the plane's
+  non-scaling stroke, which is what keeps a magnified grid crisp; type would grow, so a
+  loupe is handed the drawing without its names. Its two lines are the circles'
+  external tangents, computed in `magnifier.ts`.
 - **A region is named beside itself, never by a leader.** Both circles lie wholly
   inside the ray's sweep, so any line pointing at them is crossed at some angle. The
   name sits on the far side of the centre from the ray, which can then never reach it.

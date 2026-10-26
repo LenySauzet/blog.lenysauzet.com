@@ -47,7 +47,7 @@ export const covers = (box: Box, { x, y }: Vec2, radius: number) =>
   y + radius > box.top &&
   y - radius < box.bottom;
 
-const side = (from: Vec2, to: Vec2, { x, y }: Vec2) =>
+export const side = (from: Vec2, to: Vec2, { x, y }: Vec2) =>
   Math.sign((to.x - from.x) * (y - from.y) - (to.y - from.y) * (x - from.x));
 
 export const crossesLine = (box: Box, from: Vec2, to: Vec2) => {

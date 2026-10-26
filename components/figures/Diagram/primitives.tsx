@@ -1,37 +1,11 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
-import type { Vec2 } from '@/lib/vec2';
+import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
 
 import { LEADER_GAP, leaderPath } from './leaders';
+import { tangents } from './magnifier';
 import { TONES, type Tone } from './tones';
-
-const FILLS = {
-  none: 'fill-none',
-  soft: 'fill-(--tone)/12',
-  solid: 'fill-(--tone)/25',
-} as const;
-
-export function Circle({
-  at,
-  r,
-  tone = 'structure',
-  fill = 'none',
-}: {
-  at: Vec2;
-  r: number;
-  tone?: Tone;
-  fill?: keyof typeof FILLS;
-}) {
-  return (
-    <circle
-      cx={at.x}
-      cy={at.y}
-      r={r}
-      className={cn(TONES[tone], 'stroke-(--tone) stroke-2', FILLS[fill])}
-    />
-  );
-}
 
 interface Stroke {
   tone?: Tone;
@@ -44,10 +18,86 @@ const stroke = ({ tone = 'structure', dashed = false, width = 2 }: Stroke) => ({
   strokeLinecap: 'round' as const,
   className: cn(
     TONES[tone],
-    'fill-none stroke-(--tone)',
+    'stroke-(--tone)',
     dashed && '[stroke-dasharray:4_6]',
   ),
 });
+
+const FILLS = {
+  none: 'fill-none',
+  soft: 'fill-(--tone)/12',
+  solid: 'fill-(--tone)/25',
+  hatched: '',
+} as const;
+
+type Fill = keyof typeof FILLS | number;
+
+const HATCH = 6;
+
+function useFill(tone: Tone, fill: Fill) {
+  const hatch = useId();
+
+  if (typeof fill === 'number') {
+    return { className: 'fill-(--tone)', fillOpacity: fill };
+  }
+
+  if (fill !== 'hatched') return { className: FILLS[fill] };
+
+  return {
+    fill: `url(#${hatch})`,
+    pattern: (
+      <pattern
+        id={hatch}
+        width={HATCH}
+        height={HATCH}
+        patternUnits="userSpaceOnUse"
+        patternTransform="rotate(45)"
+      >
+        <line y2={HATCH} className={cn(TONES[tone], 'stroke-(--tone)')} />
+      </pattern>
+    ),
+  };
+}
+
+type Shape = Stroke & { fill?: Fill };
+
+function useShape({ fill = 'none', ...rest }: Shape) {
+  const { pattern, className, ...paint } = useFill(rest.tone ?? 'structure', fill);
+  const outline = stroke(rest);
+
+  return {
+    pattern,
+    paint: { ...outline, ...paint, className: cn(outline.className, className) },
+  };
+}
+
+const points = (list: readonly Vec2[]) =>
+  list.map(({ x, y }) => `${x},${y}`).join(' ');
+
+export function Circle({ at, r, ...shape }: Shape & { at: Vec2; r: number }) {
+  const { pattern, paint } = useShape(shape);
+
+  return (
+    <>
+      {pattern}
+      <circle cx={at.x} cy={at.y} r={r} {...paint} />
+    </>
+  );
+}
+
+export function Polygon({
+  corners,
+  ...shape
+}: Shape & { corners: readonly Vec2[] }) {
+  const { pattern, paint } = useShape(shape);
+
+  return (
+    <>
+      {pattern}
+      <polygon points={points(corners)} {...paint} />
+    </>
+  );
+}
 
 export function Line({ from, to, ...rest }: Stroke & { from: Vec2; to: Vec2 }) {
   return (
@@ -59,11 +109,32 @@ export function Curve({
   points: [start, a, b, end],
   ...rest
 }: Stroke & { points: readonly [Vec2, Vec2, Vec2, Vec2] }) {
+  const outline = stroke(rest);
+
   return (
     <path
       d={`M${start.x},${start.y} C${a.x},${a.y} ${b.x},${b.y} ${end.x},${end.y}`}
-      {...stroke(rest)}
+      {...outline}
+      className={cn(outline.className, 'fill-none')}
     />
+  );
+}
+
+const HEAD = { length: 9, half: 3.5 };
+
+export function Arrow({ from, to, ...rest }: Stroke & { from: Vec2; to: Vec2 }) {
+  const back = normalize(sub(from, to));
+  const base = add(to, scale(back, HEAD.length));
+  const side = scale(vec2(-back.y, back.x), HEAD.half);
+
+  return (
+    <>
+      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} {...stroke(rest)} />
+      <polygon
+        points={points([to, add(base, side), sub(base, side)])}
+        className={cn(TONES[rest.tone ?? 'structure'], 'fill-(--tone)')}
+      />
+    </>
   );
 }
 
@@ -125,9 +196,7 @@ export function Leader({
   return (
     <g className={TONES.structure}>
       <polyline
-        points={leaderPath(target, label)
-          .map(({ x, y }) => `${x},${y}`)
-          .join(' ')}
+        points={points(leaderPath(target, label))}
         className="fill-none stroke-(--tone)"
       />
       <text
@@ -140,6 +209,52 @@ export function Leader({
       >
         {children}
       </text>
+    </g>
+  );
+}
+
+export function Magnifier({
+  focus,
+  r,
+  at,
+  zoom,
+  children,
+}: {
+  focus: Vec2;
+  r: number;
+  at: Vec2;
+  zoom: number;
+  children: ReactNode;
+}) {
+  const lens = useId();
+  const reach = r * zoom;
+  const edge = 'fill-none stroke-(--tone)';
+
+  return (
+    <g className={TONES.structure}>
+      {tangents({ at: focus, r }, { at, r: reach }).map(([near, far], index) => (
+        <line
+          key={index}
+          x1={near.x}
+          y1={near.y}
+          x2={far.x}
+          y2={far.y}
+          className={edge}
+        />
+      ))}
+      <circle cx={focus.x} cy={focus.y} r={r} className={edge} />
+      <clipPath id={lens}>
+        <circle cx={at.x} cy={at.y} r={reach} />
+      </clipPath>
+      <g clipPath={`url(#${lens})`}>
+        <circle cx={at.x} cy={at.y} r={reach} className="fill-background" />
+        <g
+          transform={`translate(${at.x} ${at.y}) scale(${zoom}) translate(${-focus.x} ${-focus.y})`}
+        >
+          {children}
+        </g>
+      </g>
+      <circle cx={at.x} cy={at.y} r={reach} className={edge} />
     </g>
   );
 }

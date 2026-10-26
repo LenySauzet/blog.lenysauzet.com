@@ -24,6 +24,7 @@ import Details from '@/components/Details';
 import Figure from '@/components/Figure';
 import Bezier from '@/components/figures/Bezier';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
+import Coverage from '@/components/figures/Coverage';
 import RaySphere from '@/components/figures/RaySphere';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -63,6 +64,7 @@ export const components = {
   SliderShowcase,
   ToggleShowcase,
   Bezier,
+  Coverage,
   Fullbleed,
   Image,
   PieChart,
