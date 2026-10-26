@@ -3,23 +3,21 @@ import { describe, expect, it } from 'vitest';
 import { scene, type Piece } from '@/components/figures/Diagram';
 import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
 
-import { AXES, FREQUENCY, HEIGHT, SHAPES, TURN, wave, type Shape } from './geometry';
+import { AXES, FREQUENCY, HEIGHT, ripple, TURN, wave } from './geometry';
 
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
 
-const drawn = (shape: Shape, frequency: number, turn: number) => {
-  const { grid, camera } = wave(shape, frequency, turn);
+const drawn = (frequency: number, turn: number) => {
+  const { grid, camera } = wave(frequency, turn);
   return scene(grid, camera, AXES);
 };
 
-const sweep = (Object.keys(SHAPES) as Shape[]).flatMap((shape) =>
-  steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
-    steps(TURN.min, TURN.max, 8).map((turn) => ({
-      at: `${shape} at ${frequency}, ${turn}°`,
-      ...drawn(shape, frequency, turn),
-    })),
-  ),
+const sweep = steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
+  steps(TURN.min, TURN.max, 8).map((turn) => ({
+    at: `at ${frequency}, ${turn}°`,
+    ...drawn(frequency, turn),
+  })),
 );
 
 const extent = (piece: Piece) => {
@@ -36,19 +34,19 @@ const extent = (piece: Piece) => {
 describe('the wave', () => {
   it('folds away from the eye once it is steep enough', () => {
     const folds = (frequency: number) =>
-      drawn('plane', frequency, 0).pieces.filter(({ kind }) => kind === 'silhouette').length;
+      drawn(frequency, 0).pieces.filter(({ kind }) => kind === 'silhouette').length;
 
     expect(folds(FREQUENCY.max)).toBeGreaterThan(folds(FREQUENCY.min));
   });
 
   it('ripples outward from the centre, the same at every distance', () => {
-    const height = SHAPES.ripple(1.5);
+    const height = ripple(1.5);
 
     expect(height(0.6, 0)).toBeCloseTo(height(0, 0.6));
     expect(height(0.3, 0.4)).toBeCloseTo(height(0.5, 0));
   });
 
-  it('stays clear of the faded edges, whatever the shape, frequency and turn', () => {
+  it('stays clear of the faded edges, whatever the frequency and turn', () => {
     for (const { at, pieces } of sweep) {
       const points = pieces.flatMap(extent);
       const xs = points.map(({ x }) => x);

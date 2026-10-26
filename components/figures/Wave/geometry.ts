@@ -11,14 +11,8 @@ const SAMPLES = [25, 25] as const;
 const AMPLITUDE = 0.3;
 const REACH = 1.35;
 
-export const SHAPES = {
-  plane: (frequency: number) => (x: number) =>
-    AMPLITUDE * Math.sin(frequency * Math.PI * x),
-  ripple: (frequency: number) => (x: number, z: number) =>
-    AMPLITUDE * Math.cos(frequency * Math.PI * Math.hypot(x, z)),
-};
-
-export type Shape = keyof typeof SHAPES;
+export const ripple = (frequency: number) => (x: number, z: number) =>
+  AMPLITUDE * Math.cos(frequency * Math.PI * Math.hypot(x, z));
 
 export const AXES: Axis[] = [
   { name: 'x', tip: vec3(REACH, 0, 0) },
@@ -26,8 +20,8 @@ export const AXES: Axis[] = [
   { name: 'z', tip: vec3(0, 0, REACH) },
 ];
 
-export const wave = (shape: Shape, frequency: number, turn: number) => ({
-  grid: heightfield(SHAPES[shape](frequency), 1, SAMPLES),
+export const wave = (frequency: number, turn: number) => ({
+  grid: heightfield(ripple(frequency), 1, SAMPLES),
   camera: {
     ...ISOMETRIC,
     yaw: ISOMETRIC.yaw + (turn * Math.PI) / 180,

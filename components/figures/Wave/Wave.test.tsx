@@ -8,7 +8,7 @@ describe('Wave', () => {
   it('stands as one image, named', () => {
     render(<Wave />);
 
-    expect(screen.getByRole('img', { name: 'A grid displaced by a sine wave' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'A grid displaced by a ripple' })).toBeInTheDocument();
   });
 
   it('turns the surface with its second control', async () => {
