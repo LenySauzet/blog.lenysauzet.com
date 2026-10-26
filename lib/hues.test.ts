@@ -4,7 +4,7 @@ import {
   accentOf,
   arc,
   CHROMA,
-  contrastOf,
+  companionsOf,
   DEFAULT_HUE,
   HUES,
   hueOf,
@@ -103,10 +103,15 @@ describe('HUES', () => {
   });
 });
 
-describe('contrastOf', () => {
-  it('stands well away from the accent, whichever it is', () => {
+describe('companionsOf', () => {
+  it('keeps the accent and both companions well apart, whichever the preset', () => {
     for (const preset of HUES) {
-      expect(arc(contrastOf(preset).hue, preset.hue), preset.label).toBeGreaterThanOrEqual(90);
+      const { second, third } = companionsOf(preset);
+      const angles = [preset.hue, second.hue, third.hue];
+
+      for (const [i, a] of angles.entries())
+        for (const b of angles.slice(i + 1))
+          expect(arc(a, b), preset.label).toBeGreaterThanOrEqual(70);
     }
   });
 
@@ -114,18 +119,21 @@ describe('contrastOf', () => {
     const onWhite = luminance(1, 0, 0);
 
     for (const preset of HUES) {
-      const { light, dark } = contrastOf(preset);
       const onPage = luminance(0.1468, 0.01, preset.hue);
 
-      expect(contrast(luminance(...light), onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3);
-      expect(contrast(luminance(...dark), onPage), `${preset.label} in dark`).toBeGreaterThanOrEqual(3);
+      for (const { light, dark } of Object.values(companionsOf(preset))) {
+        expect(contrast(luminance(...light), onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3);
+        expect(contrast(luminance(...dark), onPage), `${preset.label} in dark`).toBeGreaterThanOrEqual(3);
+      }
     }
   });
 
   it('is applied with the preset, one colour per theme', () => {
     expect(propertiesOf(hueOf('blue'))).toMatchObject({
-      '--contrast-light': 'oklch(0.646 0.222 41.116)',
-      '--contrast-dark': 'oklch(0.75 0.183 55.934)',
+      '--second-light': 'oklch(0.646 0.222 41.116)',
+      '--second-dark': 'oklch(0.75 0.183 55.934)',
+      '--third-light': 'oklch(0.596 0.145 163.225)',
+      '--third-dark': 'oklch(0.765 0.177 163.223)',
     });
   });
 });

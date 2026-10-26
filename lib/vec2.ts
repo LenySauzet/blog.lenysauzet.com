@@ -17,6 +17,9 @@ export const lengthSq = (v: Vec2) => dot(v, v);
 
 export const length = (v: Vec2) => Math.sqrt(lengthSq(v));
 
+export const lerp = (a: Vec2, b: Vec2, t: number): Vec2 =>
+  add(a, scale(sub(b, a), t));
+
 export const normalize = (v: Vec2): Vec2 => {
   const len = length(v);
   return len === 0 ? v : scale(v, 1 / len);

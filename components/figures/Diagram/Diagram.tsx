@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import { EASED, blurRamp } from '@/components/ScrollFade/gradients';
 
 export const MEASURE = 672;
 export const FADE_HOLD = 94;
+export const LARGEST_TYPE = 20;
 
 export interface DiagramProps {
   height: number;
@@ -26,8 +27,14 @@ export default function Diagram({
         viewBox={`0 0 ${MEASURE} ${height}`}
         role="img"
         aria-label={title}
-        style={{ maskImage: FADE, maskComposite: 'intersect' }}
-        className="h-auto w-full font-mono text-[13px] @max-lg:text-[16px] @max-md:text-[20px] [&_*]:[vector-effect:non-scaling-stroke]"
+        style={
+          {
+            maskImage: FADE,
+            maskComposite: 'intersect',
+            '--largest-type': `${LARGEST_TYPE}px`,
+          } as CSSProperties
+        }
+        className="h-auto w-full font-mono text-[13px] @max-lg:text-[16px] @max-md:text-(length:--largest-type) [&_*]:[vector-effect:non-scaling-stroke]"
       >
         {children}
       </svg>

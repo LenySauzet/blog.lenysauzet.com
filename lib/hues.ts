@@ -41,10 +41,18 @@ export const hueOf = (id: string | null | undefined) =>
 
 type Oklch = readonly [lightness: number, chroma: number, hue: number];
 
-const CONTRASTS: { hue: number; light: Oklch; dark: Oklch }[] = [
+interface Companion {
+  hue: number;
+  light: Oklch;
+  dark: Oklch;
+}
+
+const POOL: Companion[] = [
   { hue: hueOf('orange').hue, light: [0.646, 0.222, 41.116], dark: [0.75, 0.183, 55.934] },
   { hue: hueOf('emerald').hue, light: [0.596, 0.145, 163.225], dark: [0.765, 0.177, 163.223] },
   { hue: hueOf('violet').hue, light: [0.541, 0.281, 293.009], dark: [0.702, 0.183, 293.541] },
+  { hue: hueOf('rose').hue, light: [0.586, 0.253, 17.585], dark: [0.712, 0.194, 13.428] },
+  { hue: hueOf('sky').hue, light: [0.588, 0.158, 241.966], dark: [0.746, 0.16, 232.661] },
 ];
 
 export const arc = (a: number, b: number) => {
@@ -52,23 +60,34 @@ export const arc = (a: number, b: number) => {
   return Math.min(turn, 360 - turn);
 };
 
-export const contrastOf = (hue: Hue) =>
-  CONTRASTS.reduce((best, candidate) =>
-    arc(candidate.hue, hue.hue) > arc(best.hue, hue.hue) ? candidate : best,
+const farthestFrom = (taken: number[]) => {
+  const clearance = ({ hue }: Companion) =>
+    Math.min(...taken.map((angle) => arc(hue, angle)));
+
+  return POOL.reduce((best, candidate) =>
+    clearance(candidate) > clearance(best) ? candidate : best,
   );
+};
+
+export const companionsOf = (hue: Hue) => {
+  const second = farthestFrom([hue.hue]);
+  const third = farthestFrom([hue.hue, second.hue]);
+
+  return { second, third };
+};
 
 const oklch = ([l, c, h]: Oklch) => `oklch(${l} ${c} ${h})`;
 
-export const propertiesOf = (hue: Hue) => {
-  const { light, dark } = contrastOf(hue);
-
-  return {
-    '--base-hue': String(hue.hue),
-    '--accent-l': String(hue.lightness ?? LIGHTNESS),
-    '--contrast-light': oklch(light),
-    '--contrast-dark': oklch(dark),
-  };
-};
+export const propertiesOf = (hue: Hue) => ({
+  '--base-hue': String(hue.hue),
+  '--accent-l': String(hue.lightness ?? LIGHTNESS),
+  ...Object.fromEntries(
+    Object.entries(companionsOf(hue)).flatMap(([role, { light, dark }]) => [
+      [`--${role}-light`, oklch(light)],
+      [`--${role}-dark`, oklch(dark)],
+    ]),
+  ),
+});
 
 export const accentOf = (hue: Hue) =>
   `oklch(${hue.lightness ?? LIGHTNESS} ${CHROMA} ${hue.hue})`;

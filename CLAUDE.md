@@ -1269,13 +1269,19 @@ rather than a surface a screen reader cannot enter.
 
 - **A figure is drawn in one ink, and the ink is the accent.** The structure takes
   `ink`, which is `--primary`, so every figure carries the colour the reader chose, the
-  way Making Software draws everything in its own cobalt. What the figure found takes
-  `contrast`, **picked per preset in `lib/hues.ts`**: of orange, emerald and violet,
-  the one furthest round the wheel, as Tailwind's 600 in light and 400 in dark. A fixed
-  hue fails because with seventeen presets it is somebody's accent; the plain
-  complement fails because it lands in the yellows for a blue, and a yellow at the
-  accent's lightness is mustard. `hues.test.ts` holds it 90 degrees away and over 3:1
-  in both themes. A hue that names something in the world (a pixel's R, G and B) is fixed,
+  way Making Software draws everything in its own cobalt. Beside it sit two companions,
+  `second` and `third`, **picked per preset in `lib/hues.ts`**: out of orange, emerald,
+  violet, rose and sky, each is the one furthest round the wheel from the accent and
+  from the companion before it, as Tailwind's 600 in light and 400 in dark. A fixed hue
+  fails because with seventeen presets it is somebody's accent; a plain complement
+  fails because it lands in the yellows for a blue, and a yellow at the accent's
+  lightness is mustard. `hues.test.ts` holds all three 70 degrees apart and every
+  companion over 3:1 in both themes.
+- **A companion is for something the reader is told apart by colour**, such as the
+  passes of de Casteljau's construction. Rank within one thing is the ink's job, carried
+  by weight and dash: the curve drawn so far is thick, the rest of it dashed. Two
+  companions is the ceiling; past that a colour is no longer remembered, and naming is
+  the leader's job. A hue that names something in the world (a pixel's R, G and B) is fixed,
   and is declared the day a figure needs one. A fill is the tone mixed toward the page,
   so one definition lightens on a light page and darkens on a dark one.
 - **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
@@ -1285,12 +1291,20 @@ rather than a surface a screen reader cannot enter.
 - **The frame is cut to hold the drawing across the whole control, not at rest.** Every
   defect in this figure came from that: two names colliding at one angle out of a
   hundred, a label outside the frame at the extremes, another inside the edge fade at
-  all of them. **Sweep the control in the geometry's own test**: `RaySphere/geometry.test.ts`
-  boxes every name at every tenth of a degree, at each of the three type sizes, and
-  asserts they never overlap, never meet the ray and never reach the fade.
+  all of them. **Sweep the control in the geometry's own test**, at each of the three
+  type sizes: every name is boxed at every step and must never overlap another, never
+  sit on a point, never meet a line it could hide and never reach the fade.
+  `test/figure.ts` holds the boxes and the checks, so a figure's test states only
+  its own rules.
 - **Names are pushed apart from each other, never to fixed sides.** Two points already
   separated along one axis come back together at whatever angle leaves them twice the
   offset apart.
+- **A name that cannot sit beside its subject goes to the margin, on a `Leader`.** The
+  names stack in a column through `stack` in `Diagram/leaders.ts`, ordered by their
+  targets so no two leaders cross, pushed apart by a pitch sized for `LARGEST_TYPE`
+  because the type is CSS's to choose and the layout is not, and a leader runs level
+  then turns once, just short of what it names. Leaders are drawn first, under the
+  construction they point into.
 - **A region is named beside itself, never by a leader.** Both circles lie wholly
   inside the ray's sweep, so any line pointing at them is crossed at some angle. The
   name sits on the far side of the centre from the ray, which can then never reach it.

@@ -29,18 +29,18 @@ export default function RaySphere() {
         <Line from={ORIGIN} to={CENTRE} tone="guide" dashed />
         <Line from={CENTRE} to={closest} tone="guide" dashed />
         <Line from={ORIGIN} to={end} tone="ink" width={1.5} />
-        {lit ? <Line from={lit[0]} to={lit[1]} tone="contrast" width={4} /> : null}
+        {lit ? <Line from={lit[0]} to={lit[1]} tone="second" width={4} /> : null}
 
         {landings ? (
           <>
-            <Point at={landings[0]} tone="contrast" r={4} />
+            <Point at={landings[0]} tone="second" r={4} />
             <Point at={landings[1]} tone="structure" r={4} />
           </>
         ) : null}
         {crossings ? (
           <>
-            <Point at={crossings[0]} tone="contrast" />
-            <Point at={crossings[1]} tone="contrast" />
+            <Point at={crossings[0]} tone="second" />
+            <Point at={crossings[1]} tone="second" />
           </>
         ) : null}
         <Point at={closest} r={4} />
