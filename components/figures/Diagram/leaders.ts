@@ -24,6 +24,7 @@ export function stack(
 }
 
 const KNEE = 24;
+export const LEADER_GAP = 0.5;
 
 export function leaderPath(target: Vec2, label: Vec2): Vec2[] {
   const toward = Math.sign(target.x - label.x);

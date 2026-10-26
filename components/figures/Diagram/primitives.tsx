@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import type { Vec2 } from '@/lib/vec2';
 
-import { leaderPath } from './leaders';
+import { LEADER_GAP, leaderPath } from './leaders';
 import { TONES, type Tone } from './tones';
 
 const FILLS = {
@@ -133,7 +133,7 @@ export function Leader({
       <text
         x={label.x}
         y={label.y}
-        dx={rightward ? '0.5em' : '-0.5em'}
+        dx={`${rightward ? LEADER_GAP : -LEADER_GAP}em`}
         textAnchor={rightward ? 'start' : 'end'}
         dominantBaseline="central"
         className="fill-foreground"

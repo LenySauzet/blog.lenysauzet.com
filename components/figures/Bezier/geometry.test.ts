@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { leaderPath } from '@/components/figures/Diagram/leaders';
+import { LEADER_GAP, leaderPath } from '@/components/figures/Diagram/leaders';
 import { vec2, type Vec2 } from '@/lib/vec2';
 import { clearOfFade, covers, overlap, segmentsCross, SIZES, textBox } from '@/test/figure';
 
@@ -19,7 +19,7 @@ const named = (t: number, size: number) => {
   return [
     ...Object.entries(labels).map(([name, placement]) => textBox(name, placement, size)),
     ...leaders.map(({ name, label }) =>
-      textBox(name, { at: label, offset: vec2(0.5, 0) }, size, 'start'),
+      textBox(name, { at: label, offset: vec2(LEADER_GAP, 0) }, size, 'start'),
     ),
   ];
 };
