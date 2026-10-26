@@ -1340,9 +1340,12 @@ rather than a surface a screen reader cannot enter.
   columns and rows apart for a surface that wants them.
 - **Everything that lives in the scene is painted in its order**: faces, silhouette,
   vertices, and the axes cut into short segments, so an axis passing under the
-  surface is tinted by the faces in front of it. Only the names sit on top. Measured
-  at about 1660 elements: 16.7ms median per slider step, 21.8 at p90, two frames of
-  wait included.
+  surface is tinted by the faces in front of it. Only the names sit on top.
+- **Every piece carries a stable id and is keyed by it.** The list is re-sorted on
+  every step, so an index key hands one position to a different piece, and a polygon
+  turning into a circle there is a remount. Keyed, React moves nodes instead: at about
+  1660 elements the p90 per slider step fell from 21.8ms to 17.4, the median holding
+  at 16.7, two frames of wait included.
 - **Keep a turn well short of edge-on.** Within about twenty degrees of looking along
   the crests, faces flip between facing and not from one to the next and the
   silhouette breaks into ticks.

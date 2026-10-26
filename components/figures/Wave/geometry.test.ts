@@ -57,6 +57,13 @@ describe('the surface', () => {
           `at ${frequency}, ${turn}°`,
         ).toBe(true);
   });
+
+  it('names every piece uniquely, so a re-sort moves pieces rather than rebuilding them', () => {
+    for (const { frequency, turn } of sweep) {
+      const ids = wave(frequency, turn).pieces.map(({ id }) => id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
 });
 
 describe('the axes', () => {

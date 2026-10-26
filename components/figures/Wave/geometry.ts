@@ -24,7 +24,7 @@ const AXIS = 1.4;
 const LIGHT = normalize3(vec3(-0.4, 1, 0.5));
 const LIT = { floor: 0.08, range: 0.5, underside: 0.04 };
 
-export type Piece = { depth: number } & (
+export type Piece = { id: string; depth: number } & (
   | { kind: 'tile'; corners: Vec2[]; shade: number }
   | { kind: 'edge' | 'axis' | 'arrow'; from: Vec2; to: Vec2 }
   | { kind: 'vertex'; at: Vec2 }
@@ -45,7 +45,8 @@ export function wave(frequency: number, turn: number) {
 
   const tiles: Piece[] = faces(grid)
     .flat()
-    .map((face) => ({
+    .map((face, index) => ({
+      id: `tile${index}`,
       kind: 'tile',
       corners: face.corners.map((corner) => project(corner).at),
       shade:
@@ -55,13 +56,15 @@ export function wave(frequency: number, turn: number) {
       depth: depthOf(face.corners),
     }));
   const edges: Piece[] = silhouette(grid, toward).map(([a, b]) => ({
+    id: `edge${a.x},${a.z},${b.x},${b.z}`,
     kind: 'edge',
     from: project(a).at,
     to: project(b).at,
     depth: depthOf([a, b]) + 1e-3,
   }));
 
-  const vertices: Piece[] = grid.flat().map((point) => ({
+  const vertices: Piece[] = grid.flat().map((point, index) => ({
+    id: `vertex${index}`,
     kind: 'vertex',
     at: project(point).at,
     depth: project(point).depth + 2e-3,
@@ -72,10 +75,11 @@ export function wave(frequency: number, turn: number) {
     ['y', vec3(0, AXIS * 0.6, 0)],
     ['z', vec3(0, 0, AXIS)],
   ] as const;
-  const axes: Piece[] = tips.flatMap(([, tip]) =>
+  const axes: Piece[] = tips.flatMap(([name, tip]) =>
     Array.from({ length: AXIS_STEPS }, (_, step) => {
       const [a, b] = [step, step + 1].map((k) => scale3(tip, k / AXIS_STEPS));
       return {
+        id: `${name}${step}`,
         kind: step === AXIS_STEPS - 1 ? 'arrow' : 'axis',
         from: project(a).at,
         to: project(b).at,

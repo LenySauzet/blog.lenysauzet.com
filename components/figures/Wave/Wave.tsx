@@ -28,12 +28,12 @@ export default function Wave({ className }: WaveProps) {
       className={className}
       caption="A flat grid, every point lifted by a sine of where it sits, which is the whole of what a vertex shader does to it. Each face takes the light by how squarely it meets it, and the heavier line is the silhouette: the border, and every fold where the surface turns away from the eye.">
       <Diagram height={HEIGHT} title="A grid displaced by a sine wave">
-        {pieces.map((piece, index) => {
+        {pieces.map((piece) => {
           switch (piece.kind) {
             case 'tile':
               return (
                 <Polygon
-                  key={index}
+                  key={piece.id}
                   corners={piece.corners}
                   tone="ink"
                   fill={piece.shade}
@@ -41,13 +41,13 @@ export default function Wave({ className }: WaveProps) {
                 />
               );
             case 'edge':
-              return <Line key={index} from={piece.from} to={piece.to} tone="ink" width={2} />;
+              return <Line key={piece.id} from={piece.from} to={piece.to} tone="ink" width={2} />;
             case 'vertex':
-              return <Point key={index} at={piece.at} r={1.6} />;
+              return <Point key={piece.id} at={piece.at} r={1.6} />;
             case 'axis':
-              return <Line key={index} from={piece.from} to={piece.to} width={1.5} />;
+              return <Line key={piece.id} from={piece.from} to={piece.to} width={1.5} />;
             case 'arrow':
-              return <Arrow key={index} from={piece.from} to={piece.to} width={1.5} />;
+              return <Arrow key={piece.id} from={piece.from} to={piece.to} width={1.5} />;
           }
         })}
         {names.map(({ name, label }) => (
