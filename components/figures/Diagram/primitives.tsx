@@ -41,11 +41,16 @@ type Fill = keyof typeof FILLS | number;
 
 const HATCH = 6;
 
+const fixed = (value: number, places = 2) => {
+  const scale = 10 ** places;
+  return Math.round(value * scale) / scale;
+};
+
 function useFill(tone: Tone, fill: Fill) {
   const hatch = useId();
 
   if (typeof fill === 'number') {
-    return { className: 'fill-(--tone)', fillOpacity: fill };
+    return { className: 'fill-(--tone)', fillOpacity: fixed(fill, 3) };
   }
 
   if (fill !== 'hatched') return { className: FILLS[fill] };
@@ -79,7 +84,7 @@ function useShape({ fill = 'none', ...rest }: Shape) {
 }
 
 const points = (list: readonly Vec2[]) =>
-  list.map(({ x, y }) => `${x},${y}`).join(' ');
+  list.map(({ x, y }) => `${fixed(x)},${fixed(y)}`).join(' ');
 
 export function Circle({ at, r, ...shape }: Shape & { at: Vec2; r: number }) {
   const { pattern, paint } = useShape(shape);
@@ -87,7 +92,7 @@ export function Circle({ at, r, ...shape }: Shape & { at: Vec2; r: number }) {
   return (
     <>
       {pattern}
-      <circle cx={at.x} cy={at.y} r={r} {...paint} />
+      <circle cx={fixed(at.x)} cy={fixed(at.y)} r={r} {...paint} />
     </>
   );
 }
@@ -108,7 +113,7 @@ export function Polygon({
 
 export function Line({ from, to, ...rest }: Stroke & { from: Vec2; to: Vec2 }) {
   return (
-    <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} {...stroke(rest)} />
+    <line x1={fixed(from.x)} y1={fixed(from.y)} x2={fixed(to.x)} y2={fixed(to.y)} {...stroke(rest)} />
   );
 }
 
@@ -120,7 +125,7 @@ export function Curve({
 
   return (
     <path
-      d={`M${start.x},${start.y} C${a.x},${a.y} ${b.x},${b.y} ${end.x},${end.y}`}
+      d={`M${fixed(start.x)},${fixed(start.y)} C${fixed(a.x)},${fixed(a.y)} ${fixed(b.x)},${fixed(b.y)} ${fixed(end.x)},${fixed(end.y)}`}
       {...outline}
       className={cn(outline.className, 'fill-none')}
     />
@@ -141,7 +146,7 @@ export function Arrow({
 
   return (
     <g className={className}>
-      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} {...stroke(rest)} />
+      <line x1={fixed(from.x)} y1={fixed(from.y)} x2={fixed(base.x)} y2={fixed(base.y)} {...stroke(rest)} />
       <polygon
         points={points([to, add(base, side), sub(base, side)])}
         className={cn(TONES[rest.tone ?? 'structure'], 'fill-(--tone)')}
@@ -163,8 +168,8 @@ export function Point({
 }) {
   return (
     <circle
-      cx={at.x}
-      cy={at.y}
+      cx={fixed(at.x)}
+      cy={fixed(at.y)}
       r={r}
       className={cn(TONES[tone], 'fill-(--tone)', className)}
     />
@@ -184,10 +189,10 @@ export function Label({
 }: Placement & { className?: string; children: ReactNode }) {
   return (
     <text
-      x={at.x}
-      y={at.y}
-      dx={`${offset.x}em`}
-      dy={`${offset.y}em`}
+      x={fixed(at.x)}
+      y={fixed(at.y)}
+      dx={`${fixed(offset.x)}em`}
+      dy={`${fixed(offset.y)}em`}
       textAnchor="middle"
       dominantBaseline="central"
       className={cn(
@@ -220,8 +225,8 @@ export function Leader({
         className="fill-none stroke-(--tone)"
       />
       <text
-        x={label.x}
-        y={label.y}
+        x={fixed(label.x)}
+        y={fixed(label.y)}
         dx={`${rightward ? LEADER_GAP : -LEADER_GAP}em`}
         textAnchor={rightward ? 'start' : 'end'}
         dominantBaseline="central"
@@ -255,22 +260,22 @@ function Lens({
       {tangents(source, lens).map(([near, far], index) => (
         <line
           key={index}
-          x1={near.x}
-          y1={near.y}
-          x2={far.x}
-          y2={far.y}
+          x1={fixed(near.x)}
+          y1={fixed(near.y)}
+          x2={fixed(far.x)}
+          y2={fixed(far.y)}
           className={edge}
         />
       ))}
-      <circle cx={source.at.x} cy={source.at.y} r={source.r} className={edge} />
+      <circle cx={fixed(source.at.x)} cy={fixed(source.at.y)} r={source.r} className={edge} />
       <clipPath id={clip}>
-        <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} />
+        <circle cx={fixed(lens.at.x)} cy={fixed(lens.at.y)} r={lens.r} />
       </clipPath>
       <g clipPath={`url(#${clip})`}>
-        <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} className="fill-background" />
+        <circle cx={fixed(lens.at.x)} cy={fixed(lens.at.y)} r={lens.r} className="fill-background" />
         <g transform={transform}>{children}</g>
       </g>
-      <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} className={edge} />
+      <circle cx={fixed(lens.at.x)} cy={fixed(lens.at.y)} r={lens.r} className={edge} />
     </g>
   );
 }
@@ -282,11 +287,11 @@ export function Magnifier(props: LensProps) {
   return (
     <Lens
       {...props}
-      transform={`translate(${lens.at.x} ${lens.at.y}) scale(${zoom}) translate(${-source.at.x} ${-source.at.y})`}
+      transform={`translate(${fixed(lens.at.x)} ${fixed(lens.at.y)}) scale(${fixed(zoom, 4)}) translate(${fixed(-source.at.x)} ${fixed(-source.at.y)})`}
     />
   );
 }
 
 export function Detail(props: LensProps) {
-  return <Lens {...props} transform={`translate(${props.lens.at.x} ${props.lens.at.y})`} />;
+  return <Lens {...props} transform={`translate(${fixed(props.lens.at.x)} ${fixed(props.lens.at.y)})`} />;
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
 
-import { FREQUENCY, HEIGHT, TURN, wave, type Piece } from './geometry';
+import { FREQUENCY, HEIGHT, paintOrder, TURN, wave, type Piece } from './geometry';
 
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
@@ -28,8 +28,8 @@ const points = (frequency: number, turn: number) =>
 describe('the surface', () => {
   it('is painted from the back forward, so nearer faces cover farther ones', () => {
     for (const { frequency, turn } of sweep) {
-      const depths = wave(frequency, turn).pieces.map(({ depth }) => depth);
-      expect(depths).toEqual(depths.toSorted((a, b) => a - b));
+      const { pieces } = wave(frequency, turn);
+      expect(pieces).toEqual(pieces.toSorted(paintOrder));
     }
   });
 
@@ -56,6 +56,14 @@ describe('the surface', () => {
           clearOfFade({ name: 'surface', left: x, right: x, top: y, bottom: y }, HEIGHT),
           `at ${frequency}, ${turn}°`,
         ).toBe(true);
+  });
+
+  it('orders pieces the same on the server and in the browser, whose floats differ in the last digits', () => {
+    const vertex = (id: string, depth: number): Piece => ({ id, kind: 'vertex', at: { x: 0, y: 0 }, depth });
+
+    expect(paintOrder(vertex('b', 0.5), vertex('a', 0.5 + 1e-12))).toBeGreaterThan(0);
+    expect(paintOrder(vertex('b', 0.5 + 1e-12), vertex('a', 0.5))).toBeGreaterThan(0);
+    expect(paintOrder(vertex('a', 0.4), vertex('b', 0.5))).toBeLessThan(0);
   });
 
   it('names every piece uniquely, so a re-sort moves pieces rather than rebuilding them', () => {

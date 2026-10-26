@@ -1341,6 +1341,13 @@ rather than a surface a screen reader cannot enter.
 - **Everything that lives in the scene is painted in its order**: faces, silhouette,
   vertices, and the axes cut into short segments, so an axis passing under the
   surface is tinted by the faces in front of it. Only the names sit on top.
+- **A figure is rendered twice, by Node and by the browser, and their floats differ.**
+  `Math.sin` and `Math.cos` disagree in the last digits between the two, which hydration
+  reports as a mismatch on every attribute they reach. The primitives therefore write
+  every coordinate at two decimals and every opacity at three, a hundredth of a unit
+  being invisible, and a depth sort breaks its ties on rounded depth and then on id,
+  never on the raw difference. Reproduced at three mismatches in three loads of the
+  design system, none once rounded.
 - **Every piece carries a stable id and is keyed by it.** The list is re-sorted on
   every step, so an index key hands one position to a different piece, and a polygon
   turning into a circle there is a remount. Keyed, React moves nodes instead: at about

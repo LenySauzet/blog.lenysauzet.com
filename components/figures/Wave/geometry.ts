@@ -30,6 +30,9 @@ export type Piece = { id: string; depth: number } & (
   | { kind: 'vertex'; at: Vec2 }
 );
 
+export const paintOrder = (a: Piece, b: Piece) =>
+  Math.round((a.depth - b.depth) * 1e6) || a.id.localeCompare(b.id);
+
 export function wave(frequency: number, turn: number) {
   const camera = {
     ...ISOMETRIC,
@@ -90,7 +93,7 @@ export function wave(frequency: number, turn: number) {
   const origin = project(vec3(0, 0, 0)).at;
 
   return {
-    pieces: [...tiles, ...edges, ...vertices, ...axes].sort((a, b) => a.depth - b.depth),
+    pieces: [...tiles, ...edges, ...vertices, ...axes].sort(paintOrder),
     names: tips.map(([name, tip]) => {
       const at = project(tip).at;
       return {
