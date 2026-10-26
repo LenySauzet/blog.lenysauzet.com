@@ -12,7 +12,8 @@ const GRID = vec2(40, 54);
 const PIVOT = vec2(150, 142);
 const FOCUS = { column: 3, row: 2 };
 
-export const LOUPE = { at: vec2(440, 150), r: 24, zoom: 3.5 };
+export const LENS = { at: vec2(440, 150), r: 84 };
+const SOURCE = 24;
 export const ARROW = { from: vec2(538, 150), to: vec2(580, 150) };
 export const SWATCH = rectangle(vec2(588, 136), 28, 28);
 
@@ -40,8 +41,8 @@ export function coverage(degrees: number) {
       corners: focus,
       covered: clip(focus, shape),
       share: share(focus),
-      centre: add(focus[0], vec2(CELL / 2, CELL / 2)),
     },
+    source: { at: add(focus[0], vec2(CELL / 2, CELL / 2)), r: SOURCE },
     readout: {
       at: add(SWATCH[3], vec2(14, 0)),
       offset: vec2(0, 1.2),

@@ -1,9 +1,11 @@
 export { default, FADE_HOLD, LARGEST_TYPE, MEASURE } from "./Diagram";
 export { stack } from "./leaders";
+export type { Disc } from "./magnifier";
 export {
   Arrow,
   Circle,
   Curve,
+  Detail,
   Label,
   Leader,
   Line,

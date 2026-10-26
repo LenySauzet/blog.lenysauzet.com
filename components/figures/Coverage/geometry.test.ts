@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { area } from '@/lib/polygon';
 import { clearOfFade, SIZES, textBox } from '@/test/figure';
 
-import { ANGLE, CELL, coverage, HEIGHT, LOUPE, SWATCH } from './geometry';
+import { ANGLE, CELL, coverage, HEIGHT, LENS, SWATCH } from './geometry';
 
 const sweep = Array.from(
   { length: (ANGLE.max - ANGLE.min) * 10 + 1 },
@@ -44,13 +44,12 @@ describe('coverage', () => {
 
 describe('the frame', () => {
   it('holds the loupe and the swatch clear of the faded edges', () => {
-    const reach = LOUPE.r * LOUPE.zoom;
     const loupe = {
       name: 'loupe',
-      left: LOUPE.at.x - reach,
-      right: LOUPE.at.x + reach,
-      top: LOUPE.at.y - reach,
-      bottom: LOUPE.at.y + reach,
+      left: LENS.at.x - LENS.r,
+      right: LENS.at.x + LENS.r,
+      top: LENS.at.y - LENS.r,
+      bottom: LENS.at.y + LENS.r,
     };
     const xs = SWATCH.map(({ x }) => x);
     const ys = SWATCH.map(({ y }) => y);
@@ -69,7 +68,7 @@ describe('the frame', () => {
   it('never lays the loupe over the grid it magnifies', () => {
     const gridRight = Math.max(...coverage(0).cells.flatMap(({ corners }) => corners.map(({ x }) => x)));
 
-    expect(LOUPE.at.x - LOUPE.r * LOUPE.zoom).toBeGreaterThan(gridRight);
+    expect(LENS.at.x - LENS.r).toBeGreaterThan(gridRight);
   });
 
   it('keeps the readout clear of the faded edges at every type size', () => {

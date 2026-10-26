@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
 
 import { LEADER_GAP, leaderPath } from './leaders';
-import { tangents } from './magnifier';
+import { tangents, type Disc } from './magnifier';
 import { TONES, type Tone } from './tones';
 
 interface Stroke {
@@ -233,28 +233,26 @@ export function Leader({
   );
 }
 
-export function Magnifier({
-  focus,
-  r,
-  at,
-  zoom,
-  className,
-  children,
-}: {
-  focus: Vec2;
-  r: number;
-  at: Vec2;
-  zoom: number;
+interface LensProps {
+  source: Disc;
+  lens: Disc;
   className?: string;
   children: ReactNode;
-}) {
-  const lens = useId();
-  const reach = r * zoom;
+}
+
+function Lens({
+  source,
+  lens,
+  transform,
+  className,
+  children,
+}: LensProps & { transform: string }) {
+  const clip = useId();
   const edge = 'fill-none stroke-(--tone)';
 
   return (
     <g className={cn(TONES.structure, className)}>
-      {tangents({ at: focus, r }, { at, r: reach }).map(([near, far], index) => (
+      {tangents(source, lens).map(([near, far], index) => (
         <line
           key={index}
           x1={near.x}
@@ -264,19 +262,31 @@ export function Magnifier({
           className={edge}
         />
       ))}
-      <circle cx={focus.x} cy={focus.y} r={r} className={edge} />
-      <clipPath id={lens}>
-        <circle cx={at.x} cy={at.y} r={reach} />
+      <circle cx={source.at.x} cy={source.at.y} r={source.r} className={edge} />
+      <clipPath id={clip}>
+        <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} />
       </clipPath>
-      <g clipPath={`url(#${lens})`}>
-        <circle cx={at.x} cy={at.y} r={reach} className="fill-background" />
-        <g
-          transform={`translate(${at.x} ${at.y}) scale(${zoom}) translate(${-focus.x} ${-focus.y})`}
-        >
-          {children}
-        </g>
+      <g clipPath={`url(#${clip})`}>
+        <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} className="fill-background" />
+        <g transform={transform}>{children}</g>
       </g>
-      <circle cx={at.x} cy={at.y} r={reach} className={edge} />
+      <circle cx={lens.at.x} cy={lens.at.y} r={lens.r} className={edge} />
     </g>
   );
+}
+
+export function Magnifier(props: LensProps) {
+  const { source, lens } = props;
+  const zoom = lens.r / source.r;
+
+  return (
+    <Lens
+      {...props}
+      transform={`translate(${lens.at.x} ${lens.at.y}) scale(${zoom}) translate(${-source.at.x} ${-source.at.y})`}
+    />
+  );
+}
+
+export function Detail(props: LensProps) {
+  return <Lens {...props} transform={`translate(${props.lens.at.x} ${props.lens.at.y})`} />;
 }

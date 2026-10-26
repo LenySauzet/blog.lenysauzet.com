@@ -12,7 +12,9 @@ import Diagram, {
   Polygon,
 } from '@/components/figures/Diagram';
 
-import { ANGLE, ARROW, coverage, HEIGHT, LOUPE, SWATCH } from './geometry';
+import { ANGLE, ARROW, coverage, HEIGHT, LENS, SWATCH } from './geometry';
+
+const tile = (share: number) => 0.06 + share * 0.54;
 
 export interface CoverageProps {
   className?: string;
@@ -20,15 +22,19 @@ export interface CoverageProps {
 
 export default function Coverage({ className }: CoverageProps) {
   const [degrees, setDegrees] = useState(ANGLE.initial);
-  const { cells, edge, focus, readout } = coverage(degrees);
+  const { cells, edge, focus, source, readout } = coverage(degrees);
 
   const grid = (
     <>
       {cells.map(({ corners, share }, index) => (
-        <Polygon key={index} corners={corners} tone="ink" fill={share * 0.6} width={0} />
-      ))}
-      {cells.map(({ corners }, index) => (
-        <Polygon key={index} corners={corners} tone="guide" width={1} />
+        <Polygon
+          key={index}
+          corners={corners}
+          tone="ink"
+          fill={tile(share)}
+          width={1.5}
+          className="stroke-background"
+        />
       ))}
       <Polygon corners={focus.covered} tone="second" fill="hatched" width={0} />
       <Polygon corners={focus.corners} tone="second" width={1.5} />
@@ -42,11 +48,11 @@ export default function Coverage({ className }: CoverageProps) {
       caption="A pixel holds one colour, so an edge that crosses it is averaged. The share of the pixel the shape covers, hatched under the loupe, becomes how strongly the pixel is filled: turn the edge and watch the fill follow.">
       <Diagram height={HEIGHT} title="Coverage anti-aliasing of an edge across a pixel grid">
         {grid}
-        <Magnifier focus={focus.centre} r={LOUPE.r} at={LOUPE.at} zoom={LOUPE.zoom}>
+        <Magnifier source={source} lens={LENS}>
           {grid}
         </Magnifier>
         <Arrow {...ARROW} />
-        <Polygon corners={SWATCH} tone="ink" fill={focus.share * 0.6} width={1} />
+        <Polygon corners={SWATCH} tone="ink" fill={tile(focus.share)} width={1} />
         <Label {...readout}>{`${Math.round(focus.share * 100)}%`}</Label>
       </Diagram>
 
