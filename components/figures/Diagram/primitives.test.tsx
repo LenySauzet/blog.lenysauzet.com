@@ -1,0 +1,101 @@
+import { render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
+import { vec2 } from '@/lib/vec2';
+
+import Diagram from './Diagram';
+import { Arrow, Circle, Detail, Magnifier, Polygon } from './primitives';
+
+const TRIANGLE = [vec2(0, 0), vec2(10, 0), vec2(0, 10)];
+
+const draw = (children: React.ReactNode) =>
+  render(
+    <Diagram height={100} title="Test" className="custom-plane">
+      {children}
+    </Diagram>,
+  ).container;
+
+describe('hatched fills', () => {
+  it('paint with a pattern of their own', () => {
+    const svg = draw(<Polygon corners={TRIANGLE} fill="hatched" />);
+    const pattern = svg.querySelector('pattern');
+
+    expect(svg.querySelector('polygon')?.getAttribute('fill')).toBe(`url(#${pattern?.id})`);
+  });
+
+  it('never share a pattern between two shapes', () => {
+    const svg = draw(
+      <>
+        <Polygon corners={TRIANGLE} fill="hatched" />
+        <Circle at={vec2(50, 50)} r={10} fill="hatched" />
+      </>,
+    );
+    const ids = [...svg.querySelectorAll('pattern')].map(({ id }) => id);
+
+    expect(new Set(ids).size).toBe(2);
+  });
+});
+
+describe('a share of the tone', () => {
+  it('fills at that opacity', () => {
+    const svg = draw(<Polygon corners={TRIANGLE} fill={0.4} />);
+
+    expect(svg.querySelector('polygon')?.getAttribute('fill-opacity')).toBe('0.4');
+  });
+});
+
+describe('className', () => {
+  it('reaches the plane and the shapes drawn on it', () => {
+    const svg = draw(
+      <>
+        <Arrow from={vec2(0, 0)} to={vec2(50, 0)} className="custom-arrow" />
+        <Circle at={vec2(50, 50)} r={10} className="custom-circle" />
+      </>,
+    );
+
+    expect(svg.querySelector('svg')).toHaveClass('custom-plane');
+    expect(svg.querySelector('.custom-arrow')).not.toBeNull();
+    expect(svg.querySelector('circle')).toHaveClass('custom-circle');
+  });
+});
+
+describe('a lens', () => {
+  const source = { at: vec2(20, 20), r: 10 };
+  const lens = { at: vec2(80, 50), r: 40 };
+
+  it('magnifies by the ratio of its two circles, about the source', () => {
+    const svg = draw(
+      <Magnifier source={source} lens={lens}>
+        <Circle at={source.at} r={2} className="scene" />
+      </Magnifier>,
+    );
+
+    expect(svg.querySelector('.scene')?.parentElement?.getAttribute('transform')).toBe(
+      'translate(80 50) scale(4) translate(-20 -20)',
+    );
+  });
+
+  it('draws a detail around its own centre, at its own size', () => {
+    const svg = draw(
+      <Detail source={source} lens={lens}>
+        <Circle at={vec2(0, 0)} r={2} className="detail" />
+      </Detail>,
+    );
+
+    expect(svg.querySelector('.detail')?.parentElement?.getAttribute('transform')).toBe(
+      'translate(80 50)',
+    );
+  });
+
+  it('shows its content only inside the lens', () => {
+    const svg = draw(
+      <Detail source={source} lens={lens}>
+        <Circle at={vec2(0, 0)} r={2} className="detail" />
+      </Detail>,
+    );
+    const clipped = svg.querySelector('.detail')?.closest('[clip-path]');
+    const clip = svg.querySelector(`clipPath[id="${clipped?.getAttribute('clip-path')?.slice(5, -1)}"] circle`);
+
+    expect(clip?.getAttribute('r')).toBe('40');
+  });
+});

@@ -1305,6 +1305,23 @@ rather than a surface a screen reader cannot enter.
   because the type is CSS's to choose and the layout is not, and a leader runs level
   then turns once, just short of what it names. Leaders are drawn first, under the
   construction they point into.
+- **Every shape takes one stroke and one fill.** Tone, width and dash are shared by
+  `Circle`, `Polygon`, `Line`, `Curve` and `Arrow`; a fill is `none`, `soft`, `solid`,
+  `hatched`, or a number for the tone at that share. `width={0}` leaves the fill alone.
+- **Hatching is the drawing-office mark for a cut**, so `hatched` is for a section or
+  for the part of something a figure singles out, never for decoration. Its pattern
+  takes an id from `useId`, so every copy of a drawing gets its own.
+- **A lens is one frame with two uses.** `Magnifier` redraws the scene it is handed,
+  scaled about the source by the ratio of the two circles, which is what a loupe's
+  power is, so the detail follows any control the figure has. `Detail` shows something
+  drawn for the purpose around its own centre, the deeper view a cross-section opens
+  onto. Strokes keep their width at any zoom through the plane's non-scaling stroke,
+  which keeps a magnified grid crisp; type would grow, so a magnifier is handed the
+  drawing without its names. The two lines are the circles' external tangents, in
+  `magnifier.ts`.
+- **A grid of cells is tiles, never lines over fills.** Cells are separated by a gap
+  in `--background` and an empty cell keeps a faint tint of the ink. Grey rules laid
+  over coloured cells darken the whole grid in light, where the fills are pale.
 - **A region is named beside itself, never by a leader.** Both circles lie wholly
   inside the ray's sweep, so any line pointing at them is crossed at some angle. The
   name sits on the far side of the centre from the ray, which can then never reach it.
