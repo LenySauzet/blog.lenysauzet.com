@@ -1322,6 +1322,24 @@ rather than a surface a screen reader cannot enter.
 - **A grid of cells is tiles, never lines over fills.** Cells are separated by a gap
   in `--background` and an empty cell keeps a faint tint of the ink. Grey rules laid
   over coloured cells darken the whole grid in light, where the fills are pale.
+- **Three dimensions stay in SVG while the subject is lines.** `lib/vec3.ts` holds an
+  orthographic camera, yaw, pitch and scale, of which `ISOMETRIC` is one setting;
+  `lib/mesh.ts` builds a heightfield, its faces and its silhouette. Perspective waits
+  for the figure that needs it, and a phenomenon that lives per pixel, lighting
+  included, is a canvas's.
+- **A silhouette is an edge between a face turned to the eye and one turned away, and
+  the border**, drawn one weight heavier than the mesh: it is the line that detaches a
+  form from its ground. Faces and edges are sorted together, back to front, so a fold
+  behind a crest is covered by it rather than drawn across it.
+- **A face is shaded with the share fill**, a floor plus how squarely it meets the
+  light, an underside at a fixed low share. No token was needed.
+- **Sample where the surface varies.** `heightfield` takes columns and rows apart: at
+  nineteen points a side the wave aliased into a zigzag at its highest frequency, and
+  forty-one columns over eleven rows hold it at four hundred faces, measured at one
+  frame per slider step.
+- **Keep a turn well short of edge-on.** Within about twenty degrees of looking along
+  the crests, faces flip between facing and not from one to the next and the
+  silhouette breaks into ticks.
 - **A region is named beside itself, never by a leader.** Both circles lie wholly
   inside the ray's sweep, so any line pointing at them is crossed at some angle. The
   name sits on the far side of the centre from the ray, which can then never reach it.
