@@ -11,15 +11,22 @@ interface Stroke {
   tone?: Tone;
   dashed?: boolean;
   width?: number;
+  className?: string;
 }
 
-const stroke = ({ tone = 'structure', dashed = false, width = 2 }: Stroke) => ({
+const stroke = ({
+  tone = 'structure',
+  dashed = false,
+  width = 2,
+  className,
+}: Stroke) => ({
   strokeWidth: width,
   strokeLinecap: 'round' as const,
   className: cn(
     TONES[tone],
     'stroke-(--tone)',
     dashed && '[stroke-dasharray:4_6]',
+    className,
   ),
 });
 
@@ -67,7 +74,7 @@ function useShape({ fill = 'none', ...rest }: Shape) {
 
   return {
     pattern,
-    paint: { ...outline, ...paint, className: cn(outline.className, className) },
+    paint: { ...outline, ...paint, className: cn(className, outline.className) },
   };
 }
 
@@ -122,19 +129,24 @@ export function Curve({
 
 const HEAD = { length: 9, half: 3.5 };
 
-export function Arrow({ from, to, ...rest }: Stroke & { from: Vec2; to: Vec2 }) {
+export function Arrow({
+  from,
+  to,
+  className,
+  ...rest
+}: Stroke & { from: Vec2; to: Vec2 }) {
   const back = normalize(sub(from, to));
   const base = add(to, scale(back, HEAD.length));
   const side = scale(vec2(-back.y, back.x), HEAD.half);
 
   return (
-    <>
+    <g className={className}>
       <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} {...stroke(rest)} />
       <polygon
         points={points([to, add(base, side), sub(base, side)])}
         className={cn(TONES[rest.tone ?? 'structure'], 'fill-(--tone)')}
       />
-    </>
+    </g>
   );
 }
 
@@ -142,17 +154,19 @@ export function Point({
   at,
   tone = 'ink',
   r = 5,
+  className,
 }: {
   at: Vec2;
   tone?: Tone;
   r?: number;
+  className?: string;
 }) {
   return (
     <circle
       cx={at.x}
       cy={at.y}
       r={r}
-      className={cn(TONES[tone], 'fill-(--tone)')}
+      className={cn(TONES[tone], 'fill-(--tone)', className)}
     />
   );
 }
@@ -165,8 +179,9 @@ export interface Placement {
 export function Label({
   at,
   offset,
+  className,
   children,
-}: Placement & { children: ReactNode }) {
+}: Placement & { className?: string; children: ReactNode }) {
   return (
     <text
       x={at.x}
@@ -175,7 +190,10 @@ export function Label({
       dy={`${offset.y}em`}
       textAnchor="middle"
       dominantBaseline="central"
-      className="fill-foreground stroke-background stroke-3 [paint-order:stroke] [stroke-linejoin:round]"
+      className={cn(
+        'fill-foreground stroke-background stroke-3 [paint-order:stroke] [stroke-linejoin:round]',
+        className,
+      )}
     >
       {children}
     </text>
@@ -185,16 +203,18 @@ export function Label({
 export function Leader({
   target,
   label,
+  className,
   children,
 }: {
   target: Vec2;
   label: Vec2;
+  className?: string;
   children: ReactNode;
 }) {
   const rightward = label.x > target.x;
 
   return (
-    <g className={TONES.structure}>
+    <g className={cn(TONES.structure, className)}>
       <polyline
         points={points(leaderPath(target, label))}
         className="fill-none stroke-(--tone)"
@@ -218,12 +238,14 @@ export function Magnifier({
   r,
   at,
   zoom,
+  className,
   children,
 }: {
   focus: Vec2;
   r: number;
   at: Vec2;
   zoom: number;
+  className?: string;
   children: ReactNode;
 }) {
   const lens = useId();
@@ -231,7 +253,7 @@ export function Magnifier({
   const edge = 'fill-none stroke-(--tone)';
 
   return (
-    <g className={TONES.structure}>
+    <g className={cn(TONES.structure, className)}>
       {tangents({ at: focus, r }, { at, r: reach }).map(([near, far], index) => (
         <line
           key={index}

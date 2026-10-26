@@ -14,7 +14,11 @@ import Diagram, {
 
 import { ANGLE, ARROW, coverage, HEIGHT, LOUPE, SWATCH } from './geometry';
 
-export default function Coverage() {
+export interface CoverageProps {
+  className?: string;
+}
+
+export default function Coverage({ className }: CoverageProps) {
   const [degrees, setDegrees] = useState(ANGLE.initial);
   const { cells, edge, focus, readout } = coverage(degrees);
 
@@ -33,7 +37,9 @@ export default function Coverage() {
   );
 
   return (
-    <Figure caption="A pixel holds one colour, so an edge that crosses it is averaged. The share of the pixel the shape covers, hatched under the loupe, becomes how strongly the pixel is filled: turn the edge and watch the fill follow.">
+    <Figure
+      className={className}
+      caption="A pixel holds one colour, so an edge that crosses it is averaged. The share of the pixel the shape covers, hatched under the loupe, becomes how strongly the pixel is filled: turn the edge and watch the fill follow.">
       <Diagram height={HEIGHT} title="Coverage anti-aliasing of an edge across a pixel grid">
         {grid}
         <Magnifier focus={focus.centre} r={LOUPE.r} at={LOUPE.at} zoom={LOUPE.zoom}>

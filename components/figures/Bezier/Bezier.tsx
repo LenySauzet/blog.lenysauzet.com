@@ -14,13 +14,19 @@ import Diagram, {
 
 import { bezier, HEIGHT, T } from './geometry';
 
-export default function Bezier() {
+export interface BezierProps {
+  className?: string;
+}
+
+export default function Bezier({ className }: BezierProps) {
   const [t, setT] = useState(T.initial);
   const { control, first, second, point, drawn, rest, leaders, labels } =
     bezier(t);
 
   return (
-    <Figure caption="A cubic Bézier is three rounds of the same move. Each pass slides a point along every segment of the one before, the same fraction t of the way, until a single point is left: that point is on the curve. Sweeping t from 0 to 1 draws the whole of it.">
+    <Figure
+      className={className}
+      caption="A cubic Bézier is three rounds of the same move. Each pass slides a point along every segment of the one before, the same fraction t of the way, until a single point is left: that point is on the curve. Sweeping t from 0 to 1 draws the whole of it.">
       <Diagram height={HEIGHT} title="De Casteljau's construction of a cubic Bézier">
         {leaders.map(({ name, target, label }) => (
           <Leader key={name} target={target} label={label}>
