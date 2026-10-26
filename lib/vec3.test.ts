@@ -1,11 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
 import { length, sub, vec2 } from './vec2';
-import { cross, dot3, ISOMETRIC, normalize3, towardViewer, vec3, view } from './vec3';
+import {
+  cross,
+  dot3,
+  ISOMETRIC,
+  normalize3,
+  scale3,
+  towardViewer,
+  vec3,
+  view,
+} from './vec3';
 
 const CAMERA = { ...ISOMETRIC, scale: 100, origin: vec2(0, 0) };
 const angle = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   (Math.acos((a.x * b.x + a.y * b.y) / (Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y))) * 180) / Math.PI;
+
+describe('scale3', () => {
+  it('stretches every component alike', () => {
+    expect(scale3(vec3(1, -2, 3), 2)).toEqual(vec3(2, -4, 6));
+  });
+});
 
 describe('cross', () => {
   it('turns x into y into z, right-handed', () => {

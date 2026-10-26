@@ -4,7 +4,13 @@ import { useState } from 'react';
 
 import Figure from '@/components/Figure';
 import Slider from '@/components/Slider';
-import Diagram, { Arrow, Label, Line, Polygon } from '@/components/figures/Diagram';
+import Diagram, {
+  Arrow,
+  Label,
+  Line,
+  Point,
+  Polygon,
+} from '@/components/figures/Diagram';
 
 import { FREQUENCY, HEIGHT, TURN, wave } from './geometry';
 
@@ -15,31 +21,39 @@ export interface WaveProps {
 export default function Wave({ className }: WaveProps) {
   const [frequency, setFrequency] = useState(FREQUENCY.initial);
   const [turn, setTurn] = useState(TURN.initial);
-  const { pieces, axes } = wave(frequency, turn);
+  const { pieces, names } = wave(frequency, turn);
 
   return (
     <Figure
       className={className}
       caption="A flat grid, every point lifted by a sine of where it sits, which is the whole of what a vertex shader does to it. Each face takes the light by how squarely it meets it, and the heavier line is the silhouette: the border, and every fold where the surface turns away from the eye.">
       <Diagram height={HEIGHT} title="A grid displaced by a sine wave">
-        {pieces.map((piece, index) =>
-          piece.kind === 'tile' ? (
-            <Polygon
-              key={index}
-              corners={piece.corners}
-              tone="ink"
-              fill={piece.shade}
-              width={0.75}
-            />
-          ) : (
-            <Line key={index} from={piece.from} to={piece.to} tone="ink" width={2} />
-          ),
-        )}
-        {axes.map(({ name, from, to, label }) => (
-          <g key={name}>
-            <Arrow from={from} to={to} />
-            <Label {...label}>{name}</Label>
-          </g>
+        {pieces.map((piece, index) => {
+          switch (piece.kind) {
+            case 'tile':
+              return (
+                <Polygon
+                  key={index}
+                  corners={piece.corners}
+                  tone="ink"
+                  fill={piece.shade}
+                  width={0.75}
+                />
+              );
+            case 'edge':
+              return <Line key={index} from={piece.from} to={piece.to} tone="ink" width={2} />;
+            case 'vertex':
+              return <Point key={index} at={piece.at} r={1.6} />;
+            case 'axis':
+              return <Line key={index} from={piece.from} to={piece.to} width={1.5} />;
+            case 'arrow':
+              return <Arrow key={index} from={piece.from} to={piece.to} width={1.5} />;
+          }
+        })}
+        {names.map(({ name, label }) => (
+          <Label key={name} {...label}>
+            {name}
+          </Label>
         ))}
       </Diagram>
 

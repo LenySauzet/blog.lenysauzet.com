@@ -1333,10 +1333,16 @@ rather than a surface a screen reader cannot enter.
   behind a crest is covered by it rather than drawn across it.
 - **A face is shaded with the share fill**, a floor plus how squarely it meets the
   light, an underside at a fixed low share. No token was needed.
-- **Sample where the surface varies.** `heightfield` takes columns and rows apart: at
-  nineteen points a side the wave aliased into a zigzag at its highest frequency, and
-  forty-one columns over eleven rows hold it at four hundred faces, measured at one
-  frame per slider step.
+- **A grid's cells are square, and fine enough for the highest frequency.** Nineteen
+  points a side aliased the wave into a zigzag; twenty-five keep eight cells to a
+  period. Forty-one columns over eleven rows was smoother and cheaper, and read as a
+  ruled sheet rather than a mesh, which is the subject. `heightfield` still takes
+  columns and rows apart for a surface that wants them.
+- **Everything that lives in the scene is painted in its order**: faces, silhouette,
+  vertices, and the axes cut into short segments, so an axis passing under the
+  surface is tinted by the faces in front of it. Only the names sit on top. Measured
+  at about 1660 elements: 16.7ms median per slider step, 21.8 at p90, two frames of
+  wait included.
 - **Keep a turn well short of edge-on.** Within about twenty degrees of looking along
   the crests, faces flip between facing and not from one to the next and the
   silhouette breaks into ticks.

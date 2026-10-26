@@ -5,6 +5,7 @@ import {
   dot3,
   ISOMETRIC,
   normalize3,
+  scale3,
   towardViewer,
   vec3,
   view,
@@ -15,16 +16,19 @@ export const HEIGHT = 400;
 export const FREQUENCY = { min: 0.5, max: 3, initial: 1.5 };
 export const TURN = { min: -25, max: 25, initial: 0 };
 
-const SAMPLES = [41, 11] as const;
+const SAMPLES = [25, 25] as const;
+const AXIS_STEPS = 24;
 const HALF = 1;
 const AMPLITUDE = 0.3;
 const AXIS = 1.4;
 const LIGHT = normalize3(vec3(-0.4, 1, 0.5));
 const LIT = { floor: 0.08, range: 0.5, underside: 0.04 };
 
-export type Piece =
-  | { kind: 'tile'; corners: Vec2[]; shade: number; depth: number }
-  | { kind: 'edge'; from: Vec2; to: Vec2; depth: number };
+export type Piece = { depth: number } & (
+  | { kind: 'tile'; corners: Vec2[]; shade: number }
+  | { kind: 'edge' | 'axis' | 'arrow'; from: Vec2; to: Vec2 }
+  | { kind: 'vertex'; at: Vec2 }
+);
 
 export function wave(frequency: number, turn: number) {
   const camera = {
@@ -57,25 +61,38 @@ export function wave(frequency: number, turn: number) {
     depth: depthOf([a, b]) + 1e-3,
   }));
 
+  const vertices: Piece[] = grid.flat().map((point) => ({
+    kind: 'vertex',
+    at: project(point).at,
+    depth: project(point).depth + 2e-3,
+  }));
+
+  const tips = [
+    ['x', vec3(AXIS, 0, 0)],
+    ['y', vec3(0, AXIS * 0.6, 0)],
+    ['z', vec3(0, 0, AXIS)],
+  ] as const;
+  const axes: Piece[] = tips.flatMap(([, tip]) =>
+    Array.from({ length: AXIS_STEPS }, (_, step) => {
+      const [a, b] = [step, step + 1].map((k) => scale3(tip, k / AXIS_STEPS));
+      return {
+        kind: step === AXIS_STEPS - 1 ? 'arrow' : 'axis',
+        from: project(a).at,
+        to: project(b).at,
+        depth: depthOf([a, b]),
+      };
+    }),
+  );
   const origin = project(vec3(0, 0, 0)).at;
-  const axes = (
-    [
-      ['x', vec3(AXIS, 0, 0)],
-      ['y', vec3(0, AXIS * 0.6, 0)],
-      ['z', vec3(0, 0, AXIS)],
-    ] as const
-  ).map(([name, tip]) => {
-    const to = project(tip).at;
-    return {
-      name,
-      from: origin,
-      to,
-      label: { at: to, offset: normalize(sub(to, origin)) } satisfies Placement,
-    };
-  });
 
   return {
-    pieces: [...tiles, ...edges].sort((a, b) => a.depth - b.depth),
-    axes,
+    pieces: [...tiles, ...edges, ...vertices, ...axes].sort((a, b) => a.depth - b.depth),
+    names: tips.map(([name, tip]) => {
+      const at = project(tip).at;
+      return {
+        name,
+        label: { at, offset: normalize(sub(at, origin)) } satisfies Placement,
+      };
+    }),
   };
 }

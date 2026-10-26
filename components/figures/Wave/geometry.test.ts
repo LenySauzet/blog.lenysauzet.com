@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
 
-import { FREQUENCY, HEIGHT, TURN, wave } from './geometry';
+import { FREQUENCY, HEIGHT, TURN, wave, type Piece } from './geometry';
 
 const steps = (from: number, to: number, count: number) =>
   Array.from({ length: count + 1 }, (_, i) => from + ((to - from) * i) / count);
@@ -11,10 +11,19 @@ const sweep = steps(FREQUENCY.min, FREQUENCY.max, 10).flatMap((frequency) =>
   steps(TURN.min, TURN.max, 8).map((turn) => ({ frequency, turn })),
 );
 
+const extent = (piece: Piece) => {
+  switch (piece.kind) {
+    case 'tile':
+      return piece.corners;
+    case 'vertex':
+      return [piece.at];
+    default:
+      return [piece.from, piece.to];
+  }
+};
+
 const points = (frequency: number, turn: number) =>
-  wave(frequency, turn).pieces.flatMap((piece) =>
-    piece.kind === 'tile' ? piece.corners : [piece.from, piece.to],
-  );
+  wave(frequency, turn).pieces.flatMap(extent);
 
 describe('the surface', () => {
   it('is painted from the back forward, so nearer faces cover farther ones', () => {
@@ -51,10 +60,20 @@ describe('the surface', () => {
 });
 
 describe('the axes', () => {
+  it('run under the surface where it lies in front of them', () => {
+    const { pieces } = wave(FREQUENCY.initial, TURN.initial);
+    const order = pieces.map(({ kind }) => kind);
+    const firstTile = order.indexOf('tile');
+    const lastTile = order.lastIndexOf('tile');
+    const between = order.slice(firstTile, lastTile).filter((kind) => kind === 'axis');
+
+    expect(between.length).toBeGreaterThan(0);
+  });
+
   it('name each axis apart from the others and clear of the fade', () => {
     for (const { frequency, turn } of sweep)
       for (const size of SIZES) {
-        const boxes = wave(frequency, turn).axes.map(({ name, label }) => textBox(name, label, size));
+        const boxes = wave(frequency, turn).names.map(({ name, label }) => textBox(name, label, size));
         for (const [i, a] of boxes.entries()) {
           expect(clearOfFade(a, HEIGHT), `${a.name} at ${turn}° in ${size}`).toBe(true);
           for (const b of boxes.slice(i + 1)) expect(overlap(a, b)).toBe(false);

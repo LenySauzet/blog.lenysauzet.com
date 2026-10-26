@@ -11,6 +11,9 @@ export const vec3 = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 export const sub3 = (a: Vec3, b: Vec3): Vec3 =>
   vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 
+export const scale3 = (v: Vec3, k: number): Vec3 =>
+  vec3(v.x * k, v.y * k, v.z * k);
+
 export const dot3 = (a: Vec3, b: Vec3) => a.x * b.x + a.y * b.y + a.z * b.z;
 
 export const cross = (a: Vec3, b: Vec3): Vec3 =>
