@@ -23,6 +23,7 @@ import Chart, { PieChart } from '@/components/Chart';
 import Details from '@/components/Details';
 import Figure from '@/components/Figure';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
+import RaySphere from '@/components/figures/RaySphere';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
 import Image from '@/components/Image';
@@ -63,6 +64,7 @@ export const components = {
   Fullbleed,
   Image,
   PieChart,
+  RaySphere,
   Sandpack,
   SupportCallout,
 

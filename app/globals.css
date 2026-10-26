@@ -106,6 +106,7 @@
      only the hue turns for every other token, and the cool end of the circle
      loses a third of its contrast on white at a fixed lightness. */
   --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
+  --figure-contrast: var(--contrast-light, oklch(0.646 0.222 41.116));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
@@ -195,6 +196,7 @@
   --popover: oklch(0.21 0.006 var(--base-hue));
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
+  --figure-contrast: var(--contrast-dark, oklch(0.75 0.183 55.934));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.274 0.006 var(--base-hue));
   --secondary-foreground: oklch(0.985 0 0);

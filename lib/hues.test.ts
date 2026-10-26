@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { accentOf, CHROMA, DEFAULT_HUE, HUES, hueOf, LIGHTNESS, propertiesOf } from './hues';
+import {
+  accentOf,
+  arc,
+  CHROMA,
+  contrastOf,
+  DEFAULT_HUE,
+  HUES,
+  hueOf,
+  LIGHTNESS,
+  propertiesOf,
+} from './hues';
 
 /**
  * oklch to sRGB, so the contrast floor below is checked rather than asserted.
@@ -93,9 +103,36 @@ describe('HUES', () => {
   });
 });
 
+describe('contrastOf', () => {
+  it('stands well away from the accent, whichever it is', () => {
+    for (const preset of HUES) {
+      expect(arc(contrastOf(preset).hue, preset.hue), preset.label).toBeGreaterThanOrEqual(90);
+    }
+  });
+
+  it('reads as a mark against the page in both themes', () => {
+    const onWhite = luminance(1, 0, 0);
+
+    for (const preset of HUES) {
+      const { light, dark } = contrastOf(preset);
+      const onPage = luminance(0.1468, 0.01, preset.hue);
+
+      expect(contrast(luminance(...light), onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3);
+      expect(contrast(luminance(...dark), onPage), `${preset.label} in dark`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('is applied with the preset, one colour per theme', () => {
+    expect(propertiesOf(hueOf('blue'))).toMatchObject({
+      '--contrast-light': 'oklch(0.646 0.222 41.116)',
+      '--contrast-dark': 'oklch(0.75 0.183 55.934)',
+    });
+  });
+});
+
 describe('propertiesOf', () => {
   it('writes the angle and the lightness, the default one included', () => {
-    expect(propertiesOf(hueOf('violet'))).toEqual({
+    expect(propertiesOf(hueOf('violet'))).toMatchObject({
       '--base-hue': '292.717',
       '--accent-l': String(LIGHTNESS),
     });

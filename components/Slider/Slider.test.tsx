@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import Slider from './Slider';
 
@@ -45,5 +45,16 @@ describe('Slider', () => {
     expect(thumb).toHaveAttribute('aria-valuemin', '0');
     expect(thumb).toHaveAttribute('aria-valuemax', '500');
     expect(thumb).toHaveAttribute('aria-valuenow', '250');
+  });
+
+  it('tells a listener what the reader moved it to', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render(<Slider label="Angle" defaultValue={5} onValueChange={onValueChange} />);
+
+    await user.click(screen.getByRole('slider'));
+    await user.keyboard('{ArrowRight}');
+
+    expect(onValueChange).toHaveBeenLastCalledWith(6);
   });
 });

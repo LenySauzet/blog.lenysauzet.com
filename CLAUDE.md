@@ -1257,6 +1257,59 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
   taking an id, so they never collided; `[^1]` now parses too, and writing one would put
   a second, differently styled set of notes in the same article.
 
+**A geometric figure is drawn in SVG, from maths a test can read.**
+`components/figures/Diagram` is the plane and its marks; `lib/vec2.ts` is the plane
+maths; the figure's own geometry sits beside it, pure, the way `rail.ts` sits beside
+the reading rail. `RaySphere` is the first and the shape the next ones copy.
+
+**SVG rather than a canvas**, which is what the reference draws these on. Ten marks
+redrawn on a slider need no raster, and the trade is all one way: the colours become
+tokens, the labels stay selectable, and the whole is one `role="img"` with a title
+rather than a surface a screen reader cannot enter.
+
+- **A figure is drawn in one ink, and the ink is the accent.** The structure takes
+  `ink`, which is `--primary`, so every figure carries the colour the reader chose, the
+  way Making Software draws everything in its own cobalt. What the figure found takes
+  `contrast`, **picked per preset in `lib/hues.ts`**: of orange, emerald and violet,
+  the one furthest round the wheel, as Tailwind's 600 in light and 400 in dark. A fixed
+  hue fails because with seventeen presets it is somebody's accent; the plain
+  complement fails because it lands in the yellows for a blue, and a yellow at the
+  accent's lightness is mustard. `hues.test.ts` holds it 90 degrees away and over 3:1
+  in both themes. A hue that names something in the world (a pixel's R, G and B) is fixed,
+  and is declared the day a figure needs one. A fill is the tone mixed toward the page,
+  so one definition lightens on a light page and darkens on a dark one.
+- **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
+  against the page, which is a line nobody can follow. The construction lines take a
+  mix of `--muted-foreground`, 2.20 in light and 3.16 in dark, which is where the
+  reference's own `#ACB5CA` lands.
+- **The frame is cut to hold the drawing across the whole control, not at rest.** Every
+  defect in this figure came from that: two names colliding at one angle out of a
+  hundred, a label outside the frame at the extremes, another inside the edge fade at
+  all of them. **Sweep the control in the geometry's own test**: `RaySphere/geometry.test.ts`
+  boxes every name at every tenth of a degree, at each of the three type sizes, and
+  asserts they never overlap, never meet the ray and never reach the fade.
+- **Names are pushed apart from each other, never to fixed sides.** Two points already
+  separated along one axis come back together at whatever angle leaves them twice the
+  offset apart.
+- **A region is named beside itself, never by a leader.** Both circles lie wholly
+  inside the ray's sweep, so any line pointing at them is crossed at some angle. The
+  name sits on the far side of the centre from the ray, which can then never reach it.
+- **A name wears a halo in `--background`**, through `paint-order`, so a stroke passing
+  under it is knocked out rather than read through. A point on a circle is named
+  across that circle's edge at some angle, and no placement avoids it.
+- **A figure scales and never scrolls, and its type does not shrink with it.** Every
+  diagram is drawn at `MEASURE`, the prose width, so one set of `@container` steps can
+  raise the type in the drawing's own units as the column narrows: 13, 16, then 20,
+  which never lets a name fall far under 10px down to 336. A name sits off its point by an offset in
+  `em`, so the gap grows with the type it separates. A fixed width is what lets the
+  steps be shared: a container query cannot read a figure's own viewBox.
+- **The edges dissolve** through `ScrollFade`'s ramp, four of them intersected rather
+  than one radial, which pulls the corners in on a wide drawing, and the band is narrow
+  enough to catch a line leaving and nothing named.
+- **There is no prettier config here and the repo writes single quotes.** Running
+  `npx prettier` without `--single-quote` turns a file against the house style, and
+  running it on a directory reformats every neighbour.
+
 **`components/figures/ConfusionMatrix` is finished but unlisted.** Registered in
 `mdx-components.tsx`, absent from the design system: a figure waiting for the post that
 needs it, not something the system should show off before one does. It is a heatmap and

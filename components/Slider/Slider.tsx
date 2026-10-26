@@ -95,6 +95,7 @@ export interface SliderProps
   /** Appended to the readout, e.g. `%` or `px`. */
   unit?: string;
   decimals?: number;
+  onValueChange?: (value: number) => void;
 }
 
 /**
@@ -114,6 +115,7 @@ export default function Slider({
   decimals = 0,
   disabled,
   className,
+  onValueChange,
   ...props
 }: SliderProps) {
   const [value, setValue] = useState(defaultValue);
@@ -342,7 +344,10 @@ export default function Slider({
       >
         <SliderRoot
           value={[value]}
-          onValueChange={([next]) => setValue(next)}
+          onValueChange={([next]) => {
+            setValue(next);
+            onValueChange?.(next);
+          }}
           min={min}
           max={max}
           step={step}

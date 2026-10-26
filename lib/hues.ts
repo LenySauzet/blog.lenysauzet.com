@@ -39,10 +39,36 @@ export const STORAGE_KEY = 'hue';
 export const hueOf = (id: string | null | undefined) =>
   HUES.find((candidate) => candidate.id === id) ?? DEFAULT_HUE;
 
-export const propertiesOf = (hue: Hue) => ({
-  '--base-hue': String(hue.hue),
-  '--accent-l': String(hue.lightness ?? LIGHTNESS),
-});
+type Oklch = readonly [lightness: number, chroma: number, hue: number];
+
+const CONTRASTS: { hue: number; light: Oklch; dark: Oklch }[] = [
+  { hue: hueOf('orange').hue, light: [0.646, 0.222, 41.116], dark: [0.75, 0.183, 55.934] },
+  { hue: hueOf('emerald').hue, light: [0.596, 0.145, 163.225], dark: [0.765, 0.177, 163.223] },
+  { hue: hueOf('violet').hue, light: [0.541, 0.281, 293.009], dark: [0.702, 0.183, 293.541] },
+];
+
+export const arc = (a: number, b: number) => {
+  const turn = Math.abs(a - b) % 360;
+  return Math.min(turn, 360 - turn);
+};
+
+export const contrastOf = (hue: Hue) =>
+  CONTRASTS.reduce((best, candidate) =>
+    arc(candidate.hue, hue.hue) > arc(best.hue, hue.hue) ? candidate : best,
+  );
+
+const oklch = ([l, c, h]: Oklch) => `oklch(${l} ${c} ${h})`;
+
+export const propertiesOf = (hue: Hue) => {
+  const { light, dark } = contrastOf(hue);
+
+  return {
+    '--base-hue': String(hue.hue),
+    '--accent-l': String(hue.lightness ?? LIGHTNESS),
+    '--contrast-light': oklch(light),
+    '--contrast-dark': oklch(dark),
+  };
+};
 
 export const accentOf = (hue: Hue) =>
   `oklch(${hue.lightness ?? LIGHTNESS} ${CHROMA} ${hue.hue})`;
