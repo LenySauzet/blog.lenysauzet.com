@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { EASED, blurRamp } from '@/components/ScrollFade/gradients';
 
 export const MEASURE = 672;
+export const FADE_HOLD = 94;
 
 export interface DiagramProps {
   height: number;
@@ -11,7 +12,7 @@ export interface DiagramProps {
 }
 
 const FADE = ['to right', 'to left', 'to bottom', 'to top']
-  .map((direction) => blurRamp(direction, 94, EASED))
+  .map((direction) => blurRamp(direction, FADE_HOLD, EASED))
   .join(', ');
 
 export default function Diagram({

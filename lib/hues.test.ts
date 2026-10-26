@@ -112,10 +112,10 @@ describe('contrastOf', () => {
 
   it('reads as a mark against the page in both themes', () => {
     const onWhite = luminance(1, 0, 0);
-    const onPage = luminance(0.1468, 0.01, DEFAULT_HUE.hue);
 
     for (const preset of HUES) {
       const { light, dark } = contrastOf(preset);
+      const onPage = luminance(0.1468, 0.01, preset.hue);
 
       expect(contrast(luminance(...light), onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3);
       expect(contrast(luminance(...dark), onPage), `${preset.label} in dark`).toBeGreaterThanOrEqual(3);

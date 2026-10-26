@@ -1291,9 +1291,9 @@ rather than a surface a screen reader cannot enter.
 - **Names are pushed apart from each other, never to fixed sides.** Two points already
   separated along one axis come back together at whatever angle leaves them twice the
   offset apart.
-- **A region is named in place, never by a leader.** Both circles lie wholly inside the
-  ray's sweep, so any line pointing at them is crossed at some angle. The name sits
-  on the far side of the centre from the ray, which can then never reach it.
+- **A region is named beside itself, never by a leader.** Both circles lie wholly
+  inside the ray's sweep, so any line pointing at them is crossed at some angle. The
+  name sits on the far side of the centre from the ray, which can then never reach it.
 - **A name wears a halo in `--background`**, through `paint-order`, so a stroke passing
   under it is knocked out rather than read through. A point on a circle is named
   across that circle's edge at some angle, and no placement avoids it.

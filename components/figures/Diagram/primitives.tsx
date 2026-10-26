@@ -81,15 +81,16 @@ export function Point({
   );
 }
 
+export interface Placement {
+  at: Vec2;
+  offset: Vec2;
+}
+
 export function Label({
   at,
-  offset = { x: 0, y: 0 },
+  offset,
   children,
-}: {
-  at: Vec2;
-  offset?: Vec2;
-  children: ReactNode;
-}) {
+}: Placement & { children: ReactNode }) {
   return (
     <text
       x={at.x}

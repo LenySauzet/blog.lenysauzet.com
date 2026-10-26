@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { FADE_HOLD, MEASURE, type Placement } from '@/components/figures/Diagram';
 import { add, scale, vec2, type Vec2 } from '@/lib/vec2';
 
 import {
@@ -8,14 +9,13 @@ import {
   CENTRE,
   HEIGHT,
   ORIGIN,
-  WIDTH,
   raySphere,
-  type Placement,
 } from './geometry';
 
 const SIZES = [13, 16, 20];
 const GLYPH = { width: 0.65, height: 1.3 };
-const FADE = { x: WIDTH * 0.06, y: HEIGHT * 0.06 };
+const BAND = 1 - FADE_HOLD / 100;
+const FADE = { x: MEASURE * BAND, y: HEIGHT * BAND };
 
 const box = (name: string, { at, offset }: Placement, size: number) => {
   const centre = add(at, scale(offset, size));
@@ -109,7 +109,7 @@ describe('the names, across the whole slider', () => {
     for (const { degrees, size } of sweep)
       for (const b of named(degrees, size)) {
         expect(b.left, `${b.name} at ${degrees}° in ${size}`).toBeGreaterThan(FADE.x);
-        expect(b.right, `${b.name} at ${degrees}° in ${size}`).toBeLessThan(WIDTH - FADE.x);
+        expect(b.right, `${b.name} at ${degrees}° in ${size}`).toBeLessThan(MEASURE - FADE.x);
         expect(b.top, `${b.name} at ${degrees}° in ${size}`).toBeGreaterThan(FADE.y);
         expect(b.bottom, `${b.name} at ${degrees}° in ${size}`).toBeLessThan(HEIGHT - FADE.y);
       }

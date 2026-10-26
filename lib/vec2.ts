@@ -22,7 +22,7 @@ export const normalize = (v: Vec2): Vec2 => {
   return len === 0 ? v : scale(v, 1 / len);
 };
 
-export const fromAngle = (radians: number, len = 1): Vec2 => ({
-  x: Math.cos(radians) * len,
-  y: Math.sin(radians) * len,
+export const fromAngle = (radians: number): Vec2 => ({
+  x: Math.cos(radians),
+  y: Math.sin(radians),
 });

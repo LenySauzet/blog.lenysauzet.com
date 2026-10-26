@@ -1,4 +1,4 @@
-import { MEASURE } from '@/components/figures/Diagram/Diagram';
+import { type Placement } from '@/components/figures/Diagram';
 import {
   add,
   fromAngle,
@@ -12,7 +12,6 @@ import {
 
 import { rayCircle } from './ray-circle';
 
-export const WIDTH = MEASURE;
 export const HEIGHT = 408;
 export const ORIGIN = vec2(58, 204);
 export const CENTRE = vec2(430, 204);
@@ -26,10 +25,6 @@ const STAGGER = 0.9;
 const CHORD_FLOOR = 40;
 
 type Pair = readonly [Vec2, Vec2];
-export interface Placement {
-  at: Vec2;
-  offset: Vec2;
-}
 
 export function raySphere(degrees: number) {
   const direction = fromAngle((-degrees * Math.PI) / 180);
@@ -57,13 +52,17 @@ export function raySphere(degrees: number) {
   const landings: Pair | null = ground.hits
     ? [along(ground.near), along(ground.far)]
     : null;
+  const lit: Pair | null = crossings && [
+    crossings[0],
+    landings?.[0] ?? crossings[1],
+  ];
 
   return {
     closest,
     end: along(RAY_LENGTH),
     crossings,
     landings,
-    lit: crossings && ([crossings[0], landings?.[0] ?? crossings[1]] as Pair),
+    lit,
     labels: {
       O: { at: ORIGIN, offset: vec2(0, -GAP) },
       C: underCentre(GAP),
