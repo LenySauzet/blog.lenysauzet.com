@@ -3,9 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import LitWave from './LitWave';
 
+vi.mock('@/lib/shader', async (original) => ({
+  ...(await original<typeof import('@/lib/shader')>()),
+  createShader: () => ({ sync: () => {}, dispose: () => {} }),
+}));
+
 describe('LitWave', () => {
   it('stands as one image, named, driven by a frequency and a light', () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     render(<LitWave />);
 
     expect(screen.getByRole('img', { name: 'A rippled surface, lit from one side' })).toBeInTheDocument();

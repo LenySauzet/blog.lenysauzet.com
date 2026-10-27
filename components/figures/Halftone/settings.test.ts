@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { INITIAL, uniforms } from './controls';
+import { INITIAL, uniforms } from './settings';
 
-describe('the halftone controls', () => {
+describe('the halftone settings', () => {
   it('reach the shader as numbers, a switch as one or zero', () => {
     expect(uniforms({ ...INITIAL, radius: 0.25, cells: 16, dots: false, luma: true })).toEqual({
       uRadius: 0.25,

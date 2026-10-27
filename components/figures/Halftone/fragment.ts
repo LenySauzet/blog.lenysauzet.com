@@ -36,9 +36,8 @@ void main() {
     : texture(uImage, at).rgb;
 
   float radius = uRadius * mix(1.0, 0.1 + dot(LUMA, color), uLuma);
-  float distance = length(gl_FragCoord.xy - centre) / cell;
-  float edge = fwidth(distance);
-  float disc = 1.0 - smoothstep(radius - edge, radius + edge, distance);
+  float reach = length(gl_FragCoord.xy - centre) / cell;
+  float disc = 1.0 - smoothstep(radius - fwidth(reach), radius, reach);
   fragColor = vec4(color, mix(1.0, disc, uDots));
 }
 `;

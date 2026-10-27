@@ -2,7 +2,7 @@
  * A decorative full-frame visual, in GLSL ES 3.00. It receives the clock, the canvas
  * size and the accent, and owns nothing else: `Shader` holds the canvas and the loop.
  *
- * uniform float uTime;        seconds since mount
+ * uniform float uTime;        seconds of play, held while still
  * uniform vec2  uResolution;  canvas size in device pixels
  * uniform vec3  uColor;       the theme accent, from --base-hue
  *

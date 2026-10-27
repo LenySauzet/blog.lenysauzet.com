@@ -252,8 +252,8 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
   renderer does not expose, so `EmailInput` and `PasswordInput` hand-author theirs.
 - **Animation**: always `from 'motion/react'`, never `from 'framer-motion'`. Same
   package, but `motion/react` is the canonical alias. `AnimatePresence` is required for
-  exit animations. OGL canvases must be `'use client'` and initialize in `useEffect`
-  with cleanup.
+  exit animations. A canvas goes through `components/Shader`, never OGL held in a
+  component.
 - **State**: Zustand stores live in `hooks/` (`use-cmdk-store.ts`).
 
 ## Testing
@@ -1066,28 +1066,33 @@ What a rendered surface forces:
 - **One engine, `lib/shader.ts`, under the figures and `Backdrop` alike.** It knows no
   React: `createShader` holds the canvas, the loop and the observers, and `sync` takes
   the whole scene on every render and redoes only what changed, a vector compared by
-  its values, a texture fetched once. `Shader` is the thin component around it.
+  its values, a texture fetched once and freed on the GPU when its source changes. A
+  uniform left out of a scene keeps its last value. `Shader` is the thin component
+  around it.
 - **WebGL 2 and GLSL ES 3.00 only**, `#version 300 es` on a fragment's first line:
   derivatives for an edge, `textureLod`, mipmaps on an image of any size. Every
   browser the site supports has it; the rest are told so.
 - **It draws on change.** While on screen it re-reads its colour tokens each frame
   (`lib/css-color.ts`, for the reason given there) and redraws only when one of them,
   a uniform, a texture or the size has moved. `playing` runs `uTime` inside that loop,
-  so a playing shader never re-renders React. The first frame only reads the clock: a
-  frame's timestamp can predate the call that asked for it, and stepping from that
-  call ran time backwards.
+  so a playing shader never re-renders React, and a still one with no colour to watch
+  runs no loop at all. The first frame only reads the clock: a frame's timestamp can
+  predate the call that asked for it, and stepping from that call ran time backwards.
 - **It draws onto transparency**, so a theme flip repaints only the ink.
 - **The engine reports a status, React reads it through `useSyncExternalStore`**:
   no WebGL 2 or a lost context, a shader that does not link (checked by hand, since OGL
   then throws inside the loop), an image that does not load. A named figure says which
-  in one sentence; a decoration stays silent.
+  in one sentence, which becomes its label; a decoration stays silent. A lost context
+  tears the engine down, or a playing `Backdrop` kept drawing into a dead one. The
+  WebGL 2 context is taken before OGL asks, since OGL quietly falls back to WebGL 1.
 - **A texture is a CDN path in `textures`**: sampler, `<name>Size` zero until it loads,
   trilinear mipmaps and anisotropy, since a painting shrunk three times without them is
   moiré. It reads across origins, which works only because the R2 bucket carries a
   CORS rule (`Access-Control-Allow-Origin: *`, GET and HEAD): removing it breaks every
   texture without breaking any `<img>`.
-- **A halftone reads a cell's average, not its centre texel**: `textureLod` at the
-  level one cell spans. Point-sampled, a cell takes whichever stroke its centre lands on.
+- **A halftone samples a cell at the mip level the cell spans**, through `textureLod`,
+  which blends what the cell covers. Point-sampled, a cell takes whichever stroke its
+  centre lands on.
 - **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
 - **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
   than the column, the canvas first on a phone, `Playback` beside the panel's title.
@@ -1386,8 +1391,9 @@ rather than a surface a screen reader cannot enter.
   rather than from a slider, so its geometry stays a pure function of one number. It
   runs only on screen, a step capped by `lib/clock.ts` so a tab coming back does not
   leap. Whether it plays is `hooks/use-playback.ts`, shared with every shader and
-  `Backdrop`: still for a reader who asked for less motion, and always pausable through
-  `Playback`, since anything moving on its own past five seconds must be (WCAG 2.2.2).
+  `Backdrop`: still for a reader who asked for less motion, and a figure is pausable
+  through `Playback`, since anything moving on its own past five seconds must be (WCAG
+  2.2.2). `Backdrop` has no such control yet.
 - **`Readout` is anchored at its end**, so a value whose width changes grows into the
   figure rather than off it, and writes a fixed number of places so it does not
   shimmer as it counts.

@@ -171,24 +171,12 @@ import { AnimatePresence, motion } from 'motion/react';
 
 ## WebGL / OGL
 
-OGL components are client-only. Always add `'use client'` and initialize inside `useEffect`:
+Never hold OGL in a component. Every canvas goes through `components/Shader`, over the
+one engine in `lib/shader.ts`: a fragment shader in GLSL ES 3.00, its uniforms, colour
+tokens, textures and `playing`.
 
 ```tsx
-'use client';
-import { useEffect, useRef } from 'react';
-import { Renderer, Camera, Mesh } from 'ogl';
-
-export function GLCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const renderer = new Renderer({ canvas: canvasRef.current! });
-    // setup scene...
-    return () => renderer.gl.getExtension('WEBGL_lose_context')?.loseContext();
-  }, []);
-
-  return <canvas ref={canvasRef} />;
-}
+<Shader fragment={FRAGMENT} label="What it shows" uniforms={{ uRadius: 0.4 }} />
 ```
 
 ## Prop API Conventions

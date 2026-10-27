@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Figure from '@/components/Figure';
 import { Shader } from '@/components/Shader';
@@ -11,7 +11,7 @@ import { Playground } from '@/components/figures/Playground';
 import { usePlayback } from '@/hooks/use-playback';
 
 import { FRAGMENT } from './fragment';
-import { ASPECT, FREQUENCY, LIGHT, uniforms } from './geometry';
+import { ASPECT, FREQUENCY, LIGHT, outline, uniforms } from './geometry';
 
 const COLORS = { uInk: '--primary', uShine: '--figure-shine' } as const;
 
@@ -24,6 +24,7 @@ export default function LitWave({ className }: LitWaveProps) {
   const [azimuth, setAzimuth] = useState(LIGHT.initial);
   const [normals, setNormals] = useState(false);
   const { playing, toggle } = usePlayback();
+  const { centre } = useMemo(() => outline(frequency), [frequency]);
 
   return (
     <Figure
@@ -58,7 +59,7 @@ export default function LitWave({ className }: LitWaveProps) {
         <Shader
           fragment={FRAGMENT}
           label="A rippled surface, lit from one side"
-          uniforms={uniforms(frequency, azimuth, normals)}
+          uniforms={uniforms(frequency, centre, azimuth, normals)}
           colors={COLORS}
           aspect={ASPECT}
           playing={playing}

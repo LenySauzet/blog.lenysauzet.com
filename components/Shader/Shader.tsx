@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-import { createShader, statusStore, type Scene, type Status, type Uniform } from '@/lib/shader';
+import { createShader, statusStore, type Scene, type Status } from '@/lib/shader';
 import { cn } from '@/lib/utils';
 
 const FAILURES: Record<Exclude<Status, 'ready'>, string> = {
@@ -16,7 +16,7 @@ const NONE = {};
 export interface ShaderProps {
   fragment: string;
   label?: string;
-  uniforms?: Record<string, Uniform>;
+  uniforms?: Scene['uniforms'];
   colors?: Scene['colors'];
   textures?: Scene['textures'];
   playing?: boolean;
@@ -41,6 +41,7 @@ export function Shader({
 
   useEffect(() => {
     if (!hostRef.current) return;
+    store.set('ready');
     const shader = createShader(hostRef.current, fragment, store.set);
     engine.current = shader;
     return () => {
@@ -56,12 +57,16 @@ export function Shader({
   return (
     <div
       ref={hostRef}
-      {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}
+      {...(label
+        ? { role: 'img', 'aria-label': status === 'ready' ? label : FAILURES[status] }
+        : { 'aria-hidden': true })}
       style={aspect ? { aspectRatio: aspect } : undefined}
       className={cn('grid place-items-center [&>*]:[grid-area:1/1]', className)}
     >
       {label && status !== 'ready' && (
-        <p className="px-6 text-center text-sm text-subtle-foreground">{FAILURES[status]}</p>
+        <p aria-hidden className="px-6 text-center text-sm text-subtle-foreground">
+          {FAILURES[status]}
+        </p>
       )}
     </div>
   );

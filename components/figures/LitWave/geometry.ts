@@ -37,11 +37,11 @@ export const outline = (frequency: number) => {
   return { left, right, low, high, centre: (low + high) / 2 };
 };
 
-export const uniforms = (frequency: number, azimuth: number, normals: boolean) => ({
+export const uniforms = (frequency: number, centre: number, azimuth: number, normals: boolean) => ({
   uFrequency: frequency,
   uAmplitude: AMPLITUDE,
   uExtent: EXTENT,
-  uCentre: outline(frequency).centre,
+  uCentre: centre,
   uLight: triple(light(azimuth)),
   uRight: triple(CAMERA.right),
   uUp: triple(CAMERA.up),

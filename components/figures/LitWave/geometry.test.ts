@@ -21,7 +21,7 @@ describe('the light', () => {
   });
 
   it('reaches the shader as the slider sets it', () => {
-    expect(uniforms(1, 90, false).uLight[2]).toBeCloseTo(light(90).z);
+    expect(uniforms(1, 0, 90, false).uLight[2]).toBeCloseTo(light(90).z);
   });
 });
 
@@ -30,12 +30,11 @@ describe('the view', () => {
 
   it('holds the whole surface inside the canvas, with a margin, at every frequency and every moment of its travel', () => {
     for (const frequency of sweep) {
-      const { left, right, low, high, centre } = outline(frequency);
+      const { left, right, low, high } = outline(frequency);
 
       expect(Math.max(-left, right), `at ${frequency}`).toBeLessThan(0.9 * EXTENT);
       expect((high - low) / 2, `at ${frequency}`).toBeLessThan((0.9 * EXTENT) / ASPECT);
-      expect(uniforms(frequency, 0, false).uCentre).toBe(centre);
-    }
+          }
   });
 
   it('centres the surface, which rises further above its middle than it falls below', () => {
@@ -49,13 +48,13 @@ describe('the view', () => {
 describe('the surface', () => {
   it('is the very ripple Wave draws in lines, so the framing measured in TypeScript fits what the shader draws', () => {
     expect(FRAGMENT).toContain('uAmplitude * cos(uFrequency * PI * length(p) - uTime * SPEED)');
-    expect(uniforms(1.5, 0, false).uAmplitude).toBe(AMPLITUDE);
+    expect(uniforms(1.5, 0, 0, false).uAmplitude).toBe(AMPLITUDE);
     expect(ripple(1.5)(0.3, 0.4)).toBeCloseTo(AMPLITUDE * Math.cos(1.5 * Math.PI * 0.5));
     expect(ripple(1.5, 1)(0.3, 0.4)).toBeCloseTo(AMPLITUDE * Math.cos(1.5 * Math.PI * 0.5 - 1));
   });
 
   it('switches to its normals as colours, and back', () => {
-    expect(uniforms(1.5, 0, true).uNormals).toBe(1);
-    expect(uniforms(1.5, 0, false).uNormals).toBe(0);
+    expect(uniforms(1.5, 0, 0, true).uNormals).toBe(1);
+    expect(uniforms(1.5, 0, 0, false).uNormals).toBe(0);
   });
 });

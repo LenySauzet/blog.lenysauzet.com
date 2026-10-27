@@ -2,6 +2,7 @@
 
 import { Shader } from '@/components/Shader';
 import { usePlayback } from '@/hooks/use-playback';
+import { cn } from '@/lib/utils';
 
 import type { Visual } from './types';
 
@@ -16,17 +17,18 @@ const EDGE_FADE = [
 const CENTRE_WASH =
   'radial-gradient(105% 62% at 30% 100%, var(--background) 0%, oklch(from var(--background) l c h / 0.92) 42%, oklch(from var(--background) l c h / 0.5) 70%, transparent 95%)';
 
-interface BackdropProps {
-  visual: Visual;
-}
-
 const COLORS = { uColor: '--primary' } as const;
 
-export function Backdrop({ visual }: BackdropProps) {
+interface BackdropProps {
+  visual: Visual;
+  className?: string;
+}
+
+export function Backdrop({ visual, className }: BackdropProps) {
   const { playing } = usePlayback();
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div aria-hidden className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}>
       <Shader fragment={visual.fragment} colors={COLORS} playing={playing} className="absolute inset-0" />
 
       {/* Framing, held here so a visual never draws its own, and in CSS so it follows

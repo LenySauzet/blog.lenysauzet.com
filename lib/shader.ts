@@ -19,6 +19,7 @@ export interface Scene {
 // ones are not visible enough to pay for.
 const MAX_DPR = 2;
 const ANISOTROPY = 8;
+const NONE = [0, 0];
 
 const VERTEX = /* glsl */ `#version 300 es
 in vec2 position;
@@ -30,17 +31,6 @@ void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
-
-let webgl2: boolean | undefined;
-
-export function supportsWebGL2() {
-  if (webgl2 === undefined) {
-    const context = document.createElement('canvas').getContext('webgl2');
-    context?.getExtension('WEBGL_lose_context')?.loseContext();
-    webgl2 = context !== null;
-  }
-  return webgl2;
-}
 
 export function statusStore() {
   let status: Status = 'ready';
@@ -60,21 +50,32 @@ export function statusStore() {
   };
 }
 
-const same = (a: Uniform | undefined, b: Uniform) =>
+const same = (a: unknown, b: Uniform) =>
   Array.isArray(a) && Array.isArray(b)
     ? a.length === b.length && a.every((value, index) => value === b[index])
     : a === b;
 
+const inert = { sync: () => {}, dispose: () => {} };
+
 export function createShader(host: HTMLElement, fragment: string, report: (status: Status) => void) {
-  if (!supportsWebGL2()) {
+  const canvas = document.createElement('canvas');
+  // Taken before OGL asks, so OGL is handed this context rather than falling back to
+  // WebGL 1, which a `#version 300 es` shader cannot compile on.
+  if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false })) {
     report('unavailable');
-    return { sync: () => {}, dispose: () => {} };
+    return inert;
   }
 
-  const renderer = new Renderer({ webgl: 2, dpr: Math.min(window.devicePixelRatio, MAX_DPR), alpha: true });
+  const renderer = new Renderer({
+    canvas,
+    webgl: 2,
+    alpha: true,
+    depth: false,
+    dpr: Math.min(window.devicePixelRatio, MAX_DPR),
+  });
   const gl = renderer.gl;
-  gl.canvas.className = 'block h-full w-full';
-  host.appendChild(gl.canvas);
+  canvas.style.cssText = 'display:block;width:100%;height:100%';
+  host.appendChild(canvas);
 
   const program = new Program(gl, {
     vertex: VERTEX,
@@ -85,7 +86,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const linked = gl.getProgramParameter(program.program, gl.LINK_STATUS);
 
   const colors = new Map<string, { token: string; reader: ReturnType<typeof cssColor> }>();
-  const textures = new Map<string, { src: string; image: HTMLImageElement }>();
+  const textures = new Map<string, { src: string; image: HTMLImageElement; texture: Texture }>();
   let playing = false;
   let dirty = true;
 
@@ -104,6 +105,60 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     dirty = false;
   };
 
+  const release = (name: string) => {
+    const entry = textures.get(name);
+    if (!entry) return;
+    entry.image.onload = entry.image.onerror = null;
+    entry.image.src = '';
+    gl.deleteTexture(entry.texture.texture);
+    textures.delete(name);
+    set(`${name}Size`, NONE);
+  };
+
+  const load = (name: string, src: string) => {
+    const texture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY });
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () =>
+      image.decode().then(
+        () => {
+          if (textures.get(name)?.image !== image) return;
+          texture.image = image;
+          set(`${name}Size`, [image.naturalWidth, image.naturalHeight]);
+          draw();
+        },
+        () => report('missing'),
+      );
+    image.onerror = () => report('missing');
+    image.src = resolveImageUrl(src);
+    textures.set(name, { src, image, texture });
+    set(name, texture);
+    set(`${name}Size`, NONE);
+  };
+
+  let frame = 0;
+  let last: number | undefined;
+  const loop = (now: number) => {
+    if (playing && last !== undefined) set('uTime', program.uniforms.uTime.value + step((now - last) / 1000));
+    last = now;
+    draw();
+    frame = requestAnimationFrame(loop);
+  };
+
+  let onScreen = false;
+  // A still shader with no colour to watch has nothing to do between changes, and every
+  // change draws on its own.
+  const schedule = () => {
+    const running = onScreen && !document.hidden && (playing || colors.size > 0);
+    if (running && !frame) {
+      last = undefined;
+      frame = requestAnimationFrame(loop);
+    } else if (!running && frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+  };
+
   const sync = (scene: Scene) => {
     for (const [name, value] of Object.entries(scene.uniforms))
       if (!same(program.uniforms[name]?.value, value)) set(name, value);
@@ -120,28 +175,11 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
         set(name, reader.read());
       }
 
-    for (const [name, { src, image }] of textures)
-      if (scene.textures[name] !== src) {
-        image.onload = image.onerror = null;
-        textures.delete(name);
-      }
-    for (const [name, src] of Object.entries(scene.textures))
-      if (!textures.has(name)) {
-        const texture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY });
-        const image = new Image();
-        image.crossOrigin = 'anonymous';
-        image.onload = () => {
-          texture.image = image;
-          set(`${name}Size`, [image.naturalWidth, image.naturalHeight]);
-        };
-        image.onerror = () => report('missing');
-        image.src = resolveImageUrl(src);
-        textures.set(name, { src, image });
-        set(name, texture);
-        set(`${name}Size`, [0, 0]);
-      }
+    for (const [name, { src }] of textures) if (scene.textures[name] !== src) release(name);
+    for (const [name, src] of Object.entries(scene.textures)) if (!textures.has(name)) load(name, src);
 
     playing = scene.playing;
+    schedule();
     draw();
   };
 
@@ -154,26 +192,6 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   });
   sized.observe(host);
 
-  let frame = 0;
-  let last: number | undefined;
-  const loop = (now: number) => {
-    if (playing && last !== undefined) set('uTime', program.uniforms.uTime.value + step((now - last) / 1000));
-    last = now;
-    draw();
-    frame = requestAnimationFrame(loop);
-  };
-
-  let onScreen = false;
-  const schedule = () => {
-    const running = onScreen && !document.hidden;
-    if (running && !frame) {
-      last = undefined;
-      frame = requestAnimationFrame(loop);
-    } else if (!running && frame) {
-      cancelAnimationFrame(frame);
-      frame = 0;
-    }
-  };
   const seen = new IntersectionObserver(([entry]) => {
     onScreen = entry.isIntersecting;
     schedule();
@@ -181,25 +199,30 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   seen.observe(host);
   document.addEventListener('visibilitychange', schedule);
 
-  const lose = () => {
-    gl.canvas.remove();
-    report('unavailable');
+  const teardown = () => {
+    cancelAnimationFrame(frame);
+    sized.disconnect();
+    seen.disconnect();
+    document.removeEventListener('visibilitychange', schedule);
+    canvas.removeEventListener('webglcontextlost', lose);
+    for (const { reader } of colors.values()) reader.dispose();
+    for (const name of [...textures.keys()]) release(name);
+    colors.clear();
+    canvas.remove();
   };
-  gl.canvas.addEventListener('webglcontextlost', lose);
+
+  function lose() {
+    teardown();
+    report('unavailable');
+  }
+  canvas.addEventListener('webglcontextlost', lose);
 
   if (!linked) report('broken');
 
   return {
     sync,
     dispose() {
-      cancelAnimationFrame(frame);
-      sized.disconnect();
-      seen.disconnect();
-      document.removeEventListener('visibilitychange', schedule);
-      gl.canvas.removeEventListener('webglcontextlost', lose);
-      for (const { reader } of colors.values()) reader.dispose();
-      for (const { image } of textures.values()) image.onload = image.onerror = null;
-      gl.canvas.remove();
+      teardown();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };

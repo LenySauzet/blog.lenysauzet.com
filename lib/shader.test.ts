@@ -11,13 +11,13 @@ const gpu = vi.hoisted(() => ({
   canvas: undefined as HTMLCanvasElement | undefined,
   uniforms: {} as Record<string, { value: unknown }>,
   disposed: 0,
+  deleted: [] as unknown[],
 }));
 
 vi.mock('ogl', () => ({
   Renderer: class {
     gl;
-    constructor() {
-      const canvas = document.createElement('canvas');
+    constructor({ canvas }: { canvas: HTMLCanvasElement }) {
       gpu.canvas = canvas;
       this.gl = {
         canvas,
@@ -25,6 +25,7 @@ vi.mock('ogl', () => ({
         LINEAR_MIPMAP_LINEAR: 2,
         getProgramParameter: () => gpu.linked,
         getExtension: () => ({ loseContext: () => canvas.dispatchEvent(new Event('webglcontextlost')) }),
+        deleteTexture: (texture: unknown) => gpu.deleted.push(texture),
       };
     }
     setSize() {}
@@ -44,6 +45,7 @@ vi.mock('ogl', () => ({
   Triangle: class {},
   Texture: class {
     image: unknown;
+    texture = {};
   },
 }));
 
@@ -51,12 +53,14 @@ vi.mock('@/lib/css-color', () => ({
   cssColor: () => ({ read: () => gpu.colour, dispose: () => gpu.disposed++ }),
 }));
 
-const frames = () => new Promise((resolve) => setTimeout(resolve, 80));
+interface FakeImage {
+  src: string;
+  crossOrigin: string;
+  onload: (() => void) | null;
+  onerror: (() => void) | null;
+}
 
-const until = async (condition: () => boolean) => {
-  for (let i = 0; i < 50 && !condition(); i++) await new Promise((resolve) => setTimeout(resolve, 10));
-  expect(condition()).toBe(true);
-};
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const scene = (overrides: Partial<Scene> = {}): Scene => ({
   uniforms: { uFrequency: 1 },
@@ -68,6 +72,8 @@ const scene = (overrides: Partial<Scene> = {}): Scene => ({
 
 describe('a shader', () => {
   let shader: ReturnType<typeof createShader> | undefined;
+  let frames: FrameRequestCallback[];
+  const images: FakeImage[] = [];
   const report = vi.fn();
 
   const start = (first = scene()) => {
@@ -76,14 +82,22 @@ describe('a shader', () => {
     return shader;
   };
 
+  const tick = (now: number) => {
+    const pending = frames;
+    frames = [];
+    for (const frame of pending) frame(now);
+  };
+
   beforeEach(() => {
-    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0 });
+    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [] });
+    frames = [];
+    images.length = 0;
     report.mockReset();
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      getExtension: () => null,
-    } as unknown as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({} as RenderingContext);
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
+    vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => frames.push(frame));
+    vi.stubGlobal('cancelAnimationFrame', () => (frames = []));
     vi.stubGlobal(
       'ResizeObserver',
       class {
@@ -104,19 +118,45 @@ describe('a shader', () => {
         disconnect() {}
       },
     );
+    vi.stubGlobal(
+      'Image',
+      class implements FakeImage {
+        src = '';
+        crossOrigin = '';
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        naturalWidth = 1200;
+        naturalHeight = 1000;
+        constructor() {
+          images.push(this);
+        }
+        decode() {
+          return Promise.resolve();
+        }
+      },
+    );
   });
 
   afterEach(() => {
     shader?.dispose();
+    shader = undefined;
     vi.unstubAllGlobals();
   });
 
-  it('draws once it is sized, then only when something has moved', async () => {
+  it('says it is unavailable, and builds nothing, where there is no WebGL 2', () => {
+    vi.mocked(HTMLCanvasElement.prototype.getContext).mockReturnValue(null);
+    start();
+
+    expect(report).toHaveBeenCalledWith('unavailable');
+    expect(gpu.renders).toBe(0);
+  });
+
+  it('draws once it is sized, then only when something has moved', () => {
     const shader = start();
     const settled = gpu.renders;
     expect(settled).toBeGreaterThan(0);
 
-    await frames();
+    tick(16);
     shader.sync(scene());
     expect(gpu.renders).toBe(settled);
 
@@ -134,13 +174,14 @@ describe('a shader', () => {
     expect(gpu.renders).toBe(settled);
   });
 
-  it('redraws when a colour token comes to resolve differently, as a theme flip makes it', async () => {
+  it('redraws when a colour token comes to resolve differently, as a theme flip makes it', () => {
     start();
     const settled = gpu.renders;
 
     gpu.colour = [1, 0, 0];
-    await until(() => gpu.renders === settled + 1);
+    tick(16);
 
+    expect(gpu.renders).toBe(settled + 1);
     expect(gpu.uniforms.uInk.value).toEqual([1, 0, 0]);
   });
 
@@ -160,42 +201,41 @@ describe('a shader', () => {
     expect(gpu.uniforms.uLight.value).toBe(0.5);
   });
 
-  it('runs its clock and redraws every frame while playing, and holds both once paused', async () => {
+  it('runs no loop at all while still, with no colour to watch', () => {
+    start(scene({ colors: {} }));
+
+    expect(frames).toHaveLength(0);
+  });
+
+  it("starts its clock from the first frame's own timestamp, then advances by each step", () => {
+    start(scene({ playing: true }));
+
+    tick(1000);
+    expect(gpu.uniforms.uTime.value).toBe(0);
+
+    tick(1016);
+    expect(gpu.uniforms.uTime.value).toBeCloseTo(0.016);
+  });
+
+  it('holds its time, and stops drawing, once paused', () => {
     const shader = start(scene({ playing: true }));
-    await until(() => (gpu.uniforms.uTime.value as number) > 0);
+    tick(1000);
+    tick(1016);
 
     shader.sync(scene({ playing: false }));
-    await frames();
     const [time, renders] = [gpu.uniforms.uTime.value, gpu.renders];
-    await frames();
+    tick(1032);
+    tick(1048);
 
     expect(gpu.uniforms.uTime.value).toBe(time);
     expect(gpu.renders).toBe(renders);
   });
 
   describe('a texture', () => {
-    const images: { src: string; crossOrigin: string; onload: (() => void) | null; onerror: (() => void) | null }[] = [];
-
-    beforeEach(() => {
-      images.length = 0;
-      vi.stubGlobal(
-        'Image',
-        class {
-          src = '';
-          crossOrigin = '';
-          onload: (() => void) | null = null;
-          onerror: (() => void) | null = null;
-          naturalWidth = 1200;
-          naturalHeight = 1000;
-          constructor() {
-            images.push(this);
-          }
-        },
-      );
-    });
+    const textured = (src = 'blog/meadow.jpg') => scene({ colors: {}, textures: { uImage: src } });
 
     it('is fetched from the CDN, then drawn with its size once it loads', async () => {
-      start(scene({ textures: { uImage: 'blog/meadow.jpg' } }));
+      start(textured());
       const [image] = images;
 
       expect(image.src).toBe(resolveImageUrl('blog/meadow.jpg'));
@@ -204,22 +244,39 @@ describe('a shader', () => {
 
       const settled = gpu.renders;
       image.onload?.();
-      await until(() => gpu.renders === settled + 1);
+      await settle();
 
       expect(gpu.uniforms.uImageSize.value).toEqual([1200, 1000]);
       expect((gpu.uniforms.uImage.value as { image: unknown }).image).toBe(image);
+      expect(gpu.renders).toBe(settled + 1);
     });
 
     it('is fetched once, however often the scene is synced', () => {
-      const shader = start(scene({ textures: { uImage: 'blog/meadow.jpg' } }));
+      const shader = start(textured());
 
-      shader.sync(scene({ textures: { uImage: 'blog/meadow.jpg' } }));
+      shader.sync(textured());
 
       expect(images).toHaveLength(1);
     });
 
+    it('lets the first image go, on the GPU too, when its source changes', async () => {
+      const shader = start(textured());
+      const [first] = images;
+      const old = gpu.uniforms.uImage.value as { texture: unknown };
+
+      shader.sync(textured('blog/poplars.jpg'));
+      first.onload?.();
+      await settle();
+
+      expect(first.onload).toBeNull();
+      expect(first.src).toBe('');
+      expect(gpu.deleted).toContain(old.texture);
+      expect(images[1].src).toBe(resolveImageUrl('blog/poplars.jpg'));
+      expect(gpu.uniforms.uImageSize.value).toEqual([0, 0]);
+    });
+
     it('reports the image missing when it cannot be loaded', () => {
-      start(scene({ textures: { uImage: 'blog/gone.jpg' } }));
+      start(textured('blog/gone.jpg'));
 
       images[0].onerror?.();
 
@@ -235,13 +292,28 @@ describe('a shader', () => {
     expect(gpu.renders).toBe(0);
   });
 
-  it('reports itself unavailable when the browser takes its context away', () => {
-    start();
+  it('tears itself down when the browser takes its context away', () => {
+    start(scene({ playing: true }));
 
     gpu.canvas?.dispatchEvent(new Event('webglcontextlost'));
+    const renders = gpu.renders;
+    tick(1000);
+    tick(1016);
 
     expect(report).toHaveBeenCalledWith('unavailable');
     expect(gpu.canvas?.isConnected).toBe(false);
+    expect(gpu.disposed).toBe(1);
+    expect(gpu.renders).toBe(renders);
+  });
+
+  it('lets every colour and image go once disposed', () => {
+    const shader = start(scene({ textures: { uImage: 'blog/meadow.jpg' } }));
+
+    shader.dispose();
+
+    expect(gpu.disposed).toBe(1);
+    expect(images[0].onload).toBeNull();
+    expect(gpu.deleted).toHaveLength(1);
   });
 });
 

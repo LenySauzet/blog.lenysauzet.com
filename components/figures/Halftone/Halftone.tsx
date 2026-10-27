@@ -8,10 +8,8 @@ import Slider from '@/components/Slider';
 import Toggle from '@/components/Toggle';
 import { Playground } from '@/components/figures/Playground';
 
-import { ASPECT, CELLS, IMAGE, INITIAL, RADIUS, uniforms, type Settings } from './controls';
 import { FRAGMENT } from './fragment';
-
-const TEXTURES = { uImage: IMAGE };
+import { ASPECT, CELLS, INITIAL, RADIUS, TEXTURES, uniforms, type Settings } from './settings';
 
 export interface HalftoneProps {
   className?: string;
@@ -50,7 +48,7 @@ export default function Halftone({ className }: HalftoneProps) {
             />
             <Toggle label="Dots" defaultChecked={INITIAL.dots} onCheckedChange={set('dots')} />
             <Toggle label="Pixelate" defaultChecked={INITIAL.pixelate} onCheckedChange={set('pixelate')} />
-            <Toggle label="Size by brightness" onCheckedChange={set('luma')} />
+            <Toggle label="Size by brightness" defaultChecked={INITIAL.luma} onCheckedChange={set('luma')} />
           </>
         }
       >

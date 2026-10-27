@@ -41,25 +41,37 @@ describe('Shader', () => {
     expect(engine.scenes.at(-1)).toMatchObject({ uniforms: { uFrequency: 2 }, playing: true });
   });
 
-  it('builds a new engine for a new fragment, and only then', () => {
+  it('builds a new engine for a new fragment, and only then, and hands it the scene at once', () => {
     engine.created = 0;
     const { rerender } = render(<Shader fragment="a" />);
     rerender(<Shader fragment="a" uniforms={{ uFrequency: 2 }} />);
-    rerender(<Shader fragment="b" />);
+    engine.scenes.length = 0;
+    rerender(<Shader fragment="b" uniforms={{ uFrequency: 3 }} />);
 
     expect(engine.created).toBe(2);
+    expect(engine.scenes[0]).toMatchObject({ uniforms: { uFrequency: 3 } });
+  });
+
+  it('forgets a failure once a new fragment is drawn', () => {
+    const { rerender } = render(<Shader fragment="a" label="A lit surface" />);
+    act(() => engine.report?.('broken'));
+
+    rerender(<Shader fragment="b" label="A lit surface" />);
+
+    expect(screen.getByRole('img', { name: 'A lit surface' })).not.toHaveTextContent(/could not/);
   });
 
   it.each([
     ['unavailable', /needs WebGL 2/],
     ['broken', /could not be drawn/],
     ['missing', /image this figure draws on could not be loaded/],
-  ] as const)('says what went wrong when the engine reports itself %s', (status, message) => {
-    render(<Shader fragment="a" label="A lit surface" />);
+  ] as const)('says what went wrong, to the eye and to a screen reader, when the engine reports itself %s', (status, message) => {
+    const { container } = render(<Shader fragment="a" label="A lit surface" />);
 
     act(() => engine.report?.(status));
 
-    expect(screen.getByRole('img', { name: 'A lit surface' })).toHaveTextContent(message);
+    expect(screen.getByRole('img', { name: message })).toBeInTheDocument();
+    expect(container).toHaveTextContent(message);
   });
 
   it('keeps a decorative failure silent', () => {
