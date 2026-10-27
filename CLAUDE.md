@@ -1076,7 +1076,7 @@ What a rendered surface forces:
 - **The highlight is `--figure-shine`, not white.** The panel is `--card`, nearly white
   in light, so a crest lit to white dissolved into it exactly where the surface was
   brightest. The token is a pale accent in light and near white in dark.
-- **`Playground` is Maxime Heckel's layout**: the uniforms beside the canvas inside the
+- **`Playground` is Maxime Heckel's layout**: the uniforms and the canvas as two panels side by side, each on the
   code block's surface, wider than the column through `Fullbleed`, the canvas first on
   a phone. A canvas runs to its own bounds, which is why this figure, unlike a drawn
   one, has an edge.
