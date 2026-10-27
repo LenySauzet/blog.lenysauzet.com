@@ -61,7 +61,7 @@ export function Shader({
         ? { role: 'img', 'aria-label': status === 'ready' ? label : FAILURES[status] }
         : { 'aria-hidden': true })}
       style={aspect ? { aspectRatio: aspect } : undefined}
-      className={cn('grid place-items-center [&>*]:[grid-area:1/1]', className)}
+      className={cn('relative grid place-items-center', className)}
     >
       {label && status !== 'ready' && (
         <p aria-hidden className="px-6 text-center text-sm text-subtle-foreground">

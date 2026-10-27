@@ -28,7 +28,9 @@ vi.mock('ogl', () => ({
         deleteTexture: (texture: unknown) => gpu.deleted.push(texture),
       };
     }
-    setSize() {}
+    setSize(width: number, height: number) {
+      Object.assign(gpu.canvas!.style, { width: `${width}px`, height: `${height}px` });
+    }
     render() {
       gpu.renders++;
     }
@@ -304,6 +306,42 @@ describe('a shader', () => {
     expect(gpu.canvas?.isConnected).toBe(false);
     expect(gpu.disposed).toBe(1);
     expect(gpu.renders).toBe(renders);
+  });
+
+  it('ignores the scene React keeps handing it once its context is gone', () => {
+    const shader = start(scene({ playing: true }));
+    gpu.canvas?.dispatchEvent(new Event('webglcontextlost'));
+
+    shader.sync(scene({ playing: true, textures: { uImage: 'blog/meadow.jpg' } }));
+
+    expect(frames).toHaveLength(0);
+    expect(images).toHaveLength(0);
+  });
+
+  it('keeps its canvas sized by the host, though OGL writes pixels into its style', () => {
+    start();
+
+    expect(gpu.canvas?.style.width).toBe('100%');
+    expect(gpu.canvas?.style.position).toBe('absolute');
+  });
+
+  it('reads the latest visibility when the browser reports several at once', () => {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(private readonly report: IntersectionObserverCallback) {}
+        observe() {
+          this.report(
+            [{ isIntersecting: false }, { isIntersecting: true }] as IntersectionObserverEntry[],
+            this as never,
+          );
+        }
+        disconnect() {}
+      },
+    );
+    start(scene({ playing: true }));
+
+    expect(frames.length).toBeGreaterThan(0);
   });
 
   it('lets every colour and image go once disposed', () => {

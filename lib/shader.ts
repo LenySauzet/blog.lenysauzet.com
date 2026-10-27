@@ -74,7 +74,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     dpr: Math.min(window.devicePixelRatio, MAX_DPR),
   });
   const gl = renderer.gl;
-  canvas.style.cssText = 'display:block;width:100%;height:100%';
+  canvas.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%';
   host.appendChild(canvas);
 
   const program = new Program(gl, {
@@ -89,6 +89,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const textures = new Map<string, { src: string; image: HTMLImageElement; texture: Texture }>();
   let playing = false;
   let dirty = true;
+  let alive = true;
 
   const set = (name: string, value: unknown) => {
     (program.uniforms[name] ??= { value }).value = value;
@@ -160,6 +161,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   };
 
   const sync = (scene: Scene) => {
+    if (!alive) return;
     for (const [name, value] of Object.entries(scene.uniforms))
       if (!same(program.uniforms[name]?.value, value)) set(name, value);
 
@@ -187,19 +189,22 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     const { clientWidth, clientHeight } = host;
     if (!clientWidth || !clientHeight) return;
     renderer.setSize(clientWidth, clientHeight);
+    // OGL writes the size into the style in pixels, which would hold the host open.
+    canvas.style.width = canvas.style.height = '100%';
     set('uResolution', [gl.canvas.width, gl.canvas.height]);
     draw();
   });
   sized.observe(host);
 
-  const seen = new IntersectionObserver(([entry]) => {
-    onScreen = entry.isIntersecting;
+  const seen = new IntersectionObserver((entries) => {
+    onScreen = entries[entries.length - 1].isIntersecting;
     schedule();
   });
   seen.observe(host);
   document.addEventListener('visibilitychange', schedule);
 
   const teardown = () => {
+    alive = false;
     cancelAnimationFrame(frame);
     sized.disconnect();
     seen.disconnect();
