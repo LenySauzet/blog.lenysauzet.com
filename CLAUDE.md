@@ -232,7 +232,8 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
-| `components/figures/Shader` | A fragment shader driven by uniforms, and the `Playground` it sits in |
+| `lib/shader.ts` | The one WebGL 2 engine: a fragment shader, its uniforms, colours, textures and clock |
+| `components/Shader` | That engine as a component, under `Backdrop` and every rendered figure |
 | `components/Table` | A table as an article reads it: block rhythm and the cells' one type |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
@@ -1011,7 +1012,8 @@ reads as a duplication bug. **jsdom cannot reach any of this**: `vitest-setup` f
 reduced motion and Motion caches it at module scope, so the loop and the ramps are
 verified in a browser and only the arithmetic is a unit test.
 
-**`components/Backdrop` draws onto transparency, and the page supplies the ground.**
+**`components/Backdrop` is a `Shader` and two CSS gradients**, and it draws onto
+transparency, so the page supplies the ground.
 The shader outputs the accent with the ink as alpha, so `--background` is never copied
 into the frame. It used to be a uniform, and a theme flip left the old one baked in
 until the next mount: light mode with a black blob over it. Do not reintroduce it. The
@@ -1030,8 +1032,8 @@ so the read lands one theme behind.
 The read is affordable because the oklch-to-sRGB conversion is skipped unless the
 string has moved: `getComputedStyle` measured 8.1us under 6x CPU throttling, and three
 runs of one build spread p95 from 9.8 to 10.8 and the worst frame from 13.6 to 110.7,
-so a per-frame read is well under the noise. Reduced motion draws once, so it keeps
-whatever the accent was at mount.
+so a per-frame read is well under the noise. Reduced motion stops the clock, not the
+read, so the accent still follows a theme flip.
 
 **A visual in an article is one of three things, and the frame is all they share.**
 `components/Figure` holds a block of rhythm and a caption, and **it never knows what
@@ -1055,28 +1057,37 @@ such as a canvas whose content runs to its own bounds, draws its own.
 - **A drawn figure carries none**, so it is a component in `components/figures/` and no
   library at all. The scale is a subtraction and a multiply; reach for `d3-scale` when
   the mapping stops being linear, not before.
-- **A rendered surface** is a fragment shader on `components/figures/Shader`, for
-  whatever lives per pixel. It is OGL, which `Backdrop` already ships; three.js is
-  deliberately not installed, 150KB for a figure that does not exist.
+- **A rendered surface** is a fragment shader in `components/Shader`, for whatever
+  lives per pixel. It is OGL; three.js is deliberately not installed, 150KB for a
+  figure that does not exist.
 
 What a rendered surface forces:
 
-- **`Shader` draws on change.** While on screen it re-reads its colour tokens each
-  frame (`lib/css-color.ts`, for the reason given there) and redraws only when one of
-  them, a uniform or the size has moved.
-- **It draws onto transparency**, as `Backdrop` does, so a theme flip repaints only
-  the ink.
-- **Every failure ends in one sentence in the figure**: no WebGL (probed through
-  `useSyncExternalStore`, the probe's context lost at once), a lost context, or a
-  shader that does not link, which is checked by hand because OGL then throws inside
-  the loop and leaves an empty panel.
-- **A texture is a CDN path in `textures`**, resolved like any image here; the shader
-  gets it as a sampler and its size as `<name>Size`, zero until it loads, so a shader
-  draws nothing rather than a black frame meanwhile. It reads across origins, which
-  works only because the R2 bucket carries a CORS rule (`Access-Control-Allow-Origin:
-  *`, GET and HEAD): removing it breaks every texture without breaking any `<img>`.
-- **Time is `playing`**: `Shader` then runs `uTime` and redraws every frame, inside its
-  own loop, so a playing shader never re-renders React. Paused, it holds its time.
+- **One engine, `lib/shader.ts`, under the figures and `Backdrop` alike.** It knows no
+  React: `createShader` holds the canvas, the loop and the observers, and `sync` takes
+  the whole scene on every render and redoes only what changed, a vector compared by
+  its values, a texture fetched once. `Shader` is the thin component around it.
+- **WebGL 2 and GLSL ES 3.00 only**, `#version 300 es` on a fragment's first line:
+  derivatives for an edge, `textureLod`, mipmaps on an image of any size. Every
+  browser the site supports has it; the rest are told so.
+- **It draws on change.** While on screen it re-reads its colour tokens each frame
+  (`lib/css-color.ts`, for the reason given there) and redraws only when one of them,
+  a uniform, a texture or the size has moved. `playing` runs `uTime` inside that loop,
+  so a playing shader never re-renders React. The first frame only reads the clock: a
+  frame's timestamp can predate the call that asked for it, and stepping from that
+  call ran time backwards.
+- **It draws onto transparency**, so a theme flip repaints only the ink.
+- **The engine reports a status, React reads it through `useSyncExternalStore`**:
+  no WebGL 2 or a lost context, a shader that does not link (checked by hand, since OGL
+  then throws inside the loop), an image that does not load. A named figure says which
+  in one sentence; a decoration stays silent.
+- **A texture is a CDN path in `textures`**: sampler, `<name>Size` zero until it loads,
+  trilinear mipmaps and anisotropy, since a painting shrunk three times without them is
+  moiré. It reads across origins, which works only because the R2 bucket carries a
+  CORS rule (`Access-Control-Allow-Origin: *`, GET and HEAD): removing it breaks every
+  texture without breaking any `<img>`.
+- **A halftone reads a cell's average, not its centre texel**: `textureLod` at the
+  level one cell spans. Point-sampled, a cell takes whichever stroke its centre lands on.
 - **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
 - **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
   than the column, the canvas first on a phone, `Playback` beside the panel's title.
@@ -1373,11 +1384,10 @@ rather than a surface a screen reader cannot enter.
   follows the type.
 - **A figure driven by time is a figure whose parameter comes from `useTimeline`**
   rather than from a slider, so its geometry stays a pure function of one number. It
-  runs only on screen, and capped at a tenth of a second a step, or a tab coming back
-  leaps. Whether it plays is `usePlayback` in `components/figures/Playback`, shared
-  with `Shader`: still for a reader who asked for less motion, and always pausable
-  through `Playback`, since anything moving on its own past five seconds must be
-  (WCAG 2.2.2).
+  runs only on screen, a step capped by `lib/clock.ts` so a tab coming back does not
+  leap. Whether it plays is `hooks/use-playback.ts`, shared with every shader and
+  `Backdrop`: still for a reader who asked for less motion, and always pausable through
+  `Playback`, since anything moving on its own past five seconds must be (WCAG 2.2.2).
 - **`Readout` is anchored at its end**, so a value whose width changes grows into the
   figure rather than off it, and writes a fixed number of places so it does not
   shimmer as it counts.

@@ -1,5 +1,5 @@
-export const IMAGE = 'blog/Monet_Meadow-with-Poplars.jpg';
-export const ASPECT = 6 / 5;
+export const IMAGE = 'blog/Meisje_met_de_parel.jpg';
+export const ASPECT = 1;
 export const RADIUS = { min: 0, max: 0.5, initial: 0.4 };
 export const CELLS = { min: 8, max: 64, initial: 32 };
 

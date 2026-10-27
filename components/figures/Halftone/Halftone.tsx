@@ -3,9 +3,10 @@
 import { useState } from 'react';
 
 import Figure from '@/components/Figure';
+import { Shader } from '@/components/Shader';
 import Slider from '@/components/Slider';
 import Toggle from '@/components/Toggle';
-import { Playground, Shader } from '@/components/figures/Shader';
+import { Playground } from '@/components/figures/Playground';
 
 import { ASPECT, CELLS, IMAGE, INITIAL, RADIUS, uniforms, type Settings } from './controls';
 import { FRAGMENT } from './fragment';
@@ -55,7 +56,7 @@ export default function Halftone({ className }: HalftoneProps) {
       >
         <Shader
           fragment={FRAGMENT}
-          label="Monet's Meadow with Poplars, drawn as a halftone"
+          label="Vermeer's Girl with a Pearl Earring, drawn as a halftone"
           uniforms={uniforms(settings)}
           textures={TEXTURES}
           aspect={ASPECT}

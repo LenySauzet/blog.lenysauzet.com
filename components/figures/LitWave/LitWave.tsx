@@ -3,10 +3,12 @@
 import { useState } from 'react';
 
 import Figure from '@/components/Figure';
+import { Shader } from '@/components/Shader';
 import Slider from '@/components/Slider';
 import Toggle from '@/components/Toggle';
-import { Playback, usePlayback } from '@/components/figures/Playback';
-import { Playground, Shader } from '@/components/figures/Shader';
+import { Playback } from '@/components/figures/Playback';
+import { Playground } from '@/components/figures/Playground';
+import { usePlayback } from '@/hooks/use-playback';
 
 import { FRAGMENT } from './fragment';
 import { ASPECT, FREQUENCY, LIGHT, uniforms } from './geometry';

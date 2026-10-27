@@ -8,7 +8,7 @@ describe('Halftone', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     render(<Halftone />);
 
-    expect(screen.getByRole('img', { name: "Monet's Meadow with Poplars, drawn as a halftone" })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: "Vermeer's Girl with a Pearl Earring, drawn as a halftone" })).toBeInTheDocument();
     expect(screen.getAllByRole('slider')).toHaveLength(2);
     for (const name of ['Dots', 'Pixelate', 'Size by brightness'])
       expect(screen.getByRole('switch', { name })).toBeInTheDocument();
