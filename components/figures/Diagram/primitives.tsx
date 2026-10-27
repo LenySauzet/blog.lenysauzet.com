@@ -1,7 +1,10 @@
 import { useId, type ReactNode } from 'react';
 
+import { centre, type Rect } from '@/lib/rect';
 import { cn } from '@/lib/utils';
 import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
+
+import { LARGEST_TYPE } from './Diagram';
 
 import { LEADER_GAP, leaderPath } from './leaders';
 import { tangents, type Disc } from './magnifier';
@@ -113,6 +116,28 @@ export function Polygon({
     <>
       {pattern}
       <polygon points={points(corners)} {...paint} />
+    </>
+  );
+}
+
+export function Rectangle({
+  box: { corner, size },
+  radius = 0,
+  ...shape
+}: Shape & { box: Rect; radius?: number }) {
+  const { pattern, paint } = useShape(shape);
+
+  return (
+    <>
+      {pattern}
+      <rect
+        x={fixed(corner.x)}
+        y={fixed(corner.y)}
+        width={fixed(size.x)}
+        height={fixed(size.y)}
+        rx={radius}
+        {...paint}
+      />
     </>
   );
 }
@@ -232,6 +257,73 @@ export function Title({
     >
       {children}
     </text>
+  );
+}
+
+export function Readout({
+  at,
+  name,
+  value,
+  decimals = 2,
+  className,
+}: {
+  at: Vec2;
+  name: string;
+  value: number;
+  decimals?: number;
+  className?: string;
+}) {
+  return (
+    <text
+      x={fixed(at.x)}
+      y={fixed(at.y)}
+      textAnchor="end"
+      dominantBaseline="central"
+      className={cn('fill-foreground', className)}
+    >
+      {`${name} = ${value.toFixed(decimals)}`}
+    </text>
+  );
+}
+
+const CORNER = 6;
+
+export function Box({
+  box,
+  className,
+  children,
+}: {
+  box: Rect;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <g className={className}>
+      <Rectangle box={box} radius={CORNER} tone="ink" fill="soft" width={1.5} />
+      <Title at={centre(box)}>{children}</Title>
+    </g>
+  );
+}
+
+export const FRAME_HEADER = 2.4 * LARGEST_TYPE;
+
+export const frameTitle = (box: Rect) =>
+  vec2(centre(box).x, box.corner.y + FRAME_HEADER / 2);
+
+export function Frame({
+  box,
+  title,
+  className,
+}: {
+  box: Rect;
+  title: string;
+  className?: string;
+}) {
+  return (
+    <g className={className}>
+      <Rectangle box={box} radius={2 * CORNER} dashed width={1.5} />
+      <Title at={frameTitle(box)}>{title}</Title>
+    </g>
   );
 }
 

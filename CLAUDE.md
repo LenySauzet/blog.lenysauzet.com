@@ -1307,7 +1307,8 @@ rather than a surface a screen reader cannot enter.
   construction they point into.
 - **A figure is assembled from the toolbox, never drawn inline.** `components/figures/
   Diagram` holds the atoms (`Point`, `Line`, `Curve`, `Arrow`, `Polygon`, `Circle`,
-  `Label`), the parts built from them (`Leader`, `Magnifier`, `Detail`, `Surface`) and
+  `Rectangle`, `Label`, `Title`, `Readout`), the parts built from them (`Leader`,
+  `Magnifier`, `Detail`, `Surface`, `Box`, `Frame`) and
   the pure geometry each one rests on. A figure is its subject, its controls and a
   composition of those; when it needs a way of drawing the toolbox lacks, the way is
   added there, tested, and the figure uses it. One change then reaches every figure.
@@ -1328,6 +1329,22 @@ rather than a surface a screen reader cannot enter.
   way Making Software names a panel or a count ("625 VERTICES"). A number in it is
   formatted with a fixed locale, never the runtime's, or the server and the browser
   write it differently.
+- **A system diagram is boxes in frames.** A `Box` is a stage, a solid line around
+  its name; a `Frame` is a dashed line around the stages that run in one place, its
+  title inside the top in `FRAME_HEADER`, so a frame never needs room above it and the
+  content's first row is a constant. The dash is what tells a grouping from a thing.
+  Both take a `Rect` from `lib/rect.ts`, whose `edge` gives an arrow the middle of a
+  side, pushed out by a gap so the head never touches the line it points at.
+- **A figure driven by time is a figure whose parameter comes from `useTimeline`**
+  rather than from a slider, so its geometry is the same pure function of one number
+  and is tested the same way. The clock only runs while the figure is on screen, and a
+  reader who asked for less motion gets it still, at a value worth reading, with the
+  same `Playback` button to start it: anything moving on its own for more than five
+  seconds must be pausable (WCAG 2.2.2). A step is capped at a tenth of a second, or
+  a tab coming back from the background leaps by however long it was away.
+- **`Readout` is anchored at its end**, so a value whose width changes grows into the
+  figure rather than off it, and writes a fixed number of places so it does not
+  shimmer as it counts.
 - **Hatching is the drawing-office mark for a cut**, so `hatched` is for a section or
   for the part of something a figure singles out, never for decoration. Its pattern
   takes an id from `useId`, so every copy of a drawing gets its own.

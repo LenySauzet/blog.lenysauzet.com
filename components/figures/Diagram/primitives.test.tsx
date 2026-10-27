@@ -1,10 +1,11 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { rect } from '@/lib/rect';
 import { vec2 } from '@/lib/vec2';
 
 import Diagram from './Diagram';
-import { Arrow, Circle, Detail, Magnifier, Polygon } from './primitives';
+import { Arrow, Box, Circle, Detail, Frame, Magnifier, Polygon, Readout } from './primitives';
 
 const TRIANGLE = [vec2(0, 0), vec2(10, 0), vec2(0, 10)];
 
@@ -109,5 +110,38 @@ describe('a lens', () => {
     const clip = svg.querySelector(`clipPath[id="${clipped?.getAttribute('clip-path')?.slice(5, -1)}"] circle`);
 
     expect(clip?.getAttribute('r')).toBe('40');
+  });
+});
+
+describe('a readout', () => {
+  it('names its value and writes it at a fixed number of places', () => {
+    const svg = draw(<Readout at={vec2(90, 90)} name="t" value={0.7} />);
+
+    expect(svg.querySelector('text')).toHaveTextContent('t = 0.70');
+  });
+
+  it('grows leftward from its corner, so it never runs off the figure', () => {
+    const svg = draw(<Readout at={vec2(90, 90)} name="t" value={0.7} />);
+
+    expect(svg.querySelector('text')?.getAttribute('text-anchor')).toBe('end');
+  });
+});
+
+describe('a system diagram', () => {
+  const box = rect(vec2(10, 10), 80, 40);
+
+  it('draws a box in a solid line, its name at its centre', () => {
+    const svg = draw(<Box box={box}>Rasterizer</Box>);
+
+    expect(svg.querySelector('rect')).not.toHaveClass('[stroke-dasharray:4_6]');
+    expect(svg.querySelector('text')).toHaveTextContent('Rasterizer');
+    expect(svg.querySelector('text')?.getAttribute('x')).toBe('50');
+  });
+
+  it('draws a frame in a dashed line, which groups rather than names a stage', () => {
+    const svg = draw(<Frame box={box} title="GPU" />);
+
+    expect(svg.querySelector('rect')).toHaveClass('[stroke-dasharray:4_6]');
+    expect(svg.querySelector('text')).toHaveTextContent('GPU');
   });
 });

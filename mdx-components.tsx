@@ -25,6 +25,8 @@ import Figure from '@/components/Figure';
 import Bezier from '@/components/figures/Bezier';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
 import Coverage from '@/components/figures/Coverage';
+import Lerp from '@/components/figures/Lerp';
+import Pipeline from '@/components/figures/Pipeline';
 import RaySphere from '@/components/figures/RaySphere';
 import Wave from '@/components/figures/Wave';
 import Fullbleed from '@/components/Fullbleed';
@@ -68,7 +70,9 @@ export const components = {
   Coverage,
   Fullbleed,
   Image,
+  Lerp,
   PieChart,
+  Pipeline,
   RaySphere,
   Wave,
   Sandpack,
