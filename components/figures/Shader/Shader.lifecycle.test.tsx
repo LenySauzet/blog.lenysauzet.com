@@ -79,8 +79,14 @@ describe('Shader, once it has a GPU', () => {
     vi.unstubAllGlobals();
   });
 
-  const shader = (uniforms: Record<string, number>) => (
-    <Shader fragment="void main() {}" label="A surface" uniforms={uniforms} colors={{ uInk: '--primary' }} />
+  const shader = (uniforms: Record<string, number>, playing = false) => (
+    <Shader
+      fragment="void main() {}"
+      label="A surface"
+      uniforms={uniforms}
+      colors={{ uInk: '--primary' }}
+      playing={playing}
+    />
   );
 
   it('draws once it is sized, then only when something has moved', async () => {
@@ -116,6 +122,19 @@ describe('Shader, once it has a GPU', () => {
 
     rerender(shader({ uFrequency: 1, uLight: 0.5 }));
     await waitFor(() => expect(gpu.uniforms.uLight.value).toBe(0.5));
+  });
+
+  it('runs its clock and redraws every frame while playing, and holds both once paused', async () => {
+    const { rerender } = render(shader({ uFrequency: 1 }, true));
+    await waitFor(() => expect(gpu.uniforms.uTime.value).toBeGreaterThan(0));
+
+    rerender(shader({ uFrequency: 1 }, false));
+    await frames();
+    const [time, renders] = [gpu.uniforms.uTime.value, gpu.renders];
+    await frames();
+
+    expect(gpu.uniforms.uTime.value).toBe(time);
+    expect(gpu.renders).toBe(renders);
   });
 
   it('says so, rather than showing an empty panel, when its shader does not link', async () => {

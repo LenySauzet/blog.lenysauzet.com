@@ -3,6 +3,7 @@
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
+import { LONGEST_STEP } from '@/components/figures/Playback';
 import { cssColor } from '@/lib/css-color';
 import { MAX_DPR, VERTEX } from '@/lib/gl';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ export interface ShaderProps {
   uniforms: Record<string, Uniform>;
   colors?: Record<string, `--${string}`>;
   aspect?: number;
+  playing?: boolean;
   className?: string;
 }
 
@@ -35,10 +37,11 @@ export function Shader({
   uniforms,
   colors = {},
   aspect = 1,
+  playing = false,
   className,
 }: ShaderProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ uniforms, dirty: true });
+  const live = useRef({ uniforms, playing, dirty: true });
   const supported = useSyncExternalStore(unchanging, probe, () => true);
   const [lost, setLost] = useState(false);
   const palette = JSON.stringify(colors);
@@ -47,6 +50,10 @@ export function Shader({
     live.current.uniforms = uniforms;
     live.current.dirty = true;
   }, [uniforms]);
+
+  useEffect(() => {
+    live.current.playing = playing;
+  }, [playing]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -76,6 +83,7 @@ export function Shader({
       fragment,
       uniforms: Object.fromEntries([
         ['uResolution', { value: [1, 1] }],
+        ['uTime', { value: 0 }],
         ...Object.entries(state.uniforms).map(([name, value]) => [name, { value }]),
         ...tokens.map(([name, color]) => [name, { value: color.read() }]),
       ]),
@@ -113,7 +121,13 @@ export function Shader({
     sized.observe(host);
 
     let frame = 0;
-    const loop = () => {
+    let last = 0;
+    const loop = (now: number) => {
+      if (state.playing) {
+        program.uniforms.uTime.value += Math.min((now - last) / 1000, LONGEST_STEP);
+        state.dirty = true;
+      }
+      last = now;
       draw();
       frame = requestAnimationFrame(loop);
     };
@@ -121,7 +135,10 @@ export function Shader({
     let onScreen = false;
     const sync = () => {
       const running = onScreen && !document.hidden;
-      if (running && !frame) frame = requestAnimationFrame(loop);
+      if (running && !frame) {
+        last = performance.now();
+        frame = requestAnimationFrame(loop);
+      }
       else if (!running && frame) {
         cancelAnimationFrame(frame);
         frame = 0;

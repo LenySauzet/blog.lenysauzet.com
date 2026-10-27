@@ -7,11 +7,12 @@ const PANEL = 'rounded-xl border border-(--code-border) bg-(--code-bg)';
 
 export interface PlaygroundProps {
   controls: ReactNode;
+  action?: ReactNode;
   className?: string;
   children: ReactNode;
 }
 
-export function Playground({ controls, className, children }: PlaygroundProps) {
+export function Playground({ controls, action, className, children }: PlaygroundProps) {
   return (
     <Fullbleed widthPercent={85}>
       <div
@@ -22,7 +23,10 @@ export function Playground({ controls, className, children }: PlaygroundProps) {
       >
         <div className={cn(PANEL, 'overflow-hidden md:order-last')}>{children}</div>
         <div className={cn(PANEL, 'flex flex-col gap-4 p-5')}>
-          <p className="text-sm text-subtle-foreground">Uniforms</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-subtle-foreground">Uniforms</p>
+            {action}
+          </div>
           {controls}
         </div>
       </div>

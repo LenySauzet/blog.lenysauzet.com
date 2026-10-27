@@ -12,8 +12,8 @@ const SAMPLES = [25, 25] as const;
 export const AMPLITUDE = 0.3;
 const REACH = 1.35;
 
-export const ripple = (frequency: number) => (x: number, z: number) =>
-  AMPLITUDE * Math.cos(frequency * Math.PI * Math.hypot(x, z));
+export const ripple = (frequency: number, phase = 0) => (x: number, z: number) =>
+  AMPLITUDE * Math.cos(frequency * Math.PI * Math.hypot(x, z) - phase);
 
 export const AXES: Axis[] = [
   { name: 'x', tip: vec3(REACH, 0, 0) },
