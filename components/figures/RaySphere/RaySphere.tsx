@@ -27,7 +27,7 @@ export default function RaySphere({ className }: RaySphereProps) {
   return (
     <Figure
       className={className}
-      caption="The ray enters the atmosphere at p1 and the ground at g1; the bold stretch is the air it travels through. H is the point nearest the centre.">
+      caption="p1 and p2 are where the ray crosses the atmosphere, g1 and g2 the ground, and the bold stretch is the air it travels through. H is the point nearest the centre.">
       <Diagram height={HEIGHT} title="A ray crossing a planet's atmosphere">
         <Circle at={CENTRE} r={ATMOSPHERE} tone="ink" fill="soft" />
         <Circle at={CENTRE} r={PLANET} fill="solid" />
