@@ -160,6 +160,10 @@ Markdown `![alt](src)` maps onto the same component. `remark-unwrap-images` lift
 of the paragraph remark would wrap it in, since `<figure>` inside `<p>` is invalid. It is
 pinned to `4.0.1`: **5.0.0 is a broken publish whose npm tarball contains no code.**
 
+**Check the CDN's cache with a GET.** A `HEAD` answers `cf-cache-status: DYNAMIC`
+whatever the cache rule does, which once sent a perfectly cached bucket looking for a
+bypass that was not there; a `GET` reads `HIT`.
+
 Cloudflare image transformations are not enabled on the zone, so optimization runs
 through Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to
 `next/image`: that makes Next bypass its optimizer and serve the loader's URL verbatim.
@@ -1066,6 +1070,11 @@ What a rendered surface forces:
   `useSyncExternalStore`, the probe's context lost at once), a lost context, or a
   shader that does not link, which is checked by hand because OGL then throws inside
   the loop and leaves an empty panel.
+- **A texture is a CDN path in `textures`**, resolved like any image here; the shader
+  gets it as a sampler and its size as `<name>Size`, zero until it loads, so a shader
+  draws nothing rather than a black frame meanwhile. It reads across origins, which
+  works only because the R2 bucket carries a CORS rule (`Access-Control-Allow-Origin:
+  *`, GET and HEAD): removing it breaks every texture without breaking any `<img>`.
 - **Time is `playing`**: `Shader` then runs `uTime` and redraws every frame, inside its
   own loop, so a playing shader never re-renders React. Paused, it holds its time.
 - **The highlight is `--figure-shine`, not white**, which vanished into the light panel.

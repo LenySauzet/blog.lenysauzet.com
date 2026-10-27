@@ -25,6 +25,7 @@ import Figure from '@/components/Figure';
 import Bezier from '@/components/figures/Bezier';
 import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
 import Coverage from '@/components/figures/Coverage';
+import Halftone from '@/components/figures/Halftone';
 import Lerp from '@/components/figures/Lerp';
 import LitWave from '@/components/figures/LitWave';
 import RaySphere from '@/components/figures/RaySphere';
@@ -70,6 +71,7 @@ export const components = {
   Coverage,
   Fullbleed,
   Image,
+  Halftone,
   Lerp,
   LitWave,
   PieChart,

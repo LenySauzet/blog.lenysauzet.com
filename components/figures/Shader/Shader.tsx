@@ -1,9 +1,10 @@
 'use client';
 
-import { Mesh, Program, Renderer, Triangle } from 'ogl';
+import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { LONGEST_STEP } from '@/components/figures/Playback';
+import { resolveImageUrl } from '@/lib/cdn';
 import { cssColor } from '@/lib/css-color';
 import { MAX_DPR, VERTEX } from '@/lib/gl';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ export interface ShaderProps {
   label: string;
   uniforms: Record<string, Uniform>;
   colors?: Record<string, `--${string}`>;
+  textures?: Record<string, string>;
   aspect?: number;
   playing?: boolean;
   className?: string;
@@ -36,6 +38,7 @@ export function Shader({
   label,
   uniforms,
   colors = {},
+  textures = {},
   aspect = 1,
   playing = false,
   className,
@@ -45,6 +48,7 @@ export function Shader({
   const supported = useSyncExternalStore(unchanging, probe, () => true);
   const [lost, setLost] = useState(false);
   const palette = JSON.stringify(colors);
+  const gallery = JSON.stringify(textures);
 
   useEffect(() => {
     live.current.uniforms = uniforms;
@@ -78,6 +82,10 @@ export function Shader({
     const tokens = Object.entries(named).map(
       ([name, token]) => [name, cssColor(token)] as const,
     );
+    const sources: Record<string, string> = JSON.parse(gallery);
+    const pictures = Object.entries(sources).map(
+      ([name, src]) => ({ name, src, image: new Image(), texture: new Texture(gl, { generateMipmaps: false }) }),
+    );
     const program = new Program(gl, {
       vertex: VERTEX,
       fragment,
@@ -86,6 +94,10 @@ export function Shader({
         ['uTime', { value: 0 }],
         ...Object.entries(state.uniforms).map(([name, value]) => [name, { value }]),
         ...tokens.map(([name, color]) => [name, { value: color.read() }]),
+        ...pictures.flatMap(({ name, texture }) => [
+          [name, { value: texture }],
+          [`${name}Size`, { value: [0, 0] }],
+        ]),
       ]),
     });
     if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) {
@@ -94,6 +106,16 @@ export function Shader({
       return () => gl.canvas.removeEventListener('webglcontextlost', lose);
     }
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+
+    for (const { name, src, image, texture } of pictures) {
+      image.crossOrigin = 'anonymous';
+      image.onload = () => {
+        texture.image = image;
+        program.uniforms[`${name}Size`].value = [image.naturalWidth, image.naturalHeight];
+        state.dirty = true;
+      };
+      image.src = resolveImageUrl(src);
+    }
 
     const draw = () => {
       for (const [name, color] of tokens) {
@@ -158,10 +180,11 @@ export function Shader({
       document.removeEventListener('visibilitychange', sync);
       gl.canvas.removeEventListener('webglcontextlost', lose);
       for (const [, color] of tokens) color.dispose();
+      for (const { image } of pictures) image.onload = null;
       gl.canvas.remove();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [fragment, supported, palette]);
+  }, [fragment, supported, palette, gallery]);
 
   return (
     <div

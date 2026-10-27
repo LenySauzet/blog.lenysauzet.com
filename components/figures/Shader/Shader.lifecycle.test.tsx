@@ -1,6 +1,8 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { resolveImageUrl } from '@/lib/cdn';
+
 import { Shader } from './Shader';
 
 const gpu = vi.hoisted(() => ({
@@ -39,6 +41,9 @@ vi.mock('ogl', () => ({
   },
   Mesh: class {},
   Triangle: class {},
+  Texture: class {
+    image: unknown;
+  },
 }));
 
 vi.mock('@/lib/css-color', () => ({
@@ -77,6 +82,39 @@ describe('Shader, once it has a GPU', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('loads a texture from the CDN, then hands the shader the image and its size', async () => {
+    const images: { src: string; crossOrigin: string; onload: (() => void) | null }[] = [];
+    vi.stubGlobal(
+      'Image',
+      class {
+        src = '';
+        crossOrigin = '';
+        onload: (() => void) | null = null;
+        naturalWidth = 1200;
+        naturalHeight = 1000;
+        constructor() {
+          images.push(this);
+        }
+      },
+    );
+    render(
+      <Shader fragment="void main() {}" label="A surface" uniforms={{}} textures={{ uImage: 'blog/meadow.jpg' }} />,
+    );
+    await waitFor(() => expect(gpu.renders).toBeGreaterThan(0));
+    const [image] = images;
+
+    expect(image.src).toBe(resolveImageUrl('blog/meadow.jpg'));
+    expect(image.crossOrigin).toBe('anonymous');
+    expect(gpu.uniforms.uImageSize.value).toEqual([0, 0]);
+
+    const settled = gpu.renders;
+    act(() => image.onload?.());
+    await waitFor(() => expect(gpu.renders).toBe(settled + 1));
+
+    expect(gpu.uniforms.uImageSize.value).toEqual([1200, 1000]);
+    expect((gpu.uniforms.uImage.value as { image: unknown }).image).toBe(image);
   });
 
   const shader = (uniforms: Record<string, number>, playing = false) => (
