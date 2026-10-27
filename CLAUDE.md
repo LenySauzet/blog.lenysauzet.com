@@ -1066,9 +1066,12 @@ What a rendered surface forces:
   `useSyncExternalStore`, the probe's context lost at once), a lost context, or a
   shader that does not link, which is checked by hand because OGL then throws inside
   the loop and leaves an empty panel.
+- **Time is `playing`**: `Shader` then runs `uTime` and redraws every frame, inside its
+  own loop, so a playing shader never re-renders React. Paused, it holds its time.
 - **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
 - **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
-  than the column, the canvas first on a phone.
+  than the column, the canvas first on a phone, `Playback` beside the panel's title.
+  Its controls are `Slider` and `Toggle`, a `Switch` named by its label.
 - **What a shader needs is computed in TypeScript and tested**: the camera is `basis`
   of the SVG surface's `ISOMETRIC`, and the framing is measured off the surface at each
   frequency. The GLSL only marches.
@@ -1360,12 +1363,12 @@ rather than a surface a screen reader cannot enter.
   above the top edge, from the left corner or over the middle, one `em` up so the gap
   follows the type.
 - **A figure driven by time is a figure whose parameter comes from `useTimeline`**
-  rather than from a slider, so its geometry is the same pure function of one number
-  and is tested the same way. The clock only runs while the figure is on screen, and a
-  reader who asked for less motion gets it still, at a value worth reading, with the
-  same `Playback` button to start it: anything moving on its own for more than five
-  seconds must be pausable (WCAG 2.2.2). A step is capped at a tenth of a second, or
-  a tab coming back from the background leaps by however long it was away.
+  rather than from a slider, so its geometry stays a pure function of one number. It
+  runs only on screen, and capped at a tenth of a second a step, or a tab coming back
+  leaps. Whether it plays is `usePlayback` in `components/figures/Playback`, shared
+  with `Shader`: still for a reader who asked for less motion, and always pausable
+  through `Playback`, since anything moving on its own past five seconds must be
+  (WCAG 2.2.2).
 - **`Readout` is anchored at its end**, so a value whose width changes grows into the
   figure rather than off it, and writes a fixed number of places so it does not
   shimmer as it counts.

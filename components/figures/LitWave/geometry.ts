@@ -8,9 +8,13 @@ export const EXTENT = 1.75;
 
 const ELEVATION = (50 * Math.PI) / 180;
 const SAMPLES = 41;
+const PHASES = 8;
 const CAMERA = basis(ISOMETRIC);
 
 const triple = ({ x, y, z }: Vec3) => [x, y, z];
+
+const extent = (values: readonly number[]) =>
+  values.reduce(([low, high], value) => [Math.min(low, value), Math.max(high, value)], [Infinity, -Infinity]);
 
 export const light = (azimuth: number) => {
   const angle = (azimuth * Math.PI) / 180;
@@ -23,18 +27,17 @@ export const light = (azimuth: number) => {
 };
 
 export const outline = (frequency: number) => {
-  const height = ripple(frequency);
   const along = Array.from({ length: SAMPLES }, (_, i) => -1 + (2 * i) / (SAMPLES - 1));
-  const points = along.flatMap((x) => along.map((z) => vec3(x, height(x, z), z)));
-  const across = points.map((point) => dot3(point, CAMERA.right));
-  const rise = points.map((point) => dot3(point, CAMERA.up));
-  const [left, right] = [Math.min(...across), Math.max(...across)];
-  const [low, high] = [Math.min(...rise), Math.max(...rise)];
+  const points = Array.from({ length: PHASES }, (_, i) => ripple(frequency, (2 * Math.PI * i) / PHASES)).flatMap(
+    (height) => along.flatMap((x) => along.map((z) => vec3(x, height(x, z), z))),
+  );
+  const [left, right] = extent(points.map((point) => dot3(point, CAMERA.right)));
+  const [low, high] = extent(points.map((point) => dot3(point, CAMERA.up)));
 
   return { left, right, low, high, centre: (low + high) / 2 };
 };
 
-export const uniforms = (frequency: number, azimuth: number) => ({
+export const uniforms = (frequency: number, azimuth: number, normals: boolean) => ({
   uFrequency: frequency,
   uAmplitude: AMPLITUDE,
   uExtent: EXTENT,
@@ -43,4 +46,5 @@ export const uniforms = (frequency: number, azimuth: number) => ({
   uRight: triple(CAMERA.right),
   uUp: triple(CAMERA.up),
   uToward: triple(CAMERA.toward),
+  uNormals: normals ? 1 : 0,
 });

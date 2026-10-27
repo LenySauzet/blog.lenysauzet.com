@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 import Figure from '@/components/Figure';
 import Slider from '@/components/Slider';
+import Toggle from '@/components/Toggle';
+import { Playback, usePlayback } from '@/components/figures/Playback';
 import { Playground, Shader } from '@/components/figures/Shader';
 
 import { FRAGMENT } from './fragment';
@@ -18,12 +20,15 @@ export interface LitWaveProps {
 export default function LitWave({ className }: LitWaveProps) {
   const [frequency, setFrequency] = useState(FREQUENCY.initial);
   const [azimuth, setAzimuth] = useState(LIGHT.initial);
+  const [normals, setNormals] = useState(false);
+  const { playing, toggle } = usePlayback();
 
   return (
     <Figure
       className={className}
-      caption="The same ripple, lit per pixel: each pixel finds where its ray meets the surface and shades it by the light.">
+      caption="The same ripple, lit per pixel: each pixel finds where its ray meets the surface and shades it by the light, or by its normal.">
       <Playground
+        action={<Playback playing={playing} onToggle={toggle} />}
         controls={
           <>
             <Slider
@@ -44,15 +49,17 @@ export default function LitWave({ className }: LitWaveProps) {
               unit="°"
               onValueChange={setAzimuth}
             />
+            <Toggle label="Normals" onCheckedChange={setNormals} />
           </>
         }
       >
         <Shader
           fragment={FRAGMENT}
           label="A rippled surface, lit from one side"
-          uniforms={uniforms(frequency, azimuth)}
+          uniforms={uniforms(frequency, azimuth, normals)}
           colors={COLORS}
           aspect={ASPECT}
+          playing={playing}
         />
       </Playground>
     </Figure>

@@ -4,11 +4,11 @@ import Figure from '@/components/Figure';
 import Diagram, {
   Label,
   Line,
-  Playback,
   Point,
   Readout,
   useTimeline,
 } from '@/components/figures/Diagram';
+import { Playback } from '@/components/figures/Playback';
 
 import { HEIGHT, INITIAL, interpolation, PERIOD, READOUT } from './geometry';
 

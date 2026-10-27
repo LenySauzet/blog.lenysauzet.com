@@ -10,5 +10,7 @@ describe('LitWave', () => {
 
     expect(screen.getByRole('img', { name: 'A rippled surface, lit from one side' })).toBeInTheDocument();
     expect(screen.getAllByRole('slider')).toHaveLength(2);
+    expect(screen.getByRole('switch', { name: 'Normals' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
   });
 });

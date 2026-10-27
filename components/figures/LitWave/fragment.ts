@@ -2,6 +2,7 @@ export const FRAGMENT = /* glsl */ `
 precision highp float;
 
 uniform vec2 uResolution;
+uniform float uTime;
 uniform float uFrequency;
 uniform float uAmplitude;
 uniform float uExtent;
@@ -12,14 +13,16 @@ uniform vec3 uUp;
 uniform vec3 uToward;
 uniform vec3 uInk;
 uniform vec3 uShine;
+uniform float uNormals;
 
 const float PI = 3.14159265;
 const int STEPS = 320;
 const int REFINE = 8;
 const float CLEARANCE = 0.01;
+const float SPEED = 2.0;
 
 float height(vec2 p) {
-  return uAmplitude * cos(uFrequency * PI * length(p));
+  return uAmplitude * cos(uFrequency * PI * length(p) - uTime * SPEED);
 }
 
 float above(vec3 p) {
@@ -28,7 +31,7 @@ float above(vec3 p) {
 
 vec3 normalAt(vec2 p) {
   float r = max(length(p), 1e-4);
-  vec2 slope = -uAmplitude * uFrequency * PI * sin(uFrequency * PI * r) * p / r;
+  vec2 slope = -uAmplitude * uFrequency * PI * sin(uFrequency * PI * r - uTime * SPEED) * p / r;
   return normalize(vec3(-slope.x, 1.0, -slope.y));
 }
 
@@ -69,7 +72,9 @@ void main() {
   }
 
   vec3 hit = origin + dir * to;
-  float diffuse = max(dot(side * normalAt(hit.xz), uLight), 0.0);
-  gl_FragColor = vec4(mix(uInk, uShine, diffuse), 1.0);
+  vec3 normal = side * normalAt(hit.xz);
+  float diffuse = max(dot(normal, uLight), 0.0);
+  vec3 shaded = mix(uInk, uShine, diffuse);
+  gl_FragColor = vec4(mix(shaded, normal * 0.5 + 0.5, uNormals), 1.0);
 }
 `;
