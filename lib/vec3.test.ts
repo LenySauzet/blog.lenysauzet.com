@@ -7,6 +7,7 @@ import {
   ISOMETRIC,
   normalize3,
   scale3,
+  basis,
   towardViewer,
   vec3,
   view,
@@ -71,5 +72,26 @@ describe('towardViewer', () => {
     const toward = normalize3(towardViewer(CAMERA));
 
     expect(view(CAMERA)(toward).depth).toBeCloseTo(1);
+  });
+});
+
+describe('basis', () => {
+  const { right, up, toward } = basis(CAMERA);
+
+  it('is three unit directions at right angles', () => {
+    for (const v of [right, up, toward]) expect(dot3(v, v)).toBeCloseTo(1);
+    expect(dot3(right, up)).toBeCloseTo(0);
+    expect(dot3(up, toward)).toBeCloseTo(0);
+    expect(dot3(toward, right)).toBeCloseTo(0);
+  });
+
+  it('agrees with the projection: right moves a point rightward on the page, up moves it up', () => {
+    const project = view(CAMERA);
+    const origin = project(vec3(0, 0, 0)).at;
+
+    expect(project(right).at.x - origin.x).toBeCloseTo(CAMERA.scale);
+    expect(project(right).at.y - origin.y).toBeCloseTo(0);
+    expect(project(up).at.y - origin.y).toBeCloseTo(-CAMERA.scale);
+    expect(project(toward).depth).toBeCloseTo(1);
   });
 });

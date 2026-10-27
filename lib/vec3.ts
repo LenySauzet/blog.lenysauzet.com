@@ -48,5 +48,14 @@ export const view = ({ yaw, pitch, scale, origin }: Camera) => (point: Vec3) => 
   };
 };
 
-export const towardViewer = ({ yaw, pitch }: Camera) =>
-  turnY(tilt(vec3(0, 0, 1), -pitch), -yaw);
+export const basis = ({ yaw, pitch }: Pick<Camera, 'yaw' | 'pitch'>) => {
+  const world = (v: Vec3) => turnY(tilt(v, -pitch), -yaw);
+
+  return {
+    right: world(vec3(1, 0, 0)),
+    up: world(vec3(0, 1, 0)),
+    toward: world(vec3(0, 0, 1)),
+  };
+};
+
+export const towardViewer = (camera: Camera) => basis(camera).toward;

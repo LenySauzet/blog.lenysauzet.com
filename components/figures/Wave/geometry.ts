@@ -9,7 +9,7 @@ export const FREQUENCY = { min: 0.5, max: 3, initial: 1.5 };
 export const TURN = { min: -25, max: 25, initial: 0 };
 
 const SAMPLES = [25, 25] as const;
-const AMPLITUDE = 0.3;
+export const AMPLITUDE = 0.3;
 const REACH = 1.35;
 
 export const ripple = (frequency: number) => (x: number, z: number) =>

@@ -1,0 +1,45 @@
+import { describe, expect, it } from 'vitest';
+
+import { dot3 } from '@/lib/vec3';
+
+import { ASPECT, EXTENT, FREQUENCY, light, outline, uniforms } from './geometry';
+
+describe('the light', () => {
+  it('is a direction, shining from above the surface', () => {
+    for (const azimuth of [0, 90, 135, 270]) {
+      const l = light(azimuth);
+      expect(dot3(l, l)).toBeCloseTo(1);
+      expect(l.y).toBeGreaterThan(0);
+    }
+  });
+
+  it('comes back round to where it started', () => {
+    expect(light(360).x).toBeCloseTo(light(0).x);
+    expect(light(360).z).toBeCloseTo(light(0).z);
+  });
+
+  it('reaches the shader as the slider sets it', () => {
+    expect(uniforms(1, 90).uLight[2]).toBeCloseTo(light(90).z);
+  });
+});
+
+describe('the view', () => {
+  const sweep = Array.from({ length: 11 }, (_, i) => FREQUENCY.min + ((FREQUENCY.max - FREQUENCY.min) * i) / 10);
+
+  it('holds the whole surface inside the canvas, with a margin, at every frequency', () => {
+    for (const frequency of sweep) {
+      const { left, right, low, high, centre } = outline(frequency);
+
+      expect(Math.max(-left, right), `at ${frequency}`).toBeLessThan(0.9 * EXTENT);
+      expect((high - low) / 2, `at ${frequency}`).toBeLessThan((0.9 * EXTENT) / ASPECT);
+      expect(uniforms(frequency, 0).uCentre).toBe(centre);
+    }
+  });
+
+  it('centres the surface, which rises further above its middle than it falls below', () => {
+    const { low, high, centre } = outline(FREQUENCY.initial);
+
+    expect(centre).toBeGreaterThan(0);
+    expect(high - centre).toBeCloseTo(centre - low);
+  });
+});
