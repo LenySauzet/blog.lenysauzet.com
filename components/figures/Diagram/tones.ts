@@ -4,6 +4,7 @@ const TONES = {
   ink: 'var(--primary)',
   'ink-soft': 'color-mix(in oklab, var(--primary) 45%, var(--background))',
   page: 'var(--background)',
+  well: 'color-mix(in oklab, var(--foreground) 3%, var(--background))',
   second: 'var(--figure-second)',
   third: 'var(--figure-third)',
   structure: 'var(--muted-foreground)',

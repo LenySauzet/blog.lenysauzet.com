@@ -23,9 +23,9 @@ export default function Lerp({ className }: LerpProps) {
   return (
     <Figure
       className={className}
-      caption="Linear interpolation moves a point the fraction t of the way from P0 to P1. Every blend in graphics is this one move, applied to positions, colours or anything else that adds and scales.">
+      caption="Linear interpolation: the point sits the fraction t of the way from P0 to P1.">
       <Diagram ref={ref} height={HEIGHT} title="A point interpolated from P0 to P1">
-        <Line from={point} to={to} tone="ink" width={1.5} dashed />
+        <Line from={from} to={to} tone="ink" width={1.5} dashed />
         <Line from={from} to={point} tone="ink" width={3} />
         <Point at={from} />
         <Point at={to} />

@@ -4,7 +4,6 @@ import { centre, type Rect } from '@/lib/rect';
 import { cn } from '@/lib/utils';
 import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
 
-import { LARGEST_TYPE } from './Diagram';
 
 import { LEADER_GAP, leaderPath } from './leaders';
 import { tangents, type Disc } from './magnifier';
@@ -122,9 +121,8 @@ export function Polygon({
 
 export function Rectangle({
   box: { corner, size },
-  radius = 0,
   ...shape
-}: Shape & { box: Rect; radius?: number }) {
+}: Shape & { box: Rect }) {
   const { pattern, paint } = useShape(shape);
 
   return (
@@ -135,7 +133,6 @@ export function Rectangle({
         y={fixed(corner.y)}
         width={fixed(size.x)}
         height={fixed(size.y)}
-        rx={radius}
         {...paint}
       />
     </>
@@ -240,10 +237,14 @@ export function Label({
 
 export function Title({
   at,
+  offset = vec2(0, 0),
+  anchor = 'middle',
   className,
   children,
 }: {
   at: Vec2;
+  offset?: Vec2;
+  anchor?: 'start' | 'middle';
   className?: string;
   children: ReactNode;
 }) {
@@ -251,7 +252,9 @@ export function Title({
     <text
       x={fixed(at.x)}
       y={fixed(at.y)}
-      textAnchor="middle"
+      dx={`${fixed(offset.x)}em`}
+      dy={`${fixed(offset.y)}em`}
+      textAnchor={anchor}
       dominantBaseline="central"
       className={cn('fill-foreground uppercase tracking-[0.12em]', className)}
     >
@@ -286,8 +289,6 @@ export function Readout({
   );
 }
 
-const CORNER = 6;
-
 export function Box({
   box,
   className,
@@ -299,30 +300,44 @@ export function Box({
 }) {
   return (
     <g className={className}>
-      <Rectangle box={box} radius={CORNER} tone="ink" fill="soft" width={1.5} />
+      <Rectangle box={box} tone="page" fill={1} outline="ink" width={1.5} />
       <Title at={centre(box)}>{children}</Title>
     </g>
   );
 }
 
-export const FRAME_HEADER = 2.4 * LARGEST_TYPE;
+type FrameAlign = 'start' | 'middle';
 
-export const frameTitle = (box: Rect) =>
-  vec2(centre(box).x, box.corner.y + FRAME_HEADER / 2);
+const frameTitle = ({ corner, size }: Rect, align: FrameAlign) => ({
+  at: vec2(align === 'start' ? corner.x : corner.x + size.x / 2, corner.y),
+  offset: vec2(0, -1),
+});
 
 export function Frame({
   box,
   title,
+  align = 'start',
   className,
 }: {
   box: Rect;
   title: string;
+  align?: FrameAlign;
   className?: string;
 }) {
   return (
     <g className={className}>
-      <Rectangle box={box} radius={2 * CORNER} dashed width={1.5} />
-      <Title at={frameTitle(box)}>{title}</Title>
+      <Rectangle
+        box={box}
+        tone="well"
+        fill={1}
+        outline="structure"
+        dashed
+        width={1}
+        className="[stroke-linecap:butt]"
+      />
+      <Title {...frameTitle(box, align)} anchor={align}>
+        {title}
+      </Title>
     </g>
   );
 }

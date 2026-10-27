@@ -11,18 +11,14 @@ const readout = (size: number) =>
   textBox('t = 0.00', { at: READOUT, offset: vec2(0, 0) }, size, 'end');
 
 describe('the interpolation', () => {
-  it('starts at P0 and ends at P1', () => {
-    const start = interpolation(0);
-    const end = interpolation(0.99);
+  it('goes from P0 to P1 and back, without pausing at either end', () => {
+    const { from, to } = interpolation(0);
 
-    expect(start.point).toEqual(start.from);
-    expect(end.point).toEqual(end.to);
-  });
-
-  it('holds at P1 for the end of each loop, so the arrival can be seen', () => {
-    expect(progress(0.5)).toBeLessThan(1);
-    expect(progress(0.85)).toBe(1);
-    expect(progress(0.99)).toBe(1);
+    expect(interpolation(0).point).toEqual(from);
+    expect(interpolation(0.5).point).toEqual(to);
+    expect(progress(0.25)).toBeCloseTo(0.5);
+    expect(progress(0.75)).toBeCloseTo(0.5);
+    expect(progress(0.999)).toBeCloseTo(0, 2);
   });
 
   it('rests where the reader would want to read it', () => {

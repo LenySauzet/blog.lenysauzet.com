@@ -6,12 +6,11 @@ export const PERIOD = 4;
 export const READOUT = vec2(MEASURE - 64, HEIGHT - 40);
 
 const ENDS = [vec2(150, 160), vec2(522, 80)] as const;
-const TRAVEL = 0.8;
 const GAP = 1.5;
 
-export const INITIAL = 0.73 * TRAVEL;
+export const INITIAL = 0.73 / 2;
 
-export const progress = (phase: number) => Math.min(1, phase / TRAVEL);
+export const progress = (phase: number) => 1 - Math.abs(2 * phase - 1);
 
 export function interpolation(phase: number) {
   const t = progress(phase);
