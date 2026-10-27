@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { resolveImageUrl } from '@/lib/cdn';
+import { resolveImageUrl, resolveVideoUrl } from '@/lib/cdn';
 
 import { createShader, statusStore, type Scene } from './shader';
 
@@ -17,8 +17,10 @@ const gpu = vi.hoisted(() => ({
 vi.mock('ogl', () => ({
   Renderer: class {
     gl;
-    constructor({ canvas }: { canvas: HTMLCanvasElement }) {
+    dpr;
+    constructor({ canvas, dpr }: { canvas: HTMLCanvasElement; dpr: number }) {
       gpu.canvas = canvas;
+      this.dpr = dpr;
       this.gl = {
         canvas,
         LINK_STATUS: 1,
@@ -47,7 +49,12 @@ vi.mock('ogl', () => ({
   Triangle: class {},
   Texture: class {
     image: unknown;
+    needsUpdate = false;
     texture = {};
+    options;
+    constructor(_: unknown, options: unknown) {
+      this.options = options;
+    }
   },
 }));
 
@@ -167,6 +174,13 @@ describe('a shader', () => {
     expect(gpu.uniforms.uFrequency.value).toBe(2);
   });
 
+  it('tells the shader how many device pixels make a CSS one, up to two', () => {
+    vi.stubGlobal('devicePixelRatio', 3);
+    start();
+
+    expect(gpu.uniforms.uPixelRatio.value).toBe(2);
+  });
+
   it('compares a vector by its values, not by the array that carries it', () => {
     const shader = start(scene({ uniforms: { uLight: [0, 1, 0] } }));
     const settled = gpu.renders;
@@ -283,6 +297,181 @@ describe('a shader', () => {
       images[0].onerror?.();
 
       expect(report).toHaveBeenCalledWith('missing');
+    });
+  });
+
+  describe('a video', () => {
+    const filmed = (src = 'blog/Clouds.mp4') => scene({ colors: {}, textures: { uVideo: src } });
+    let presented: Map<HTMLVideoElement, () => void>;
+    let videos: HTMLVideoElement[];
+    const video = () => videos[0];
+    const present = (media: HTMLVideoElement) => {
+      const callback = presented.get(media);
+      presented.delete(media);
+      callback?.();
+    };
+
+    beforeEach(() => {
+      presented = new Map();
+      videos = [];
+      Object.defineProperties(HTMLVideoElement.prototype, {
+        requestVideoFrameCallback: {
+          configurable: true,
+          value(this: HTMLVideoElement, callback: () => void) {
+            if (!videos.includes(this)) videos.push(this);
+            presented.set(this, callback);
+            return 1;
+          },
+        },
+        cancelVideoFrameCallback: {
+          configurable: true,
+          value(this: HTMLVideoElement) {
+            presented.delete(this);
+          },
+        },
+      });
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+      vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue();
+      vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue();
+    });
+
+    afterEach(() => {
+      shader?.dispose();
+      shader = undefined;
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
+    });
+
+    it('is fetched from the videos on the CDN, muted, and drawn with its size once it has a frame', () => {
+      start(filmed());
+      const media = video();
+      Object.defineProperties(media, { videoWidth: { value: 1280 }, videoHeight: { value: 720 } });
+
+      expect(media.src).toBe(resolveVideoUrl('blog/Clouds.mp4'));
+      expect(media.muted && media.loop && media.playsInline).toBe(true);
+      expect(images).toHaveLength(0);
+
+      media.dispatchEvent(new Event('loadeddata'));
+
+      expect(gpu.uniforms.uVideoSize.value).toEqual([1280, 720]);
+      expect((gpu.uniforms.uVideo.value as { image: unknown }).image).toBe(media);
+    });
+
+    it('is uploaded again for each frame it presents, and only then', () => {
+      start({ ...filmed(), playing: true });
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      tick(1000);
+      tick(1016);
+      expect(texture.needsUpdate).toBe(false);
+
+      for (const _ of [1, 2]) {
+        texture.needsUpdate = false;
+        present(video());
+        expect(texture.needsUpdate).toBe(true);
+      }
+    });
+
+    it('is mipmapped like an image, so a cell can read the level it spans', () => {
+      start(scene({ colors: {}, textures: { uVideo: 'blog/Clouds.mp4', uImage: 'blog/meadow.jpg' } }));
+
+      expect((gpu.uniforms.uVideo.value as { options: unknown }).options).toEqual(
+        (gpu.uniforms.uImage.value as { options: unknown }).options,
+      );
+    });
+
+    it('stops listening for frames once let go of', () => {
+      const shader = start(filmed());
+      const old = video();
+
+      shader.sync(filmed('blog/Rain.mp4'));
+
+      expect(presented.has(old)).toBe(false);
+    });
+
+    it.each([
+      ['NotAllowedError', ['blocked']],
+      ['AbortError', []],
+    ])('reports a play refused with %s as blocked, and only that', async (name, reported) => {
+      vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValue(new DOMException('', name));
+      start({ ...filmed(), playing: true });
+      await settle();
+
+      expect(report.mock.calls.flat()).toEqual(reported);
+    });
+
+    it('is uploaded on every frame while it plays, where the browser cannot say when it presents', () => {
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);
+      start({ ...filmed(), playing: true });
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      tick(1000);
+
+      expect(texture.needsUpdate).toBe(true);
+    });
+
+    it('is left alone while paused, though a colour keeps the loop running', () => {
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      start({ ...filmed(), colors: { uInk: '--primary' } });
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      tick(1000);
+
+      expect(frames.length).toBeGreaterThan(0);
+      expect(texture.needsUpdate).toBe(false);
+    });
+
+    it('plays while the shader plays, and pauses with it', () => {
+      const shader = start({ ...filmed(), playing: true });
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+
+      shader.sync(filmed());
+
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    });
+
+    it('pauses once scrolled out of view, though the shader still plays', () => {
+      let seen: IntersectionObserverCallback = () => {};
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          constructor(report: IntersectionObserverCallback) {
+            seen = report;
+          }
+          observe() {
+            seen([{ isIntersecting: true } as IntersectionObserverEntry], this as never);
+          }
+          disconnect() {}
+        },
+      );
+      start({ ...filmed(), playing: true });
+      vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
+
+      seen([{ isIntersecting: false } as IntersectionObserverEntry], {} as never);
+
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    });
+
+    it('reports nothing for a video it has let go of', () => {
+      const shader = start(filmed());
+      const media = video();
+      shader.sync(filmed('blog/Rain.mp4'));
+      report.mockClear();
+
+      media.dispatchEvent(new Event('error'));
+
+      expect(report).not.toHaveBeenCalled();
+    });
+
+    it('stops downloading once its source changes', () => {
+      const shader = start(filmed());
+      const media = video();
+
+      shader.sync(filmed('blog/Rain.mp4'));
+
+      expect(media.hasAttribute('src')).toBe(false);
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
     });
   });
 

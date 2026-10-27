@@ -122,8 +122,9 @@ dropped**, because a component carrying an example in a prop has lines of it at 
 zero: anchoring to every line start cost the design system its `import './scene.css';`
 out of a Sandpack. And **a fenced block is never touched at all**, being the subject
 rather than the machinery. **The CDN namespace is chosen by extension**, not by a table of components:
-`.mp4` goes to videos and everything else to images, so adding a component to
-`mdx-components.tsx` can never put a file in the wrong place.
+`.mp4` goes to videos and everything else to images (`resolveMediaUrl`, which the
+shader engine shares), so adding a component to `mdx-components.tsx` can never put a
+file in the wrong place.
 
 - **`/llms.txt` lists the posts** and points at their Markdown rather than their pages,
   which is the point of it. Drafts are absent, the way they are from the feed, while a
@@ -232,8 +233,8 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
-| `lib/shader.ts` | The one WebGL 2 engine: a fragment shader, its uniforms, colours, textures and clock |
-| `components/Shader` | That engine as a component, under `Backdrop` and every rendered figure |
+| `lib/shader.ts` | The one WebGL 2 engine: a fragment shader, its uniforms, colours, images, videos and clock |
+| `components/Shader` | That engine as a component, under `Backdrop` and every rendered figure; `glsl.ts` holds the snippets figures share |
 | `components/Table` | A table as an article reads it: block rhythm and the cells' one type |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
@@ -1081,19 +1082,34 @@ What a rendered surface forces:
 - **It draws onto transparency**, so a theme flip repaints only the ink.
 - **The engine reports a status, React reads it through `useSyncExternalStore`**:
   no WebGL 2 or a lost context, a shader that does not link (checked by hand, since OGL
-  then throws inside the loop), an image that does not load. A named figure says which
-  in one sentence, which becomes its label; a decoration stays silent. A lost context
-  tears the engine down, or a playing `Backdrop` kept drawing into a dead one. The
-  WebGL 2 context is taken before OGL asks, since OGL quietly falls back to WebGL 1.
+  then throws inside the loop), an image or video that does not load, a video the
+  browser will not play (autoplay refused, which a pause's own rejection is not). A
+  named figure says which in one sentence, which becomes its label; a decoration stays
+  silent. A lost context tears the engine down, or a playing `Backdrop` kept drawing
+  into a dead one. The WebGL 2 context is taken before OGL asks, since OGL quietly
+  falls back to WebGL 1.
 - **A texture is a CDN path in `textures`**: sampler, `<name>Size` zero until it loads,
   trilinear mipmaps and anisotropy, since a painting shrunk three times without them is
   moiré. It reads across origins, which works only because the R2 bucket carries a
   CORS rule (`Access-Control-Allow-Origin: *`, GET and HEAD): removing it breaks every
   texture without breaking any `<img>`.
+- **A video is a texture whose path has a video extension** (`isVideo`), read from
+  `videos/` like any other. Muted and looping, it plays only while the shader does and
+  is on screen, and is uploaded again only when it presents a new frame
+  (`requestVideoFrameCallback`, every frame where Firefox before 132 lacks it).
+  Mipmapped like an image, so a halftone cell reads the level it spans; building them
+  costs the GPU a fraction of a millisecond. Encode it at the size it is drawn: every
+  frame of a 4K source is 33MB through the GPU for a figure 682px wide.
+- **`uPixelRatio` is the device pixels to a CSS one**, capped at two like the
+  canvas, so a size a reader picks in pixels, a halftone's cell, holds on any screen.
 - **A halftone samples a cell at the mip level the cell spans**, through `textureLod`,
   which blends what the cell covers. Point-sampled, a cell takes whichever stroke its
   centre lands on.
 - **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
+  A mark drawn into a picture is the exception: `VideoHalftone`'s dots are part of
+  the image they sit in, never on the page, so they stay white.
+- **A dot never reaches past half its cell**: each pixel knows only its own cell's
+  centre, so a larger one is cut square and runs into its neighbours.
 - **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
   than the column, the canvas first on a phone, `Playback` beside the panel's title.
   Its controls are `Slider` and `Toggle`, a `Switch` named by its label.

@@ -1,12 +1,12 @@
 import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
 
-import { resolveImageUrl } from '@/lib/cdn';
+import { isVideo, resolveMediaUrl } from '@/lib/cdn';
 import { step } from '@/lib/clock';
 import { cssColor } from '@/lib/css-color';
 
 export type Uniform = number | readonly number[];
 
-export type Status = 'ready' | 'unavailable' | 'broken' | 'missing';
+export type Status = 'ready' | 'unavailable' | 'broken' | 'missing' | 'blocked';
 
 export interface Scene {
   uniforms: Record<string, Uniform>;
@@ -57,6 +57,15 @@ const same = (a: unknown, b: Uniform) =>
 
 const inert = { sync: () => {}, dispose: () => {} };
 
+interface Source {
+  src: string;
+  media: HTMLImageElement | HTMLVideoElement;
+  texture: Texture;
+  stop: () => void;
+  play?: (on: boolean) => void;
+  refresh?: () => void;
+}
+
 export function createShader(host: HTMLElement, fragment: string, report: (status: Status) => void) {
   const canvas = document.createElement('canvas');
   // Taken before OGL asks, so OGL is handed this context rather than falling back to
@@ -80,13 +89,13 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const program = new Program(gl, {
     vertex: VERTEX,
     fragment,
-    uniforms: { uResolution: { value: [1, 1] }, uTime: { value: 0 } },
+    uniforms: { uResolution: { value: [1, 1] }, uPixelRatio: { value: renderer.dpr }, uTime: { value: 0 } },
   });
   const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
   const linked = gl.getProgramParameter(program.program, gl.LINK_STATUS);
 
   const colors = new Map<string, { token: string; reader: ReturnType<typeof cssColor> }>();
-  const textures = new Map<string, { src: string; image: HTMLImageElement; texture: Texture }>();
+  const textures = new Map<string, Source>();
   let playing = false;
   let dirty = true;
   let alive = true;
@@ -106,33 +115,78 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     dirty = false;
   };
 
+  const show = (name: string, media: Source['media'], size: number[]) => {
+    const source = textures.get(name);
+    if (source?.media !== media) return;
+    source.texture.image = media;
+    set(`${name}Size`, size);
+    draw();
+  };
+
+  const image = (name: string) => {
+    const element = new Image();
+    element.onload = () =>
+      element.decode().then(
+        () => show(name, element, [element.naturalWidth, element.naturalHeight]),
+        () => report('missing'),
+      );
+    return {
+      media: element,
+      stop() {
+        element.onload = element.onerror = null;
+        element.src = '';
+      },
+    };
+  };
+
+  const video = (name: string, texture: Texture) => {
+    const element = document.createElement('video');
+    Object.assign(element, { muted: true, loop: true, playsInline: true, preload: 'auto' });
+    element.onloadeddata = () => show(name, element, [element.videoWidth, element.videoHeight]);
+    const upload = () => (texture.needsUpdate = dirty = true);
+    // Without it, a playing video is uploaded on every frame whether it moved or not.
+    const presents = typeof element.requestVideoFrameCallback === 'function';
+    let pending = 0;
+    const present = () => {
+      upload();
+      pending = element.requestVideoFrameCallback(present);
+    };
+    if (presents) pending = element.requestVideoFrameCallback(present);
+    return {
+      media: element,
+      play(on: boolean) {
+        if (!on) element.pause();
+        // A play cut short by a pause rejects with an AbortError, and is not a failure.
+        else if (element.paused)
+          element.play().catch((error: DOMException) => error.name === 'AbortError' || report('blocked'));
+      },
+      refresh: presents ? undefined : () => element.paused || upload(),
+      stop() {
+        element.onloadeddata = element.onerror = null;
+        if (presents) element.cancelVideoFrameCallback(pending);
+        element.removeAttribute('src');
+        element.load();
+      },
+    };
+  };
+
   const release = (name: string) => {
-    const entry = textures.get(name);
-    if (!entry) return;
-    entry.image.onload = entry.image.onerror = null;
-    entry.image.src = '';
-    gl.deleteTexture(entry.texture.texture);
+    const source = textures.get(name);
+    if (!source) return;
+    source.stop();
+    gl.deleteTexture(source.texture.texture);
     textures.delete(name);
     set(`${name}Size`, NONE);
   };
 
   const load = (name: string, src: string) => {
     const texture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY });
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () =>
-      image.decode().then(
-        () => {
-          if (textures.get(name)?.image !== image) return;
-          texture.image = image;
-          set(`${name}Size`, [image.naturalWidth, image.naturalHeight]);
-          draw();
-        },
-        () => report('missing'),
-      );
-    image.onerror = () => report('missing');
-    image.src = resolveImageUrl(src);
-    textures.set(name, { src, image, texture });
+    const source = { src, texture, ...(isVideo(src) ? video(name, texture) : image(name)) };
+    const { media } = source;
+    media.crossOrigin = 'anonymous';
+    media.onerror = () => report('missing');
+    media.src = resolveMediaUrl(src);
+    textures.set(name, source);
     set(name, texture);
     set(`${name}Size`, NONE);
   };
@@ -142,6 +196,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const loop = (now: number) => {
     if (playing && last !== undefined) set('uTime', program.uniforms.uTime.value + step((now - last) / 1000));
     last = now;
+    for (const { refresh } of textures.values()) refresh?.();
     draw();
     frame = requestAnimationFrame(loop);
   };
@@ -150,7 +205,10 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   // A still shader with no colour to watch has nothing to do between changes, and every
   // change draws on its own.
   const schedule = () => {
-    const running = onScreen && !document.hidden && (playing || colors.size > 0);
+    const visible = onScreen && !document.hidden;
+    for (const { play } of textures.values()) play?.(visible && playing);
+
+    const running = visible && (playing || colors.size > 0);
     if (running && !frame) {
       last = undefined;
       frame = requestAnimationFrame(loop);

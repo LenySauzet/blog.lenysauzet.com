@@ -2,14 +2,8 @@ import 'server-only';
 
 import siteConfig from '@/config/site';
 
-import { resolveImageUrl, resolveVideoUrl } from './cdn';
+import { resolveMediaUrl } from './cdn';
 import type { Post } from './post-utils';
-
-const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
-
-/** The CDN is namespaced by kind, and the extension is what says which. A table
-    of components would have to be kept in step with `mdx-components.tsx`. */
-const resolve = (src: string) => (VIDEO.test(src) ? resolveVideoUrl(src) : resolveImageUrl(src));
 
 /**
  * A fenced block is the subject, not machinery: a post about Three.js carries
@@ -27,11 +21,11 @@ const resolveSources = (text: string) =>
   text
     .replace(
       /\b(src|beforeSrc|afterSrc)="([^"]+)"/g,
-      (_match: string, prop: string, src: string) => `${prop}="${resolve(src)}"`
+      (_match: string, prop: string, src: string) => `${prop}="${resolveMediaUrl(src)}"`
     )
     .replace(
       /(!\[[^\]]*\]\()([^)]+)\)/g,
-      (_match: string, lead: string, src: string) => `${lead}${resolve(src)})`
+      (_match: string, lead: string, src: string) => `${lead}${resolveMediaUrl(src)})`
     );
 
 const IMPORT = /^import\s/;
