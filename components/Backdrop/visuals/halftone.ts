@@ -28,14 +28,16 @@ float snoise(vec2 v) {
 `;
 
 export const halftone: Visual = {
-  fragment: /* glsl */ `
+  fragment: /* glsl */ `#version 300 es
 precision highp float;
 
 uniform float uTime;
 uniform vec2 uResolution;
 uniform vec3 uColor;
 
-varying vec2 vUv;
+in vec2 vUv;
+
+out vec4 fragColor;
 
 ${NOISE}
 
@@ -62,12 +64,11 @@ void main() {
   float below = (0.34 + 0.56 * vUv.x) - vUv.y;
   float soften = smoothstep(-0.08, 0.34, below);
 
-  // One device pixel in cell space. Derivatives are an extension here, and the
-  // cell size already says what a pixel is worth.
+  // One device pixel in cell space, widened as the dot goes soft.
   float edge = (1.0 / CELL) * (1.0 + soften * 11.0);
   float ink = 1.0 - smoothstep(radius - edge, radius + edge, length(within));
 
-  gl_FragColor = vec4(uColor, ink * field * (1.0 - soften * 0.45));
+  fragColor = vec4(uColor, ink * field * (1.0 - soften * 0.45));
 }
 `,
 };

@@ -2,8 +2,6 @@
 
 import { useState, useSyncExternalStore } from 'react';
 
-export const LONGEST_STEP = 0.1;
-
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
 const subscribe = (change: () => void) => {

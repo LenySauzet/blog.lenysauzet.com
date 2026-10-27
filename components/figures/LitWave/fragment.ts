@@ -1,4 +1,4 @@
-export const FRAGMENT = /* glsl */ `
+export const FRAGMENT = /* glsl */ `#version 300 es
 precision highp float;
 
 uniform vec2 uResolution;
@@ -14,6 +14,8 @@ uniform vec3 uToward;
 uniform vec3 uInk;
 uniform vec3 uShine;
 uniform float uNormals;
+
+out vec4 fragColor;
 
 const float PI = 3.14159265;
 const int STEPS = 320;
@@ -48,7 +50,7 @@ void main() {
   float enter = max(max(first.x, first.y), first.z);
   float leave = min(min(last.x, last.y), last.z);
 
-  gl_FragColor = vec4(0.0);
+  fragColor = vec4(0.0);
   if (enter > leave) return;
 
   float stride = (leave - enter) / float(STEPS);
@@ -75,6 +77,6 @@ void main() {
   vec3 normal = side * normalAt(hit.xz);
   float diffuse = max(dot(normal, uLight), 0.0);
   vec3 shaded = mix(uInk, uShine, diffuse);
-  gl_FragColor = vec4(mix(shaded, normal * 0.5 + 0.5, uNormals), 1.0);
+  fragColor = vec4(mix(shaded, normal * 0.5 + 0.5, uNormals), 1.0);
 }
 `;

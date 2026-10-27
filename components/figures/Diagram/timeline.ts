@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { LONGEST_STEP, usePlayback } from '@/components/figures/Playback';
+import { usePlayback } from '@/hooks/use-playback';
+import { step } from '@/lib/clock';
 
 export const advance = (phase: number, seconds: number, period: number) =>
-  (phase + Math.min(seconds, LONGEST_STEP) / period) % 1;
+  (phase + step(seconds) / period) % 1;
 
 export function useTimeline(period: number, initial = 0) {
   const ref = useRef<HTMLDivElement>(null);
