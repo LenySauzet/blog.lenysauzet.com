@@ -65,6 +65,7 @@ describe('Shader', () => {
     ['unavailable', /needs WebGL 2/],
     ['broken', /could not be drawn/],
     ['missing', /image or video this figure draws on could not be loaded/],
+    ['blocked', /would not play the video/],
   ] as const)('says what went wrong, to the eye and to a screen reader, when the engine reports itself %s', (status, message) => {
     const { container } = render(<Shader fragment="a" label="A lit surface" />);
 

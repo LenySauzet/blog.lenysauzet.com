@@ -32,7 +32,7 @@ void main() {
     ? textureLod(uImage, at, log2(max(texelsPerCell, 1.0))).rgb
     : texture(uImage, at).rgb;
 
-  float radius = uRadius * mix(1.0, 0.1 + dot(LUMA, color), uLuma);
+  float radius = min(uRadius * mix(1.0, 0.1 + dot(LUMA, color), uLuma), 0.5);
   float reach = length(gl_FragCoord.xy - centre) / cell;
   float disc = 1.0 - smoothstep(radius - fwidth(reach), radius, reach);
   fragColor = vec4(color, mix(1.0, disc, uDots));

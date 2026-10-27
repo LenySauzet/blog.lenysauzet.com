@@ -6,7 +6,7 @@ import { cssColor } from '@/lib/css-color';
 
 export type Uniform = number | readonly number[];
 
-export type Status = 'ready' | 'unavailable' | 'broken' | 'missing';
+export type Status = 'ready' | 'unavailable' | 'broken' | 'missing' | 'blocked';
 
 export interface Scene {
   uniforms: Record<string, Uniform>;
@@ -124,47 +124,48 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   };
 
   const image = (name: string) => {
-    const image = new Image();
-    image.onload = () =>
-      image.decode().then(
-        () => show(name, image, [image.naturalWidth, image.naturalHeight]),
+    const element = new Image();
+    element.onload = () =>
+      element.decode().then(
+        () => show(name, element, [element.naturalWidth, element.naturalHeight]),
         () => report('missing'),
       );
     return {
-      media: image,
+      media: element,
       stop() {
-        image.onload = image.onerror = null;
-        image.src = '';
+        element.onload = element.onerror = null;
+        element.src = '';
       },
     };
   };
 
   const video = (name: string, texture: Texture) => {
-    const video = document.createElement('video');
-    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: 'auto' });
-    video.onloadeddata = () => show(name, video, [video.videoWidth, video.videoHeight]);
+    const element = document.createElement('video');
+    Object.assign(element, { muted: true, loop: true, playsInline: true, preload: 'auto' });
+    element.onloadeddata = () => show(name, element, [element.videoWidth, element.videoHeight]);
     const upload = () => (texture.needsUpdate = dirty = true);
-    const frame = () => {
-      if (textures.get(name)?.media !== video) return;
-      upload();
-      video.requestVideoFrameCallback(frame);
-    };
     // Without it, a playing video is uploaded on every frame whether it moved or not.
-    const presents = typeof video.requestVideoFrameCallback === 'function';
-    if (presents) video.requestVideoFrameCallback(frame);
+    const presents = typeof element.requestVideoFrameCallback === 'function';
+    let pending = 0;
+    const present = () => {
+      upload();
+      pending = element.requestVideoFrameCallback(present);
+    };
+    if (presents) pending = element.requestVideoFrameCallback(present);
     return {
-      media: video,
+      media: element,
       play(on: boolean) {
-        if (!on) video.pause();
-        // A play cut short by a pause rejects, and is not a failure.
-        else if (video.paused) video.play().catch(() => {});
+        if (!on) element.pause();
+        // A play cut short by a pause rejects with an AbortError, and is not a failure.
+        else if (element.paused)
+          element.play().catch((error: DOMException) => error.name === 'AbortError' || report('blocked'));
       },
-      refresh: presents ? undefined : () => video.paused || upload(),
+      refresh: presents ? undefined : () => element.paused || upload(),
       stop() {
-        video.onloadeddata = video.onerror = null;
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
+        element.onloadeddata = element.onerror = null;
+        if (presents) element.cancelVideoFrameCallback(pending);
+        element.removeAttribute('src');
+        element.load();
       },
     };
   };
@@ -179,15 +180,8 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   };
 
   const load = (name: string, src: string) => {
-    const moving = isVideo(src);
-    // A video is a new image every frame, too often to build its mipmaps.
-    const texture = new Texture(
-      gl,
-      moving
-        ? { generateMipmaps: false, minFilter: gl.LINEAR }
-        : { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY },
-    );
-    const source = { src, texture, ...(moving ? video(name, texture) : image(name)) };
+    const texture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY });
+    const source = { src, texture, ...(isVideo(src) ? video(name, texture) : image(name)) };
     const { media } = source;
     media.crossOrigin = 'anonymous';
     media.onerror = () => report('missing');

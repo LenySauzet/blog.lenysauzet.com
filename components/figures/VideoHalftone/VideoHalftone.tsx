@@ -10,7 +10,7 @@ import { Playground } from '@/components/figures/Playground';
 import { usePlayback } from '@/hooks/use-playback';
 
 import { FRAGMENT } from './fragment';
-import { ASPECT, PIXEL_SIZE, RADIUS, TEXTURES, uniforms } from './settings';
+import { ASPECT, PIXEL_SIZE, RADIUS, TEXTURES } from './settings';
 
 export interface VideoHalftoneProps {
   className?: string;
@@ -53,7 +53,7 @@ export default function VideoHalftone({ className }: VideoHalftoneProps) {
         <Shader
           fragment={FRAGMENT}
           label="Clouds drifting, pixelated, with a white dot in every cell"
-          uniforms={uniforms(pixelSize, radius)}
+          uniforms={{ uPixelSize: pixelSize, uRadius: radius }}
           textures={TEXTURES}
           playing={playing}
           aspect={ASPECT}

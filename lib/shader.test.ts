@@ -26,7 +26,6 @@ vi.mock('ogl', () => ({
         LINK_STATUS: 1,
         LINEAR_MIPMAP_LINEAR: 2,
         getProgramParameter: () => gpu.linked,
-        LINEAR: 3,
         getExtension: () => ({ loseContext: () => canvas.dispatchEvent(new Event('webglcontextlost')) }),
         deleteTexture: (texture: unknown) => gpu.deleted.push(texture),
       };
@@ -52,6 +51,10 @@ vi.mock('ogl', () => ({
     image: unknown;
     needsUpdate = false;
     texture = {};
+    options;
+    constructor(_: unknown, options: unknown) {
+      this.options = options;
+    }
   },
 }));
 
@@ -300,15 +303,31 @@ describe('a shader', () => {
   describe('a video', () => {
     const filmed = (src = 'blog/Clouds.mp4') => scene({ colors: {}, textures: { uVideo: src } });
     let presented: Map<HTMLVideoElement, () => void>;
-    let video: () => HTMLVideoElement;
+    let videos: HTMLVideoElement[];
+    const video = () => videos[0];
+    const present = (media: HTMLVideoElement) => {
+      const callback = presented.get(media);
+      presented.delete(media);
+      callback?.();
+    };
 
     beforeEach(() => {
       presented = new Map();
-      video = () => [...presented.keys()][0];
-      Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', {
-        configurable: true,
-        value(this: HTMLVideoElement, callback: () => void) {
-          presented.set(this, callback);
+      videos = [];
+      Object.defineProperties(HTMLVideoElement.prototype, {
+        requestVideoFrameCallback: {
+          configurable: true,
+          value(this: HTMLVideoElement, callback: () => void) {
+            if (!videos.includes(this)) videos.push(this);
+            presented.set(this, callback);
+            return 1;
+          },
+        },
+        cancelVideoFrameCallback: {
+          configurable: true,
+          value(this: HTMLVideoElement) {
+            presented.delete(this);
+          },
         },
       });
       vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
@@ -317,7 +336,10 @@ describe('a shader', () => {
     });
 
     afterEach(() => {
+      shader?.dispose();
+      shader = undefined;
       Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
     });
 
     it('is fetched from the videos on the CDN, muted, and drawn with its size once it has a frame', () => {
@@ -343,22 +365,39 @@ describe('a shader', () => {
       tick(1016);
       expect(texture.needsUpdate).toBe(false);
 
-      presented.get(video())?.();
-      expect(texture.needsUpdate).toBe(true);
+      for (const _ of [1, 2]) {
+        texture.needsUpdate = false;
+        present(video());
+        expect(texture.needsUpdate).toBe(true);
+      }
     });
 
-    it('lets a frame presented by a video it has let go of change nothing', () => {
+    it('is mipmapped like an image, so a cell can read the level it spans', () => {
+      start(scene({ colors: {}, textures: { uVideo: 'blog/Clouds.mp4', uImage: 'blog/meadow.jpg' } }));
+
+      expect((gpu.uniforms.uVideo.value as { options: unknown }).options).toEqual(
+        (gpu.uniforms.uImage.value as { options: unknown }).options,
+      );
+    });
+
+    it('stops listening for frames once let go of', () => {
       const shader = start(filmed());
       const old = video();
-      const callback = presented.get(old);
+
       shader.sync(filmed('blog/Rain.mp4'));
-      presented.delete(old);
-      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
 
-      callback?.();
-
-      expect(texture.needsUpdate).toBe(false);
       expect(presented.has(old)).toBe(false);
+    });
+
+    it.each([
+      ['NotAllowedError', ['blocked']],
+      ['AbortError', []],
+    ])('reports a play refused with %s as blocked, and only that', async (name, reported) => {
+      vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValue(new DOMException('', name));
+      start({ ...filmed(), playing: true });
+      await settle();
+
+      expect(report.mock.calls.flat()).toEqual(reported);
     });
 
     it('is uploaded on every frame while it plays, where the browser cannot say when it presents', () => {

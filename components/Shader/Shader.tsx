@@ -9,6 +9,7 @@ const FAILURES: Record<Exclude<Status, 'ready'>, string> = {
   unavailable: 'This figure needs WebGL 2, which is not available here.',
   broken: 'This figure could not be drawn.',
   missing: 'The image or video this figure draws on could not be loaded.',
+  blocked: 'This browser would not play the video this figure draws on.',
 };
 
 const NONE = {};
