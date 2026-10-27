@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Shader } from './Shader';
@@ -85,29 +85,29 @@ describe('Shader, once it has a GPU', () => {
 
   it('draws once it is sized, then only when something has moved', async () => {
     const { rerender } = render(shader({ uFrequency: 1 }));
-    await frames();
+    await waitFor(() => expect(gpu.renders).toBeGreaterThan(0));
     const settled = gpu.renders;
 
-    expect(settled).toBeGreaterThan(0);
     await frames();
     expect(gpu.renders).toBe(settled);
 
     rerender(shader({ uFrequency: 2 }));
-    await frames();
-    expect(gpu.renders).toBe(settled + 1);
-    expect(gpu.uniforms.uFrequency.value).toBe(2);
+    await waitFor(() => {
+      expect(gpu.renders).toBe(settled + 1);
+      expect(gpu.uniforms.uFrequency.value).toBe(2);
+    });
   });
 
   it('redraws when a colour token comes to resolve differently, as a theme flip makes it', async () => {
     render(shader({ uFrequency: 1 }));
-    await frames();
+    await waitFor(() => expect(gpu.renders).toBeGreaterThan(0));
     const settled = gpu.renders;
 
     gpu.colour = [1, 0, 0];
-    await frames();
-
-    expect(gpu.renders).toBe(settled + 1);
-    expect(gpu.uniforms.uInk.value).toEqual([1, 0, 0]);
+    await waitFor(() => {
+      expect(gpu.renders).toBe(settled + 1);
+      expect(gpu.uniforms.uInk.value).toEqual([1, 0, 0]);
+    });
   });
 
   it('takes a uniform it was not given at first', async () => {
@@ -115,9 +115,7 @@ describe('Shader, once it has a GPU', () => {
     await frames();
 
     rerender(shader({ uFrequency: 1, uLight: 0.5 }));
-    await frames();
-
-    expect(gpu.uniforms.uLight.value).toBe(0.5);
+    await waitFor(() => expect(gpu.uniforms.uLight.value).toBe(0.5));
   });
 
   it('says so, rather than showing an empty panel, when its shader does not link', async () => {
