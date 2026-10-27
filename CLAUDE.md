@@ -1329,12 +1329,15 @@ rather than a surface a screen reader cannot enter.
   way Making Software names a panel or a count ("625 VERTICES"). A number in it is
   formatted with a fixed locale, never the runtime's, or the server and the browser
   write it differently.
-- **A system diagram is boxes in frames.** A `Box` is a stage, a solid line around
-  its name; a `Frame` is a dashed line around the stages that run in one place, its
-  title inside the top in `FRAME_HEADER`, so a frame never needs room above it and the
-  content's first row is a constant. The dash is what tells a grouping from a thing.
-  Both take a `Rect` from `lib/rect.ts`, whose `edge` gives an arrow the middle of a
-  side, pushed out by a gap so the head never touches the line it points at.
+- **A system diagram is boxes in frames**, drawn the way Making Software draws them.
+  A `Box` is a stage, a solid edge around its name; a `Frame` groups the stages that
+  run in one place, dashed. Both are square. A frame is filled with `well`, the page
+  pulled a few percent toward the text, so it reads as a slightly darker ground in
+  light and a slightly lighter one in dark; a box is the page, so it stands out of the
+  frame it sits in. A frame's dashes are cut square (`butt`) and
+  thinner than a line's, or the round caps close the gaps. Its title sits outside,
+  above the top edge, from the left corner or over the middle, one `em` up so the gap
+  follows the type.
 - **A figure driven by time is a figure whose parameter comes from `useTimeline`**
   rather than from a slider, so its geometry is the same pure function of one number
   and is tested the same way. The clock only runs while the figure is on screen, and a

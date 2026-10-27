@@ -22,7 +22,7 @@ export default function Wave({ className }: WaveProps) {
   return (
     <Figure
       className={className}
-      caption="A flat grid, every point lifted by a wave of its distance from the centre, which is the whole of what a vertex shader does to it. The faces are the page, so whatever lies behind the surface fades, and the heavier line is the silhouette.">
+      caption="A flat grid, each point lifted by a wave of its distance from the centre.">
       <Diagram height={HEIGHT} title="A grid displaced by a ripple">
         <Surface grid={grid} camera={camera} axes={AXES} />
         <Title at={TITLE}>{`${count.format(grid.flat().length)} vertices`}</Title>

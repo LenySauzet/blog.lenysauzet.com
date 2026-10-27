@@ -128,20 +128,36 @@ describe('a readout', () => {
 });
 
 describe('a system diagram', () => {
-  const box = rect(vec2(10, 10), 80, 40);
+  const box = rect(vec2(10, 30), 80, 40);
 
-  it('draws a box in a solid line, its name at its centre', () => {
+  it('draws a box with square corners, its name at its centre', () => {
     const svg = draw(<Box box={box}>Rasterizer</Box>);
 
+    expect(svg.querySelector('rect')?.hasAttribute('rx')).toBe(false);
     expect(svg.querySelector('rect')).not.toHaveClass('[stroke-dasharray:4_6]');
-    expect(svg.querySelector('text')).toHaveTextContent('Rasterizer');
     expect(svg.querySelector('text')?.getAttribute('x')).toBe('50');
   });
 
-  it('draws a frame in a dashed line, which groups rather than names a stage', () => {
+  it('draws a frame dashed, square and tinted, which groups rather than names a stage', () => {
     const svg = draw(<Frame box={box} title="GPU" />);
+    const outline = svg.querySelector('rect');
 
-    expect(svg.querySelector('rect')).toHaveClass('[stroke-dasharray:4_6]');
-    expect(svg.querySelector('text')).toHaveTextContent('GPU');
+    expect(outline).toHaveClass('[stroke-dasharray:4_6]');
+    expect(outline?.hasAttribute('rx')).toBe(false);
+    expect(outline?.getAttribute('fill-opacity')).toBe('1');
+  });
+
+  it('titles a frame above it, from its left corner or over its middle', () => {
+    const start = draw(<Frame box={box} title="GPU" />).querySelector('text');
+    const middle = draw(<Frame box={box} title="GPU" align="middle" />).querySelector('text');
+
+    expect(start?.getAttribute('x')).toBe('10');
+    expect(start?.getAttribute('text-anchor')).toBe('start');
+    expect(middle?.getAttribute('x')).toBe('50');
+    expect(middle?.getAttribute('text-anchor')).toBe('middle');
+    for (const title of [start, middle]) {
+      expect(title?.getAttribute('y')).toBe('30');
+      expect(title?.getAttribute('dy')).toBe('-1em');
+    }
   });
 });

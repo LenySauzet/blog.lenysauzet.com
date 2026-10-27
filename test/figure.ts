@@ -4,7 +4,6 @@ import {
   MEASURE,
   type Placement,
 } from '@/components/figures/Diagram';
-import type { Rect } from '@/lib/rect';
 import { add, scale, vec2, type Vec2 } from '@/lib/vec2';
 
 export const SIZES = [13, 16, LARGEST_TYPE];
@@ -51,20 +50,6 @@ export const titleBox = (name: string, { x, y }: Vec2, size: number): Box => {
     bottom: y + (GLYPH.height * size) / 2,
   };
 };
-
-export const bounds = (name: string, { corner, size }: Rect): Box => ({
-  name,
-  left: corner.x,
-  right: corner.x + size.x,
-  top: corner.y,
-  bottom: corner.y + size.y,
-});
-
-export const inside = (outer: Box, inner: Box) =>
-  inner.left >= outer.left &&
-  inner.right <= outer.right &&
-  inner.top >= outer.top &&
-  inner.bottom <= outer.bottom;
 
 export const overlap = (a: Box, b: Box) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;

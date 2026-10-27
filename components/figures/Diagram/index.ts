@@ -12,8 +12,6 @@ export {
   Curve,
   Detail,
   Frame,
-  FRAME_HEADER,
-  frameTitle,
   Label,
   Leader,
   Line,

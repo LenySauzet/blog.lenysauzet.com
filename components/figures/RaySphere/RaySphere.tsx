@@ -27,7 +27,7 @@ export default function RaySphere({ className }: RaySphereProps) {
   return (
     <Figure
       className={className}
-      caption="A ray meets a sphere twice, once or never, and which of the three is the sign of the discriminant. It crosses the atmosphere at p1 and p2 and the ground at g1 and g2, and the bold stretch is the air it actually travels through, which ends where the planet begins. H is the point nearest the centre, and exists whether or not the ray ever gets there.">
+      caption="p1 and p2 are where the ray crosses the atmosphere, g1 and g2 the ground, and the bold stretch is the air it travels through. H is the point nearest the centre.">
       <Diagram height={HEIGHT} title="A ray crossing a planet's atmosphere">
         <Circle at={CENTRE} r={ATMOSPHERE} tone="ink" fill="soft" />
         <Circle at={CENTRE} r={PLANET} fill="solid" />

@@ -45,7 +45,7 @@ export default function Coverage({ className }: CoverageProps) {
   return (
     <Figure
       className={className}
-      caption="A pixel holds one colour, so an edge that crosses it is averaged. The share of the pixel the shape covers, hatched under the loupe, becomes how strongly the pixel is filled: turn the edge and watch the fill follow.">
+      caption="A pixel is filled by the share of it the shape covers, hatched under the loupe.">
       <Diagram height={HEIGHT} title="Coverage anti-aliasing of an edge across a pixel grid">
         {grid}
         <Magnifier source={source} lens={LENS}>
