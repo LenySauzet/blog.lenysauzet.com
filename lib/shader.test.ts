@@ -392,6 +392,39 @@ describe('a shader', () => {
       expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     });
 
+    it('pauses once scrolled out of view, though the shader still plays', () => {
+      let seen: IntersectionObserverCallback = () => {};
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          constructor(report: IntersectionObserverCallback) {
+            seen = report;
+          }
+          observe() {
+            seen([{ isIntersecting: true } as IntersectionObserverEntry], this as never);
+          }
+          disconnect() {}
+        },
+      );
+      start({ ...filmed(), playing: true });
+      vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
+
+      seen([{ isIntersecting: false } as IntersectionObserverEntry], {} as never);
+
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    });
+
+    it('reports nothing for a video it has let go of', () => {
+      const shader = start(filmed());
+      const media = video();
+      shader.sync(filmed('blog/Rain.mp4'));
+      report.mockClear();
+
+      media.dispatchEvent(new Event('error'));
+
+      expect(report).not.toHaveBeenCalled();
+    });
+
     it('stops downloading once its source changes', () => {
       const shader = start(filmed());
       const media = video();

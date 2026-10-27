@@ -62,6 +62,7 @@ interface Source {
   media: HTMLImageElement | HTMLVideoElement;
   texture: Texture;
   stop: () => void;
+  play?: (on: boolean) => void;
   refresh?: () => void;
 }
 
@@ -129,7 +130,13 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
         () => show(name, image, [image.naturalWidth, image.naturalHeight]),
         () => report('missing'),
       );
-    return { media: image, stop: () => (image.src = '') };
+    return {
+      media: image,
+      stop() {
+        image.onload = image.onerror = null;
+        image.src = '';
+      },
+    };
   };
 
   const video = (name: string, texture: Texture) => {
@@ -147,9 +154,14 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     if (presents) video.requestVideoFrameCallback(frame);
     return {
       media: video,
+      play(on: boolean) {
+        if (!on) video.pause();
+        // A play cut short by a pause rejects, and is not a failure.
+        else if (video.paused) video.play().catch(() => {});
+      },
       refresh: presents ? undefined : () => video.paused || upload(),
       stop() {
-        video.onloadeddata = null;
+        video.onloadeddata = video.onerror = null;
         video.pause();
         video.removeAttribute('src');
         video.load();
@@ -160,7 +172,6 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const release = (name: string) => {
     const source = textures.get(name);
     if (!source) return;
-    source.media.onload = source.media.onerror = null;
     source.stop();
     gl.deleteTexture(source.texture.texture);
     textures.delete(name);
@@ -201,12 +212,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   // change draws on its own.
   const schedule = () => {
     const visible = onScreen && !document.hidden;
-    for (const { media } of textures.values()) {
-      if (!(media instanceof HTMLVideoElement)) continue;
-      if (!visible || !playing) media.pause();
-      // A play cut short by a pause rejects, and is not a failure.
-      else if (media.paused) media.play().catch(() => {});
-    }
+    for (const { play } of textures.values()) play?.(visible && playing);
 
     const running = visible && (playing || colors.size > 0);
     if (running && !frame) {
