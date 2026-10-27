@@ -122,7 +122,8 @@ dropped**, because a component carrying an example in a prop has lines of it at 
 zero: anchoring to every line start cost the design system its `import './scene.css';`
 out of a Sandpack. And **a fenced block is never touched at all**, being the subject
 rather than the machinery. **The CDN namespace is chosen by extension**, not by a table of components:
-`.mp4` goes to videos and everything else to images, so adding a component to
+`.mp4` goes to videos and everything else to images (`resolveMediaUrl`, which the
+shader engine shares), so adding a component to
 `mdx-components.tsx` can never put a file in the wrong place.
 
 - **`/llms.txt` lists the posts** and points at their Markdown rather than their pages,
@@ -232,7 +233,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
-| `lib/shader.ts` | The one WebGL 2 engine: a fragment shader, its uniforms, colours, textures and clock |
+| `lib/shader.ts` | The one WebGL 2 engine: a fragment shader, its uniforms, colours, images, videos, feedback and clock |
 | `components/Shader` | That engine as a component, under `Backdrop` and every rendered figure |
 | `components/Table` | A table as an article reads it: block rhythm and the cells' one type |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
@@ -1090,6 +1091,17 @@ What a rendered surface forces:
   moiré. It reads across origins, which works only because the R2 bucket carries a
   CORS rule (`Access-Control-Allow-Origin: *`, GET and HEAD): removing it breaks every
   texture without breaking any `<img>`.
+- **A video is a texture whose path ends in `.mp4`**, read from `videos/` like any
+  other. Muted and looping, it plays only while the shader does, and is uploaded again
+  only when it presents a new frame (`requestVideoFrameCallback`), with no mipmaps to
+  rebuild each time. Encode it at the size it is drawn: every frame of a 4K source is
+  33MB through the GPU for a figure 682px wide.
+- **A `feedback` pass reads its own last result** as `uFeedback`, drawn into one of two
+  targets while the other is read, then swapped, once per step of the clock. Paused, it
+  holds. The display reads the same `uFeedback`. `uDelta` is the step, so a fade can be
+  written per second rather than per frame and look the same at 60Hz and 120. The
+  targets are half floats: a value faded by a factor each frame sticks a few steps
+  above zero in eight bits.
 - **A halftone samples a cell at the mip level the cell spans**, through `textureLod`,
   which blends what the cell covers. Point-sampled, a cell takes whichever stroke its
   centre lands on.

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { resolveImageUrl } from '@/lib/cdn';
+import { resolveImageUrl, resolveVideoUrl } from '@/lib/cdn';
 
 import { createShader, statusStore, type Scene } from './shader';
 
@@ -12,6 +12,8 @@ const gpu = vi.hoisted(() => ({
   uniforms: {} as Record<string, { value: unknown }>,
   disposed: 0,
   deleted: [] as unknown[],
+  targets: [] as unknown[],
+  made: [] as { type?: number; width: number }[],
 }));
 
 vi.mock('ogl', () => ({
@@ -24,6 +26,7 @@ vi.mock('ogl', () => ({
         LINK_STATUS: 1,
         LINEAR_MIPMAP_LINEAR: 2,
         getProgramParameter: () => gpu.linked,
+        LINEAR: 3,
         getExtension: () => ({ loseContext: () => canvas.dispatchEvent(new Event('webglcontextlost')) }),
         deleteTexture: (texture: unknown) => gpu.deleted.push(texture),
       };
@@ -31,8 +34,9 @@ vi.mock('ogl', () => ({
     setSize(width: number, height: number) {
       Object.assign(gpu.canvas!.style, { width: `${width}px`, height: `${height}px` });
     }
-    render() {
-      gpu.renders++;
+    render({ target }: { target?: unknown }) {
+      if (target) gpu.targets.push(target);
+      else gpu.renders++;
     }
   },
   Program: class {
@@ -47,7 +51,20 @@ vi.mock('ogl', () => ({
   Triangle: class {},
   Texture: class {
     image: unknown;
+    needsUpdate = false;
     texture = {};
+  },
+  RenderTarget: class {
+    texture = {};
+    width = 0;
+    type;
+    constructor(_: unknown, { type }: { type?: number }) {
+      this.type = type;
+      gpu.made.push(this);
+    }
+    setSize(width: number) {
+      this.width = width;
+    }
   },
 }));
 
@@ -91,11 +108,15 @@ describe('a shader', () => {
   };
 
   beforeEach(() => {
-    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [] });
+    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [], targets: [], made: [] });
     frames = [];
     images.length = 0;
     report.mockReset();
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      HALF_FLOAT: 4,
+      RGBA16F: 5,
+      getExtension: () => ({}),
+    } as unknown as RenderingContext);
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
     vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => frames.push(frame));
@@ -283,6 +304,118 @@ describe('a shader', () => {
       images[0].onerror?.();
 
       expect(report).toHaveBeenCalledWith('missing');
+    });
+  });
+
+  describe('a video', () => {
+    const filmed = (src = 'blog/Clouds.mp4') => scene({ colors: {}, textures: { uVideo: src } });
+    let presented: Map<HTMLVideoElement, () => void>;
+    let video: () => HTMLVideoElement;
+
+    beforeEach(() => {
+      presented = new Map();
+      video = () => [...presented.keys()][0];
+      Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', {
+        configurable: true,
+        value(this: HTMLVideoElement, callback: () => void) {
+          presented.set(this, callback);
+        },
+      });
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+      vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue();
+      vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue();
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+    });
+
+    it('is fetched from the videos on the CDN, muted, and drawn with its size once it has a frame', () => {
+      start(filmed());
+      const media = video();
+      Object.defineProperties(media, { videoWidth: { value: 1280 }, videoHeight: { value: 720 } });
+
+      expect(media.src).toBe(resolveVideoUrl('blog/Clouds.mp4'));
+      expect(media.muted && media.loop && media.playsInline).toBe(true);
+      expect(images).toHaveLength(0);
+
+      media.dispatchEvent(new Event('loadeddata'));
+
+      expect(gpu.uniforms.uVideoSize.value).toEqual([1280, 720]);
+      expect((gpu.uniforms.uVideo.value as { image: unknown }).image).toBe(media);
+    });
+
+    it('is uploaded again for each frame it presents, and only then', () => {
+      start(filmed());
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      expect(texture.needsUpdate).toBe(false);
+      presented.get(video())?.();
+
+      expect(texture.needsUpdate).toBe(true);
+    });
+
+    it('plays while the shader plays, and pauses with it', () => {
+      const shader = start({ ...filmed(), playing: true });
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+
+      shader.sync(filmed());
+
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    });
+
+    it('stops downloading once its source changes', () => {
+      const shader = start(filmed());
+      const media = video();
+
+      shader.sync(filmed('blog/Rain.mp4'));
+
+      expect(media.hasAttribute('src')).toBe(false);
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
+    });
+  });
+
+  describe('a feedback pass', () => {
+    const looping = (first = scene({ colors: {} })) => {
+      shader = createShader(document.createElement('div'), '#version 300 es', report, '#version 300 es');
+      shader.sync(first);
+      return shader;
+    };
+
+    it('draws into one target while reading the other, and swaps them each step', () => {
+      looping(scene({ colors: {}, playing: true }));
+      tick(1000);
+      tick(1016);
+      tick(1032);
+
+      const [first, second] = gpu.targets;
+      expect(first).not.toBe(second);
+      expect(gpu.uniforms.uFeedback.value).toBe((second as { texture: unknown }).texture);
+    });
+
+    it('holds still while paused', () => {
+      looping();
+      tick(1000);
+      tick(1016);
+
+      expect(gpu.targets).toHaveLength(0);
+    });
+
+    it('steps at the pace of the clock it is handed', () => {
+      looping(scene({ colors: {}, playing: true }));
+      tick(1000);
+      tick(1008);
+
+      expect(gpu.uniforms.uDelta.value).toBeCloseTo(0.008);
+    });
+
+    it('keeps its targets the size of the canvas, in half floats', () => {
+      looping();
+
+      expect(gpu.made.map(({ type, width }) => [type, width])).toEqual([
+        [4, gpu.canvas?.width],
+        [4, gpu.canvas?.width],
+      ]);
     });
   });
 

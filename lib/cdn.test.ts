@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import siteConfig from '@/config/site';
 
-import { resolveCdnUrl, resolveImageUrl, resolveVideoUrl } from './cdn';
+import { resolveCdnUrl, resolveImageUrl, resolveMediaUrl, resolveVideoUrl } from './cdn';
 
 const { cdnUrl } = siteConfig;
 
@@ -54,5 +54,10 @@ describe('media-kind resolvers', () => {
     expect(resolveVideoUrl('blog/demo.mp4')).toBe(
       `${cdnUrl}/videos/blog/demo.mp4`
     );
+  });
+
+  it('picks the namespace by extension', () => {
+    expect(resolveMediaUrl('blog/Clouds.MP4')).toBe(`${cdnUrl}/videos/blog/Clouds.MP4`);
+    expect(resolveMediaUrl('blog/halftone.png')).toBe(`${cdnUrl}/images/blog/halftone.png`);
   });
 });

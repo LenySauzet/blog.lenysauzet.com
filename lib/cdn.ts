@@ -15,3 +15,11 @@ export const resolveImageUrl = (src: string) =>
 
 export const resolveVideoUrl = (src: string) =>
   resolveCdnUrl(src, siteConfig.cdnPaths.videos);
+
+const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+
+export const isVideo = (src: string) => VIDEO.test(src);
+
+// The CDN is namespaced by kind, and the extension is what says which. A table of
+// components would have to be kept in step with `mdx-components.tsx`.
+export const resolveMediaUrl = (src: string) => (isVideo(src) ? resolveVideoUrl(src) : resolveImageUrl(src));

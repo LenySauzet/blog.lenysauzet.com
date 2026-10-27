@@ -8,13 +8,14 @@ import { cn } from '@/lib/utils';
 const FAILURES: Record<Exclude<Status, 'ready'>, string> = {
   unavailable: 'This figure needs WebGL 2, which is not available here.',
   broken: 'This figure could not be drawn.',
-  missing: 'The image this figure draws on could not be loaded.',
+  missing: 'The image or video this figure draws on could not be loaded.',
 };
 
 const NONE = {};
 
 export interface ShaderProps {
   fragment: string;
+  feedback?: string;
   label?: string;
   uniforms?: Scene['uniforms'];
   colors?: Scene['colors'];
@@ -26,6 +27,7 @@ export interface ShaderProps {
 
 export function Shader({
   fragment,
+  feedback,
   label,
   uniforms = NONE,
   colors = NONE,
@@ -42,13 +44,13 @@ export function Shader({
   useEffect(() => {
     if (!hostRef.current) return;
     store.set('ready');
-    const shader = createShader(hostRef.current, fragment, store.set);
+    const shader = createShader(hostRef.current, fragment, store.set, feedback);
     engine.current = shader;
     return () => {
       shader.dispose();
       engine.current = null;
     };
-  }, [fragment, store]);
+  }, [fragment, feedback, store]);
 
   useEffect(() => {
     engine.current?.sync({ uniforms, colors, textures, playing });

@@ -1,3 +1,5 @@
+import { COVER, LUMA } from '@/components/Shader/glsl';
+
 export const FRAGMENT = /* glsl */ `#version 300 es
 precision highp float;
 
@@ -12,13 +14,8 @@ uniform float uLuma;
 
 out vec4 fragColor;
 
-const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
-
-vec2 coverScale() {
-  float canvas = uResolution.x / uResolution.y;
-  float image = uImageSize.x / uImageSize.y;
-  return image > canvas ? vec2(canvas / image, 1.0) : vec2(1.0, image / canvas);
-}
+${LUMA}
+${COVER}
 
 void main() {
   fragColor = vec4(0.0);
@@ -28,7 +25,7 @@ void main() {
   vec2 offset = vec2(0.0, 0.5 * mod(uResolution.y, cell));
   vec2 centre = (floor((gl_FragCoord.xy - offset) / cell) + 0.5) * cell + offset;
 
-  vec2 scale = coverScale();
+  vec2 scale = coverScale(uResolution, uImageSize);
   vec2 at = (mix(gl_FragCoord.xy, centre, uPixelate) / uResolution - 0.5) * scale + 0.5;
   float texelsPerCell = cell * uImageSize.x * scale.x / uResolution.x;
   vec3 color = uPixelate > 0.5

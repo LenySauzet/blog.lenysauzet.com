@@ -1,6 +1,6 @@
-import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
+import { Mesh, Program, RenderTarget, Renderer, Texture, Triangle } from 'ogl';
 
-import { resolveImageUrl } from '@/lib/cdn';
+import { isVideo, resolveMediaUrl } from '@/lib/cdn';
 import { step } from '@/lib/clock';
 import { cssColor } from '@/lib/css-color';
 
@@ -57,11 +57,24 @@ const same = (a: unknown, b: Uniform) =>
 
 const inert = { sync: () => {}, dispose: () => {} };
 
-export function createShader(host: HTMLElement, fragment: string, report: (status: Status) => void) {
+interface Source {
+  src: string;
+  media: HTMLImageElement | HTMLVideoElement;
+  texture: Texture;
+  stop: () => void;
+}
+
+export function createShader(
+  host: HTMLElement,
+  fragment: string,
+  report: (status: Status) => void,
+  feedback?: string,
+) {
   const canvas = document.createElement('canvas');
   // Taken before OGL asks, so OGL is handed this context rather than falling back to
   // WebGL 1, which a `#version 300 es` shader cannot compile on.
-  if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false })) {
+  const context = canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false });
+  if (!context) {
     report('unavailable');
     return inert;
   }
@@ -77,62 +90,119 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   canvas.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%';
   host.appendChild(canvas);
 
-  const program = new Program(gl, {
-    vertex: VERTEX,
-    fragment,
-    uniforms: { uResolution: { value: [1, 1] }, uTime: { value: 0 } },
-  });
-  const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
-  const linked = gl.getProgramParameter(program.program, gl.LINK_STATUS);
+  const uniforms: Record<string, { value: unknown }> = {
+    uResolution: { value: [1, 1] },
+    uTime: { value: 0 },
+    uDelta: { value: 0 },
+  };
+  const geometry = new Triangle(gl);
+  const program = new Program(gl, { vertex: VERTEX, fragment, uniforms });
+  const mesh = new Mesh(gl, { geometry, program });
+  const pass = feedback && new Program(gl, { vertex: VERTEX, fragment: feedback, uniforms });
+  const linked = [program, pass].every((each) => !each || gl.getProgramParameter(each.program, gl.LINK_STATUS));
+
+  // Half floats where they can be drawn into, or a trail fading by a factor each
+  // frame sticks a few steps above zero in eight bits.
+  const precise = context.getExtension('EXT_color_buffer_float');
+  const target = () =>
+    new RenderTarget(gl, {
+      depth: false,
+      ...(precise && { type: context.HALF_FLOAT, internalFormat: context.RGBA16F }),
+    });
+  let targets = pass ? [target(), target()] : [];
+  const looped = pass && new Mesh(gl, { geometry, program: pass });
 
   const colors = new Map<string, { token: string; reader: ReturnType<typeof cssColor> }>();
-  const textures = new Map<string, { src: string; image: HTMLImageElement; texture: Texture }>();
+  const textures = new Map<string, Source>();
   let playing = false;
   let dirty = true;
   let alive = true;
 
   const set = (name: string, value: unknown) => {
-    (program.uniforms[name] ??= { value }).value = value;
+    (uniforms[name] ??= { value }).value = value;
     dirty = true;
   };
+  if (pass) set('uFeedback', targets[0].texture);
 
-  const draw = () => {
+  const draw = (advancing = false) => {
     for (const [name, { reader }] of colors) {
       const value = reader.read();
-      if (program.uniforms[name].value !== value) set(name, value);
+      if (uniforms[name].value !== value) set(name, value);
     }
-    if (!dirty || !linked) return;
+    if (!linked) return;
+    if (advancing && looped) {
+      const [read, write] = targets;
+      renderer.render({ scene: looped, target: write });
+      targets = [write, read];
+      set('uFeedback', write.texture);
+    }
+    if (!dirty) return;
     renderer.render({ scene: mesh });
     dirty = false;
   };
 
+  const show = (name: string, media: Source['media'], size: number[]) => {
+    const source = textures.get(name);
+    if (source?.media !== media) return;
+    source.texture.image = media;
+    set(`${name}Size`, size);
+    draw();
+  };
+
+  const image = (name: string) => {
+    const image = new Image();
+    image.onload = () =>
+      image.decode().then(
+        () => show(name, image, [image.naturalWidth, image.naturalHeight]),
+        () => report('missing'),
+      );
+    return { media: image, stop: () => (image.src = '') };
+  };
+
+  const video = (name: string, texture: Texture) => {
+    const video = document.createElement('video');
+    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: 'auto' });
+    video.onloadeddata = () => show(name, video, [video.videoWidth, video.videoHeight]);
+    const frame = () => {
+      if (textures.get(name)?.media !== video) return;
+      texture.needsUpdate = dirty = true;
+      video.requestVideoFrameCallback(frame);
+    };
+    video.requestVideoFrameCallback(frame);
+    return {
+      media: video,
+      stop() {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      },
+    };
+  };
+
   const release = (name: string) => {
-    const entry = textures.get(name);
-    if (!entry) return;
-    entry.image.onload = entry.image.onerror = null;
-    entry.image.src = '';
-    gl.deleteTexture(entry.texture.texture);
+    const source = textures.get(name);
+    if (!source) return;
+    source.media.onload = source.media.onerror = null;
+    source.stop();
+    gl.deleteTexture(source.texture.texture);
     textures.delete(name);
     set(`${name}Size`, NONE);
   };
 
   const load = (name: string, src: string) => {
-    const texture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY });
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () =>
-      image.decode().then(
-        () => {
-          if (textures.get(name)?.image !== image) return;
-          texture.image = image;
-          set(`${name}Size`, [image.naturalWidth, image.naturalHeight]);
-          draw();
-        },
-        () => report('missing'),
-      );
-    image.onerror = () => report('missing');
-    image.src = resolveImageUrl(src);
-    textures.set(name, { src, image, texture });
+    const moving = isVideo(src);
+    // A video is a new image every frame, too often to build its mipmaps.
+    const texture = new Texture(
+      gl,
+      moving
+        ? { generateMipmaps: false, minFilter: gl.LINEAR }
+        : { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY },
+    );
+    const { media, stop } = moving ? video(name, texture) : image(name);
+    media.crossOrigin = 'anonymous';
+    media.onerror = () => report('missing');
+    media.src = resolveMediaUrl(src);
+    textures.set(name, { src, media, texture, stop });
     set(name, texture);
     set(`${name}Size`, NONE);
   };
@@ -140,9 +210,13 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   let frame = 0;
   let last: number | undefined;
   const loop = (now: number) => {
-    if (playing && last !== undefined) set('uTime', program.uniforms.uTime.value + step((now - last) / 1000));
+    const delta = playing && last !== undefined ? step((now - last) / 1000) : undefined;
+    if (delta !== undefined) {
+      set('uDelta', delta);
+      set('uTime', (uniforms.uTime.value as number) + delta);
+    }
     last = now;
-    draw();
+    draw(delta !== undefined);
     frame = requestAnimationFrame(loop);
   };
 
@@ -150,7 +224,15 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   // A still shader with no colour to watch has nothing to do between changes, and every
   // change draws on its own.
   const schedule = () => {
-    const running = onScreen && !document.hidden && (playing || colors.size > 0);
+    const visible = onScreen && !document.hidden;
+    for (const { media } of textures.values()) {
+      if (!(media instanceof HTMLVideoElement)) continue;
+      if (!visible || !playing) media.pause();
+      // A play cut short by a pause rejects, and is not a failure.
+      else if (media.paused) media.play().catch(() => {});
+    }
+
+    const running = visible && (playing || colors.size > 0);
     if (running && !frame) {
       last = undefined;
       frame = requestAnimationFrame(loop);
@@ -163,7 +245,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const sync = (scene: Scene) => {
     if (!alive) return;
     for (const [name, value] of Object.entries(scene.uniforms))
-      if (!same(program.uniforms[name]?.value, value)) set(name, value);
+      if (!same(uniforms[name]?.value, value)) set(name, value);
 
     for (const [name, { token, reader }] of colors)
       if (scene.colors[name] !== token) {
@@ -191,6 +273,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     renderer.setSize(clientWidth, clientHeight);
     // OGL writes the size into the style in pixels, which would hold the host open.
     canvas.style.width = canvas.style.height = '100%';
+    for (const each of targets) each.setSize(gl.canvas.width, gl.canvas.height);
     set('uResolution', [gl.canvas.width, gl.canvas.height]);
     draw();
   });
