@@ -228,6 +228,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 | `lib/post-markdown.ts` | A post as the file it was written as, for `/posts/<slug>/index.md` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its testable logic |
+| `components/figures/Shader` | A fragment shader driven by uniforms, and the `Playground` it sits in |
 | `components/Table` | A table as an article reads it: block rhythm and the cells' one type |
 | `lib/cdn.ts` | The only module that knows the CDN layout |
 | `lib/image-utils.ts` | Build-time intrinsic dimensions; `measureImage` degrades, `getImageDimensions` throws |
@@ -1050,11 +1051,31 @@ such as a canvas whose content runs to its own bounds, draws its own.
 - **A drawn figure carries none**, so it is a component in `components/figures/` and no
   library at all. The scale is a subtraction and a multiply; reach for `d3-scale` when
   the mapping stops being linear, not before.
-- **A rendered surface** is a canvas, which `Backdrop` already shows how to hold. There
-  is no harness for it yet, and three.js is deliberately not installed: 150KB for a
-  figure that does not exist is how a dependency arrives and never earns itself.
+- **A rendered surface** is a fragment shader on `components/figures/Shader`, for
+  whatever lives per pixel. It is OGL, which `Backdrop` already ships; three.js is
+  deliberately not installed, 150KB for a figure that does not exist.
 
-What the shape forces:
+What a rendered surface forces:
+
+- **`Shader` draws on change.** While on screen it re-reads its colour tokens each
+  frame (`lib/css-color.ts`, for the reason given there) and redraws only when one of
+  them, a uniform or the size has moved.
+- **It draws onto transparency**, as `Backdrop` does, so a theme flip repaints only
+  the ink.
+- **Every failure ends in one sentence in the figure**: no WebGL (probed through
+  `useSyncExternalStore`, the probe's context lost at once), a lost context, or a
+  shader that does not link, which is checked by hand because OGL then throws inside
+  the loop and leaves an empty panel.
+- **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
+- **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
+  than the column, the canvas first on a phone.
+- **What a shader needs is computed in TypeScript and tested**: the camera is `basis`
+  of the SVG surface's `ISOMETRIC`, and the framing is measured off the surface at each
+  frequency. The GLSL only marches.
+- **The marched box stands a hair above the surface.** A ray entering through a lid at
+  exactly a crest's height reads itself as below it and shades the underside.
+
+What a chart forces:
 
 - **A decoration goes inside the chart, never beside it.** Recharts v3 hands any child
   the scales the chart already built, through `useXAxisScale`, `usePlotArea` and the

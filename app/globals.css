@@ -108,6 +108,7 @@
   --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
   --figure-second: var(--second-light, oklch(0.646 0.222 41.116));
   --figure-third: var(--third-light, oklch(0.596 0.145 163.225));
+  --figure-shine: oklch(0.9 0.05 var(--base-hue));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
@@ -199,6 +200,7 @@
   --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
   --figure-second: var(--second-dark, oklch(0.75 0.183 55.934));
   --figure-third: var(--third-dark, oklch(0.765 0.177 163.223));
+  --figure-shine: oklch(0.97 0.02 var(--base-hue));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.274 0.006 var(--base-hue));
   --secondary-foreground: oklch(0.985 0 0);
