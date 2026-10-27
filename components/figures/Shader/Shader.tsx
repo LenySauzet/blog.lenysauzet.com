@@ -1,7 +1,7 @@
 'use client';
 
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { cssColor } from '@/lib/css-color';
 import { MAX_DPR, VERTEX } from '@/lib/gl';
@@ -36,8 +36,10 @@ export function Shader({
   className,
 }: ShaderProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ uniforms, colors, dirty: true });
+  const live = useRef({ uniforms, dirty: true });
   const supported = useSyncExternalStore(unchanging, probe, () => true);
+  const [lost, setLost] = useState(false);
+  const palette = JSON.stringify(colors);
 
   useEffect(() => {
     live.current.uniforms = uniforms;
@@ -56,8 +58,15 @@ export function Shader({
     gl.canvas.className = 'block h-full w-full';
     host.appendChild(gl.canvas);
 
+    const lose = () => {
+      gl.canvas.remove();
+      setLost(true);
+    };
+    gl.canvas.addEventListener('webglcontextlost', lose);
+
     const state = live.current;
-    const tokens = Object.entries(state.colors).map(
+    const named: Record<string, `--${string}`> = JSON.parse(palette);
+    const tokens = Object.entries(named).map(
       ([name, token]) => [name, cssColor(token)] as const,
     );
     const program = new Program(gl, {
@@ -69,6 +78,11 @@ export function Shader({
         ...tokens.map(([name, color]) => [name, { value: color.read() }]),
       ]),
     });
+    if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) {
+      for (const [, color] of tokens) color.dispose();
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return () => gl.canvas.removeEventListener('webglcontextlost', lose);
+    }
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
 
     const draw = () => {
@@ -81,7 +95,7 @@ export function Shader({
       if (!state.dirty) return;
 
       for (const [name, value] of Object.entries(state.uniforms))
-        program.uniforms[name].value = value;
+        (program.uniforms[name] ??= { value }).value = value;
       renderer.render({ scene: mesh });
       state.dirty = false;
     };
@@ -123,11 +137,12 @@ export function Shader({
       sized.disconnect();
       seen.disconnect();
       document.removeEventListener('visibilitychange', sync);
+      gl.canvas.removeEventListener('webglcontextlost', lose);
       for (const [, color] of tokens) color.dispose();
       gl.canvas.remove();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [fragment, supported]);
+  }, [fragment, supported, palette]);
 
   return (
     <div
@@ -136,9 +151,9 @@ export function Shader({
       aria-label={label}
       className={cn('grid place-items-center', className)}
     >
-      {!supported && (
+      {(!supported || lost) && (
         <p className="text-sm text-subtle-foreground">
-          This figure needs WebGL, which this browser does not offer.
+          This figure needs WebGL, which is not available here.
         </p>
       )}
     </div>

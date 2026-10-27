@@ -11,6 +11,7 @@ uniform vec3 uRight;
 uniform vec3 uUp;
 uniform vec3 uToward;
 uniform vec3 uInk;
+uniform vec3 uShine;
 
 const float PI = 3.14159265;
 const int STEPS = 320;
@@ -69,6 +70,6 @@ void main() {
 
   vec3 hit = origin + dir * to;
   float diffuse = max(dot(side * normalAt(hit.xz), uLight), 0.0);
-  gl_FragColor = vec4(mix(uInk, vec3(1.0), 0.85 * diffuse), 1.0);
+  gl_FragColor = vec4(mix(uInk, uShine, diffuse), 1.0);
 }
 `;

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { AMPLITUDE, ripple } from '@/components/figures/Wave/geometry';
 import { dot3 } from '@/lib/vec3';
 
+import { FRAGMENT } from './fragment';
 import { ASPECT, EXTENT, FREQUENCY, light, outline, uniforms } from './geometry';
 
 describe('the light', () => {
@@ -41,5 +43,13 @@ describe('the view', () => {
 
     expect(centre).toBeGreaterThan(0);
     expect(high - centre).toBeCloseTo(centre - low);
+  });
+});
+
+describe('the surface', () => {
+  it('is the very ripple Wave draws in lines, so the framing measured in TypeScript fits what the shader draws', () => {
+    expect(FRAGMENT).toContain('uAmplitude * cos(uFrequency * PI * length(p))');
+    expect(uniforms(1.5, 0).uAmplitude).toBe(AMPLITUDE);
+    expect(ripple(1.5)(0.3, 0.4)).toBeCloseTo(AMPLITUDE * Math.cos(1.5 * Math.PI * 0.5));
   });
 });

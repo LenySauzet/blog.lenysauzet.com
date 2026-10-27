@@ -1068,6 +1068,14 @@ What a rendered surface forces:
 - **WebGL is probed through `useSyncExternalStore`**, the server assuming it is there,
   and a browser without it is told so in the figure rather than shown an empty panel.
   The probe loses its context at once: a browser keeps only a handful alive.
+- **Every way of losing the GPU ends in that same sentence.** A shader that does not
+  link is checked for by hand, because OGL warns and returns before it has the
+  uniform locations it reads on the first draw, which then throws inside the loop and
+  strands it. The figure loses its own context instead, and the `webglcontextlost`
+  handler that also catches a GPU reset puts the sentence up.
+- **The highlight is `--figure-shine`, not white.** The panel is `--card`, nearly white
+  in light, so a crest lit to white dissolved into it exactly where the surface was
+  brightest. The token is a pale accent in light and near white in dark.
 - **`Playground` is Maxime Heckel's layout**: the uniforms beside the canvas inside the
   code block's surface, wider than the column through `Fullbleed`, the canvas first on
   a phone. A canvas runs to its own bounds, which is why this figure, unlike a drawn

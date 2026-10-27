@@ -9,7 +9,7 @@ import { Playground, Shader } from '@/components/figures/Shader';
 import { FRAGMENT } from './fragment';
 import { FREQUENCY, LIGHT, uniforms } from './geometry';
 
-const COLORS = { uInk: '--primary' } as const;
+const COLORS = { uInk: '--primary', uShine: '--figure-shine' } as const;
 
 export interface LitWaveProps {
   className?: string;

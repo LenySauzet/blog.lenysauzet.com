@@ -14,7 +14,7 @@ describe('Shader', () => {
 });
 
 describe('Playground', () => {
-  it('sets the controls under a heading beside what they drive', () => {
+  it('labels the controls and sets them beside what they drive', () => {
     render(
       <Playground controls={<button type="button">Frequency</button>}>
         <div>surface</div>

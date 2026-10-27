@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { length, sub, vec2 } from './vec2';
 import {
+  basis,
   cross,
   dot3,
   ISOMETRIC,
   normalize3,
   scale3,
-  basis,
   towardViewer,
   vec3,
   view,
