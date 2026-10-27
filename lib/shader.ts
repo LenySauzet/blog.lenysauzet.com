@@ -1,4 +1,4 @@
-import { Mesh, Program, RenderTarget, Renderer, Texture, Triangle } from 'ogl';
+import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
 
 import { isVideo, resolveMediaUrl } from '@/lib/cdn';
 import { step } from '@/lib/clock';
@@ -65,17 +65,11 @@ interface Source {
   refresh?: () => void;
 }
 
-export function createShader(
-  host: HTMLElement,
-  fragment: string,
-  report: (status: Status) => void,
-  feedback?: string,
-) {
+export function createShader(host: HTMLElement, fragment: string, report: (status: Status) => void) {
   const canvas = document.createElement('canvas');
   // Taken before OGL asks, so OGL is handed this context rather than falling back to
   // WebGL 1, which a `#version 300 es` shader cannot compile on.
-  const context = canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false });
-  if (!context) {
+  if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false })) {
     report('unavailable');
     return inert;
   }
@@ -91,28 +85,13 @@ export function createShader(
   canvas.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%';
   host.appendChild(canvas);
 
-  const uniforms: Record<string, { value: unknown }> = {
-    uResolution: { value: [1, 1] },
-    uTime: { value: 0 },
-    uDelta: { value: 0 },
-  };
-  const geometry = new Triangle(gl);
-  const program = new Program(gl, { vertex: VERTEX, fragment, uniforms });
-  const mesh = new Mesh(gl, { geometry, program });
-  const pass = feedback && new Program(gl, { vertex: VERTEX, fragment: feedback, uniforms });
-  const linked = [program, pass].every((each) => !each || gl.getProgramParameter(each.program, gl.LINK_STATUS));
-
-  // Half floats where they can be drawn into, or a trail fading by a factor each
-  // frame sticks a few steps above zero in eight bits.
-  const precise =
-    context.getExtension('EXT_color_buffer_float') ?? context.getExtension('EXT_color_buffer_half_float');
-  const target = () =>
-    new RenderTarget(gl, {
-      depth: false,
-      ...(precise && { type: context.HALF_FLOAT, internalFormat: context.RGBA16F }),
-    });
-  let targets = pass ? [target(), target()] : [];
-  const looped = pass && new Mesh(gl, { geometry, program: pass });
+  const program = new Program(gl, {
+    vertex: VERTEX,
+    fragment,
+    uniforms: { uResolution: { value: [1, 1] }, uPixelRatio: { value: renderer.dpr }, uTime: { value: 0 } },
+  });
+  const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+  const linked = gl.getProgramParameter(program.program, gl.LINK_STATUS);
 
   const colors = new Map<string, { token: string; reader: ReturnType<typeof cssColor> }>();
   const textures = new Map<string, Source>();
@@ -121,24 +100,16 @@ export function createShader(
   let alive = true;
 
   const set = (name: string, value: unknown) => {
-    (uniforms[name] ??= { value }).value = value;
+    (program.uniforms[name] ??= { value }).value = value;
     dirty = true;
   };
-  if (pass) set('uFeedback', targets[0].texture);
 
-  const draw = (advancing = false) => {
+  const draw = () => {
     for (const [name, { reader }] of colors) {
       const value = reader.read();
-      if (uniforms[name].value !== value) set(name, value);
+      if (program.uniforms[name].value !== value) set(name, value);
     }
-    if (!linked) return;
-    if (advancing && looped) {
-      const [read, write] = targets;
-      renderer.render({ scene: looped, target: write });
-      targets = [write, read];
-      set('uFeedback', write.texture);
-    }
-    if (!dirty) return;
+    if (!dirty || !linked) return;
     renderer.render({ scene: mesh });
     dirty = false;
   };
@@ -218,14 +189,10 @@ export function createShader(
   let frame = 0;
   let last: number | undefined;
   const loop = (now: number) => {
-    const delta = playing && last !== undefined ? step((now - last) / 1000) : undefined;
-    if (delta !== undefined) {
-      set('uDelta', delta);
-      set('uTime', (uniforms.uTime.value as number) + delta);
-    }
+    if (playing && last !== undefined) set('uTime', program.uniforms.uTime.value + step((now - last) / 1000));
     last = now;
     for (const { refresh } of textures.values()) refresh?.();
-    draw(delta !== undefined);
+    draw();
     frame = requestAnimationFrame(loop);
   };
 
@@ -254,7 +221,7 @@ export function createShader(
   const sync = (scene: Scene) => {
     if (!alive) return;
     for (const [name, value] of Object.entries(scene.uniforms))
-      if (!same(uniforms[name]?.value, value)) set(name, value);
+      if (!same(program.uniforms[name]?.value, value)) set(name, value);
 
     for (const [name, { token, reader }] of colors)
       if (scene.colors[name] !== token) {
@@ -282,7 +249,6 @@ export function createShader(
     renderer.setSize(clientWidth, clientHeight);
     // OGL writes the size into the style in pixels, which would hold the host open.
     canvas.style.width = canvas.style.height = '100%';
-    for (const each of targets) each.setSize(gl.canvas.width, gl.canvas.height);
     set('uResolution', [gl.canvas.width, gl.canvas.height]);
     draw();
   });

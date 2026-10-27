@@ -15,7 +15,6 @@ const NONE = {};
 
 export interface ShaderProps {
   fragment: string;
-  feedback?: string;
   label?: string;
   uniforms?: Scene['uniforms'];
   colors?: Scene['colors'];
@@ -27,7 +26,6 @@ export interface ShaderProps {
 
 export function Shader({
   fragment,
-  feedback,
   label,
   uniforms = NONE,
   colors = NONE,
@@ -44,13 +42,13 @@ export function Shader({
   useEffect(() => {
     if (!hostRef.current) return;
     store.set('ready');
-    const shader = createShader(hostRef.current, fragment, store.set, feedback);
+    const shader = createShader(hostRef.current, fragment, store.set);
     engine.current = shader;
     return () => {
       shader.dispose();
       engine.current = null;
     };
-  }, [fragment, feedback, store]);
+  }, [fragment, store]);
 
   useEffect(() => {
     engine.current?.sync({ uniforms, colors, textures, playing });

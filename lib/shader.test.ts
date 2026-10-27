@@ -12,16 +12,15 @@ const gpu = vi.hoisted(() => ({
   uniforms: {} as Record<string, { value: unknown }>,
   disposed: 0,
   deleted: [] as unknown[],
-  targets: [] as unknown[],
-  made: [] as { type?: number; width: number }[],
-  extensions: ['EXT_color_buffer_float'] as string[],
 }));
 
 vi.mock('ogl', () => ({
   Renderer: class {
     gl;
-    constructor({ canvas }: { canvas: HTMLCanvasElement }) {
+    dpr;
+    constructor({ canvas, dpr }: { canvas: HTMLCanvasElement; dpr: number }) {
       gpu.canvas = canvas;
+      this.dpr = dpr;
       this.gl = {
         canvas,
         LINK_STATUS: 1,
@@ -35,9 +34,8 @@ vi.mock('ogl', () => ({
     setSize(width: number, height: number) {
       Object.assign(gpu.canvas!.style, { width: `${width}px`, height: `${height}px` });
     }
-    render({ target }: { target?: unknown }) {
-      if (target) gpu.targets.push(target);
-      else gpu.renders++;
+    render() {
+      gpu.renders++;
     }
   },
   Program: class {
@@ -54,18 +52,6 @@ vi.mock('ogl', () => ({
     image: unknown;
     needsUpdate = false;
     texture = {};
-  },
-  RenderTarget: class {
-    texture = {};
-    width = 0;
-    type;
-    constructor(_: unknown, { type }: { type?: number }) {
-      this.type = type;
-      gpu.made.push(this);
-    }
-    setSize(width: number) {
-      this.width = width;
-    }
   },
 }));
 
@@ -109,15 +95,11 @@ describe('a shader', () => {
   };
 
   beforeEach(() => {
-    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [], targets: [], made: [], extensions: ['EXT_color_buffer_float'] });
+    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [] });
     frames = [];
     images.length = 0;
     report.mockReset();
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      HALF_FLOAT: 4,
-      RGBA16F: 5,
-      getExtension: (name: string) => (gpu.extensions.includes(name) ? {} : null),
-    } as unknown as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({} as RenderingContext);
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
     vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => frames.push(frame));
@@ -187,6 +169,13 @@ describe('a shader', () => {
     shader.sync(scene({ uniforms: { uFrequency: 2 } }));
     expect(gpu.renders).toBe(settled + 1);
     expect(gpu.uniforms.uFrequency.value).toBe(2);
+  });
+
+  it('tells the shader how many device pixels make a CSS one, up to two', () => {
+    vi.stubGlobal('devicePixelRatio', 3);
+    start();
+
+    expect(gpu.uniforms.uPixelRatio.value).toBe(2);
   });
 
   it('compares a vector by its values, not by the array that carries it', () => {
@@ -411,61 +400,6 @@ describe('a shader', () => {
 
       expect(media.hasAttribute('src')).toBe(false);
       expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
-    });
-  });
-
-  describe('a feedback pass', () => {
-    const looping = (first = scene({ colors: {} })) => {
-      shader = createShader(document.createElement('div'), '#version 300 es', report, '#version 300 es');
-      shader.sync(first);
-      return shader;
-    };
-
-    it('draws into one target while reading the other, and swaps them each step', () => {
-      looping(scene({ colors: {}, playing: true }));
-      tick(1000);
-      tick(1016);
-      tick(1032);
-
-      const [first, second] = gpu.targets;
-      expect(first).not.toBe(second);
-      expect(gpu.uniforms.uFeedback.value).toBe((second as { texture: unknown }).texture);
-    });
-
-    it('holds still while paused', () => {
-      looping();
-      tick(1000);
-      tick(1016);
-
-      expect(gpu.targets).toHaveLength(0);
-    });
-
-    it('steps at the pace of the clock it is handed', () => {
-      looping(scene({ colors: {}, playing: true }));
-      tick(1000);
-      tick(1008);
-
-      expect(gpu.uniforms.uDelta.value).toBeCloseTo(0.008);
-    });
-
-    it.each([
-      ['float', ['EXT_color_buffer_float'], 4],
-      ['half float', ['EXT_color_buffer_half_float'], 4],
-      ['neither', [], undefined],
-    ])('draws in half floats where the GPU can render %s, and in eight bits otherwise', (_, extensions, type) => {
-      gpu.extensions = extensions;
-      looping();
-
-      expect(gpu.made.map((target) => target.type)).toEqual([type, type]);
-    });
-
-    it('keeps its targets the size of the canvas, in half floats', () => {
-      looping();
-
-      expect(gpu.made.map(({ type, width }) => [type, width])).toEqual([
-        [4, gpu.canvas?.width],
-        [4, gpu.canvas?.width],
-      ]);
     });
   });
 

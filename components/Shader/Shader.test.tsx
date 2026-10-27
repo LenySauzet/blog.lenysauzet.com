@@ -9,14 +9,12 @@ const engine = vi.hoisted(() => ({
   report: undefined as ((status: Status) => void) | undefined,
   scenes: [] as Scene[],
   created: 0,
-  feedback: undefined as string | undefined,
 }));
 
 vi.mock('@/lib/shader', async (original) => ({
   ...(await original<typeof import('@/lib/shader')>()),
-  createShader: (_: HTMLElement, __: string, report: (status: Status) => void, feedback?: string) => {
+  createShader: (_: HTMLElement, __: string, report: (status: Status) => void) => {
     engine.report = report;
-    engine.feedback = feedback;
     engine.created++;
     return { sync: (scene: Scene) => engine.scenes.push(scene), dispose: () => {} };
   },
@@ -52,15 +50,6 @@ describe('Shader', () => {
 
     expect(engine.created).toBe(2);
     expect(engine.scenes[0]).toMatchObject({ uniforms: { uFrequency: 3 } });
-  });
-
-  it('builds a new engine, carrying it, for a new feedback pass', () => {
-    engine.created = 0;
-    const { rerender } = render(<Shader fragment="a" feedback="b" />);
-    rerender(<Shader fragment="a" feedback="c" />);
-
-    expect(engine.created).toBe(2);
-    expect(engine.feedback).toBe('c');
   });
 
   it('forgets a failure once a new fragment is drawn', () => {

@@ -28,8 +28,8 @@ import Coverage from '@/components/figures/Coverage';
 import Halftone from '@/components/figures/Halftone';
 import Lerp from '@/components/figures/Lerp';
 import LitWave from '@/components/figures/LitWave';
-import MotionMask from '@/components/figures/MotionMask';
 import RaySphere from '@/components/figures/RaySphere';
+import VideoHalftone from '@/components/figures/VideoHalftone';
 import Wave from '@/components/figures/Wave';
 import Fullbleed from '@/components/Fullbleed';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -75,9 +75,9 @@ export const components = {
   Halftone,
   Lerp,
   LitWave,
-  MotionMask,
   PieChart,
   RaySphere,
+  VideoHalftone,
   Wave,
   Sandpack,
   SupportCallout,
