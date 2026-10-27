@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 
 import { EASED, blurRamp } from '@/components/ScrollFade/gradients';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ export interface DiagramProps {
   height: number;
   title: string;
   className?: string;
+  ref?: Ref<HTMLDivElement>;
   children: ReactNode;
 }
 
@@ -22,10 +23,11 @@ export default function Diagram({
   height,
   title,
   className,
+  ref,
   children,
 }: DiagramProps) {
   return (
-    <div className="@container">
+    <div ref={ref} className="@container">
       <svg
         viewBox={`0 0 ${MEASURE} ${height}`}
         role="img"

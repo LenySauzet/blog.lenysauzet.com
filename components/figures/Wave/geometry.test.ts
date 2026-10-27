@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { scene, type Piece } from '@/components/figures/Diagram';
-import { clearOfFade, overlap, SIZES, textBox } from '@/test/figure';
+import { clearOfFade, overlap, SIZES, textBox, titleBox } from '@/test/figure';
 
 import { AXES, FREQUENCY, HEIGHT, ripple, TITLE, TURN, wave } from './geometry';
 
@@ -81,7 +81,7 @@ describe('the wave', () => {
     );
 
     for (const size of SIZES) {
-      const title = textBox('625 vertices', { at: TITLE, offset: { x: 0, y: 0 } }, size);
+      const title = titleBox('625 vertices', TITLE, size);
 
       expect(clearOfFade(title, HEIGHT), `in ${size}`).toBe(true);
       expect(title.top, `in ${size}`).toBeGreaterThan(lowest);

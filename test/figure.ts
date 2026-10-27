@@ -4,11 +4,13 @@ import {
   MEASURE,
   type Placement,
 } from '@/components/figures/Diagram';
+import type { Rect } from '@/lib/rect';
 import { add, scale, vec2, type Vec2 } from '@/lib/vec2';
 
 export const SIZES = [13, 16, LARGEST_TYPE];
 
 const GLYPH = { width: 0.65, height: 1.3 };
+const TRACKING = 0.12;
 const BAND = 1 - FADE_HOLD / 100;
 
 export interface Box {
@@ -23,11 +25,11 @@ export const textBox = (
   name: string,
   { at, offset }: Placement,
   size: number,
-  anchor: 'start' | 'middle' = 'middle',
+  anchor: 'start' | 'middle' | 'end' = 'middle',
 ): Box => {
   const origin = add(at, scale(offset, size));
   const width = name.length * GLYPH.width * size;
-  const left = anchor === 'middle' ? origin.x - width / 2 : origin.x;
+  const left = origin.x - width * { start: 0, middle: 0.5, end: 1 }[anchor];
 
   return {
     name,
@@ -37,6 +39,32 @@ export const textBox = (
     bottom: origin.y + (GLYPH.height * size) / 2,
   };
 };
+
+export const titleBox = (name: string, { x, y }: Vec2, size: number): Box => {
+  const width = name.length * (GLYPH.width + TRACKING) * size;
+
+  return {
+    name,
+    left: x - width / 2,
+    right: x + width / 2,
+    top: y - (GLYPH.height * size) / 2,
+    bottom: y + (GLYPH.height * size) / 2,
+  };
+};
+
+export const bounds = (name: string, { corner, size }: Rect): Box => ({
+  name,
+  left: corner.x,
+  right: corner.x + size.x,
+  top: corner.y,
+  bottom: corner.y + size.y,
+});
+
+export const inside = (outer: Box, inner: Box) =>
+  inner.left >= outer.left &&
+  inner.right <= outer.right &&
+  inner.top >= outer.top &&
+  inner.bottom <= outer.bottom;
 
 export const overlap = (a: Box, b: Box) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
