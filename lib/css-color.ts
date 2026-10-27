@@ -1,14 +1,7 @@
 /**
- * A token's colour, read out of CSS on every frame that draws.
- *
- * There is nothing to subscribe to: a theme class, an inline override and an edit to a
- * rule in the stylesheet all change what CSS resolves, and only the first two are DOM
- * mutations. Reading it each frame is the only way to be right in all three, and it is
- * affordable because the conversion is skipped unless the string has moved.
- *
- * Tokens are authored in oklch and `getComputedStyle` hands them back in oklch, so
- * there is nothing to parse. Painting one pixel is the conversion: a 2D canvas is sRGB,
- * so the byte it stores is the colour the page shows.
+ * A token's colour, read every frame: CSS has no change event, and an edit to a rule
+ * changes what a token resolves to without any DOM mutation to observe. The read
+ * converts only when the string has moved, by painting one sRGB pixel.
  */
 export function cssColor(token: `--${string}`) {
   const probe = document.createElement('span');

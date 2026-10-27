@@ -1,5 +1,5 @@
 import { AMPLITUDE, ripple } from '@/components/figures/Wave/geometry';
-import { basis, dot3, ISOMETRIC, vec3 } from '@/lib/vec3';
+import { basis, dot3, ISOMETRIC, vec3, type Vec3 } from '@/lib/vec3';
 
 export const FREQUENCY = { min: 0.5, max: 3, initial: 1.5 };
 export const LIGHT = { min: 0, max: 360, initial: 135 };
@@ -10,7 +10,7 @@ const ELEVATION = (50 * Math.PI) / 180;
 const SAMPLES = 41;
 const CAMERA = basis(ISOMETRIC);
 
-const triple = ({ x, y, z }: { x: number; y: number; z: number }) => [x, y, z];
+const triple = ({ x, y, z }: Vec3) => [x, y, z];
 
 export const light = (azimuth: number) => {
   const angle = (azimuth * Math.PI) / 180;

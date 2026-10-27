@@ -7,7 +7,7 @@ import Slider from '@/components/Slider';
 import { Playground, Shader } from '@/components/figures/Shader';
 
 import { FRAGMENT } from './fragment';
-import { FREQUENCY, LIGHT, uniforms } from './geometry';
+import { ASPECT, FREQUENCY, LIGHT, uniforms } from './geometry';
 
 const COLORS = { uInk: '--primary', uShine: '--figure-shine' } as const;
 
@@ -52,7 +52,7 @@ export default function LitWave({ className }: LitWaveProps) {
           label="A rippled surface, lit from one side"
           uniforms={uniforms(frequency, azimuth)}
           colors={COLORS}
-          className="aspect-[4/3]"
+          aspect={ASPECT}
         />
       </Playground>
     </Figure>

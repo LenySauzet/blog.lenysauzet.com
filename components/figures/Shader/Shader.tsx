@@ -25,6 +25,7 @@ export interface ShaderProps {
   label: string;
   uniforms: Record<string, Uniform>;
   colors?: Record<string, `--${string}`>;
+  aspect?: number;
   className?: string;
 }
 
@@ -33,6 +34,7 @@ export function Shader({
   label,
   uniforms,
   colors = {},
+  aspect = 1,
   className,
 }: ShaderProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -149,6 +151,7 @@ export function Shader({
       ref={hostRef}
       role="img"
       aria-label={label}
+      style={{ aspectRatio: aspect }}
       className={cn('grid place-items-center', className)}
     >
       {(!supported || lost) && (

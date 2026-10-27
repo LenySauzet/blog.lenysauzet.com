@@ -1051,45 +1051,31 @@ such as a canvas whose content runs to its own bounds, draws its own.
 - **A drawn figure carries none**, so it is a component in `components/figures/` and no
   library at all. The scale is a subtraction and a multiply; reach for `d3-scale` when
   the mapping stops being linear, not before.
-- **A rendered surface** is a fragment shader, on `components/figures/Shader`, for
-  whatever lives per pixel: light, a texture, a field. `LitWave` is the first. It is OGL,
-  which `Backdrop` already ships, and three.js is deliberately not installed: 150KB for a
-  figure that does not exist is how a dependency arrives and never earns itself.
+- **A rendered surface** is a fragment shader on `components/figures/Shader`, for
+  whatever lives per pixel. It is OGL, which `Backdrop` already ships; three.js is
+  deliberately not installed, 150KB for a figure that does not exist.
 
 What a rendered surface forces:
 
-- **`Shader` draws on change, not on every frame.** A slider moves a uniform and marks
-  the frame dirty; the loop that runs while the canvas is on screen only re-reads the
-  colours it was given (`lib/css-color.ts`, shared with `Backdrop`, for the reason
-  given there) and redraws when one of them, a uniform or the size has moved. A still
-  figure then costs nothing but the read.
-- **It draws onto transparency**, as `Backdrop` does, so the panel behind is the
-  theme's and a theme flip has nothing to repaint but the ink.
-- **WebGL is probed through `useSyncExternalStore`**, the server assuming it is there,
-  and a browser without it is told so in the figure rather than shown an empty panel.
-  The probe loses its context at once: a browser keeps only a handful alive.
-- **Every way of losing the GPU ends in that same sentence.** A shader that does not
-  link is checked for by hand, because OGL warns and returns before it has the
-  uniform locations it reads on the first draw, which then throws inside the loop and
-  strands it. The figure loses its own context instead, and the `webglcontextlost`
-  handler that also catches a GPU reset puts the sentence up.
-- **The highlight is `--figure-shine`, not white.** The panel is `--card`, nearly white
-  in light, so a crest lit to white dissolved into it exactly where the surface was
-  brightest. The token is a pale accent in light and near white in dark.
-- **`Playground` is Maxime Heckel's layout**: the uniforms and the canvas as two panels side by side, each on the
-  code block's surface, wider than the column through `Fullbleed`, the canvas first on
-  a phone. A canvas runs to its own bounds, which is why this figure, unlike a drawn
-  one, has an edge.
-- **Whatever a shader needs to know is computed in TypeScript and passed in.** The
-  camera is `basis` of the same `ISOMETRIC` camera the SVG surface uses, and the
-  framing is measured off the surface itself at each frequency, because its crest
-  rises further than its rim falls. Both are tested; the GLSL is left with marching.
-- **The box a ray marches through stands a hair above the surface.** Entering through
-  a lid at exactly the amplitude, a ray landing on a crest that reaches it reads itself
-  as below the surface and shades the underside: two dark pixels at 1.5, found by
-  zooming in, gone once the lid cleared it by a hundredth.
+- **`Shader` draws on change.** While on screen it re-reads its colour tokens each
+  frame (`lib/css-color.ts`, for the reason given there) and redraws only when one of
+  them, a uniform or the size has moved.
+- **It draws onto transparency**, as `Backdrop` does, so a theme flip repaints only
+  the ink.
+- **Every failure ends in one sentence in the figure**: no WebGL (probed through
+  `useSyncExternalStore`, the probe's context lost at once), a lost context, or a
+  shader that does not link, which is checked by hand because OGL then throws inside
+  the loop and leaves an empty panel.
+- **The highlight is `--figure-shine`, not white**, which vanished into the light panel.
+- **`Playground`** is Maxime Heckel's layout: uniforms and canvas as two panels, wider
+  than the column, the canvas first on a phone.
+- **What a shader needs is computed in TypeScript and tested**: the camera is `basis`
+  of the SVG surface's `ISOMETRIC`, and the framing is measured off the surface at each
+  frequency. The GLSL only marches.
+- **The marched box stands a hair above the surface.** A ray entering through a lid at
+  exactly a crest's height reads itself as below it and shades the underside.
 
-What the shape forces:
+What a chart forces:
 
 - **A decoration goes inside the chart, never beside it.** Recharts v3 hands any child
   the scales the chart already built, through `useXAxisScale`, `usePlotArea` and the
