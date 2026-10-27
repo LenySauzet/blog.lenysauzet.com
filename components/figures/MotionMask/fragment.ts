@@ -19,7 +19,8 @@ float luma(vec2 uv) {
 `;
 
 // Red is the mask, green the brightness it was measured against, blue whether there
-// was a frame before: without it the first one differs from black everywhere.
+// was a frame before: without it the first one differs from black everywhere. A trail
+// under one step of eight bits is cut, or a GPU without half floats never clears it.
 export const FEEDBACK = /* glsl */ `${INPUTS}
 uniform float uThreshold;
 uniform float uDecay;
@@ -32,8 +33,9 @@ void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
   vec4 previous = texture(uFeedback, uv);
   float now = luma(uv);
-  float moved = previous.b * step(uThreshold, abs(now - previous.g));
+  float moved = previous.b * float(abs(now - previous.g) > uThreshold);
   float trail = previous.r * pow(uDecay, uDelta * 60.0);
+  trail *= step(1.0 / 255.0, trail);
   fragColor = vec4(max(moved, trail), now, 1.0, 1.0);
 }
 `;

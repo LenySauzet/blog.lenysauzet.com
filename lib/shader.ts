@@ -62,6 +62,7 @@ interface Source {
   media: HTMLImageElement | HTMLVideoElement;
   texture: Texture;
   stop: () => void;
+  refresh?: () => void;
 }
 
 export function createShader(
@@ -103,7 +104,8 @@ export function createShader(
 
   // Half floats where they can be drawn into, or a trail fading by a factor each
   // frame sticks a few steps above zero in eight bits.
-  const precise = context.getExtension('EXT_color_buffer_float');
+  const precise =
+    context.getExtension('EXT_color_buffer_float') ?? context.getExtension('EXT_color_buffer_half_float');
   const target = () =>
     new RenderTarget(gl, {
       depth: false,
@@ -163,15 +165,20 @@ export function createShader(
     const video = document.createElement('video');
     Object.assign(video, { muted: true, loop: true, playsInline: true, preload: 'auto' });
     video.onloadeddata = () => show(name, video, [video.videoWidth, video.videoHeight]);
+    const upload = () => (texture.needsUpdate = dirty = true);
     const frame = () => {
       if (textures.get(name)?.media !== video) return;
-      texture.needsUpdate = dirty = true;
+      upload();
       video.requestVideoFrameCallback(frame);
     };
-    video.requestVideoFrameCallback(frame);
+    // Without it, a playing video is uploaded on every frame whether it moved or not.
+    const presents = typeof video.requestVideoFrameCallback === 'function';
+    if (presents) video.requestVideoFrameCallback(frame);
     return {
       media: video,
+      refresh: presents ? undefined : () => video.paused || upload(),
       stop() {
+        video.onloadeddata = null;
         video.pause();
         video.removeAttribute('src');
         video.load();
@@ -198,11 +205,12 @@ export function createShader(
         ? { generateMipmaps: false, minFilter: gl.LINEAR }
         : { minFilter: gl.LINEAR_MIPMAP_LINEAR, anisotropy: ANISOTROPY },
     );
-    const { media, stop } = moving ? video(name, texture) : image(name);
+    const source = { src, texture, ...(moving ? video(name, texture) : image(name)) };
+    const { media } = source;
     media.crossOrigin = 'anonymous';
     media.onerror = () => report('missing');
     media.src = resolveMediaUrl(src);
-    textures.set(name, { src, media, texture, stop });
+    textures.set(name, source);
     set(name, texture);
     set(`${name}Size`, NONE);
   };
@@ -216,6 +224,7 @@ export function createShader(
       set('uTime', (uniforms.uTime.value as number) + delta);
     }
     last = now;
+    for (const { refresh } of textures.values()) refresh?.();
     draw(delta !== undefined);
     frame = requestAnimationFrame(loop);
   };

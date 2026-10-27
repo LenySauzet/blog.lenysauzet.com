@@ -1093,15 +1093,20 @@ What a rendered surface forces:
   texture without breaking any `<img>`.
 - **A video is a texture whose path ends in `.mp4`**, read from `videos/` like any
   other. Muted and looping, it plays only while the shader does, and is uploaded again
-  only when it presents a new frame (`requestVideoFrameCallback`), with no mipmaps to
+  only when it presents a new frame (`requestVideoFrameCallback`, every frame where
+  Firefox before 132 lacks it), with no mipmaps to
   rebuild each time. Encode it at the size it is drawn: every frame of a 4K source is
   33MB through the GPU for a figure 682px wide.
 - **A `feedback` pass reads its own last result** as `uFeedback`, drawn into one of two
   targets while the other is read, then swapped, once per step of the clock. Paused, it
   holds. The display reads the same `uFeedback`. `uDelta` is the step, so a fade can be
   written per second rather than per frame and look the same at 60Hz and 120. The
-  targets are half floats: a value faded by a factor each frame sticks a few steps
-  above zero in eight bits.
+  targets are half floats, or eight bits where a GPU has neither float extension: a
+  value faded by a factor each frame then sticks a few steps above zero, so a fade
+  cuts itself off below one step.
+- **A frame difference has a floor, and it is the compression's grain.** Every pixel
+  of a video moves a little between frames, so the motion mask's threshold starts at
+  0.01: at 0 the whole frame lights, at 0.005 the sky still does.
 - **A halftone samples a cell at the mip level the cell spans**, through `textureLod`,
   which blends what the cell covers. Point-sampled, a cell takes whichever stroke its
   centre lands on.

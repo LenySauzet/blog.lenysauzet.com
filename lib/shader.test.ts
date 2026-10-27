@@ -14,6 +14,7 @@ const gpu = vi.hoisted(() => ({
   deleted: [] as unknown[],
   targets: [] as unknown[],
   made: [] as { type?: number; width: number }[],
+  extensions: ['EXT_color_buffer_float'] as string[],
 }));
 
 vi.mock('ogl', () => ({
@@ -108,14 +109,14 @@ describe('a shader', () => {
   };
 
   beforeEach(() => {
-    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [], targets: [], made: [] });
+    Object.assign(gpu, { linked: true, renders: 0, colour: [0, 0, 1], disposed: 0, deleted: [], targets: [], made: [], extensions: ['EXT_color_buffer_float'] });
     frames = [];
     images.length = 0;
     report.mockReset();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
       HALF_FLOAT: 4,
       RGBA16F: 5,
-      getExtension: () => ({}),
+      getExtension: (name: string) => (gpu.extensions.includes(name) ? {} : null),
     } as unknown as RenderingContext);
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
@@ -346,13 +347,51 @@ describe('a shader', () => {
     });
 
     it('is uploaded again for each frame it presents, and only then', () => {
-      start(filmed());
+      start({ ...filmed(), playing: true });
       const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
 
+      tick(1000);
+      tick(1016);
       expect(texture.needsUpdate).toBe(false);
+
       presented.get(video())?.();
+      expect(texture.needsUpdate).toBe(true);
+    });
+
+    it('lets a frame presented by a video it has let go of change nothing', () => {
+      const shader = start(filmed());
+      const old = video();
+      const callback = presented.get(old);
+      shader.sync(filmed('blog/Rain.mp4'));
+      presented.delete(old);
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      callback?.();
+
+      expect(texture.needsUpdate).toBe(false);
+      expect(presented.has(old)).toBe(false);
+    });
+
+    it('is uploaded on every frame while it plays, where the browser cannot say when it presents', () => {
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);
+      start({ ...filmed(), playing: true });
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      tick(1000);
 
       expect(texture.needsUpdate).toBe(true);
+    });
+
+    it('is left alone while paused, though a colour keeps the loop running', () => {
+      Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      start({ ...filmed(), colors: { uInk: '--primary' } });
+      const texture = gpu.uniforms.uVideo.value as { needsUpdate: boolean };
+
+      tick(1000);
+
+      expect(frames.length).toBeGreaterThan(0);
+      expect(texture.needsUpdate).toBe(false);
     });
 
     it('plays while the shader plays, and pauses with it', () => {
@@ -407,6 +446,17 @@ describe('a shader', () => {
       tick(1008);
 
       expect(gpu.uniforms.uDelta.value).toBeCloseTo(0.008);
+    });
+
+    it.each([
+      ['float', ['EXT_color_buffer_float'], 4],
+      ['half float', ['EXT_color_buffer_half_float'], 4],
+      ['neither', [], undefined],
+    ])('draws in half floats where the GPU can render %s, and in eight bits otherwise', (_, extensions, type) => {
+      gpu.extensions = extensions;
+      looping();
+
+      expect(gpu.made.map((target) => target.type)).toEqual([type, type]);
     });
 
     it('keeps its targets the size of the canvas, in half floats', () => {
