@@ -365,10 +365,10 @@ describe('a shader', () => {
       tick(1016);
       expect(texture.needsUpdate).toBe(false);
 
-      for (const _ of [1, 2]) {
+      for (const frame of ['first', 'second']) {
         texture.needsUpdate = false;
         present(video());
-        expect(texture.needsUpdate).toBe(true);
+        expect(texture.needsUpdate, frame).toBe(true);
       }
     });
 

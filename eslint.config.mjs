@@ -21,6 +21,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // A function expression handed to Playwright MCP, not a module.
+    ".claude/skills/*/scripts/**",
   ]),
 ]);
 
