@@ -4,7 +4,7 @@ import NextImage from 'next/image';
 import { cache } from 'react';
 import { getTweet, type QuotedTweet, type Tweet as Post } from 'react-tweet/api';
 
-import { answers, formatCount, formatDate, likeUrl, postUrl, replyUrl, videosOf } from '@/lib/tweet';
+import { answers, formatCount, formatDate, likeUrl, PATIENCE, postUrl, replyUrl, videosOf } from '@/lib/tweet';
 import { cn } from '@/lib/utils';
 
 import { TweetMedia } from './TweetMedia';
@@ -26,7 +26,7 @@ export interface TweetProps {
 // failing to answer degrades the same way, so it can never take a deploy down.
 async function load(id: string) {
   try {
-    return await getTweet(id);
+    return await getTweet(id, { signal: AbortSignal.timeout(PATIENCE) });
   } catch (error) {
     console.warn(`Tweet ${id} could not be fetched, so it is shown as unavailable.`, error);
   }

@@ -124,7 +124,7 @@ describe('whether a copy answers', () => {
 
     await answers('https://cdn.example/videos/tweets/1-0.mp4');
 
-    expect(fetch).toHaveBeenCalledWith(expect.any(String), { method: 'HEAD' });
+    expect(fetch).toHaveBeenCalledWith(expect.any(String), { method: 'HEAD', signal: expect.any(AbortSignal) });
   });
 
   it.each([
@@ -155,8 +155,8 @@ describe('a date', () => {
 
 describe('an embedded post', () => {
   it('is found with whatever else the tag carries', () => {
-    const source = '<Tweet id="1" />\n<Tweet id="2" className="my-0" />';
+    const source = '<Tweet id="1" />\n<Tweet id="2" className="my-0" />\n<Tweet className="my-0" id="3" />';
 
-    expect([...source.matchAll(TWEET_EMBED)].map((match) => match[1])).toEqual(['1', '2']);
+    expect([...source.matchAll(TWEET_EMBED)].map((match) => match[1])).toEqual(['1', '2', '3']);
   });
 });

@@ -36,6 +36,9 @@ async function copy(source: string, mirror: string) {
   const key = new URL(mirror).pathname.slice(1);
   const response = await fetch(source);
   if (!response.ok) throw new Error(`X answered ${response.status} for ${source}`);
+  // X can answer 200 with a page of its own, which must not go up as a video.
+  const type = response.headers.get('content-type') ?? '';
+  if (!type.startsWith('video/mp4')) throw new Error(`X sent ${type || 'no type'} rather than a video for ${source}`);
 
   const file = join(folder, basename(key));
   writeFileSync(file, Buffer.from(await response.arrayBuffer()));
@@ -45,7 +48,7 @@ async function copy(source: string, mirror: string) {
     // No stdin: logged out, wrangler then fails rather than waiting on a browser login.
     { stdio: ['ignore', 'inherit', 'inherit'] },
   );
-  if (upload.status === 0) console.log(`${key}: copied`);
+  if (upload.status === 0) console.info(`${key}: copied`);
   else pending.push(`${file} -> ${BUCKET}/${key}`);
 }
 
@@ -53,7 +56,7 @@ for (const id of ids) {
   try {
     const tweet = await getTweet(id);
     if (!tweet) {
-      console.log(`${id}: no longer on X, nothing to copy`);
+      console.info(`${id}: no longer on X, nothing to copy`);
       continue;
     }
     for (const post of [tweet, tweet.quoted_tweet].filter((post) => post !== undefined))
@@ -65,8 +68,8 @@ for (const id of ids) {
 
 for (const line of failed) console.error(`Failed, ${line}`);
 if (pending.length) {
-  console.log('\nNot uploaded. Put each file at its key in R2, or run `bunx wrangler login` and retry:');
-  for (const line of pending) console.log(`  ${line}`);
+  console.info('\nNot uploaded. Put each file at its key in R2, or run `bunx wrangler login` and retry:');
+  for (const line of pending) console.info(`  ${line}`);
 }
 if (failed.length || pending.length) process.exitCode = 1;
-else console.log('Every embedded video is on the CDN.');
+else console.info('Every embedded video is on the CDN.');

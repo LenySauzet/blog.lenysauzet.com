@@ -143,6 +143,12 @@ describe('Tweet', () => {
     );
   });
 
+  it('gives X a deadline, so a silent X reaches the fallback before Next gives up', async () => {
+    await show(photo);
+
+    expect(fetched).toHaveBeenCalledWith('1', { signal: expect.any(AbortSignal) });
+  });
+
   it('says it is gone when its author deleted it or made it private', async () => {
     fetched.mockResolvedValue(undefined);
     render(await Tweet({ id: '1' }));

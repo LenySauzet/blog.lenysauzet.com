@@ -7,7 +7,12 @@ import { resolveVideoUrl } from '@/lib/cdn';
 // markup has no use for and Node cannot even load.
 
 /** How a post sits in an article, for every reader of the source to agree on. */
-export const TWEET_EMBED = /<Tweet\s+id="(\d+)"[^>]*\/>/g;
+export const TWEET_EMBED = /<Tweet\b[^>]*?\bid="(\d+)"[^>]*\/>/g;
+
+// Well under the 60 seconds after which Next restarts a static page that has made no
+// progress: a host that accepts the connection and never answers must reach the
+// fallback, not take the build down.
+export const PATIENCE = 10_000;
 
 interface Segment {
   text: string;
@@ -129,7 +134,7 @@ export const videosOf = (tweet: Pick<Tweet, 'id_str' | 'mediaDetails'>): TweetVi
 // it would go on answering missing long after.
 export const answers = async (url: string) => {
   try {
-    return (await fetch(url, { method: 'HEAD' })).ok;
+    return (await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(PATIENCE) })).ok;
   } catch {
     return false;
   }
