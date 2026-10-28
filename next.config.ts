@@ -43,6 +43,13 @@ const nextConfig: NextConfig = {
         hostname: new URL(siteConfig.cdnUrl).hostname,
         pathname: '/**',
       },
+      // A post on X brings its pictures and avatar from X, through the optimizer, so a
+      // reader's browser asks this site for them and never X.
+      {
+        protocol: 'https',
+        hostname: 'pbs.twimg.com',
+        pathname: '/**',
+      },
     ],
   },
 };

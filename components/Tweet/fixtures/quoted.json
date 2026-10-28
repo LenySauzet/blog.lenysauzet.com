@@ -1,0 +1,331 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 120,
+ "lang": "en",
+ "possibly_sensitive": false,
+ "created_at": "2023-07-31T15:14:00.000Z",
+ "display_text_range": [
+  0,
+  272
+ ],
+ "entities": {
+  "media": [
+   {
+    "display_url": "pic.x.com/UCdpr68VbK",
+    "expanded_url": "https://x.com/MaximeHeckel/status/1686032469244645376/video/1",
+    "indices": [
+     272,
+     295
+    ],
+    "url": "https://t.co/UCdpr68VbK"
+   }
+  ],
+  "urls": [
+   {
+    "display_url": "r3f.maximeheckel.com/sdf7",
+    "expanded_url": "http://r3f.maximeheckel.com/sdf7",
+    "indices": [
+     248,
+     271
+    ],
+    "url": "https://t.co/5vGVFF6QgI"
+   }
+  ]
+ },
+ "id_str": "1686032469244645376",
+ "text": "A look at some of my recent shader Raymarching work 🧪\n\nI learned how to use noise derivatives to create better procedural terrains\n\nCombined with fog and light scattering you can achieve some gorgeous results like this beautiful Martian landscape\n\nhttps://t.co/5vGVFF6QgI https://t.co/UCdpr68VbK",
+ "user": {
+  "id_str": "116762918",
+  "name": "Maxime",
+  "screen_name": "MaximeHeckel",
+  "is_blue_verified": true,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/813646702553010176/rOM8J8DC_normal.jpg"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "1686032469244645376"
+  ],
+  "editable_until_msecs": "1690820040000",
+  "edits_remaining": "5",
+  "is_edit_eligible": false
+ },
+ "mediaDetails": [
+  {
+   "additional_media_info": {},
+   "display_url": "pic.x.com/UCdpr68VbK",
+   "expanded_url": "https://x.com/MaximeHeckel/status/1686032469244645376/video/1",
+   "ext_media_availability": {
+    "status": "Available"
+   },
+   "indices": [
+    272,
+    295
+   ],
+   "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1685997835169218561/pu/img/yMU55DQZOXmxzIFW.jpg",
+   "original_info": {
+    "focus_rects": [],
+    "height": 720,
+    "width": 1006
+   },
+   "sizes": {
+    "large": {
+     "h": 720,
+     "resize": "fit",
+     "w": 1006
+    },
+    "medium": {
+     "h": 720,
+     "resize": "fit",
+     "w": 1006
+    },
+    "small": {
+     "h": 487,
+     "resize": "fit",
+     "w": 680
+    },
+    "thumb": {
+     "h": 150,
+     "resize": "crop",
+     "w": 150
+    }
+   },
+   "type": "video",
+   "url": "https://t.co/UCdpr68VbK",
+   "video_info": {
+    "aspect_ratio": [
+     503,
+     360
+    ],
+    "duration_millis": 20639,
+    "variants": [
+     {
+      "content_type": "application/x-mpegURL",
+      "url": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/pl/J8r6rgDXS6SjNsLl.m3u8?tag=12"
+     },
+     {
+      "bitrate": 256000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/376x270/tXpxPXro1h6iM4qv.mp4?tag=12"
+     },
+     {
+      "bitrate": 832000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/502x360/j6ntNtHat11Ekeu9.mp4?tag=12"
+     },
+     {
+      "bitrate": 2176000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/1006x720/sHUDMIucfFZJlAZ7.mp4?tag=12"
+     }
+    ]
+   }
+  }
+ ],
+ "photos": [],
+ "video": {
+  "aspectRatio": [
+   503,
+   360
+  ],
+  "contentType": "media_entity",
+  "durationMs": 20639,
+  "mediaAvailability": {
+   "status": "available"
+  },
+  "poster": "https://pbs.twimg.com/ext_tw_video_thumb/1685997835169218561/pu/img/yMU55DQZOXmxzIFW.jpg",
+  "variants": [
+   {
+    "type": "application/x-mpegURL",
+    "src": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/pl/J8r6rgDXS6SjNsLl.m3u8?tag=12"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/376x270/tXpxPXro1h6iM4qv.mp4?tag=12"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/502x360/j6ntNtHat11Ekeu9.mp4?tag=12"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/ext_tw_video/1685997835169218561/pu/vid/1006x720/sHUDMIucfFZJlAZ7.mp4?tag=12"
+   }
+  ],
+  "videoId": {
+   "type": "tweet",
+   "id": "1686032469244645376"
+  },
+  "viewCount": 0
+ },
+ "conversation_count": 2,
+ "news_action_type": "conversation",
+ "quoted_tweet": {
+  "favorite_count": 166,
+  "lang": "en",
+  "possibly_sensitive": false,
+  "reply_count": 6,
+  "retweet_count": 14,
+  "created_at": "2023-07-13T02:40:05.000Z",
+  "display_text_range": [
+   0,
+   275
+  ],
+  "entities": {
+   "media": [
+    {
+     "display_url": "pic.x.com/jl1vk9yPWQ",
+     "expanded_url": "https://x.com/MaximeHeckel/status/1679319759018418178/video/1",
+     "indices": [
+      276,
+      299
+     ],
+     "url": "https://t.co/jl1vk9yPWQ"
+    }
+   ],
+   "urls": [
+    {
+     "display_url": "r3f.maximeheckel.com/sdf6",
+     "expanded_url": "https://r3f.maximeheckel.com/sdf6",
+     "indices": [
+      252,
+      275
+     ],
+     "url": "https://t.co/hBVew9w90O"
+    }
+   ]
+  },
+  "id_str": "1679319759018418178",
+  "text": "You can create entire procedurally generated worlds with shaders with a couple of well-placed math formulas!\n\nFrom the sharpness of the terrain, the light, the fog, and the shadows of those mountains: it's all GLSL\n\n(don't run this on your phone pls)\n\nhttps://t.co/hBVew9w90O https://t.co/jl1vk9yPWQ",
+  "user": {
+   "id_str": "116762918",
+   "name": "Maxime",
+   "screen_name": "MaximeHeckel",
+   "is_blue_verified": true,
+   "profile_image_shape": "Circle",
+   "verified": false,
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/813646702553010176/rOM8J8DC_normal.jpg"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "1679319759018418178"
+   ],
+   "editable_until_msecs": "1689219605000",
+   "edits_remaining": "5",
+   "is_edit_eligible": true
+  },
+  "mediaDetails": [
+   {
+    "additional_media_info": {},
+    "display_url": "pic.x.com/jl1vk9yPWQ",
+    "expanded_url": "https://x.com/MaximeHeckel/status/1679319759018418178/video/1",
+    "ext_media_availability": {
+     "status": "Available"
+    },
+    "indices": [
+     276,
+     299
+    ],
+    "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1679319371506675712/pu/img/hMvt9VVrqgLdXPM8.jpg",
+    "original_info": {
+     "focus_rects": [],
+     "height": 720,
+     "width": 1074
+    },
+    "sizes": {
+     "large": {
+      "h": 720,
+      "resize": "fit",
+      "w": 1074
+     },
+     "medium": {
+      "h": 720,
+      "resize": "fit",
+      "w": 1074
+     },
+     "small": {
+      "h": 456,
+      "resize": "fit",
+      "w": 680
+     },
+     "thumb": {
+      "h": 150,
+      "resize": "crop",
+      "w": 150
+     }
+    },
+    "type": "video",
+    "url": "https://t.co/jl1vk9yPWQ",
+    "video_info": {
+     "aspect_ratio": [
+      179,
+      120
+     ],
+     "duration_millis": 27906,
+     "variants": [
+      {
+       "content_type": "application/x-mpegURL",
+       "url": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/pl/qWR1z-jaOplsqouo.m3u8?tag=12"
+      },
+      {
+       "bitrate": 256000,
+       "content_type": "video/mp4",
+       "url": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/402x270/OhXHHW0Z9VTX7wQf.mp4?tag=12"
+      },
+      {
+       "bitrate": 832000,
+       "content_type": "video/mp4",
+       "url": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/536x360/auUZWrEPTG6brK9U.mp4?tag=12"
+      },
+      {
+       "bitrate": 2176000,
+       "content_type": "video/mp4",
+       "url": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/1074x720/7fijO8ULJGiDhtUB.mp4?tag=12"
+      }
+     ]
+    }
+   }
+  ],
+  "photos": [],
+  "video": {
+   "aspectRatio": [
+    179,
+    120
+   ],
+   "contentType": "media_entity",
+   "durationMs": 27906,
+   "mediaAvailability": {
+    "status": "available"
+   },
+   "poster": "https://pbs.twimg.com/ext_tw_video_thumb/1679319371506675712/pu/img/hMvt9VVrqgLdXPM8.jpg",
+   "variants": [
+    {
+     "type": "application/x-mpegURL",
+     "src": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/pl/qWR1z-jaOplsqouo.m3u8?tag=12"
+    },
+    {
+     "type": "video/mp4",
+     "src": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/402x270/OhXHHW0Z9VTX7wQf.mp4?tag=12"
+    },
+    {
+     "type": "video/mp4",
+     "src": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/536x360/auUZWrEPTG6brK9U.mp4?tag=12"
+    },
+    {
+     "type": "video/mp4",
+     "src": "https://video.twimg.com/ext_tw_video/1679319371506675712/pu/vid/1074x720/7fijO8ULJGiDhtUB.mp4?tag=12"
+    }
+   ],
+   "videoId": {
+    "type": "tweet",
+    "id": "1679319759018418178"
+   },
+   "viewCount": 0
+  },
+  "isEdited": false,
+  "isStaleEdit": false
+ },
+ "isEdited": false,
+ "isStaleEdit": false
+}

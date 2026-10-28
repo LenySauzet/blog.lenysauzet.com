@@ -1,0 +1,155 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 50,
+ "lang": "en",
+ "possibly_sensitive": false,
+ "created_at": "2025-12-02T16:06:00.000Z",
+ "display_text_range": [
+  0,
+  29
+ ],
+ "entities": {
+  "media": [
+   {
+    "display_url": "pic.x.com/N9lOWTv1Ym",
+    "expanded_url": "https://x.com/MaximeHeckel/status/1995887180514808305/video/1",
+    "indices": [
+     30,
+     53
+    ],
+    "url": "https://t.co/N9lOWTv1Ym"
+   }
+  ]
+ },
+ "id_str": "1995887180514808305",
+ "text": "real-time watercolor painting https://t.co/N9lOWTv1Ym",
+ "user": {
+  "id_str": "116762918",
+  "name": "Maxime",
+  "screen_name": "MaximeHeckel",
+  "is_blue_verified": true,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/813646702553010176/rOM8J8DC_normal.jpg"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "1995887180514808305"
+  ],
+  "editable_until_msecs": "1764695160000",
+  "edits_remaining": "5",
+  "is_edit_eligible": false
+ },
+ "mediaDetails": [
+  {
+   "additional_media_info": {},
+   "display_url": "pic.x.com/N9lOWTv1Ym",
+   "expanded_url": "https://x.com/MaximeHeckel/status/1995887180514808305/video/1",
+   "ext_media_availability": {
+    "status": "Available"
+   },
+   "indices": [
+    30,
+    53
+   ],
+   "media_url_https": "https://pbs.twimg.com/amplify_video_thumb/1995717028653486080/img/DI5aiZM-YGZS-Iyn.jpg",
+   "original_info": {
+    "focus_rects": [],
+    "height": 2912,
+    "width": 3840
+   },
+   "sizes": {
+    "large": {
+     "h": 1553,
+     "resize": "fit",
+     "w": 2048
+    },
+    "medium": {
+     "h": 910,
+     "resize": "fit",
+     "w": 1200
+    },
+    "small": {
+     "h": 516,
+     "resize": "fit",
+     "w": 680
+    },
+    "thumb": {
+     "h": 150,
+     "resize": "crop",
+     "w": 150
+    }
+   },
+   "type": "video",
+   "url": "https://t.co/N9lOWTv1Ym",
+   "video_info": {
+    "aspect_ratio": [
+     120,
+     91
+    ],
+    "duration_millis": 43816,
+    "variants": [
+     {
+      "content_type": "application/x-mpegURL",
+      "url": "https://video.twimg.com/amplify_video/1995717028653486080/pl/d8zz1qEcSAesE9hs.m3u8?tag=14"
+     },
+     {
+      "bitrate": 288000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/356x270/KJEy-eC-9QlXvsOe.mp4?tag=14"
+     },
+     {
+      "bitrate": 832000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/474x360/vDyO3pFjpmC8waLn.mp4?tag=14"
+     },
+     {
+      "bitrate": 2176000,
+      "content_type": "video/mp4",
+      "url": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/948x720/jcWlg4IJ46_sZWbo.mp4?tag=14"
+     }
+    ]
+   }
+  }
+ ],
+ "photos": [],
+ "video": {
+  "aspectRatio": [
+   120,
+   91
+  ],
+  "contentType": "media_entity",
+  "durationMs": 43816,
+  "mediaAvailability": {
+   "status": "available"
+  },
+  "poster": "https://pbs.twimg.com/amplify_video_thumb/1995717028653486080/img/DI5aiZM-YGZS-Iyn.jpg",
+  "variants": [
+   {
+    "type": "application/x-mpegURL",
+    "src": "https://video.twimg.com/amplify_video/1995717028653486080/pl/d8zz1qEcSAesE9hs.m3u8?tag=14"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/356x270/KJEy-eC-9QlXvsOe.mp4?tag=14"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/474x360/vDyO3pFjpmC8waLn.mp4?tag=14"
+   },
+   {
+    "type": "video/mp4",
+    "src": "https://video.twimg.com/amplify_video/1995717028653486080/vid/avc1/948x720/jcWlg4IJ46_sZWbo.mp4?tag=14"
+   }
+  ],
+  "videoId": {
+   "type": "tweet",
+   "id": "1995887180514808305"
+  },
+  "viewCount": 0
+ },
+ "conversation_count": 1,
+ "news_action_type": "conversation",
+ "isEdited": false,
+ "isStaleEdit": false
+}

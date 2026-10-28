@@ -15,6 +15,7 @@ bun lint             # ESLint (eslint-config-next)
 bun run type-check   # tsc --noEmit
 bun run test         # Vitest, single run
 bun run test:watch
+bun run tweet-videos # Copy the videos of embedded posts on X to the CDN
 ```
 
 `bun test` runs Bun's own runner and will **not** work. Always `bun run test`.
@@ -102,6 +103,7 @@ hardcode `dark` anywhere. The traps behind each of those are in
 | `lib/post-utils.ts` | `getPosts()`: reads and sorts posts, drafts excluded unless asked |
 | `lib/post-markdown.ts` | A post as its source, served at `/posts/<slug>/index.md` |
 | `lib/cdn.ts` | The CDN layout; a media path resolved by its extension |
+| `lib/tweet.ts` | A post on X: its text as links, its videos and their copies on the CDN |
 | `lib/image-utils.ts` | Build-time image dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
 | `components/Figure` | The frame every visual shares: block rhythm and caption |
