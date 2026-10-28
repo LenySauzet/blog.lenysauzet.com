@@ -1,0 +1,130 @@
+[
+  {
+    "prompt": "j'écris un article sur le ray marching dans content/an-introduction-to-ray-marching-primitives.mdx, est-ce qu'une figure aiderait à expliquer la distance signée à une sphère ? propose quelque chose",
+    "expect": [
+      "figures"
+    ]
+  },
+  {
+    "prompt": "relis le brouillon content/noise-functions-and-procedural-generation-deep-dive.mdx et dis-moi où des visualisations rendraient l'article plus clair",
+    "expect": [
+      "figures"
+    ]
+  },
+  {
+    "prompt": "ajoute un graphique dans content/balancing-cpu-overhead-in-complex-scenes.mdx qui compare le temps de frame CPU et GPU pour 1k, 10k et 100k objets (CPU 2.1/9.8/41 ms, GPU 1.2/3.4/12 ms)",
+    "expect": [
+      "figure-chart",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "je veux une démo interactive pour l'article sur les SDF : un cercle, un point qu'on déplace avec un slider, et la distance signée affichée qui devient négative à l'intérieur",
+    "expect": [
+      "figure-diagram",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "fais un shader de bruit de Perlin animé avec un slider pour le nombre d'octaves, dans le style des playgrounds de Maxime Heckel",
+    "expect": [
+      "figure-shader",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "mets un exemple de code éditable dans l'article qui montre pourquoi un useEffect sans cleanup laisse un setInterval tourner",
+    "expect": [
+      "figure-code",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "vérifie la figure LitWave dans les deux thèmes, sur mobile et avec reduced motion avant que j'ouvre la PR",
+    "expect": [
+      "figure-verify"
+    ]
+  },
+  {
+    "prompt": "dans RaySphere les étiquettes p1 et g1 se chevauchent quand l'angle est vers 18°, corrige ça",
+    "expect": [
+      "figure-diagram"
+    ]
+  },
+  {
+    "prompt": "dans la figure Bezier le second trait est trop proche de la couleur d'accent quand on choisit le preset violet, ça se distingue mal",
+    "expect": [
+      "figure-design",
+      "figure-diagram"
+    ]
+  },
+  {
+    "prompt": "illustrate the stages of a deferred renderer (g-buffer, lighting pass, post-processing) for the realtime-pbr post, showing which run on the GPU",
+    "expect": [
+      "figure-diagram",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "ajoute un bouton pause au fond animé halftone de la page d'accueil, c'est une dette WCAG 2.2.2",
+    "expect": [
+      "figure-shader"
+    ]
+  },
+  {
+    "prompt": "le CopyButton provoque une erreur d'hydratation quand prefers-reduced-motion est actif, trouve la cause et corrige",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "ajoute un tableau comparatif des formats de compression de texture BC1, BC7 et ASTC (ratio, qualité, support) dans l'article sur la mémoire GPU",
+    "expect": [
+      "none",
+      "figures"
+    ]
+  },
+  {
+    "prompt": "change la couleur d'accent par défaut du site pour le preset violet",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "le Slider du design system saute quand on clique tout au bout, le ressort semble trop raide",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "corrige la faute de frappe dans le titre de l'article sur les modèles d'éclairage PBR",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "the Dynamic Island shows the wrong title when I hover a link to a draft post, can you look into it",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "écris l'introduction de mon article sur les octrees, deux paragraphes, ton pédagogique et accrocheur",
+    "expect": [
+      "none"
+    ]
+  },
+  {
+    "prompt": "mets à jour la dépendance @codesandbox/sandpack-react à sa dernière version et vérifie que le build passe",
+    "expect": [
+      "none",
+      "figure-code"
+    ]
+  },
+  {
+    "prompt": "ajoute une photo de couverture à l'article sur les octrees, le fichier est blog/octree-cover.jpg sur le CDN",
+    "expect": [
+      "none"
+    ]
+  }
+]

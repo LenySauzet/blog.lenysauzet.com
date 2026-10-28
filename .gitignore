@@ -41,9 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# agent tooling: vendored skills are reproducible from skills-lock.json
+# agent tooling: vendored skills are reproducible from skills-lock.json; our own
+# skills in .claude/skills/ are committed
 .agents/
-.claude/skills/
+.claude/skills/shadcn
 .playwright-mcp/
 
 # design specs and implementation plans: working notes for building the thing, not

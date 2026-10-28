@@ -24,7 +24,7 @@ Design tokens are defined in `app/globals.css` using CSS custom properties. Alwa
 
 ### Color Tokens (oklch-based)
 
-The color system is built on a single `--base-hue` variable (262.04 — violet/purple):
+The color system is built on a single `--base-hue` variable (259.815, Tailwind's blue, the default of the presets in `lib/hues.ts`):
 
 | Token                     | Usage                              |
 | ------------------------- | ---------------------------------- |
