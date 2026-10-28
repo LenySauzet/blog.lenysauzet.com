@@ -398,6 +398,7 @@ MediaPlayerRoot.displayName = 'MediaPlayerRoot';
 interface MediaPlayerVideoProps {
   width?: number;
   height?: number;
+  poster?: string;
   aspectRatio?: string | number;
   children: React.ReactNode;
   fit?: 'cover' | 'contain';
@@ -408,6 +409,7 @@ const MediaPlayerVideo = ({
   children,
   width,
   height,
+  poster,
   fit = 'cover',
 }: MediaPlayerVideoProps) => {
   const { videoRef, videoProps, togglePlay } = useMedia();
@@ -425,6 +427,7 @@ const MediaPlayerVideo = ({
         {...videoProps}
         autoPlay={videoProps.autoPlay && !reducedMotion}
         ref={videoRef}
+        poster={poster}
         onClick={togglePlay}
         onKeyDown={(e) => {
           if (e.key === 'Enter') togglePlay();

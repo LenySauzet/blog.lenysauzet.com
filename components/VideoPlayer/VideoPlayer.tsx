@@ -13,6 +13,8 @@ interface VideoPlayerProps {
   type?: string;
   width?: number;
   height?: number;
+  /** Shown until the video plays, used as given rather than resolved against the CDN. */
+  poster?: string;
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
@@ -26,6 +28,7 @@ const VideoPlayer = ({
   type = 'video/mp4',
   width,
   height,
+  poster,
   autoPlay,
   loop,
   muted,
@@ -64,7 +67,7 @@ const VideoPlayer = ({
           loop={shouldLoop || !!isReducedMotion}
         >
           {glow && <MediaPlayer.Glow />}
-          <MediaPlayer.Video width={width} height={height}>
+          <MediaPlayer.Video width={width} height={height} poster={poster}>
             <source src={resolveVideoUrl(src)} type={type} />
           </MediaPlayer.Video>
           {title && (

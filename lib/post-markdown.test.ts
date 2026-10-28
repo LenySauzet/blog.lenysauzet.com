@@ -92,6 +92,12 @@ describe('toMarkdown', () => {
     expect(out).toContain('![Alt](https://cdn.lenysauzet.com/images/blog/c.png)');
   });
 
+  it('turns an embedded post on X into a link to it', () => {
+    expect(toMarkdown(post('<Tweet id="1772606761695879419" />'))).toContain(
+      '[A post on X](https://x.com/i/status/1772606761695879419)',
+    );
+  });
+
   it('leaves a source that already points somewhere alone', () => {
     const elsewhere = 'https://cdn.maximeheckel.com/videos/blog/clip.mp4';
 

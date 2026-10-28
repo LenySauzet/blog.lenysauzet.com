@@ -39,6 +39,7 @@ import { PostH2 } from '@/components/PostH2';
 import { Sandpack } from '@/components/Sandpack';
 import SupportCallout from '@/components/SupportCallout';
 import Table from '@/components/Table';
+import Tweet from '@/components/Tweet';
 import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
@@ -81,6 +82,7 @@ export const components = {
   Wave,
   Sandpack,
   SupportCallout,
+  Tweet,
 
   a: Anchor,
   h1: ({ children }) => (

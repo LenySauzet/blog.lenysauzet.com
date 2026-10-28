@@ -15,7 +15,7 @@ import { ZoomCaption } from './ZoomCaption';
 // lingers past its last visible frame.
 const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
-const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
+export const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 
 const FRAME = 'rounded-lg border-2 border-border';
 

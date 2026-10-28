@@ -17,6 +17,9 @@ paths:
   - "components/UpdatedBadge.tsx"
   - "components/Footnote.tsx"
   - "components/Footnotes/**"
+  - "components/Tweet/**"
+  - "lib/tweet.ts"
+  - "scripts/tweet-videos.ts"
 ---
 
 # Posts, media and the prose components
@@ -117,6 +120,37 @@ bypass that was not there; a `GET` reads `HIT`.
 Cloudflare image transformations are not enabled on the zone, so optimization runs
 through Next's own optimizer via `images.remotePatterns`. Do not pass a `loader` to
 `next/image`: that makes Next bypass its optimizer and serve the loader's URL verbatim.
+
+## Posts on X
+
+`<Tweet id="…" />` draws a post in the site's own markup, a Server Component with no
+script of its own. What it rests on, each for a reason:
+
+- **The post is read from X at every build**, through `react-tweet/api`, which keeps the
+  token X's syndication endpoint wants. One its author deletes or makes private leaves
+  the article at the next deploy, which is the point; X failing to answer degrades the
+  same way, to a line saying the post is gone, and never takes the build down.
+- **Only `react-tweet/api` is imported.** The package's root also ships its own theme's
+  stylesheets, which Node cannot load and the page has no use for, so the text is split
+  by `segmentsOf` in `lib/tweet.ts`: hashtags, mentions and links, each URL shown as X
+  displays it, the media's trailing t.co link cut, indices counted in code points. X
+  sends the text HTML-escaped and counts its indices in the escaped text, so the text is
+  cut first and each plain run decoded after.
+- **Pictures and avatars stay on X and go through the optimizer** (`pbs.twimg.com` in
+  `remotePatterns`), so a reader's browser asks this site and never X. On a network
+  that maps IPv4 through NAT64 (`64:ff9b::`), Next takes X's addresses for private ones
+  and refuses them locally; that is the machine, not the code, and
+  `dangerouslyAllowLocalIP` is not the answer.
+- **Videos are copied to the CDN**, at `videos/tweets/<post>-<n>.mp4`, by
+  `bun run tweet-videos`. X refuses its video files to most sites that link to them, by
+  no rule anyone has published: it served this domain and refused localhost, Vercel's
+  previews, GitHub and Maxime Heckel's site. Only the bytes are copied; the post is
+  still read live, so a deleted one takes its video with it. A video whose copy does not
+  answer at build shows its poster and sends the reader to X, and so does one X only
+  streams, having no MP4 to copy. **The check is a HEAD**: the CDN caches a GET's 404
+  for four hours, so asked before an upload it would go on answering missing after.
+- **Counts and the date are as of the build**, the date in UTC so the build machine's
+  time zone cannot move it.
 
 ## Prose components
 

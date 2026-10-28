@@ -4,6 +4,7 @@ import siteConfig from '@/config/site';
 
 import { resolveMediaUrl } from './cdn';
 import type { Post } from './post-utils';
+import { TWEET_EMBED } from './tweet';
 
 /**
  * A fenced block is the subject, not machinery: a post about Three.js carries
@@ -27,6 +28,13 @@ const resolveSources = (text: string) =>
       /(!\[[^\]]*\]\()([^)]+)\)/g,
       (_match: string, lead: string, src: string) => `${lead}${resolveMediaUrl(src)})`
     );
+
+// A post on X is a line of JSX outside the page; as a link it says where it was.
+const embedTweets = (text: string) =>
+  text.replace(
+    TWEET_EMBED,
+    (_match: string, id: string) => `[A post on X](https://x.com/i/status/${id})`
+  );
 
 const IMPORT = /^import\s/;
 
@@ -73,7 +81,7 @@ const frontmatter = (post: Post) => {
  * bundler reads, and the imports, which name modules nothing here can load.
  */
 export function toMarkdown(post: Post): string {
-  const body = outsideFences(withoutPreamble(post.content), resolveSources);
+  const body = outsideFences(withoutPreamble(post.content), (text) => embedTweets(resolveSources(text)));
 
   return `${frontmatter(post)}\n\n${body.trim()}\n`;
 }
