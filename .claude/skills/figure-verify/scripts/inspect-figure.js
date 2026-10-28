@@ -5,12 +5,16 @@
 async (session) => {
   const FIGURE = {
     url: 'http://localhost:3000/posts/design-system',
-    caption: 'The halftone over a video',
+    // A figure is found by its caption; a sandbox has none: `page.locator('.sandpack-root')`.
+    find: (page) => page.locator('figure', { hasText: 'The halftone over a video' }).first(),
+    // Runs after every load, for a figure that needs a click to appear, such as a chart
+    // other than the first in the showcase.
+    prepare: async (page) => {},
     out: '/tmp/figure',
     accents: ['blue', 'amber'],
   };
   const WIDTHS = [375, 1280];
-  const MAX_STEPS = 400;
+  const MAX_STEPS = 5000;
 
   const page = await session.context().newPage();
   const errors = [];
@@ -20,12 +24,14 @@ async (session) => {
   const open = async ({ theme, accent, width, motion }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: motion });
-    await page.addInitScript(([theme, accent]) => {
+    await page.goto(FIGURE.url, { waitUntil: 'load' });
+    await page.evaluate(([theme, accent]) => {
       localStorage.setItem('theme', theme);
       localStorage.setItem('hue', accent);
     }, [theme, accent]);
-    await page.goto(FIGURE.url, { waitUntil: 'load' });
-    const figure = page.locator('figure', { hasText: FIGURE.caption }).first();
+    await page.reload({ waitUntil: 'load' });
+    await FIGURE.prepare(page);
+    const figure = FIGURE.find(page);
     await figure.scrollIntoViewIfNeeded();
     await page.waitForTimeout(2000);
     return figure;

@@ -11,8 +11,9 @@ paths:
 `.cursor/rules/tokens.mdc`; the definitions live in `app/globals.css`. The rules
 that neither file makes obvious:
 
-- **`--base-hue` is the only knob.** Every oklch token derives from it, syntax
-  highlighting included. Retheming the site is one line, so never hardcode a colour that
+- **`--base-hue` is the only knob.** Every themed oklch token derives from it, syntax
+  highlighting included; only the status colours (`--destructive`, `--success`,
+  `--warning`) keep fixed hues, since a warning must not turn blue with the accent. Retheming the site is one line, so never hardcode a colour that
   should follow it.
 - **Text runs on three tiers**: `--foreground` (headings, `strong`), `--muted-foreground`
   (body copy, `h4`), `--subtle-foreground` (article date, discreet links, card titles,

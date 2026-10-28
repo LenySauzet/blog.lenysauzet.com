@@ -158,8 +158,8 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
 - **The fill is ours, not `SliderPrimitive.Range`.** Radix drives Range's width from the
   value directly, which cannot be sprung; a `motion.div` on a spring can, so a click
   anywhere on the bar travels rather than jumps. Radix still owns the pointer, keyboard
-  and ARIA; only the painting moved. `ui/slider.tsx` falls back to `Range` when given
-  no child, so a bare `<Slider>` still renders.
+  and ARIA; only the painting moved. `ui/slider.tsx` therefore requires its children:
+  the fill is whatever the caller draws in the track.
 - **The grip fades on collision, not on a percentage.** It hides where it would run into
   the label or the readout, so it stays visible *past* either of them: before the label
   at the bottom of the range, past the readout at the top. The threshold depends on how

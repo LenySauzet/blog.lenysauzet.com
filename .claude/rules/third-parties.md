@@ -66,6 +66,7 @@ row height sits on both sides and cancels. Dividing the rendered list's height b
 repeat count already drawn feeds an answer into its own input; that version asked for 317
 repeats where 18 was right and rendered 11,160 rows. Under `prefers-reduced-motion` the
 whole apparatus goes, not just the movement, because a frozen window of repeated names
-reads as a duplication bug. **jsdom cannot reach any of this**: `vitest-setup` forces
+reads as a duplication bug. **jsdom cannot reach the motion**: `vitest-setup` forces
 reduced motion and Motion caches it at module scope, so the loop and the ramps are
-verified in a browser and only the arithmetic is a unit test.
+verified in a browser. The rest is tested in jsdom: the names, the total, the empty and
+failed states, the reduced-motion fallback and the repeat arithmetic.

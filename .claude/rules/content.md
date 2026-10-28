@@ -68,9 +68,10 @@ YAML, which something other than a bundler can parse, and a relative media path 
 absolute. Both are narrower than they look. **Only the imports the file opens with are
 dropped**, because a component carrying an example in a prop has lines of it at column
 zero: anchoring to every line start cost the design system its `import './scene.css';`
-out of a Sandpack. And **a fenced block is never touched at all**, being the subject
-rather than the machinery. **The CDN namespace is chosen by extension**, not by a table of components:
-`.mp4` goes to videos and everything else to images (`resolveMediaUrl`, which the
+out of a Sandpack. And **a triple-backtick block is never touched at all**, being the
+subject rather than the machinery (a `~~~` fence is not recognised, so write fences
+with backticks). **The CDN namespace is chosen by extension**, not by a table of components:
+`.mp4`, `.webm`, `.mov` and `.m4v` go to videos and everything else to images (`resolveMediaUrl`, which the
 shader engine shares), so adding a component to `mdx-components.tsx` can never put a
 file in the wrong place.
 

@@ -95,7 +95,10 @@ its title is just the name of the app.
 anyone, not only through a link in a post. So it answers only for hosts a post
 actually links to, read off the content once per instance by
 `allowed-hosts.ts`: the set is the whole of what a reader can hover, and
-anything else is refused before a socket is opened. Fetching whatever it is
+any other first host is refused before a socket is opened. **A redirect is not held to
+that set**: `reach` walks it through `safe-url.ts`, so a linked host can send the fetch
+on to any public address, never a private one. Re-checking the allowlist on each hop
+would close that, at the cost of previews for sites that redirect to a CDN. Fetching whatever it is
 handed would otherwise be both a request forgery primitive and someone else's
 crawler running on our bill.
 

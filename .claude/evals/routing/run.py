@@ -31,7 +31,8 @@ MAX_SECONDS = 300
 
 
 def invoked(prompt: str, model: str) -> list[str] | None:
-    """Every skill invoked, or None when the CLI never started a session."""
+    """Every skill invoked, or None when the session failed to start or ran out of time
+    before settling, either of which would otherwise read as having loaded nothing."""
     env = {key: value for key, value in os.environ.items() if key != 'CLAUDECODE'}
     process = subprocess.Popen(
         ['claude', '-p', prompt, '--output-format', 'stream-json', '--verbose',
@@ -40,7 +41,13 @@ def invoked(prompt: str, model: str) -> list[str] | None:
          '--model', model],
         cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env,
     )
-    watchdog = threading.Timer(MAX_SECONDS, process.kill)
+    expired = threading.Event()
+
+    def expire() -> None:
+        expired.set()
+        process.kill()
+
+    watchdog = threading.Timer(MAX_SECONDS, expire)
     watchdog.start()
     skills, tools, started = [], 0, False
     try:
@@ -62,7 +69,7 @@ def invoked(prompt: str, model: str) -> list[str] | None:
     finally:
         watchdog.cancel()
         process.kill()
-    return skills if started else None
+    return skills if started and not expired.is_set() else None
 
 
 def main() -> None:
@@ -78,7 +85,7 @@ def main() -> None:
     passed = 0
     for case, skills in zip(cases, loaded):
         if skills is None:
-            print('ERROR claude did not start |', case['prompt'][:70])
+            print('ERROR no session, or out of time |', case['prompt'][:70])
             continue
         figure = [skill for skill in skills if skill in FIGURE_SKILLS]
         ok = any(skill in case['expect'] for skill in figure) if figure else 'none' in case['expect']

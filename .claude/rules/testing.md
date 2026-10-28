@@ -31,7 +31,9 @@ determinism.
 
 **jsdom tracks the Node floor**, which `.nvmrc` and `engines.node` set to 24. jsdom 30
 declares `^22.22.2 || ^24.15.0 || >=26.0.0`, so dropping below any of those brings back
-the `ERR_REQUIRE_ESM` that every test file threw under the old 22.9 floor.
+the `ERR_REQUIRE_ESM` that every test file threw under the old 22.9 floor. **Node 25
+falls in that gap** although `engines.node` (`>=24`) admits it: run the tests on 24 or
+26.
 
 That coupling is why **CI pins Node via `.nvmrc`**. Vitest spawns Node, not bun, so an
 unpinned runner tests against a different runtime than anyone develops on: a jsdom bump

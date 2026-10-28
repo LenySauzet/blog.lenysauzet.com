@@ -33,8 +33,8 @@ output, as plainly as what passed; a step that was skipped is named as skipped.
 `bun run build && bun start -p 3123`.
 
 Run [scripts/inspect-figure.js](scripts/inspect-figure.js) through Playwright MCP's
-`browser_run_code_unsafe`: read it, set `FIGURE` (page, part of the figure's caption,
-an output folder), pass it whole. It returns console errors, each state's
+`browser_run_code_unsafe`: read it, set `FIGURE` (the page, how to find the figure,
+what to click first if anything, an output folder), pass it whole. It returns console errors, each state's
 label, sideways scroll and overlapping names, and every overlap met while sweeping each
 slider, and saves a screenshot per state: light and dark, two accents, 375 and 1280
 wide, with and without reduced motion. Then **look at every screenshot**: a passing

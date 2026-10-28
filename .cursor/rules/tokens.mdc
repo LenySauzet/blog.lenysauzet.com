@@ -32,7 +32,7 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--foreground`            | Primary text                       |
 | `--card`                  | Card/panel backgrounds             |
 | `--card-foreground`       | Text on cards                      |
-| `--primary`               | Brand color (violet)               |
+| `--primary`               | The reader's accent                |
 | `--primary-foreground`    | Text on primary backgrounds        |
 | `--secondary`             | Subtle backgrounds                 |
 | `--muted`                 | Muted surface                      |
@@ -130,4 +130,4 @@ button's lit edge) and `--shadow-field` (a field's focus bloom).
 - **No separate style files** — Tailwind utilities go directly in JSX `className`
 - **Use `cn()`** from `@/lib/utils` for all conditional class merging
 - **oklch everywhere** — use `oklch()` for transparency and color manipulation
-- **Shadcn components** are pre-styled; customize via `className` props, not by editing `components/ui/`
+- **Shadcn components** are pre-styled; customize via `className` props, not by editing `components/ui/`, except the primitives `.claude/rules/ui.md` lists as customised, whose edits are re-applied after every `--diff`
