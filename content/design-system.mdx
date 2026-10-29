@@ -58,20 +58,26 @@ article title.
 
 ## Callouts
 
-<Callout variant="info">
-  Info callout — the default, with the info icon in the corner.
+<Callout>
+  A note, the default. It can hold `inline code`, [links](https://developer.mozilla.org)
+  and any other inline markup.
 </Callout>
 
-<Callout variant="info" label="Learn more">
-  Info callout with a labelled corner instead of the icon.
-</Callout>
+<Callout variant="warning">A warning, for what is easy to get wrong.</Callout>
 
-<Callout variant="danger">
-  Danger callout — the alert icon marks it as a warning.
-</Callout>
+<Callout variant="danger">A caution, for what can break.</Callout>
 
-<Callout variant="danger" label="Be careful!">
-  Danger callout with a labelled corner.
+<Callout label="Compatibility">
+
+A label replaces the variant's name, and any block can sit inside:
+
+```wgsl
+stateReadTexture: texture_2d<f32>,
+stateWriteTexture: texture_storage_2d<rgba8unorm, write>
+```
+
+The code block's corners follow the callout's.
+
 </Callout>
 
 ## Details/Summary

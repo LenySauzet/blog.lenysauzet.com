@@ -7,7 +7,10 @@ paths:
 # Styling, tokens and theming
 
 **Tailwind v4 + Shadcn/UI.** No style files, all styling is inline `className`. Use
-`cn()` from `@/lib/utils` for conditional merging. Token tables live in
+`cn()` from `@/lib/utils` for conditional merging. The one exception is a surface
+made of layered pseudo-elements, which is unreadable as classes: it becomes an
+`@utility` in `app/globals.css`, driven by one custom property its component sets,
+as `callout-surface` is by `--callout`. Token tables live in
 `.cursor/rules/tokens.mdc`; the definitions live in `app/globals.css`. The rules
 that neither file makes obvious:
 
@@ -23,7 +26,7 @@ that neither file makes obvious:
   between the page and a card, and it can neither darken past `--muted-foreground` in
   light mode nor change chroma.
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
-  checked boxes, list markers, callout accents) and by hyperlinks, which `Anchor` takes
+  checked boxes, list markers, the note callout) and by hyperlinks, which `Anchor` takes
   straight from it. Not `--accent`, which is shadcn's muted hover *surface*.
 - **Never put `outline-none` on the element that draws its own focus ring.** Tailwind v4
   renamed v3's `outline-none` to `outline-hidden` and gave the old name new behaviour:
