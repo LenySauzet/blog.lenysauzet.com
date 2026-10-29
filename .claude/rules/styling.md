@@ -40,10 +40,10 @@ that neither file makes obvious:
   puts it on the root, `outline-none` on the thumb) or when focus is shown some other way
   (`ui/input.tsx` uses border and shadow, `CopyButton` a background). Grep for it with
   care: `focus-visible:outline-` matches `focus-visible:outline-none` itself.
-- **A framed block takes its outer corners from `--frame-radius`**, falling back to its
-  own (`rounded-(--frame-radius,var(--radius-xl))`). A container that frames blocks
+- **A framed block rounds its outer corners with `rounded-frame-xl` or `rounded-frame-lg`**,
+  its usual radius unless a container sets `--frame-radius`. A container that frames blocks
   sets it, as `Callout` does, so what sits inside nests in its corners rather than
-  matching them. Code, tweets, tables, images and video read it; a new framed block
+  matching them. Code, tweets, tables, images and video use them; a new framed block
   should too.
 - **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
   bare identifier tokenises as plain text in any grammar and highlighting only dimmed it

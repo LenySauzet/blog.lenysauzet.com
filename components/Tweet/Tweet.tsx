@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { TweetMedia } from './TweetMedia';
 import { TweetText } from './TweetText';
 
-const PANEL = 'rounded-(--frame-radius,var(--radius-xl)) border border-(--code-border) bg-(--code-bg)';
+const PANEL = 'rounded-frame-xl border border-(--code-border) bg-(--code-bg)';
 const QUIET = 'font-display text-sm text-subtle-foreground';
 
 const answering = cache(answers);
@@ -97,7 +97,7 @@ function Posted({ date, url }: { date: string; url: string }) {
 function Quoted({ tweet, copied }: { tweet: QuotedTweet; copied: ReadonlySet<string> }) {
   const url = postUrl(tweet);
   return (
-    <blockquote cite={url} className="flex flex-col gap-2 rounded-(--frame-radius,var(--radius-lg)) border border-(--code-border) p-3">
+    <blockquote cite={url} className="flex flex-col gap-2 rounded-frame-lg border border-(--code-border) p-3">
       <div className="flex items-baseline justify-between gap-4">
         <Author tweet={tweet} small />
         <Posted date={tweet.created_at} url={url} />
@@ -110,7 +110,7 @@ function Quoted({ tweet, copied }: { tweet: QuotedTweet; copied: ReadonlySet<str
 
 function Unavailable({ className }: { className?: string }) {
   return (
-    <p className={cn('my-6 rounded-(--frame-radius,var(--radius-xl)) border border-dashed border-(--code-border) px-4 py-3', QUIET, className)}>
+    <p className={cn('my-6 rounded-frame-xl border border-dashed border-(--code-border) px-4 py-3', QUIET, className)}>
       This post on X is no longer available.
     </p>
   );

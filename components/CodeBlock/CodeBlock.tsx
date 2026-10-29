@@ -77,7 +77,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
     <figure
       ref={figureRef}
       className={cn(
-        'group relative my-6 overflow-hidden rounded-(--frame-radius,var(--radius-xl)) border border-[var(--code-border)] bg-[var(--code-bg)] shadow-sm',
+        'group relative my-6 overflow-hidden rounded-frame-xl border border-[var(--code-border)] bg-[var(--code-bg)] shadow-sm',
         className
       )}
       {...props}

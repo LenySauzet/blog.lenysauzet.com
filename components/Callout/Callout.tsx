@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils';
 
 // Each variant only sets the colour `callout-surface` derives everything from.
 const VARIANTS = {
-  info: { icon: InformationCircleIcon, label: 'Note', accent: '[--callout:var(--primary)]' },
-  warning: { icon: SpamIcon, label: 'Warning', accent: '[--callout:var(--warning)]' },
-  danger: { icon: SpamIcon, label: 'Caution', accent: '[--callout:var(--destructive)]' },
+  info: { icon: InformationCircleIcon, name: 'Note', accent: '[--callout:var(--primary)]' },
+  warning: { icon: SpamIcon, name: 'Warning', accent: '[--callout:var(--warning)]' },
+  danger: { icon: SpamIcon, name: 'Caution', accent: '[--callout:var(--destructive)]' },
 };
 
 export type CalloutVariant = keyof typeof VARIANTS;
@@ -22,7 +22,7 @@ export interface CalloutProps {
 }
 
 export function Callout({ variant = 'info', label, className, children }: CalloutProps) {
-  const { icon, label: name, accent } = VARIANTS[variant];
+  const { icon, name, accent } = VARIANTS[variant];
 
   return (
     <aside

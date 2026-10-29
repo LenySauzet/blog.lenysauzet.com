@@ -64,6 +64,10 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /* A framed block's corners, which a frame around it shrinks through --frame-radius
+     so they nest in its own. */
+  --radius-frame-lg: var(--frame-radius, var(--radius-lg));
+  --radius-frame-xl: var(--frame-radius, var(--radius-xl));
 }
 
 :root {
@@ -458,8 +462,8 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
    classNames. Everything follows --callout, which each variant sets. */
 @utility callout-surface {
   --callout-shape: ellipse 85% 150% at 0% 0%;
-  /* The name is small text over the fill, and --warning there read 2.4:1. Capped,
-     every variant and accent clears 4.5:1 in light; dark needs no cap. */
+  /* The name is small text, and --warning reads 2.4:1 on the light page. Capped, every
+     variant clears 4.5:1 there under any accent, fill included; dark needs no cap. */
   --callout-ink: oklch(from var(--callout) min(l, 0.5) c h);
   @variant dark {
     --callout-ink: var(--callout);

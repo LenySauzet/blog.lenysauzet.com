@@ -352,7 +352,7 @@ const MediaPlayerRoot = ({
       >
         {!isPiP && glowChildren}
 
-        <div className="relative overflow-hidden rounded-(--frame-radius,var(--radius-xl)) z-[1]">
+        <div className="relative overflow-hidden rounded-frame-xl z-[1]">
           {videoChildren}
         </div>
 
@@ -453,7 +453,7 @@ const MediaPlayerVideoOverlay = ({
         cleanly with the controls. */}
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-t-(--frame-radius,var(--radius-xl))"
+      className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-t-frame-xl"
       style={{ background: 'linear-gradient(to bottom, oklch(0 0 0 / 0.55), oklch(0 0 0 / 0.15) 45%, transparent)' }}
     />
     <p className="relative font-display text-base font-semibold tracking-tight text-white drop-shadow-[0_1px_2px_oklch(0_0_0_/_0.4)]">

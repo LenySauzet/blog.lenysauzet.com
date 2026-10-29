@@ -37,7 +37,7 @@ function Video({ medium, mirror, url, author }: VideoProps) {
       <a
         href={url}
         style={{ aspectRatio: `${width} / ${height}` }}
-        className="group relative flex items-center justify-center overflow-hidden rounded-(--frame-radius,var(--radius-lg)) border-2 border-border"
+        className="group relative flex items-center justify-center overflow-hidden rounded-frame-lg border-2 border-border"
         aria-label={`${alt}, to watch on X`}
       >
         <NextImage src={largeUrl(medium)} alt="" fill sizes={IMAGE_SIZES} className="object-cover" />
