@@ -429,9 +429,12 @@ const MediaPlayerVideo = ({
     // Already decoded when it came from the cache, before the listener was attached.
     if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) show();
     video.addEventListener('loadeddata', show);
+    // Data saver modes on mobile skip `loadeddata`, but never a frame that plays.
+    video.addEventListener('playing', show);
     video.addEventListener('emptied', hide);
     return () => {
       video.removeEventListener('loadeddata', show);
+      video.removeEventListener('playing', show);
       video.removeEventListener('emptied', hide);
     };
   }, [videoRef]);

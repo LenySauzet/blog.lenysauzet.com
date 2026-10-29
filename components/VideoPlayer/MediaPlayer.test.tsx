@@ -21,6 +21,13 @@ describe('MediaPlayer.Video', () => {
     expect(video).not.toHaveClass('opacity-0');
   });
 
+  it('shows once it plays, for a data saver that skips loadeddata', () => {
+    const video = player();
+
+    fireEvent(video, new Event('playing'));
+    expect(video).not.toHaveClass('opacity-0');
+  });
+
   it('hides again when its source is emptied', () => {
     const video = player();
     fireEvent(video, new Event('loadeddata'));
