@@ -1,4 +1,4 @@
-import { AlertCircleIcon, InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
+import { InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { ReactNode } from 'react';
 
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 // Each variant only sets the colour `callout-surface` derives everything from.
 const VARIANTS = {
   info: { icon: InformationCircleIcon, label: 'Note', accent: '[--callout:var(--primary)]' },
-  warning: { icon: AlertCircleIcon, label: 'Warning', accent: '[--callout:var(--warning)]' },
+  warning: { icon: SpamIcon, label: 'Warning', accent: '[--callout:var(--warning)]' },
   danger: { icon: SpamIcon, label: 'Caution', accent: '[--callout:var(--destructive)]' },
 };
 
@@ -28,8 +28,9 @@ export function Callout({ variant = 'info', label, className, children }: Callou
     <aside
       className={cn(
         // my-3 stacks on the post's block gap rather than collapsing into it: the
-        // parent is a flex column.
-        'callout-surface my-3 rounded-xl p-4 [--code-radius:var(--radius-md)]',
+        // parent is a flex column. --frame-radius shrinks the corners of a framed
+        // block inside, so they nest in the callout's.
+        'callout-surface my-3 rounded-xl p-4 [--frame-radius:var(--radius-md)]',
         accent,
         className,
       )}

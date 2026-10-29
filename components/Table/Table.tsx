@@ -14,7 +14,7 @@ export default function Table({
   ...props
 }: React.ComponentProps<'table'>) {
   return (
-    <div className="border-border bg-card my-6 overflow-hidden rounded-xl border">
+    <div className="border-border bg-card my-6 overflow-hidden rounded-(--frame-radius,var(--radius-xl)) border">
       <TablePrimitive
         className={cn(
           'font-display text-muted-foreground leading-6',

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { TweetMedia } from './TweetMedia';
 import { TweetText } from './TweetText';
 
-const PANEL = 'rounded-xl border border-(--code-border) bg-(--code-bg)';
+const PANEL = 'rounded-(--frame-radius,var(--radius-xl)) border border-(--code-border) bg-(--code-bg)';
 const QUIET = 'font-display text-sm text-subtle-foreground';
 
 const answering = cache(answers);
@@ -110,7 +110,7 @@ function Quoted({ tweet, copied }: { tweet: QuotedTweet; copied: ReadonlySet<str
 
 function Unavailable({ className }: { className?: string }) {
   return (
-    <p className={cn('my-6 rounded-xl border border-dashed border-(--code-border) px-4 py-3', QUIET, className)}>
+    <p className={cn('my-6 rounded-(--frame-radius,var(--radius-xl)) border border-dashed border-(--code-border) px-4 py-3', QUIET, className)}>
       This post on X is no longer available.
     </p>
   );
