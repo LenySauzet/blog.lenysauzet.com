@@ -21,7 +21,6 @@
   --font-serif: var(--font-serif);
   --font-mono-code: var(--font-mono-code);
   --font-mono: var(--font-mono);
-  --font-signature: var(--font-signature);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -420,9 +419,6 @@ figure[data-rehype-pretty-code-figure] [data-line] {
   min-height: 1lh;
   padding: 0 1rem;
   border-left: 3px solid transparent;
-}
-figure[data-rehype-pretty-code-figure] [data-line]:hover {
-  background-color: var(--code-emphasis);
 }
 figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);

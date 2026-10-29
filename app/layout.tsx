@@ -34,12 +34,6 @@ const DepartureMono = localFont({
   variable: '--font-mono',
 });
 
-const SignatureDecember = localFont({
-  src: '../public/fonts/Signature-December.otf',
-  display: 'swap',
-  variable: '--font-signature',
-});
-
 export const metadata = getRootMetadata();
 
 // The mobile chrome follows the OS, not the toggle: an accepted trade-off for
@@ -79,7 +73,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} ${SignatureDecember.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
+        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
       >
         <script dangerouslySetInnerHTML={{ __html: paintHue }} />
 
