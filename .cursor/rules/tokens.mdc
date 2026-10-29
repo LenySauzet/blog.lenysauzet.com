@@ -62,7 +62,6 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--font-serif`      | Serif body font         |
 | `--font-mono`       | Monospace font          |
 | `--font-mono-code`  | Code blocks             |
-| `--font-signature`  | Signature / handwriting |
 
 Apply via Tailwind:
 ```tsx
