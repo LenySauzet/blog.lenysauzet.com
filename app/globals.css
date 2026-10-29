@@ -189,7 +189,6 @@
   --code-bg: var(--card);
   --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
-  --code-hover: oklch(from var(--foreground) l c h / 0.04);
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -264,7 +263,6 @@
 
   /* --code-bg and --code-border inherit their :root aliases. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
-  --code-hover: oklch(from var(--foreground) l c h / 0.06);
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -421,10 +419,6 @@ figure[data-rehype-pretty-code-figure] [data-line] {
   min-height: 1lh;
   padding: 0 1rem;
   border-left: 3px solid transparent;
-}
-/* Neutral, so a line under the pointer never reads as one the post highlights. */
-figure[data-rehype-pretty-code-figure] [data-line]:hover {
-  background-color: var(--code-hover);
 }
 figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);
