@@ -97,7 +97,7 @@ function Posted({ date, url }: { date: string; url: string }) {
 function Quoted({ tweet, copied }: { tweet: QuotedTweet; copied: ReadonlySet<string> }) {
   const url = postUrl(tweet);
   return (
-    <blockquote cite={url} className="flex flex-col gap-2 rounded-lg border border-(--code-border) p-3">
+    <blockquote cite={url} className="flex flex-col gap-2 rounded-(--frame-radius,var(--radius-lg)) border border-(--code-border) p-3">
       <div className="flex items-baseline justify-between gap-4">
         <Author tweet={tweet} small />
         <Posted date={tweet.created_at} url={url} />
