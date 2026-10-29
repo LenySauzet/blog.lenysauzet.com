@@ -94,7 +94,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       ) : (
         <CopyButton
           getText={getText}
-          className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
         />
       )}
       {/* Names the scrollable region. The <pre> is already tab-focusable
