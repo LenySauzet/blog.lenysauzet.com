@@ -25,10 +25,11 @@ export async function generateMetadata({
     const { metadata } = await import(`@/content/${slug}.mdx`);
     const postUrl = `${url}/posts/${slug}`;
 
+    // The root layout's template suffixes the page title, but not the social ones.
     const pageTitle = `${metadata.title} - ${siteName}`;
 
     return {
-      title: pageTitle,
+      title: metadata.title,
       description: metadata.description,
       alternates: {
         canonical: postUrl,
