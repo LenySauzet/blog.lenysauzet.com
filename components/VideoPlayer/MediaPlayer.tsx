@@ -27,6 +27,8 @@ import {
   useState,
 } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import { formatTime, isIOS, isMobileDevice } from './utils';
 
 type MediaContextType = {
@@ -414,6 +416,25 @@ const MediaPlayerVideo = ({
 }: MediaPlayerVideoProps) => {
   const { videoRef, videoProps, togglePlay } = useMedia();
   const reducedMotion = useReducedMotion();
+  const [decoded, setDecoded] = useState(false);
+  // A poster is a first frame already; without one the video fades in on its own,
+  // rather than popping into an empty frame.
+  const shown = !!poster || decoded;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const show = () => setDecoded(true);
+    const hide = () => setDecoded(false);
+    // Already decoded when it came from the cache, before the listener was attached.
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) show();
+    video.addEventListener('loadeddata', show);
+    video.addEventListener('emptied', hide);
+    return () => {
+      video.removeEventListener('loadeddata', show);
+      video.removeEventListener('emptied', hide);
+    };
+  }, [videoRef]);
 
   const ratio = aspectRatio
     ? `${aspectRatio}`
@@ -432,7 +453,10 @@ const MediaPlayerVideo = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter') togglePlay();
         }}
-        className="relative z-[1] w-full h-full block cursor-pointer"
+        className={cn(
+          'relative z-[1] w-full h-full block cursor-pointer transition-opacity duration-500 motion-reduce:transition-none',
+          !shown && 'opacity-0'
+        )}
         style={{ objectFit: fit }}
       >
         {children}
