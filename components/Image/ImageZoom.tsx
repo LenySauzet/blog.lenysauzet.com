@@ -17,7 +17,7 @@ const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
 export const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 
-const FRAME = 'rounded-lg border-2 border-border';
+const FRAME = 'rounded-frame-lg border-2 border-border';
 
 export interface ImageZoomProps {
   /** Fully resolved URL. Resolution happens on the server. */
@@ -36,7 +36,7 @@ function Skeleton() {
   return (
     <div
       aria-hidden
-      className="absolute inset-0 animate-pulse rounded-lg bg-muted/40 motion-reduce:animate-none"
+      className="absolute inset-0 animate-pulse rounded-frame-lg bg-muted/40 motion-reduce:animate-none"
     />
   );
 }
@@ -110,7 +110,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         // Hidden only between the two transitions, where the copy has left this box
         // behind and Motion has handed its opacity back.
         className={cn(
-          'block w-full rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+          'block w-full rounded-frame-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
           gone ? 'cursor-default' : 'cursor-zoom-in',
           zoomed && 'invisible'
         )}
@@ -144,9 +144,9 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
             onLayoutAnimationComplete={() => setZoomed(true)}
           >
             {gone ? (
-              <Unavailable ratio={ratio} className="rounded-lg" />
+              <Unavailable ratio={ratio} className="rounded-frame-lg" />
             ) : (
-              image('h-full w-full rounded-lg object-contain', '')
+              image('h-full w-full rounded-frame-lg object-contain', '')
             )}
           </motion.div>
           <ZoomCaption start={zoomed}>{alt}</ZoomCaption>

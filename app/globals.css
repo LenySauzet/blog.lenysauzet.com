@@ -64,6 +64,10 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /* A framed block's corners, which a frame around it shrinks through --frame-radius
+     so they nest in its own. */
+  --radius-frame-lg: var(--frame-radius, var(--radius-lg));
+  --radius-frame-xl: var(--frame-radius, var(--radius-xl));
 }
 
 :root {
@@ -450,6 +454,66 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   font-family: var(--font-mono-code);
   font-size: 0.85em;
   color: var(--code-inline);
+}
+
+/* components/Callout. A fill, a border and stripes, each fading out of the top-left
+   corner along one ellipse; the border fades into --border rather than away, so the
+   edge holds. Written here because two layered pseudo-elements are unreadable as
+   classNames. Everything follows --callout, which each variant sets. */
+@utility callout-surface {
+  --callout-shape: ellipse 85% 150% at 0% 0%;
+  /* The name is small text, and --warning reads 2.4:1 on the light page. Capped, every
+     variant clears 4.5:1 there under any accent, fill included; dark needs no cap. */
+  --callout-ink: oklch(from var(--callout) min(l, 0.5) c h);
+  @variant dark {
+    --callout-ink: var(--callout);
+  }
+  position: relative;
+  isolation: isolate;
+  border: 1px solid transparent;
+  background: radial-gradient(
+    var(--callout-shape),
+    oklch(from var(--callout) l c h / 0.07),
+    oklch(from var(--callout) l c h / 0.025) 40%,
+    transparent 75%
+  );
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    padding: 1px;
+    border-radius: inherit;
+    background:
+      radial-gradient(
+        var(--callout-shape),
+        oklch(from var(--callout) l c h / 0.4),
+        oklch(from var(--callout) l c h / 0.1) 40%,
+        transparent 75%
+      ),
+      var(--border);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: repeating-linear-gradient(
+      135deg,
+      oklch(from var(--callout) l c h / 0.08) 0 1px,
+      transparent 1px 6px
+    );
+    mask-image: radial-gradient(var(--callout-shape), #fff, transparent 75%);
+    pointer-events: none;
+  }
 }
 
 /* Sandpack live editor. Overrides its internal sp- and cm- classes, which are

@@ -5,42 +5,55 @@ import { Callout } from './Callout';
 
 describe('Callout', () => {
   it('renders its children inside a complementary aside', () => {
-    render(<Callout variant="info">The note body</Callout>);
+    render(<Callout>The note body</Callout>);
+
+    expect(within(screen.getByRole('complementary')).getByText('The note body')).toBeInTheDocument();
+  });
+
+  it.each([
+    [undefined, 'Note', '[--callout:var(--primary)]'],
+    ['info', 'Note', '[--callout:var(--primary)]'],
+    ['warning', 'Warning', '[--callout:var(--warning)]'],
+    ['danger', 'Caution', '[--callout:var(--destructive)]'],
+  ] as const)('names the %s variant %s, in its own colour', (variant, name, accent) => {
+    render(<Callout variant={variant}>Body</Callout>);
 
     const aside = screen.getByRole('complementary');
-    expect(within(aside).getByText('The note body')).toBeInTheDocument();
+    expect(within(aside).getByText(name)).toBeInTheDocument();
+    expect(aside).toHaveClass(accent);
   });
 
-  it('announces the variant to assistive tech', () => {
-    render(<Callout variant="danger">Body</Callout>);
-
-    expect(screen.getByRole('complementary')).toHaveTextContent('Warning:');
-  });
-
-  it('shows the corner icon when no label is given', () => {
-    render(<Callout variant="info">Body</Callout>);
-
-    const aside = screen.getByRole('complementary');
-    expect(aside.querySelector('svg')).toBeInTheDocument();
-    expect(aside.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
-  });
-
-  it('replaces the icon with the label pill when a label is set', () => {
+  it('lets a label replace the name, markup included', () => {
     render(
-      <Callout variant="info" label="Learn more">
+      <Callout variant="warning" label={<strong>Compatibility</strong>}>
         Body
-      </Callout>
+      </Callout>,
     );
 
     const aside = screen.getByRole('complementary');
-    expect(within(aside).getByText('Learn more')).toBeInTheDocument();
-    // the decorative icon is gone once a label takes the corner
-    expect(aside.querySelector('svg')).not.toBeInTheDocument();
+    expect(within(aside).getByText('Compatibility').tagName).toBe('STRONG');
+    expect(within(aside).getByText('Warning:')).toHaveClass('sr-only');
   });
 
-  it('defaults to the info variant', () => {
+  it('still announces its variant when a label replaces the name', () => {
+    render(
+      <Callout variant="danger" label="Compatibility">
+        Body
+      </Callout>,
+    );
+
+    expect(screen.getByRole('complementary')).toHaveTextContent(/^Caution: Compatibility/);
+  });
+
+  it('hides its icon from assistive tech, the name saying it already', () => {
     render(<Callout>Body</Callout>);
 
-    expect(screen.getByRole('complementary')).toHaveTextContent('Note:');
+    expect(screen.getByRole('complementary').querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('forwards className', () => {
+    render(<Callout className="mt-10">Body</Callout>);
+
+    expect(screen.getByRole('complementary')).toHaveClass('mt-10', 'callout-surface');
   });
 });

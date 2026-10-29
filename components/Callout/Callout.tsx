@@ -1,80 +1,57 @@
 import { InformationCircleIcon, SpamIcon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// my-3 stacks on the post's block gap rather than collapsing into it: the parent
-// is a flex column.
-const calloutVariants = cva('relative my-3 rounded-xl border px-4 py-3', {
-  variants: {
-    variant: {
-      info: 'border-primary/15 bg-primary/10 dark:border-primary/[0.08]',
-      danger: 'border-destructive/15 bg-destructive/10 dark:border-destructive/[0.08]',
-    },
-  },
-  defaultVariants: { variant: 'info' },
-});
-
-// The badge inverts: variant colour as its surface, page background as its ink.
-const badgeColor = cva('bg-(--badge) text-background', {
-  variants: {
-    variant: {
-      info: '[--badge:var(--primary)]',
-      danger: '[--badge:var(--destructive)]',
-    },
-  },
-});
-
-type CalloutVariant = NonNullable<VariantProps<typeof calloutVariants>['variant']>;
-
-const variantIcon: Record<CalloutVariant, IconSvgElement> = {
-  info: InformationCircleIcon,
-  danger: SpamIcon,
+// Each variant only sets the colour `callout-surface` derives everything from.
+const VARIANTS = {
+  info: { icon: InformationCircleIcon, name: 'Note', accent: '[--callout:var(--primary)]' },
+  warning: { icon: SpamIcon, name: 'Warning', accent: '[--callout:var(--warning)]' },
+  danger: { icon: SpamIcon, name: 'Caution', accent: '[--callout:var(--destructive)]' },
 };
 
-const variantAnnounce: Record<CalloutVariant, string> = {
-  info: 'Note',
-  danger: 'Warning',
-};
+export type CalloutVariant = keyof typeof VARIANTS;
 
-interface CalloutProps {
+export interface CalloutProps {
   variant?: CalloutVariant;
-  /** A short text pill in the corner. Replaces the default icon when set. */
-  label?: string;
+  /** Replaces the variant's own name in the header. */
+  label?: ReactNode;
+  className?: string;
   children?: ReactNode;
 }
 
-export function Callout({ variant = 'info', label, children }: CalloutProps) {
+export function Callout({ variant = 'info', label, className, children }: CalloutProps) {
+  const { icon, name, accent } = VARIANTS[variant];
+
   return (
-    <aside className={calloutVariants({ variant })}>
-      <span className="sr-only">{variantAnnounce[variant]}: </span>
-
-      {label ? (
-        <span
-          className={cn(
-            'absolute -top-4 -right-2 rounded-lg px-2.5 py-1.5 text-sm font-medium select-none',
-            badgeColor({ variant })
-          )}
-        >
-          {label}
-        </span>
-      ) : (
-        <span
-          aria-hidden="true"
-          className={cn(
-            'absolute -top-5 -right-5 grid place-items-center rounded-full border-[6px] border-background p-1.5',
-            badgeColor({ variant })
-          )}
-        >
-          <HugeiconsIcon icon={variantIcon[variant]} size={20} strokeWidth={2.5} />
-        </span>
+    <aside
+      className={cn(
+        // my-3 stacks on the post's block gap rather than collapsing into it: the
+        // parent is a flex column. --frame-radius shrinks the corners of a framed
+        // block inside, so they nest in the callout's.
+        'callout-surface my-3 rounded-xl p-4 [--frame-radius:var(--radius-md)]',
+        accent,
+        className,
       )}
+    >
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium text-(--callout-ink)">
+        <HugeiconsIcon icon={icon} size={16} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+        {label ? (
+          <>
+            {/* The label replaces the name for the eye; a screen reader still hears the variant. */}
+            <span className="sr-only">{name}: </span>
+            {label}
+          </>
+        ) : (
+          name
+        )}
+      </div>
 
-      {/* `[&>*]:my-0` neutralises each child's own margin so the gap alone sets
-          the rhythm, letting any block sit inside. */}
-      <div className="flex flex-col gap-4 [&>*]:my-0 [&>p]:text-foreground">
+      {/* Set here as well as on the paragraph MDX wraps multi-line children in, so a
+          one-line callout reads like any other. `[&>*]:my-0` leaves the rhythm to the
+          gap alone, so any block can sit inside. */}
+      <div className="flex flex-col gap-4 font-display text-base leading-7 text-foreground [&>*]:my-0 [&>p]:text-inherit">
         {children}
       </div>
     </aside>
