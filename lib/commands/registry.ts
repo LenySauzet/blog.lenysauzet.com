@@ -166,10 +166,10 @@ export const commands: Command[] = [
     },
     {
         id: 'design-system',
-        label: 'Design System',
+        label: 'The Component Showcase',
         icon: ArrowRight02Icon,
         group: 'Navigation',
-        keywords: ['components', 'reference'],
+        keywords: ['components', 'reference', 'design system'],
         run: ({ router }) => router.push('/posts/design-system'),
     },
     {
