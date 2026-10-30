@@ -501,6 +501,28 @@ figure[data-rehype-pretty-code-figure] [data-chars-id='remove'] {
   text-decoration: line-through;
   text-decoration-color: var(--code-removed-ink);
 }
+/* A line holding such a word is a changed line, tinted as one: green for an
+   addition, red for a removal, the accent when it holds both. */
+figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='add']) {
+  border-left-color: var(--success);
+  background-color: var(--code-added);
+}
+figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='remove']) {
+  border-left-color: var(--destructive);
+  background-color: var(--code-removed);
+}
+figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='add']):has([data-chars-id='remove']) {
+  border-left-color: var(--primary);
+  background-color: var(--code-emphasis);
+}
+/* `variant="danger"` is output, not source: no line numbers, and long lines wrap. */
+figure[data-variant='danger'] code > [data-line]::before {
+  content: none;
+}
+figure[data-variant='danger'] pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 /* Block code is excluded by ancestor, which a component override cannot see but
    this selector can. */

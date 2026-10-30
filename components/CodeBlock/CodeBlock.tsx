@@ -159,18 +159,23 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       {title ? (
         // Our own header, so the copy button sits in the flex row instead of
         // floating over rehype's figcaption.
-        <div className="flex items-center justify-between gap-3 border-b border-[var(--code-border)] py-2 pr-2 pl-4">
-          <span
-            className={cn(
-              'font-display text-sm font-medium',
-              danger ? 'text-[var(--code-removed-ink)]' : 'text-foreground'
-            )}
-          >
-            {title.props.children}
-          </span>
-          <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            'flex items-center justify-between gap-3 py-2 pr-2 pl-4',
+            !danger && 'border-b border-[var(--code-border)]'
+          )}
+        >
+          <div className="flex min-w-0 items-baseline gap-3">
+            <span
+              className={cn(
+                'truncate font-display text-sm font-medium',
+                danger ? 'text-[var(--code-removed-ink)]' : 'text-foreground'
+              )}
+            >
+              {title.props.children}
+            </span>
             {added + removed > 0 && (
-              <span className="font-mono text-xs tabular-nums">
+              <span className="shrink-0 font-mono text-xs tabular-nums">
                 <span aria-hidden="true">
                   <span className="text-[var(--code-added-ink)]">+{added}</span>
                   <span className="text-subtle-foreground"> / </span>
@@ -181,8 +186,8 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
                 </span>
               </span>
             )}
-            <CopyButton getText={getText} />
           </div>
+          <CopyButton getText={getText} />
         </div>
       ) : (
         <CopyButton
@@ -221,7 +226,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           // that deepens with it, so they recede rather than stop.
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-32 bg-gradient-to-t from-[var(--code-bg)] from-25% to-transparent backdrop-blur-[3px] [mask-image:linear-gradient(to_top,#000_40%,transparent)] print:hidden"
+            className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-48 bg-gradient-to-t from-[var(--code-bg)] from-35% to-transparent backdrop-blur-[4px] [mask-image:linear-gradient(to_top,#000_50%,transparent)] print:hidden"
           />
         )}
       </div>
