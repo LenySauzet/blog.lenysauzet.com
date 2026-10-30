@@ -491,30 +491,6 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);
 }
-/* A diff inside a line: `/word/#add` or `/word/#remove` on the fence. The removed
-   word is struck through, so the two do not differ by colour alone. */
-figure[data-rehype-pretty-code-figure] [data-chars-id='add'] {
-  background-color: oklch(from var(--success) l c h / 0.24);
-}
-figure[data-rehype-pretty-code-figure] [data-chars-id='remove'] {
-  background-color: oklch(from var(--destructive) l c h / 0.22);
-  text-decoration: line-through;
-  text-decoration-color: var(--code-removed-ink);
-}
-/* A line holding such a word is a changed line, tinted as one: green for an
-   addition, red for a removal, the accent when it holds both. */
-figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='add']) {
-  border-left-color: var(--success);
-  background-color: var(--code-added);
-}
-figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='remove']) {
-  border-left-color: var(--destructive);
-  background-color: var(--code-removed);
-}
-figure[data-rehype-pretty-code-figure] [data-line]:has([data-chars-id='add']):has([data-chars-id='remove']) {
-  border-left-color: var(--primary);
-  background-color: var(--code-emphasis);
-}
 /* `variant="danger"` is output, not source: no line numbers, and long lines wrap. */
 figure[data-variant='danger'] code > [data-line]::before {
   content: none;
