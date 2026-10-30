@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 
+import { glassSurface } from '@/components/ui/glass';
 import { cn } from '@/lib/utils';
 
 import { CopyButton } from './CopyButton';
@@ -41,12 +42,39 @@ const FADE = 24;
 // less than a third of it would hide too little to be worth the click.
 const FOLD_ABOVE = 24;
 
-function countLines(node: ReactNode): number {
-  return Children.toArray(node).reduce<number>((count, child) => {
-    if (!isValidElement<{ children?: ReactNode }>(child)) return count;
-    return count + ('data-line' in child.props ? 1 : countLines(child.props.children));
-  }, 0);
+interface CodeStats {
+  lines: number;
+  added: number;
+  removed: number;
+  variant?: string;
 }
+
+type CodeProps = { children?: ReactNode; className?: string; 'data-variant'?: string };
+
+// Read off the markup rehype-pretty-code emits: a line is a `data-line` span, a
+// diff marks it `add` or `remove`, and a fence's variant sits on its <pre>.
+function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, removed: 0 }) {
+  Children.forEach(node, (child) => {
+    if (!isValidElement<CodeProps>(child)) return;
+    const { props } = child;
+    stats.variant ??= props['data-variant'];
+    if (!('data-line' in props)) {
+      readCode(props.children, stats);
+      return;
+    }
+    const classes = props.className?.split(' ') ?? [];
+    stats.lines += 1;
+    if (classes.includes('add')) stats.added += 1;
+    if (classes.includes('remove')) stats.removed += 1;
+  });
+  return stats;
+}
+
+// The surface, its edge and its fades all follow --code-bg and --code-border, so the
+// variant redefines those two; untokenised text, an error's, takes the ink. Mixed in
+// oklab: oklch would swing the hue from red through the theme's blue.
+const DANGER =
+  '[--code-bg:color-mix(in_oklab,var(--destructive)_7%,var(--card))] [--code-border:color-mix(in_oklab,var(--destructive)_40%,var(--border))] text-[var(--code-removed-ink)]';
 
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const figureRef = useRef<HTMLElement>(null);
@@ -56,17 +84,17 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
 
   // Written as CSS custom properties via ref so scrolling never re-renders React.
   useEffect(() => {
-    const container = scrollRef.current;
-    const pre = container?.querySelector('pre');
-    if (!container || !pre) return;
+    const figure = figureRef.current;
+    const pre = scrollRef.current?.querySelector('pre');
+    if (!figure || !pre) return;
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
     const update = () => {
       const max = pre.scrollWidth - pre.clientWidth;
       const left = max <= 1 ? 0 : clamp(pre.scrollLeft / FADE);
       const right = max <= 1 ? 0 : clamp((max - pre.scrollLeft) / FADE);
-      container.style.setProperty('--edge-left', String(left));
-      container.style.setProperty('--edge-right', String(right));
-      container.style.setProperty('--scrollbar', `${pre.offsetHeight - pre.clientHeight}px`);
+      figure.style.setProperty('--edge-left', String(left));
+      figure.style.setProperty('--edge-right', String(right));
+      figure.style.setProperty('--scrollbar', `${pre.offsetHeight - pre.clientHeight}px`);
       // Find in page scrolls a folded block down, past lines no reader could
       // scroll back to: unfold it instead.
       if (pre.scrollTop > 0) setExpanded(true);
@@ -85,8 +113,10 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const title = childArray.find(isTitle);
   const body = childArray.filter((child) => !isTitle(child));
   const label = typeof title?.props.children === 'string' ? title.props.children : undefined;
-  const lineCount = countLines(body);
-  const folded = lineCount > FOLD_ABOVE && !expanded;
+  const { lines, added, removed, variant } = readCode(body);
+  const foldable = lines > FOLD_ABOVE;
+  const folded = foldable && !expanded;
+  const danger = variant === 'danger';
 
   const toggle = () => {
     if (!expanded) {
@@ -104,9 +134,9 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
     // in ::before, stay out of the copied text, and without the lines a diff
     // removes, so what is pasted is the code the post arrives at. A diff line
     // keeps the space that stood before its stripped notation.
-    const lines = figureRef.current?.querySelectorAll('pre [data-line]:not(.remove)');
-    return lines?.length
-      ? Array.from(lines, (line) =>
+    const lineElements = figureRef.current?.querySelectorAll('pre [data-line]:not(.remove)');
+    return lineElements?.length
+      ? Array.from(lineElements, (line) =>
           line.classList.contains('diff') ? (line.textContent ?? '').trimEnd() : line.textContent
         ).join('\n')
       : (figureRef.current?.querySelector('pre')?.textContent ?? '');
@@ -115,8 +145,10 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   return (
     <figure
       ref={figureRef}
+      data-variant={variant}
       className={cn(
         'group relative my-6 overflow-hidden rounded-frame-xl border border-[var(--code-border)] bg-[var(--code-bg)] shadow-sm',
+        danger && DANGER,
         className
       )}
       {...props}
@@ -125,10 +157,27 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
         // Our own header, so the copy button sits in the flex row instead of
         // floating over rehype's figcaption.
         <div className="flex items-center justify-between gap-3 border-b border-[var(--code-border)] py-2 pr-2 pl-4">
-          <span className="font-display text-sm font-medium text-foreground">
+          <span
+            className={cn(
+              'font-display text-sm font-medium',
+              danger ? 'text-[var(--code-removed-ink)]' : 'text-foreground'
+            )}
+          >
             {title.props.children}
           </span>
-          <CopyButton getText={getText} />
+          <div className="flex items-center gap-2">
+            {added + removed > 0 && (
+              <span className="font-mono text-xs tabular-nums">
+                <span aria-hidden="true">
+                  <span className="text-[var(--code-added-ink)]">+{added}</span>
+                  <span className="text-subtle-foreground"> / </span>
+                  <span className="text-[var(--code-removed-ink)]">−{removed}</span>
+                </span>
+                <span className="sr-only">{`${added} added, ${removed} removed`}</span>
+              </span>
+            )}
+            <CopyButton getText={getText} />
+          </div>
         </div>
       ) : (
         <CopyButton
@@ -144,7 +193,12 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
         role="region"
         aria-label={label ?? 'Code'}
         data-folded={folded || undefined}
-        className="relative data-folded:[&_pre]:max-h-[calc(16lh+0.75rem+var(--scrollbar,0px))] data-folded:[&_pre]:overflow-y-hidden print:data-folded:[&_pre]:max-h-none"
+        className={cn(
+          'relative data-folded:[&_pre]:max-h-[calc(16lh+0.75rem+var(--scrollbar,0px))] data-folded:[&_pre]:overflow-y-hidden print:data-folded:[&_pre]:max-h-none',
+          // Room under the last line for the button floating over it. Important, to
+          // beat the padding globals.css gives every fenced <pre>.
+          foldable && '[&_pre]:pb-14! print:[&_pre]:pb-3!'
+        )}
       >
         {body}
         <div
@@ -158,21 +212,26 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           style={{ opacity: 'var(--edge-right, 0)' }}
         />
         {folded && (
+          // The fold's veil: the background rising over the last lines, and a blur
+          // that deepens with it, so they recede rather than stop.
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-16 bg-gradient-to-t from-[var(--code-bg)] to-transparent print:hidden"
+            className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-32 bg-gradient-to-t from-[var(--code-bg)] from-25% to-transparent backdrop-blur-[3px] [mask-image:linear-gradient(to_top,#000_40%,transparent)] print:hidden"
           />
         )}
       </div>
-      {lineCount > FOLD_ABOVE && (
+      {foldable && (
         <button
           type="button"
           aria-expanded={expanded}
           aria-controls={regionId}
           onClick={toggle}
-          className="flex w-full items-center justify-center gap-1.5 border-t border-[var(--code-border)] py-2 font-display text-sm text-muted-foreground transition-colors outline-none hover:bg-foreground/[0.04] hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset print:hidden"
+          className={cn(
+            glassSurface,
+            'absolute bottom-[calc(var(--scrollbar,0px)+0.75rem)] left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 font-display text-sm text-muted-foreground shadow-sm transition-colors outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 print:hidden'
+          )}
         >
-          {expanded ? 'Show less' : `Show all ${lineCount} lines`}
+          {expanded ? 'Show less' : `Show all ${lines} lines`}
           <HugeiconsIcon
             icon={ArrowDown01Icon}
             aria-hidden="true"

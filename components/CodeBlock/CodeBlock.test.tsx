@@ -93,6 +93,45 @@ describe('CodeBlock', () => {
     expect(writeText).toHaveBeenCalledWith('next();');
   });
 
+  it('counts a diff in the header, and says it in words', () => {
+    render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <figcaption data-rehype-pretty-code-title="">diff.ts</figcaption>
+        <pre className="has-diff">
+          <code>
+            <span data-line className="diff remove">a = 1;</span>
+            <span data-line className="diff add">a = 2;</span>
+            <span data-line className="diff add">b = 3;</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(screen.getByText('−1')).toBeInTheDocument();
+    expect(screen.getByText('2 added, 1 removed')).toHaveClass('sr-only');
+  });
+
+  it('shows no count on a block without a diff', () => {
+    render(<Long lines={3} />);
+
+    expect(screen.queryByText(/added/)).not.toBeInTheDocument();
+  });
+
+  it('carries the variant the fence names onto the figure', () => {
+    const { container } = render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <pre data-variant="danger">
+          <code>
+            <span data-line>TypeError: undefined</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    expect(container.querySelector('figure')).toHaveAttribute('data-variant', 'danger');
+  });
+
   it('drops the space a stripped diff notation leaves at the end of a line', async () => {
     render(
       <CodeBlock data-rehype-pretty-code-figure="">

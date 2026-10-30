@@ -161,6 +161,20 @@ function greet(name: string) {
 }
 ```
 
+A word can carry the change too, with `/word/#add` or `/word/#remove` on the fence:
+
+```tsx title="layout.tsx" /suppressHydrationWarning/#add
+<html lang="en" suppressHydrationWarning>
+```
+
+`variant="danger"` is for errors and failed output:
+
+```txt title="Error" variant="danger"
+TypeError: Cannot read properties of undefined (reading 'map')
+    at MessageList (components/message-list.tsx:18:22)
+    at renderWithHooks (react-dom.development.js:16305:18)
+```
+
 A block longer than 24 lines folds to its first 16:
 
 ```ts title="easing.ts"

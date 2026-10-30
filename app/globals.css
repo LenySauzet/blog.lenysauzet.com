@@ -450,10 +450,14 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
 figure[data-rehype-pretty-code-figure] [data-line].diff {
   position: relative;
 }
+/* A diff widens the gutter by half a rem and centres its sign in it, between a number
+   of up to three digits and the code. */
+figure[data-rehype-pretty-code-figure] pre.has-diff code > [data-line]::before {
+  margin-right: 1.75rem;
+}
 figure[data-rehype-pretty-code-figure] [data-line].diff::after {
-  /* In the gutter, past the line's 1rem padding and a number of up to three digits. */
   position: absolute;
-  left: 2.8rem;
+  left: 2.95rem;
 }
 figure[data-rehype-pretty-code-figure] [data-line].add {
   border-left-color: var(--success);
@@ -477,6 +481,16 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);
+}
+/* A diff inside a line: `/word/#add` or `/word/#remove` on the fence. The removed
+   word is struck through, so the two do not differ by colour alone. */
+figure[data-rehype-pretty-code-figure] [data-chars-id='add'] {
+  background-color: oklch(from var(--success) l c h / 0.24);
+}
+figure[data-rehype-pretty-code-figure] [data-chars-id='remove'] {
+  background-color: oklch(from var(--destructive) l c h / 0.22);
+  text-decoration: line-through;
+  text-decoration-color: var(--code-removed-ink);
 }
 
 /* Block code is excluded by ancestor, which a component override cannot see but
