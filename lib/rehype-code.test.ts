@@ -51,7 +51,7 @@ describe('rehypeCode', () => {
   });
 
   it('fails on a variant no block is styled for', async () => {
-    await expect(render('x', 'variant="warning"')).rejects.toThrow('Unknown code block variant "warning"');
+    await expect(render('x', 'variant="success"')).rejects.toThrow('Unknown code block variant "success"');
   });
 
   it('marks the lines Shiki diff notation names', async () => {

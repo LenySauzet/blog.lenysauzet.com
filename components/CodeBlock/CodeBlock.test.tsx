@@ -133,19 +133,23 @@ describe('CodeBlock', () => {
     expect(screen.getByText('1 added')).toHaveClass('sr-only');
   });
 
-  it('names an untitled error block, its colour not being enough', () => {
+  it.each([
+    ['info', 'Info'],
+    ['warning', 'Warning'],
+    ['danger', 'Error'],
+  ])('names an untitled %s block %s, its colour not being enough', (variant, heading) => {
     render(
       <CodeBlock data-rehype-pretty-code-figure="">
-        <pre data-variant="danger">
+        <pre data-variant={variant}>
           <code>
-            <span data-line>TypeError: undefined</span>
+            <span data-line>A log line</span>
           </code>
         </pre>
       </CodeBlock>
     );
 
-    expect(screen.getByRole('region', { name: 'Error' })).toBeInTheDocument();
-    expect(screen.getByText('Error')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: heading })).toBeInTheDocument();
+    expect(screen.getByText(heading)).toBeInTheDocument();
   });
 
   it('carries the variant the fence names onto the figure', () => {

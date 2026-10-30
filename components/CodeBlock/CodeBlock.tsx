@@ -74,10 +74,8 @@ function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, remo
   return stats;
 }
 
-// The surface, its edge and its fades all follow --code-bg and --code-border, so the
-// variant redefines those two; untokenised text, an error's, takes the ink.
-const DANGER =
-  '[--code-bg:var(--code-danger-bg)] [--code-border:var(--code-danger-border)] text-[var(--code-removed-ink)]';
+// A log block's title when its fence gives none: its colour alone would not say it.
+const LOG_HEADINGS: Record<string, string> = { info: 'Info', warning: 'Warning', danger: 'Error' };
 
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const figureRef = useRef<HTMLElement>(null);
@@ -118,9 +116,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const { lines, added, removed, variant } = readCode(body);
   const foldable = lines > FOLD_ABOVE;
   const folded = foldable && !expanded;
-  const danger = variant === 'danger';
-  // An error says so in words too, its colour not being enough on its own.
-  const heading = title?.props.children ?? (danger ? 'Error' : undefined);
+  const heading = title?.props.children ?? (variant && LOG_HEADINGS[variant]);
   const label = typeof heading === 'string' ? heading : undefined;
 
   const toggle = () => {
@@ -153,7 +149,6 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       data-variant={variant}
       className={cn(
         'group relative my-6 overflow-hidden rounded-frame-xl border border-[var(--code-border)] bg-[var(--code-bg)] shadow-sm',
-        danger && DANGER,
         className
       )}
       {...props}
@@ -164,14 +159,14 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
         <div
           className={cn(
             'flex items-center justify-between gap-3 py-2 pr-2 pl-4',
-            !danger && 'border-b border-[var(--code-border)]'
+            !variant && 'border-b border-[var(--code-border)]'
           )}
         >
           <div className="flex min-w-0 items-baseline gap-3">
             <span
               className={cn(
                 'truncate font-display text-sm font-medium',
-                danger ? 'text-[var(--code-removed-ink)]' : 'text-foreground'
+                variant ? 'text-[var(--code-ink)]' : 'text-foreground'
               )}
             >
               {heading}
@@ -192,8 +187,8 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           <CopyButton
             getText={getText}
             className={cn(
-              danger &&
-                'text-[var(--code-removed-ink)] hover:bg-[var(--code-removed)] hover:text-[var(--code-removed-ink)] focus-visible:bg-[var(--code-removed)] focus-visible:text-[var(--code-removed-ink)]'
+              variant &&
+                'text-[var(--code-ink)] hover:bg-[var(--code-wash)] hover:text-[var(--code-ink)] focus-visible:bg-[var(--code-wash)] focus-visible:text-[var(--code-ink)]'
             )}
           />
         </div>

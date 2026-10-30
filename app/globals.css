@@ -194,10 +194,6 @@
   /* The diff signs are text: capped so they clear 4.5:1 on their tinted lines. */
   --code-added-ink: oklch(from var(--success) min(l, 0.45) c h);
   --code-removed-ink: oklch(from var(--destructive) min(l, 0.5) c h);
-  /* A block's `variant="danger"` surface. Mixed in oklab: oklch would swing the hue
-     from red through the theme's blue. */
-  --code-danger-bg: color-mix(in oklab, var(--destructive) 7%, var(--card));
-  --code-danger-border: color-mix(in oklab, var(--destructive) 40%, var(--border));
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -276,8 +272,6 @@
   --code-removed: oklch(from var(--destructive) l c h / 0.14);
   --code-added-ink: var(--success);
   --code-removed-ink: oklch(from var(--destructive) max(l, 0.75) c h);
-  --code-danger-bg: color-mix(in oklab, var(--destructive) 7%, var(--card));
-  --code-danger-border: color-mix(in oklab, var(--destructive) 40%, var(--border));
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -491,17 +485,39 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);
 }
-/* `variant="danger"` is output, not source: no line numbers, and long lines wrap. */
-figure[data-variant='danger'] code > [data-line]::before {
+/* A log block: `variant="info"`, `"warning"` or `"danger"` on a fence. Output rather
+   than source, so unnumbered and wrapped, and tinted by one accent, as a Callout is.
+   Mixed in oklab: oklch would swing a hue through the theme's blue. The ink is capped
+   on the light page, where --warning reads 2.4:1, so every variant clears 4.5:1. */
+figure[data-variant] {
+  --code-bg: color-mix(in oklab, var(--code-accent) 7%, var(--card));
+  --code-border: color-mix(in oklab, var(--code-accent) 40%, var(--border));
+  --code-wash: oklch(from var(--code-accent) l c h / 0.12);
+  --code-ink: oklch(from var(--code-accent) min(l, 0.5) c h);
+  color: var(--code-ink);
+}
+.dark figure[data-variant] {
+  --code-ink: oklch(from var(--code-accent) max(l, 0.75) c h);
+}
+figure[data-variant='info'] {
+  --code-accent: var(--primary);
+}
+figure[data-variant='warning'] {
+  --code-accent: var(--warning);
+}
+figure[data-variant='danger'] {
+  --code-accent: var(--destructive);
+}
+figure[data-variant] code > [data-line]::before {
   content: none;
 }
-figure[data-variant='danger'] pre {
+figure[data-variant] pre {
   padding-top: 0.25rem;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 /* Without numbers, the text lines up with the title above it. */
-figure[data-variant='danger'] [data-line] {
+figure[data-variant] [data-line] {
   border-left-width: 0;
 }
 

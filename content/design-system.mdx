@@ -161,9 +161,18 @@ function greet(name: string) {
 }
 ```
 
-`variant="danger"` is for errors and failed output:
+`variant="info"`, `"warning"` and `"danger"` are for logs and output, titled after their level unless given a title:
 
-```txt title="Error" variant="danger"
+```txt variant="info"
+ready - started server on 0.0.0.0:3000, url: http://localhost:3000
+```
+
+```txt variant="warning"
+Warning: Each child in a list should have a unique "key" prop.
+    Check the render method of `PostList`.
+```
+
+```txt title="TypeError" variant="danger"
 TypeError: Cannot read properties of undefined (reading 'map')
     at MessageList (components/message-list.tsx:18:22)
     at renderWithHooks (react-dom.development.js:16305:18)
