@@ -185,6 +185,15 @@ Two `globals.css` rules fight Tailwind preflight's `svg { display: block }`, whi
 otherwise decentres display math and breaks inline math onto its own line. Array cells are
 textstyle by LaTeX rule, so use `\dfrac` for displaystyle fractions.
 
+**Fenced code (`components/CodeBlock`).** A fence takes `title="file.ts"` and `{2,5-7}` to
+highlight lines. A changed line ends in `// [!code ++]` or `// [!code --]` (Shiki's
+notation, in the language's own comment syntax), which the build strips and draws as a
+diff; copying leaves the removed lines out. The transformer runs through
+`lib/rehype-code.mjs`, because Turbopack cannot pass a function as a plugin option. A
+block over 24 lines folds to its first 16 behind a "Show all" button, so a long listing
+does not bury the prose around it: split one rather than let it fold when every line
+matters.
+
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in
 `app/globals.css` under `ol[data-list='ordered']`, a deliberate exception to the

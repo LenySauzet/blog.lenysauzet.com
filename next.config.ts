@@ -1,6 +1,7 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
 import createMDX from '@next/mdx';
 import type { NextConfig } from 'next';
+import { join } from 'node:path';
 
 import { codeTheme } from './config/code-theme';
 import siteConfig from './config/site';
@@ -26,7 +27,8 @@ const withMDX = createMDX({
       // Fenced blocks only. Inline code is left unhighlighted and takes a flat
       // --code-inline instead: a bare identifier tokenises as plain text in any
       // grammar, so highlighting only ever dimmed it into the prose.
-      ['rehype-pretty-code', { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
+      // Absolute: the loader resolves a path from the directory of the MDX file.
+      [join(__dirname, 'lib/rehype-code.mjs'), { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
     ],
   },
 });

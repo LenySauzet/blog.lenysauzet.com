@@ -189,6 +189,8 @@
   --code-bg: var(--card);
   --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
+  --code-added: oklch(from var(--success) l c h / 0.1);
+  --code-removed: oklch(from var(--destructive) l c h / 0.1);
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -263,6 +265,8 @@
 
   /* --code-bg and --code-border inherit their :root aliases. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
+  --code-added: oklch(from var(--success) l c h / 0.12);
+  --code-removed: oklch(from var(--destructive) l c h / 0.14);
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -422,6 +426,8 @@ figure[data-rehype-pretty-code-figure] [data-line] {
 }
 figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);
+  /* Shown, not read: a screen reader would otherwise open every line with its number. */
+  content: counter(line) / '';
   counter-increment: line;
   display: inline-block;
   width: 1.25rem;
@@ -433,6 +439,32 @@ figure[data-rehype-pretty-code-figure] code > [data-line]::before {
 figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
   border-left-color: var(--primary);
   background-color: var(--code-emphasis);
+}
+/* Lines marked `// [!code ++]` or `// [!code --]`. The sign says it as well as the
+   colour, and a screen reader reads it. */
+figure[data-rehype-pretty-code-figure] [data-line].diff {
+  position: relative;
+}
+figure[data-rehype-pretty-code-figure] [data-line].diff::after {
+  /* In the gutter, past the number's 1rem padding and 1.25rem width. */
+  position: absolute;
+  left: 2.6rem;
+}
+figure[data-rehype-pretty-code-figure] [data-line].add {
+  border-left-color: var(--success);
+  background-color: var(--code-added);
+}
+figure[data-rehype-pretty-code-figure] [data-line].add::after {
+  content: '+';
+  color: var(--success);
+}
+figure[data-rehype-pretty-code-figure] [data-line].remove {
+  border-left-color: var(--destructive);
+  background-color: var(--code-removed);
+}
+figure[data-rehype-pretty-code-figure] [data-line].remove::after {
+  content: '−';
+  color: var(--destructive);
 }
 figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border-radius: var(--radius-sm);

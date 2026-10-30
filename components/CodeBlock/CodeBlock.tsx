@@ -1,5 +1,7 @@
 'use client';
 
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Children,
   type ComponentPropsWithoutRef,
@@ -7,7 +9,9 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
+  useId,
   useRef,
+  useState,
 } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -32,9 +36,22 @@ export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<'figu
 // Distance over which an edge fade reaches full opacity.
 const FADE = 24;
 
+// A block longer than this folds to its first 16 lines, the `16lh` below: folding
+// less than a third of it would hide too little to be worth the click.
+const FOLD_ABOVE = 24;
+
+function countLines(node: ReactNode): number {
+  return Children.toArray(node).reduce<number>((count, child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) return count;
+    return count + ('data-line' in child.props ? 1 : countLines(child.props.children));
+  }, 0);
+}
+
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const figureRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const regionId = useId();
+  const [expanded, setExpanded] = useState(false);
 
   // Written as CSS custom properties via ref so scrolling never re-renders React.
   useEffect(() => {
@@ -63,11 +80,20 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const title = childArray.find(isTitle);
   const body = childArray.filter((child) => !isTitle(child));
   const label = typeof title?.props.children === 'string' ? title.props.children : undefined;
+  const lineCount = countLines(body);
+  const folded = lineCount > FOLD_ABOVE && !expanded;
+
+  const toggle = () => {
+    setExpanded(!expanded);
+    // Folding pulls the button up past a reader scrolled deep into the block.
+    if (expanded) figureRef.current?.scrollIntoView({ block: 'nearest' });
+  };
 
   const getText = () => {
-    const lines = figureRef.current?.querySelectorAll('pre [data-line]');
     // Rebuilt from the line elements so the CSS line-number counters, which live
-    // in ::before, stay out of the copied text.
+    // in ::before, stay out of the copied text, and without the lines a diff
+    // removes, so what is pasted is the code the post arrives at.
+    const lines = figureRef.current?.querySelectorAll('pre [data-line]:not(.remove)');
     return lines?.length
       ? Array.from(lines, (line) => line.textContent).join('\n')
       : (figureRef.current?.querySelector('pre')?.textContent ?? '');
@@ -99,7 +125,16 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       )}
       {/* Names the scrollable region. The <pre> is already tab-focusable
           (rehype-pretty-code sets tabindex). */}
-      <div ref={scrollRef} role="region" aria-label={label ?? 'Code'} className="relative">
+      <div
+        ref={scrollRef}
+        id={regionId}
+        role="region"
+        aria-label={label ?? 'Code'}
+        className={cn(
+          'relative',
+          folded && '[&_pre]:max-h-[calc(16lh+0.75rem)] [&_pre]:overflow-y-hidden print:[&_pre]:max-h-none'
+        )}
+      >
         {body}
         <div
           aria-hidden="true"
@@ -111,7 +146,29 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           className="pointer-events-none absolute inset-y-0 right-0 w-[70px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
           style={{ opacity: 'var(--edge-right, 0)' }}
         />
+        {folded && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--code-bg)] to-transparent print:hidden"
+          />
+        )}
       </div>
+      {lineCount > FOLD_ABOVE && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={regionId}
+          onClick={toggle}
+          className="flex w-full items-center justify-center gap-1.5 border-t border-[var(--code-border)] py-2 font-display text-sm text-muted-foreground transition-colors outline-none hover:bg-foreground/[0.04] hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset print:hidden"
+        >
+          {expanded ? 'Show less' : `Show all ${lineCount} lines`}
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            aria-hidden="true"
+            className={cn('size-4 transition-transform motion-reduce:transition-none', expanded && 'rotate-180')}
+          />
+        </button>
+      )}
     </figure>
   );
 }
