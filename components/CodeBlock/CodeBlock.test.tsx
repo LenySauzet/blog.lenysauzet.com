@@ -152,6 +152,22 @@ describe('CodeBlock', () => {
     expect(screen.getByText(heading)).toBeInTheDocument();
   });
 
+  it('keeps a given title, and still says the level before it', () => {
+    render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <figcaption data-rehype-pretty-code-title="">next build</figcaption>
+        <pre data-variant="warning">
+          <code>
+            <span data-line>A log line</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    expect(screen.getByRole('region', { name: 'Warning: next build' })).toBeInTheDocument();
+    expect(screen.getByText('Warning:')).toHaveClass('sr-only');
+  });
+
   it('carries the variant the fence names onto the figure', () => {
     const { container } = render(
       <CodeBlock data-rehype-pretty-code-figure="">

@@ -195,13 +195,13 @@ diff, its `+` and `−` read aloud as "added" and "removed"; copying leaves the 
 lines out, the Markdown twin serves the fence as a `diff`, and a titled block counts
 them beside its title. `variant="info"`, `"warning"` or `"danger"` makes it a log, the
 levels `Callout` has: tinted by one accent, unnumbered, wrapped, and titled "Info",
-"Warning" or "Error" unless it is given a title, its colour not being enough on its own.
-Another variant fails the build. The transformers run through
-`lib/rehype-code.mjs`, because Turbopack cannot pass a function as a plugin option.
-**A running `bun dev` keeps the version it started with**: restart it after changing
-that file. A block over 24 lines folds to its
-first 16 under a veil, a floating button unfolding it, so a long listing does not bury
-the prose around it: split one rather than let it fold when every line matters.
+"Warning" or "Error" unless given a title, before which the level is still read aloud.
+Another variant fails the build, as does a log carrying a diff or highlighted lines.
+The transformers run through `lib/rehype-code.mjs`, because Turbopack cannot pass a
+function as a plugin option. **A running `bun dev` keeps the version it started with**:
+restart it after changing that file. A block over 24 lines folds to its first 16 under
+a veil, a floating button unfolding it, so a long listing does not bury the prose
+around it: split one rather than let it fold when every line matters.
 
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in

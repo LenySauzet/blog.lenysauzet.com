@@ -489,35 +489,35 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
    than source, so unnumbered and wrapped, and tinted by one accent, as a Callout is.
    Mixed in oklab: oklch would swing a hue through the theme's blue. The ink is capped
    on the light page, where --warning reads 2.4:1, so every variant clears 4.5:1. */
-figure[data-variant] {
+figure[data-rehype-pretty-code-figure][data-variant] {
   --code-bg: color-mix(in oklab, var(--code-accent) 7%, var(--card));
   --code-border: color-mix(in oklab, var(--code-accent) 40%, var(--border));
   --code-wash: oklch(from var(--code-accent) l c h / 0.12);
   --code-ink: oklch(from var(--code-accent) min(l, 0.5) c h);
   color: var(--code-ink);
 }
-.dark figure[data-variant] {
+.dark figure[data-rehype-pretty-code-figure][data-variant] {
   --code-ink: oklch(from var(--code-accent) max(l, 0.75) c h);
 }
-figure[data-variant='info'] {
+figure[data-rehype-pretty-code-figure][data-variant='info'] {
   --code-accent: var(--primary);
 }
-figure[data-variant='warning'] {
+figure[data-rehype-pretty-code-figure][data-variant='warning'] {
   --code-accent: var(--warning);
 }
-figure[data-variant='danger'] {
+figure[data-rehype-pretty-code-figure][data-variant='danger'] {
   --code-accent: var(--destructive);
 }
-figure[data-variant] code > [data-line]::before {
+figure[data-rehype-pretty-code-figure][data-variant] code > [data-line]::before {
   content: none;
 }
-figure[data-variant] pre {
+figure[data-rehype-pretty-code-figure][data-variant] pre {
   padding-top: 0.25rem;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 /* Without numbers, the text lines up with the title above it. */
-figure[data-variant] [data-line] {
+figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
   border-left-width: 0;
 }
 

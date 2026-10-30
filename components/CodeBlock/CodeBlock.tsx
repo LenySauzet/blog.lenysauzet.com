@@ -74,8 +74,14 @@ function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, remo
   return stats;
 }
 
-// A log block's title when its fence gives none: its colour alone would not say it.
-const LOG_HEADINGS: Record<string, string> = { info: 'Info', warning: 'Warning', danger: 'Error' };
+// A log block's level in words, its colour alone not saying it: the title when the
+// fence gives none, and read before the one it gives. lib/rehype-code.mjs admits the
+// same three.
+const LOG_LEVELS = new Map([
+  ['info', 'Info'],
+  ['warning', 'Warning'],
+  ['danger', 'Error'],
+]);
 
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const figureRef = useRef<HTMLElement>(null);
@@ -116,8 +122,10 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const { lines, added, removed, variant } = readCode(body);
   const foldable = lines > FOLD_ABOVE;
   const folded = foldable && !expanded;
-  const heading = title?.props.children ?? (variant && LOG_HEADINGS[variant]);
-  const label = typeof heading === 'string' ? heading : undefined;
+  const level = variant ? LOG_LEVELS.get(variant) : undefined;
+  const heading = title?.props.children ?? level;
+  const named = title && level ? `${level}: ` : '';
+  const label = typeof heading === 'string' ? named + heading : undefined;
 
   const toggle = () => {
     if (!expanded) {
@@ -159,16 +167,17 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
         <div
           className={cn(
             'flex items-center justify-between gap-3 py-2 pr-2 pl-4',
-            !variant && 'border-b border-[var(--code-border)]'
+            !level && 'border-b border-[var(--code-border)]'
           )}
         >
           <div className="flex min-w-0 items-baseline gap-3">
             <span
               className={cn(
-                'truncate font-display text-sm font-medium',
-                variant ? 'text-[var(--code-ink)]' : 'text-foreground'
+                'min-w-0 font-display text-sm font-medium wrap-anywhere',
+                level ? 'text-[var(--code-ink)]' : 'text-foreground'
               )}
             >
+              {title && level && <span className="sr-only">{level}: </span>}
               {heading}
             </span>
             {added + removed > 0 && (
@@ -187,7 +196,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           <CopyButton
             getText={getText}
             className={cn(
-              variant &&
+              level &&
                 'text-[var(--code-ink)] hover:bg-[var(--code-wash)] hover:text-[var(--code-ink)] focus-visible:bg-[var(--code-wash)] focus-visible:text-[var(--code-ink)]'
             )}
           />

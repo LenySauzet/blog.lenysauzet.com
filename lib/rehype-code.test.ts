@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { codeTheme } from '@/config/code-theme';
 
-import rehypeCode from './rehype-code.mjs';
+import rehypeCode, { VARIANTS } from './rehype-code.mjs';
 
 // A fence as remark-rehype hands it over: <pre><code> with the fence's meta as data.
 async function render(code: string, meta: string, lang = 'txt') {
@@ -38,10 +38,17 @@ function find(node: Root | Element, test: (element: Element) => boolean): Elemen
 }
 
 describe('rehypeCode', () => {
-  it('reads variant="danger" off the fence onto its <pre>', async () => {
-    const tree = await render('TypeError: boom', 'title="Error" variant="danger"');
+  it.each(VARIANTS)('reads variant="%s" off the fence onto its <pre>', async (variant) => {
+    const tree = await render('A log line', `title="Log" variant="${variant}"`);
 
-    expect(find(tree, (el) => el.tagName === 'pre')[0].properties.dataVariant).toBe('danger');
+    expect(find(tree, (el) => el.tagName === 'pre')[0].properties.dataVariant).toBe(variant);
+  });
+
+  it('fails on a log carrying a diff or highlighted lines', async () => {
+    await expect(render('a = 1; // [!code ++]', 'variant="warning"', 'ts')).rejects.toThrow(
+      'A "warning" log takes no diff and no highlighted lines.'
+    );
+    await expect(render('a\nb', 'variant="info" {2}')).rejects.toThrow('A "info" log');
   });
 
   it('does not take the quoted variant for a word to highlight', async () => {
