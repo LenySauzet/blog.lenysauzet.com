@@ -44,6 +44,25 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--input-icon`            | A field's idle icon                |
 | `--glow`                  | Bloom under interactive surfaces   |
 
+### Code Tokens
+
+Fenced code, in `app/globals.css`. A log block redefines the first two and its ink from
+one `--code-accent`, which `LOG_LEVELS` in `components/CodeBlock/read-code.ts` sets.
+
+| Token                | Usage                                          |
+| -------------------- | ---------------------------------------------- |
+| `--code-bg`          | A block's surface                              |
+| `--code-border`      | Its edge and dividers                          |
+| `--code-emphasis`    | A highlighted line                             |
+| `--code-inline`      | Inline code                                    |
+| `--code-added`       | A diff's added line                            |
+| `--code-removed`     | A diff's removed line                          |
+| `--code-added-ink`   | Its `+` sign and count, 4.5:1 on the tint      |
+| `--code-removed-ink` | Its `−` sign and count, 4.5:1 on the tint      |
+| `--code-accent`      | A log's level colour                           |
+| `--code-ink`         | A log's text, title and copy icon              |
+| `--code-wash`        | A log's hover and focus fill                   |
+
 ### Radius Tokens
 
 | Token          | Value                   |

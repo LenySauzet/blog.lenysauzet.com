@@ -54,6 +54,21 @@ describe('toMarkdown', () => {
     expect(toMarkdown(post('Body.'))).not.toContain('updated:');
   });
 
+  it('turns a fence written with diff notation into a diff', () => {
+    const body = "```ts\nfunction greet(name) {\n  return 'Hello ' + name; // [!code --]\n  return `Hello ${name}`; // [!code ++]\n}\n```";
+
+    expect(toMarkdown(post(body))).toContain(
+      "```diff\n function greet(name) {\n-  return 'Hello ' + name;\n+  return `Hello ${name}`;\n }\n```"
+    );
+  });
+
+  it('reads the notation in other comment syntaxes', () => {
+    const out = toMarkdown(post('```py\nx = 1  # [!CODE ++]\n```\n\n```html\n<p></p> <!-- [!code --] -->\n```'));
+
+    expect(out).toContain('```diff\n+x = 1\n```');
+    expect(out).toContain('```diff\n-<p></p>\n```');
+  });
+
   // The body is the point: fences, headings and links survive untouched.
   it('leaves the prose exactly as written', () => {
     const body = '## Why\n\nA [link](https://x.dev).\n\n```glsl\nvec3 p;\n```';

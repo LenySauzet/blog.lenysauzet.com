@@ -189,6 +189,11 @@
   --code-bg: var(--card);
   --code-border: var(--border);
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
+  --code-added: oklch(from var(--success) l c h / 0.1);
+  --code-removed: oklch(from var(--destructive) l c h / 0.1);
+  /* The diff signs are text: capped so they clear 4.5:1 on their tinted lines. */
+  --code-added-ink: oklch(from var(--success) min(l, 0.45) c h);
+  --code-removed-ink: oklch(from var(--destructive) min(l, 0.5) c h);
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -263,6 +268,10 @@
 
   /* --code-bg and --code-border inherit their :root aliases. */
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
+  --code-added: oklch(from var(--success) l c h / 0.12);
+  --code-removed: oklch(from var(--destructive) l c h / 0.14);
+  --code-added-ink: var(--success);
+  --code-removed-ink: oklch(from var(--destructive) max(l, 0.75) c h);
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -405,7 +414,7 @@ mjx-container:not([display='true']) {
    Tailwind classes cannot reach. */
 figure[data-rehype-pretty-code-figure] pre {
   overflow-x: auto;
-  padding: 0.75rem 0;
+  padding: var(--code-pad-top, 0.75rem) 0 0.75rem;
   background: transparent;
   font-family: var(--font-mono-code);
   font-size: 0.875rem;
@@ -422,6 +431,8 @@ figure[data-rehype-pretty-code-figure] [data-line] {
 }
 figure[data-rehype-pretty-code-figure] code > [data-line]::before {
   content: counter(line);
+  /* Shown, not read: a screen reader would otherwise open every line with its number. */
+  content: counter(line) / '';
   counter-increment: line;
   display: inline-block;
   width: 1.25rem;
@@ -434,10 +445,96 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
   border-left-color: var(--primary);
   background-color: var(--code-emphasis);
 }
+/* Lines marked `// [!code ++]` or `// [!code --]`. The sign says it as well as the
+   colour, and a screen reader hears it, after the line, as its alt text. */
+figure[data-rehype-pretty-code-figure] [data-line].diff {
+  position: relative;
+}
+/* A diff widens the gutter to hold three digits and its sign, centred between the
+   number and the code: the line's 1rem padding, the 3ch number, half the 1.75rem
+   margin, less half the 1ch sign. */
+figure[data-rehype-pretty-code-figure] pre.has-diff code > [data-line]::before {
+  width: 3ch;
+  margin-right: 1.75rem;
+}
+figure[data-rehype-pretty-code-figure] [data-line].diff::after {
+  position: absolute;
+  left: calc(1.875rem + 2.5ch);
+}
+figure[data-rehype-pretty-code-figure] [data-line].add {
+  border-left-color: var(--success);
+  background-color: var(--code-added);
+}
+figure[data-rehype-pretty-code-figure] [data-line].add::after {
+  content: '+';
+  content: '+' / 'added';
+  color: var(--code-added-ink);
+}
+figure[data-rehype-pretty-code-figure] [data-line].remove {
+  border-left-color: var(--destructive);
+  background-color: var(--code-removed);
+}
+figure[data-rehype-pretty-code-figure] [data-line].remove::after {
+  content: '−';
+  content: '−' / 'removed';
+  color: var(--code-removed-ink);
+}
 figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+  /* A <mark>: its text would otherwise take the browser's black, unseen on dark. */
+  color: inherit;
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);
+}
+/* A block over 24 lines (CodeBlock.tsx) folds to its first 16, its foot left free for
+   the button floating there. Printed, or without script to unfold it, it shows whole. */
+figure[data-rehype-pretty-code-figure] [data-foldable] pre {
+  padding-bottom: 3.5rem;
+}
+figure[data-rehype-pretty-code-figure] [data-folded] pre {
+  max-height: calc(16lh + var(--code-pad-top, 0.75rem) + var(--scrollbar, 0px));
+  overflow-y: hidden;
+}
+@media print, (scripting: none) {
+  figure[data-rehype-pretty-code-figure] [data-foldable] pre {
+    padding-bottom: 0.75rem;
+  }
+  figure[data-rehype-pretty-code-figure] [data-folded] pre {
+    max-height: none;
+  }
+}
+/* A log block: `variant="info"`, `"warning"` or `"danger"` on a fence, its accent set
+   by CodeBlock. Output rather
+   than source, so unnumbered and wrapped, and tinted by one accent, as a Callout is.
+   Mixed in oklab: oklch would swing a hue through the theme's blue. The ink is capped
+   in light and floored in dark, unlike a Callout's: on this tinted surface the raw
+   accent reads under 4.5:1 (teal in light, pink in dark). Measured over every accent
+   preset: 5.25:1 at worst. */
+figure[data-rehype-pretty-code-figure][data-variant] {
+  --code-pad-top: 0.25rem;
+  --code-bg: color-mix(in oklab, var(--code-accent) 7%, var(--card));
+  --code-border: color-mix(in oklab, var(--code-accent) 40%, var(--border));
+  --code-wash: oklch(from var(--code-accent) l c h / 0.12);
+  --code-ink: oklch(from var(--code-accent) min(l, 0.45) c h);
+  color: var(--code-ink);
+}
+.dark figure[data-rehype-pretty-code-figure][data-variant] {
+  --code-ink: oklch(from var(--code-accent) max(l, 0.75) c h);
+}
+figure[data-rehype-pretty-code-figure][data-variant] code > [data-line]::before {
+  content: none;
+}
+/* One ink whatever the language: Shiki colours its tokens inline. */
+figure[data-rehype-pretty-code-figure][data-variant] [data-line] span {
+  color: inherit !important;
+}
+figure[data-rehype-pretty-code-figure][data-variant] pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* Without numbers, the text lines up with the title above it. */
+figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
+  border-left-width: 0;
 }
 
 /* Block code is excluded by ancestor, which a component override cannot see but
