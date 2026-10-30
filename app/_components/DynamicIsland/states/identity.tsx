@@ -13,7 +13,7 @@ export const identity: IslandState = {
   width: '13.75rem',
   render: () => (
     <div className="flex h-[1.875rem] w-full items-center justify-between pl-2 pr-4">
-      <Logo small className="size-5 shrink-0" />
+      <Logo className="size-5 shrink-0" />
       <span className="font-mono tracking-wider whitespace-nowrap text-muted-foreground">
         {firstName}
       </span>
