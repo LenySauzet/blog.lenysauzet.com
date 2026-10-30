@@ -133,6 +133,21 @@ describe('CodeBlock', () => {
     expect(screen.getByText('1 added')).toHaveClass('sr-only');
   });
 
+  it('names an untitled error block, its colour not being enough', () => {
+    render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <pre data-variant="danger">
+          <code>
+            <span data-line>TypeError: undefined</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    expect(screen.getByRole('region', { name: 'Error' })).toBeInTheDocument();
+    expect(screen.getByText('Error')).toBeInTheDocument();
+  });
+
   it('carries the variant the fence names onto the figure', () => {
     const { container } = render(
       <CodeBlock data-rehype-pretty-code-figure="">

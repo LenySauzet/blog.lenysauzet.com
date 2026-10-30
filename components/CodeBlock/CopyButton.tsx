@@ -69,7 +69,7 @@ export function CopyButton({
       variants={{ idle: { scale: 1 }, hover: { scale: 1.05 }, pressed: { scale: 0.95 } }}
       transition={transition}
       className={cn(
-        'grid size-[30px] place-items-center rounded-lg border border-transparent text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none',
+        'grid size-[30px] cursor-pointer place-items-center rounded-lg border border-transparent text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none',
         className
       )}
     >

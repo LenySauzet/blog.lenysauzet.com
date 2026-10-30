@@ -194,7 +194,8 @@ notation, in the language's own comment syntax), which the build strips and draw
 diff, its `+` and `−` read aloud as "added" and "removed"; copying leaves the removed
 lines out, the Markdown twin serves the fence as a `diff`, and a titled block counts
 them beside its title. `variant="danger"` marks an error or a failed output, the name
-`Callout` uses: tinted red, unnumbered, wrapped. The transformers run through
+`Callout` uses: tinted red, unnumbered, wrapped, and titled "Error" unless it is given a
+title, its colour not being enough on its own. The transformers run through
 `lib/rehype-code.mjs`, because Turbopack cannot pass a function as a plugin option.
 **A running `bun dev` keeps the version it started with**: restart it after changing
 that file. A block over 24 lines folds to its

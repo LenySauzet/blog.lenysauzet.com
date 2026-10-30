@@ -115,11 +115,13 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const childArray = Children.toArray(children);
   const title = childArray.find(isTitle);
   const body = childArray.filter((child) => !isTitle(child));
-  const label = typeof title?.props.children === 'string' ? title.props.children : undefined;
   const { lines, added, removed, variant } = readCode(body);
   const foldable = lines > FOLD_ABOVE;
   const folded = foldable && !expanded;
   const danger = variant === 'danger';
+  // An error says so in words too, its colour not being enough on its own.
+  const heading = title?.props.children ?? (danger ? 'Error' : undefined);
+  const label = typeof heading === 'string' ? heading : undefined;
 
   const toggle = () => {
     if (!expanded) {
@@ -156,7 +158,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       )}
       {...props}
     >
-      {title ? (
+      {heading ? (
         // Our own header, so the copy button sits in the flex row instead of
         // floating over rehype's figcaption.
         <div
@@ -172,7 +174,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
                 danger ? 'text-[var(--code-removed-ink)]' : 'text-foreground'
               )}
             >
-              {title.props.children}
+              {heading}
             </span>
             {added + removed > 0 && (
               <span className="shrink-0 font-mono text-xs tabular-nums">
@@ -187,7 +189,13 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
               </span>
             )}
           </div>
-          <CopyButton getText={getText} />
+          <CopyButton
+            getText={getText}
+            className={cn(
+              danger &&
+                'text-[var(--code-removed-ink)] hover:bg-[var(--code-removed)] hover:text-[var(--code-removed-ink)] focus-visible:bg-[var(--code-removed)] focus-visible:text-[var(--code-removed-ink)]'
+            )}
+          />
         </div>
       ) : (
         <CopyButton
@@ -238,7 +246,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           onClick={toggle}
           className={cn(
             glassSurface,
-            'absolute bottom-[calc(var(--scrollbar,0px)+0.75rem)] left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 font-display text-sm text-muted-foreground shadow-sm transition-colors outline-none hover:bg-card hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 print:hidden'
+            'absolute bottom-[calc(var(--scrollbar,0px)+0.75rem)] left-1/2 z-10 flex h-8 -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full px-3.5 font-display text-sm text-muted-foreground shadow-sm transition-[background-color,color,scale] duration-200 outline-none hover:scale-[1.03] hover:bg-card hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 print:hidden'
           )}
         >
           {expanded ? 'Show less' : `Show all ${lines} lines`}

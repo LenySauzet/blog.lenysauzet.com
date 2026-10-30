@@ -496,8 +496,13 @@ figure[data-variant='danger'] code > [data-line]::before {
   content: none;
 }
 figure[data-variant='danger'] pre {
+  padding-top: 0.25rem;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+/* Without numbers, the text lines up with the title above it. */
+figure[data-variant='danger'] [data-line] {
+  border-left-width: 0;
 }
 
 /* Block code is excluded by ancestor, which a component override cannot see but
