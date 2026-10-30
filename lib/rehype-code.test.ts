@@ -44,11 +44,24 @@ describe('rehypeCode', () => {
     expect(find(tree, (el) => el.tagName === 'pre')[0].properties.dataVariant).toBe(variant);
   });
 
-  it('fails on a log carrying a diff or highlighted lines', async () => {
-    await expect(render('a = 1; // [!code ++]', 'variant="warning"', 'ts')).rejects.toThrow(
+  it('fails on a log carrying highlighted lines', async () => {
+    await expect(render('a\nb', 'variant="warning" {2}')).rejects.toThrow(
       'A "warning" log takes no diff and no highlighted lines.'
     );
-    await expect(render('a\nb', 'variant="info" {2}')).rejects.toThrow('A "info" log');
+  });
+
+  // rehype-pretty-code retries a failed highlight as plain text, where the notation
+  // is no comment, so a log's diff fails on its form.
+  it('fails on a log carrying a diff, whatever its language', async () => {
+    await expect(render('a = 1; // [!code ++]', 'variant="warning"', 'ts')).rejects.toThrow();
+  });
+
+  it.each([
+    ['a range', 'a = 1; // [!code ++:2]\nb = 2;', 'ts'],
+    ['a comment alone, marking the line below', '// [!code ++]\na = 1;', 'ts'],
+    ['plain text, where it is no comment', 'a = 1 # [!code ++]', 'txt'],
+  ])('fails on diff notation written as %s', async (_form, code, lang) => {
+    await expect(render(code, '', lang)).rejects.toThrow('Diff notation goes at the end of the line it marks');
   });
 
   it('does not take the quoted variant for a word to highlight', async () => {
@@ -61,8 +74,8 @@ describe('rehypeCode', () => {
     await expect(render('x', 'variant="success"')).rejects.toThrow('Unknown code block variant "success"');
   });
 
-  it('marks the lines Shiki diff notation names', async () => {
-    const tree = await render('a = 1; // [!code --]\na = 2; // [!code ++]', '', 'ts');
+  it('marks the lines Shiki diff notation names, in any case', async () => {
+    const tree = await render('a = 1; // [!code --]\na = 2; // [!CODE ++]', '', 'ts');
     const classes = find(tree, (el) => 'data-line' in el.properties).map((el) => el.properties.className);
 
     expect(classes).toEqual([['diff', 'remove'], ['diff', 'add']]);

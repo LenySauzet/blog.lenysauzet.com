@@ -190,18 +190,20 @@ textstyle by LaTeX rule, so use `\dfrac` for displaystyle fractions.
 
 **Fenced code (`components/CodeBlock`).** A fence takes `title="file.ts"` and `{2,5-7}` to
 highlight lines. A changed line ends in `// [!code ++]` or `// [!code --]` (Shiki's
-notation, in the language's own comment syntax), which the build strips and draws as a
-diff, its `+` and `−` read aloud as "added" and "removed"; copying leaves the removed
-lines out, the Markdown twin serves the fence as a `diff`, and a titled block counts
-them beside its title. `variant="info"`, `"warning"` or `"danger"` makes it a log, the
-levels `Callout` has: tinted by one accent, unnumbered, wrapped, and titled "Info",
-"Warning" or "Error" unless given a title, before which the level is still read aloud.
-Another variant fails the build, as does a log carrying a diff or highlighted lines.
-The transformers run through `lib/rehype-code.mjs`, because Turbopack cannot pass a
-function as a plugin option. **A running `bun dev` keeps the version it started with**:
-restart it after changing that file. A block over 24 lines folds to its first 16 under
-a veil, a floating button unfolding it, so a long listing does not bury the prose
-around it: split one rather than let it fold when every line matters.
+notation, in the language's own comment syntax): the build strips it and draws a diff,
+its `+` and `−` read aloud as "added" and "removed"; copying leaves the removed lines
+out, the Markdown twin serves the fence as a `diff`, and a titled block counts them
+beside its title. Only that form builds: a range (`[!code ++:2]`), a comment alone on
+its line, or notation in plain text fails, the twin having no way to mirror them.
+`variant="info"`, `"warning"` or `"danger"` makes the block a log, the levels `Callout`
+has: one ink whatever its language, unnumbered, wrapped, titled "Info", "Warning" or
+"Error" unless given a title, before which the level is still read aloud. Another
+variant fails the build, as does a log with a diff or highlighted lines. The
+transformers run through `lib/rehype-code.mjs`, because Turbopack cannot pass a function
+as a plugin option. **A running `bun dev` keeps the version it started with**: restart
+it after changing that file. A block over 24 lines folds to its first 16 under a veil,
+a floating button unfolding it, and shows whole in print or without script: split a
+listing rather than let it fold when every line matters.
 
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in

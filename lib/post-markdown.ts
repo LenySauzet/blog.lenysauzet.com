@@ -6,8 +6,8 @@ import { resolveMediaUrl } from './cdn';
 import type { Post } from './post-utils';
 import { TWEET_EMBED } from './tweet';
 
-// Shiki's diff notation, in any of the comment syntaxes a fence can be written in.
-const DIFF_MARK = /\s*(?:\/\/|#|--|\/\*|<!--)\s*\[!code (\+\+|--)\]\s*(?:\*\/|-->)?\s*$/;
+// Shiki's diff notation at the end of a line, the one form lib/rehype-code.mjs admits.
+const DIFF_MARK = /\s*(?:\/\/|#|--|\/\*|<!--|;|%)\s*\[!code (\+\+|--)\]\s*(?:\*\/|-->)?\s*$/i;
 
 /**
  * A fence that marks lines with `[!code ++]` or `[!code --]` becomes a `diff`

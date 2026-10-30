@@ -63,7 +63,7 @@ describe('toMarkdown', () => {
   });
 
   it('reads the notation in other comment syntaxes', () => {
-    const out = toMarkdown(post('```py\nx = 1  # [!code ++]\n```\n\n```html\n<p></p> <!-- [!code --] -->\n```'));
+    const out = toMarkdown(post('```py\nx = 1  # [!CODE ++]\n```\n\n```html\n<p></p> <!-- [!code --] -->\n```'));
 
     expect(out).toContain('```diff\n+x = 1\n```');
     expect(out).toContain('```diff\n-<p></p>\n```');

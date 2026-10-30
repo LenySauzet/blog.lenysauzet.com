@@ -1,12 +1,20 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CodeBlock } from './CodeBlock';
 
 const writeText = vi.fn().mockResolvedValue(undefined);
 // jsdom has no scrollIntoView.
 const scrollIntoView = vi.fn();
+
+const clipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+
+afterEach(() => {
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  if (clipboard) Object.defineProperty(navigator, 'clipboard', clipboard);
+  else Reflect.deleteProperty(navigator, 'clipboard');
+});
 
 beforeEach(() => {
   writeText.mockClear();
