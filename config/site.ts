@@ -105,17 +105,7 @@ const openGraph = {
   siteName: title.default,
   locale: 'en_US' as const,
   type: 'website' as const,
-  images: [
-    {
-      url: '/opengraph-image.png',
-      width: 1200,
-      height: 630,
-      alt: title.default,
-    },
-  ],
 }
-
-const twitterImages = ['/twitter-image.png']
 
 const manifest = {
   name: title.default,
@@ -159,7 +149,6 @@ const siteConfig = {
   formatDetection,
   robots,
   openGraph,
-  twitterImages,
   manifest,
   rss,
   authorName: author.name,
@@ -197,14 +186,12 @@ export function getRootMetadata(): Metadata {
       siteName: openGraph.siteName,
       locale: openGraph.locale,
       type: openGraph.type,
-      images: openGraph.images,
     },
     twitter: {
       card: twitter.card,
       title: title.default,
       description,
       creator: twitter.handle,
-      images: twitterImages,
     },
   }
 }
