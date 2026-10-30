@@ -1,13 +1,17 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CodeBlock } from './CodeBlock';
 
 const writeText = vi.fn().mockResolvedValue(undefined);
+// jsdom has no scrollIntoView.
+const scrollIntoView = vi.fn();
 
 beforeEach(() => {
   writeText.mockClear();
+  scrollIntoView.mockReset();
+  Element.prototype.scrollIntoView = scrollIntoView;
   Object.defineProperty(navigator, 'clipboard', {
     value: { writeText },
     configurable: true,
@@ -27,14 +31,21 @@ function Fixture() {
   );
 }
 
+// rehype-pretty-code's markup: a title, token spans inside each line, and a
+// newline between lines.
 function Long({ lines }: { lines: number }) {
   return (
     <CodeBlock data-rehype-pretty-code-figure="">
+      <figcaption data-rehype-pretty-code-title="">long.ts</figcaption>
       <pre>
         <code>
-          {Array.from({ length: lines }, (_, i) => (
-            <span key={i} data-line>{`line ${i + 1}`}</span>
-          ))}
+          {Array.from({ length: lines }, (_, i) => [
+            <span key={i} data-line>
+              <span>const</span>
+              <span>{` line${i + 1} = ${i + 1};`}</span>
+            </span>,
+            '\n',
+          ])}
         </code>
       </pre>
     </CodeBlock>
@@ -82,19 +93,62 @@ describe('CodeBlock', () => {
     expect(writeText).toHaveBeenCalledWith('next();');
   });
 
+  it('drops the space a stripped diff notation leaves at the end of a line', async () => {
+    render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <pre>
+          <code>
+            <span data-line className="diff add">{'const a = 2; '}</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Copy code' }));
+
+    expect(writeText).toHaveBeenCalledWith('const a = 2;');
+  });
+
   it('folds a long block and unfolds it on demand', async () => {
     render(<Long lines={25} />);
     const toggle = screen.getByRole('button', { name: 'Show all 25 lines' });
-    const region = screen.getByRole('region', { name: 'Code' });
+    const region = screen.getByRole('region', { name: 'long.ts' });
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(toggle).toHaveAttribute('aria-controls', region.id);
-    expect(region).toHaveClass('[&_pre]:max-h-[calc(16lh+0.75rem)]');
+    expect(region).toHaveAttribute('data-folded');
 
     await userEvent.click(toggle);
 
     expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true');
-    expect(region).not.toHaveClass('[&_pre]:max-h-[calc(16lh+0.75rem)]');
+    expect(region).not.toHaveAttribute('data-folded');
+  });
+
+  it('brings the block back into view once it has folded', async () => {
+    render(<Long lines={25} />);
+    const region = screen.getByRole('region');
+    // Measured before the fold, the block would still be its unfolded height.
+    let foldedWhenScrolled = false;
+    scrollIntoView.mockImplementation(() => {
+      foldedWhenScrolled = region.hasAttribute('data-folded');
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all 25 lines' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Show less' }));
+
+    expect(scrollIntoView).toHaveBeenCalledOnce();
+    expect(foldedWhenScrolled).toBe(true);
+  });
+
+  // Find in page scrolls the folded <pre> to the match.
+  it('unfolds when something scrolls inside the folded block', () => {
+    render(<Long lines={25} />);
+    const pre = screen.getByRole('region').querySelector('pre')!;
+
+    pre.scrollTop = 120;
+    fireEvent.scroll(pre);
+
+    expect(screen.getByRole('region')).not.toHaveAttribute('data-folded');
   });
 
   it('leaves a block of 24 lines or fewer unfolded', () => {

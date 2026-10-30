@@ -6,16 +6,38 @@ import { resolveMediaUrl } from './cdn';
 import type { Post } from './post-utils';
 import { TWEET_EMBED } from './tweet';
 
+// Shiki's diff notation, in any of the comment syntaxes a fence can be written in.
+const DIFF_MARK = /\s*(?:\/\/|#|--|\/\*|<!--)\s*\[!code (\+\+|--)\]\s*(?:\*\/|-->)?\s*$/;
+
+/**
+ * A fence that marks lines with `[!code ++]` or `[!code --]` becomes a `diff`
+ * fence: the notation is the build's, and left in place it would hand over the
+ * removed lines as live code.
+ */
+const asDiff = (fence: string) => {
+  const lines = fence.split('\n');
+  if (!lines.some((line) => DIFF_MARK.test(line))) return fence;
+
+  const body = lines.slice(1, -1).map((line) => {
+    const mark = line.match(DIFF_MARK)?.[1];
+    if (!mark) return ` ${line}`;
+    return `${mark === '++' ? '+' : '-'}${line.replace(DIFF_MARK, '')}`;
+  });
+
+  return ['```diff', ...body, lines.at(-1)].join('\n');
+};
+
 /**
  * A fenced block is the subject, not machinery: a post about Three.js carries
  * `import * as THREE` in an example, a shader post a `src=` in one, and a
  * transform that reaches inside eats them. The split captures the fences, so
- * they fall on the odd indices and are handed back untouched.
+ * they fall on the odd indices and are handed back untouched but for the diff
+ * notation.
  */
 const outsideFences = (body: string, change: (text: string) => string) =>
   body
     .split(/(```[\s\S]*?```)/g)
-    .map((part, index) => (index % 2 ? part : change(part)))
+    .map((part, index) => (index % 2 ? asDiff(part) : change(part)))
     .join('');
 
 const resolveSources = (text: string) =>

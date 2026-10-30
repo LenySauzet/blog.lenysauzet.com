@@ -71,9 +71,11 @@ YAML, which something other than a bundler can parse, and a relative media path 
 absolute. Both are narrower than they look. **Only the imports the file opens with are
 dropped**, because a component carrying an example in a prop has lines of it at column
 zero: anchoring to every line start cost the design system its `import './scene.css';`
-out of a Sandpack. And **a triple-backtick block is never touched at all**, being the
-subject rather than the machinery (a `~~~` fence is not recognised, so write fences
-with backticks). **The CDN namespace is chosen by extension**, not by a table of components:
+out of a Sandpack. And **a triple-backtick block is never touched**, being the subject
+rather than the machinery (a `~~~` fence is not recognised, so write fences with
+backticks), save one case: a fence carrying Shiki's diff notation becomes a `diff`
+fence, the notation being the build's and the removed lines otherwise reading as live
+code. **The CDN namespace is chosen by extension**, not by a table of components:
 `.mp4`, `.webm`, `.mov` and `.m4v` go to videos and everything else to images (`resolveMediaUrl`, which the
 shader engine shares), so adding a component to `mdx-components.tsx` can never put a
 file in the wrong place.
@@ -189,7 +191,8 @@ textstyle by LaTeX rule, so use `\dfrac` for displaystyle fractions.
 **Fenced code (`components/CodeBlock`).** A fence takes `title="file.ts"` and `{2,5-7}` to
 highlight lines. A changed line ends in `// [!code ++]` or `// [!code --]` (Shiki's
 notation, in the language's own comment syntax), which the build strips and draws as a
-diff; copying leaves the removed lines out. The transformer runs through
+diff, its `+` and `−` read aloud as "added" and "removed"; copying leaves the removed
+lines out, and the Markdown twin serves the fence as a `diff`. The transformer runs through
 `lib/rehype-code.mjs`, because Turbopack cannot pass a function as a plugin option. A
 block over 24 lines folds to its first 16 behind a "Show all" button, so a long listing
 does not bury the prose around it: split one rather than let it fold when every line

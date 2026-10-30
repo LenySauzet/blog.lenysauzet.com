@@ -191,6 +191,9 @@
   --code-emphasis: oklch(from var(--primary) l c h / 0.07);
   --code-added: oklch(from var(--success) l c h / 0.1);
   --code-removed: oklch(from var(--destructive) l c h / 0.1);
+  /* The diff signs are text: capped so they clear 4.5:1 on their tinted lines. */
+  --code-added-ink: oklch(from var(--success) min(l, 0.45) c h);
+  --code-removed-ink: oklch(from var(--destructive) min(l, 0.5) c h);
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -267,6 +270,8 @@
   --code-emphasis: oklch(from var(--primary) l c h / 0.09);
   --code-added: oklch(from var(--success) l c h / 0.12);
   --code-removed: oklch(from var(--destructive) l c h / 0.14);
+  --code-added-ink: var(--success);
+  --code-removed-ink: oklch(from var(--destructive) max(l, 0.75) c h);
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -441,14 +446,14 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
   background-color: var(--code-emphasis);
 }
 /* Lines marked `// [!code ++]` or `// [!code --]`. The sign says it as well as the
-   colour, and a screen reader reads it. */
+   colour, and a screen reader hears it, after the line, as its alt text. */
 figure[data-rehype-pretty-code-figure] [data-line].diff {
   position: relative;
 }
 figure[data-rehype-pretty-code-figure] [data-line].diff::after {
-  /* In the gutter, past the number's 1rem padding and 1.25rem width. */
+  /* In the gutter, past the line's 1rem padding and a number of up to three digits. */
   position: absolute;
-  left: 2.6rem;
+  left: 2.8rem;
 }
 figure[data-rehype-pretty-code-figure] [data-line].add {
   border-left-color: var(--success);
@@ -456,7 +461,8 @@ figure[data-rehype-pretty-code-figure] [data-line].add {
 }
 figure[data-rehype-pretty-code-figure] [data-line].add::after {
   content: '+';
-  color: var(--success);
+  content: '+' / 'added';
+  color: var(--code-added-ink);
 }
 figure[data-rehype-pretty-code-figure] [data-line].remove {
   border-left-color: var(--destructive);
@@ -464,7 +470,8 @@ figure[data-rehype-pretty-code-figure] [data-line].remove {
 }
 figure[data-rehype-pretty-code-figure] [data-line].remove::after {
   content: '−';
-  color: var(--destructive);
+  content: '−' / 'removed';
+  color: var(--code-removed-ink);
 }
 figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
   border-radius: var(--radius-sm);

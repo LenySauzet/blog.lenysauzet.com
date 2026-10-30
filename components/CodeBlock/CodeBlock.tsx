@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { flushSync } from 'react-dom';
 
 import { cn } from '@/lib/utils';
 
@@ -65,6 +66,10 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       const right = max <= 1 ? 0 : clamp((max - pre.scrollLeft) / FADE);
       container.style.setProperty('--edge-left', String(left));
       container.style.setProperty('--edge-right', String(right));
+      container.style.setProperty('--scrollbar', `${pre.offsetHeight - pre.clientHeight}px`);
+      // Find in page scrolls a folded block down, past lines no reader could
+      // scroll back to: unfold it instead.
+      if (pre.scrollTop > 0) setExpanded(true);
     };
     update();
     pre.addEventListener('scroll', update, { passive: true });
@@ -84,18 +89,26 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
   const folded = lineCount > FOLD_ABOVE && !expanded;
 
   const toggle = () => {
-    setExpanded(!expanded);
-    // Folding pulls the button up past a reader scrolled deep into the block.
-    if (expanded) figureRef.current?.scrollIntoView({ block: 'nearest' });
+    if (!expanded) {
+      setExpanded(true);
+      return;
+    }
+    // Folding pulls the button up past a reader scrolled deep into the block, so
+    // the block is brought back once it has shrunk, not measured before.
+    flushSync(() => setExpanded(false));
+    figureRef.current?.scrollIntoView({ block: 'nearest' });
   };
 
   const getText = () => {
     // Rebuilt from the line elements so the CSS line-number counters, which live
     // in ::before, stay out of the copied text, and without the lines a diff
-    // removes, so what is pasted is the code the post arrives at.
+    // removes, so what is pasted is the code the post arrives at. A diff line
+    // keeps the space that stood before its stripped notation.
     const lines = figureRef.current?.querySelectorAll('pre [data-line]:not(.remove)');
     return lines?.length
-      ? Array.from(lines, (line) => line.textContent).join('\n')
+      ? Array.from(lines, (line) =>
+          line.classList.contains('diff') ? (line.textContent ?? '').trimEnd() : line.textContent
+        ).join('\n')
       : (figureRef.current?.querySelector('pre')?.textContent ?? '');
   };
 
@@ -130,26 +143,24 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
         id={regionId}
         role="region"
         aria-label={label ?? 'Code'}
-        className={cn(
-          'relative',
-          folded && '[&_pre]:max-h-[calc(16lh+0.75rem)] [&_pre]:overflow-y-hidden print:[&_pre]:max-h-none'
-        )}
+        data-folded={folded || undefined}
+        className="relative data-folded:[&_pre]:max-h-[calc(16lh+0.75rem+var(--scrollbar,0px))] data-folded:[&_pre]:overflow-y-hidden print:data-folded:[&_pre]:max-h-none"
       >
         {body}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 w-[70px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+          className="pointer-events-none absolute top-0 bottom-[var(--scrollbar,0px)] left-0 w-[70px] bg-gradient-to-r from-[var(--code-bg)] to-transparent transition-opacity duration-150"
           style={{ opacity: 'var(--edge-left, 0)' }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 w-[70px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
+          className="pointer-events-none absolute top-0 bottom-[var(--scrollbar,0px)] right-0 w-[70px] bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"
           style={{ opacity: 'var(--edge-right, 0)' }}
         />
         {folded && (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--code-bg)] to-transparent print:hidden"
+            className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-16 bg-gradient-to-t from-[var(--code-bg)] to-transparent print:hidden"
           />
         )}
       </div>
