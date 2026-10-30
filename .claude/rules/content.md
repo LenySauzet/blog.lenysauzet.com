@@ -158,9 +158,10 @@ script of its own. What it rests on, each for a reason:
 taking an id, so they never collided; `[^1]` now parses too, and writing one would put
 a second, differently styled set of notes in the same article.
 
-**Two Separator components.** `components/Separator.tsx` is a custom dashed decorative
-rule (between post sections); `components/ui/separator.tsx` is the Radix primitive (nav,
-layout). Do not consolidate.
+**`---` is a native `<hr>`**, mapped in `mdx-components.tsx`, not shadcn's `Separator`:
+a thematic break is what `<hr>` means, to a screen reader and to reader modes alike,
+where the Radix primitive is a decorative `div` built for menus and toolbars.
+`components/Separator.tsx` is something else, the dashed rule that opens a post's footer.
 
 **`components/Image/Lightbox.tsx` uses no dialog primitive**: not `ui/dialog.tsx`, not
 Radix, not Base UI. Radix ties its scroll lock to the layer's mount, and the layer must

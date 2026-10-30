@@ -18,8 +18,11 @@ listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
 `table`, and in the `figure-chart` skill's reference for `chart`.
 
 **`@base-ui/react` is a real dependency, used by exactly one component**:
-`components/ui/combobox.tsx`, since Radix ships no combobox. Radix is the primitive layer
-for everything else. Do not add Base UI components without a reason that specific.
+`components/ui/combobox.tsx`, built on Base UI's combobox primitive: Radix ships none, so
+shadcn's own combobox takes it even in the Radix style. Radix is the primitive layer for
+everything else. Do not add Base UI components without a reason that specific. No page
+mounts the combobox yet: its popup is still stock, so give it the Select's surface before
+the first one does.
 
 **`components/ui/badge.tsx` is customized beyond the CLI output**: the "Pill" family.
 Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status variants
