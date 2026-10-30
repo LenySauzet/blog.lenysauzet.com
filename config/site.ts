@@ -126,8 +126,10 @@ const manifest = {
   background_color: '#09090b',
   theme_color: '#1f3fad',
   icons: [
-    { src: '/static/favicon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' as const },
-    { src: '/static/favicon/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' as const },
+    { src: '/static/icons/icon-192.png', sizes: '192x192', type: 'image/png' as const },
+    { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' as const },
+    // The mark sits inside the central 80% circle, so Android can crop it to any shape.
+    { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' as const, purpose: 'maskable' as const },
   ],
 }
 
