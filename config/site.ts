@@ -105,17 +105,7 @@ const openGraph = {
   siteName: title.default,
   locale: 'en_US' as const,
   type: 'website' as const,
-  images: [
-    {
-      url: '/opengraph-image.png',
-      width: 1200,
-      height: 630,
-      alt: title.default,
-    },
-  ],
 }
-
-const twitterImages = ['/twitter-image.png']
 
 const manifest = {
   name: title.default,
@@ -126,8 +116,10 @@ const manifest = {
   background_color: '#09090b',
   theme_color: '#1f3fad',
   icons: [
-    { src: '/static/favicon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' as const },
-    { src: '/static/favicon/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' as const },
+    { src: '/static/icons/icon-192.png', sizes: '192x192', type: 'image/png' as const },
+    { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' as const },
+    // The mark sits inside the central 80% circle, so Android can crop it to any shape.
+    { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' as const, purpose: 'maskable' as const },
   ],
 }
 
@@ -157,7 +149,6 @@ const siteConfig = {
   formatDetection,
   robots,
   openGraph,
-  twitterImages,
   manifest,
   rss,
   authorName: author.name,
@@ -195,14 +186,12 @@ export function getRootMetadata(): Metadata {
       siteName: openGraph.siteName,
       locale: openGraph.locale,
       type: openGraph.type,
-      images: openGraph.images,
     },
     twitter: {
       card: twitter.card,
       title: title.default,
       description,
       creator: twitter.handle,
-      images: twitterImages,
     },
   }
 }
