@@ -194,6 +194,10 @@
   /* The diff signs are text: capped so they clear 4.5:1 on their tinted lines. */
   --code-added-ink: oklch(from var(--success) min(l, 0.45) c h);
   --code-removed-ink: oklch(from var(--destructive) min(l, 0.5) c h);
+  /* A block's `variant="danger"` surface. Mixed in oklab: oklch would swing the hue
+     from red through the theme's blue. */
+  --code-danger-bg: color-mix(in oklab, var(--destructive) 7%, var(--card));
+  --code-danger-border: color-mix(in oklab, var(--destructive) 40%, var(--border));
   /* Inline code is not syntax-highlighted (see next.config.ts). */
   --code-inline: oklch(0.5552 0.223 var(--base-hue));
 }
@@ -272,6 +276,8 @@
   --code-removed: oklch(from var(--destructive) l c h / 0.14);
   --code-added-ink: var(--success);
   --code-removed-ink: oklch(from var(--destructive) max(l, 0.75) c h);
+  --code-danger-bg: color-mix(in oklab, var(--destructive) 7%, var(--card));
+  --code-danger-border: color-mix(in oklab, var(--destructive) 40%, var(--border));
   --code-inline: oklch(0.8153 0.078 var(--base-hue));
 }
 
@@ -450,14 +456,15 @@ figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
 figure[data-rehype-pretty-code-figure] [data-line].diff {
   position: relative;
 }
-/* A diff widens the gutter by half a rem and centres its sign in it, between a number
-   of up to three digits and the code. */
+/* A diff widens the gutter to hold three digits and its sign, centred between the
+   number and the code. */
 figure[data-rehype-pretty-code-figure] pre.has-diff code > [data-line]::before {
+  width: 3ch;
   margin-right: 1.75rem;
 }
 figure[data-rehype-pretty-code-figure] [data-line].diff::after {
   position: absolute;
-  left: 2.95rem;
+  left: calc(1.875rem + 2.5ch);
 }
 figure[data-rehype-pretty-code-figure] [data-line].add {
   border-left-color: var(--success);
@@ -478,6 +485,8 @@ figure[data-rehype-pretty-code-figure] [data-line].remove::after {
   color: var(--code-removed-ink);
 }
 figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+  /* A <mark>: its text would otherwise take the browser's black, unseen on dark. */
+  color: inherit;
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.25rem;
   background-color: oklch(from var(--primary) l c h / 0.16);

@@ -118,6 +118,21 @@ describe('CodeBlock', () => {
     expect(screen.queryByText(/added/)).not.toBeInTheDocument();
   });
 
+  it('leaves the zero side out of the words', () => {
+    render(
+      <CodeBlock data-rehype-pretty-code-figure="">
+        <figcaption data-rehype-pretty-code-title="">add.ts</figcaption>
+        <pre className="has-diff">
+          <code>
+            <span data-line className="diff add">a = 1;</span>
+          </code>
+        </pre>
+      </CodeBlock>
+    );
+
+    expect(screen.getByText('1 added')).toHaveClass('sr-only');
+  });
+
   it('carries the variant the fence names onto the figure', () => {
     const { container } = render(
       <CodeBlock data-rehype-pretty-code-figure="">

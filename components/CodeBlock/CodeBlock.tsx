@@ -49,7 +49,11 @@ interface CodeStats {
   variant?: string;
 }
 
-type CodeProps = { children?: ReactNode; className?: string; 'data-variant'?: string };
+interface CodeProps {
+  children?: ReactNode;
+  className?: string;
+  'data-variant'?: string;
+}
 
 // Read off the markup rehype-pretty-code emits: a line is a `data-line` span, a
 // diff marks it `add` or `remove`, and a fence's variant sits on its <pre>.
@@ -71,10 +75,9 @@ function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, remo
 }
 
 // The surface, its edge and its fades all follow --code-bg and --code-border, so the
-// variant redefines those two; untokenised text, an error's, takes the ink. Mixed in
-// oklab: oklch would swing the hue from red through the theme's blue.
+// variant redefines those two; untokenised text, an error's, takes the ink.
 const DANGER =
-  '[--code-bg:color-mix(in_oklab,var(--destructive)_7%,var(--card))] [--code-border:color-mix(in_oklab,var(--destructive)_40%,var(--border))] text-[var(--code-removed-ink)]';
+  '[--code-bg:var(--code-danger-bg)] [--code-border:var(--code-danger-border)] text-[var(--code-removed-ink)]';
 
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   const figureRef = useRef<HTMLElement>(null);
@@ -173,7 +176,9 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
                   <span className="text-subtle-foreground"> / </span>
                   <span className="text-[var(--code-removed-ink)]">−{removed}</span>
                 </span>
-                <span className="sr-only">{`${added} added, ${removed} removed`}</span>
+                <span className="sr-only">
+                  {[added && `${added} added`, removed && `${removed} removed`].filter(Boolean).join(', ')}
+                </span>
               </span>
             )}
             <CopyButton getText={getText} />
@@ -228,7 +233,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           onClick={toggle}
           className={cn(
             glassSurface,
-            'absolute bottom-[calc(var(--scrollbar,0px)+0.75rem)] left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 font-display text-sm text-muted-foreground shadow-sm transition-colors outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 print:hidden'
+            'absolute bottom-[calc(var(--scrollbar,0px)+0.75rem)] left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 font-display text-sm text-muted-foreground shadow-sm transition-colors outline-none hover:bg-card hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 print:hidden'
           )}
         >
           {expanded ? 'Show less' : `Show all ${lines} lines`}
