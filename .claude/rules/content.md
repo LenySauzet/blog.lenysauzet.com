@@ -196,9 +196,8 @@ lines out, the Markdown twin serves the fence as a `diff`, and a titled block co
 them beside its title. `variant="danger"` marks an error or a failed output, the name
 `Callout` uses: tinted red, unnumbered, wrapped. The transformers run through
 `lib/rehype-code.mjs`, because Turbopack cannot pass a function as a plugin option.
-**A running `bun dev` keeps the version it started with**, so restart it after changing
-that file; the file's hash is in the plugin's options so that Turbopack's on-disk cache,
-which outlives a restart, recompiles the posts rather than serving them as before. A block over 24 lines folds to its
+**A running `bun dev` keeps the version it started with**: restart it after changing
+that file. A block over 24 lines folds to its
 first 16 under a veil, a floating button unfolding it, so a long listing does not bury
 the prose around it: split one rather than let it fold when every line matters.
 
