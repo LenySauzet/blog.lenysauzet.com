@@ -43,6 +43,7 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--input-disabled`        | Fill a disabled field collapses to |
 | `--input-icon`            | A field's idle icon                |
 | `--glow`                  | Bloom under interactive surfaces   |
+| `--wash`                  | Raised controls' translucent fill  |
 
 ### Code Tokens
 
