@@ -65,8 +65,8 @@ reuse it, and add a snippet there the second time one is needed.
 - **A dot never reaches past half its cell**: cap the radius at 0.5.
 - **The highlight is `--figure-shine`**, not white, unless the mark is part of the image.
 - **Draw onto transparency**; never copy `--background` into the frame. A picture is
-  the exception: both halftones paint their own ground, black, in either theme, since
-  a dot sized by brightness disappears into a light page.
+  the exception, opaque on its own ground in either theme: `Halftone` on black, where a
+  dot sized by brightness would vanish into a light page, `VideoHalftone` on its video.
 - **Media is encoded at the size it is drawn** (what a 4K source costs is in the
   reference): ask for a ~1280px encode, and give a replaced file a new name, or
   browsers keep the old one for four hours.
