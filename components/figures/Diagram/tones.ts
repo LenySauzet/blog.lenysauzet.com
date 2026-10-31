@@ -8,7 +8,7 @@ const TONES = {
   second: 'var(--figure-second)',
   third: 'var(--figure-third)',
   structure: 'var(--muted-foreground)',
-  guide: 'color-mix(in oklab, var(--muted-foreground) 55%, var(--background))',
+  guide: 'var(--figure-guide)',
 } as const;
 
 export type Tone = keyof typeof TONES;

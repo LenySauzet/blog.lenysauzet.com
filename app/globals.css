@@ -112,14 +112,17 @@
   --figure-second: var(--second-light, oklch(0.646 0.222 41.116));
   --figure-third: var(--third-light, oklch(0.596 0.145 163.225));
   --figure-shine: oklch(0.9 0.05 var(--base-hue));
+  /* A figure's construction lines: the reference's #ACB5CA, a mix that differs per theme. */
+  --figure-guide: color-mix(in oklab, var(--muted-foreground) 38%, var(--background));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 var(--base-hue));
   --secondary-foreground: oklch(0.21 0.006 var(--base-hue));
   --muted: oklch(0.967 0.001 var(--base-hue));
-  --muted-foreground: oklch(0.552 0.016 var(--base-hue));
+  /* The reference's secondary text, its gray-1100, as in dark. */
+  --muted-foreground: oklch(0.4047 0.038 var(--base-hue));
   /* A third text tier below --muted-foreground, for the dimmest copy: the
      article date, discreet links, card titles, italic emphasis. shadcn ships no
-     tertiary text token, and an opacity step cannot stand in for one — it
+     tertiary text token, and an opacity step cannot stand in for one: it
      composites against whatever surface is behind it, so the same tier drifts
      between the page and a card. Added per the "Adding Custom Colors" recipe,
      as --success and --warning already are. */
@@ -141,11 +144,15 @@
      from --border toward --subtle-foreground, so it stays clearly under the
      placeholder it sits beside. */
   --input-icon: oklch(0.8094 0.019 var(--base-hue));
-  /* A translucent grey carrying more of --base-hue than any text tier does, for
-     surfaces that sit on the page rather than in it. Always used under an alpha:
-     laying it over itself is what separates a slider's filled part from its
-     track without introducing a second colour. */
-  --wash: oklch(0.6257 0.038 var(--base-hue));
+  /* A translucent grey for surfaces that sit on the page rather than in it.
+     Always used under an alpha: laying it over itself is what separates a
+     slider's filled part from its track without introducing a second colour.
+     Lighter in light than the reference's, whose mid-grey lifts a black page but
+     greys a white one. */
+  --wash: oklch(0.75 0.03 var(--base-hue));
+  /* The alpha a raised control lifts to on hover from its /30 rest: the same
+     1.17:1 step in both themes, the light wash being the paler. */
+  --wash-lift: 50%;
   --ring: oklch(0.705 0.015 var(--base-hue));
   /* A heatmap ramp, which no other token can stand in for: it has to run from
      the page toward a far end that stays legible under inverted text, and the
@@ -209,6 +216,7 @@
   --figure-second: var(--second-dark, oklch(0.75 0.183 55.934));
   --figure-third: var(--third-dark, oklch(0.765 0.177 163.223));
   --figure-shine: oklch(0.97 0.02 var(--base-hue));
+  --figure-guide: color-mix(in oklab, var(--muted-foreground) 55%, var(--background));
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.274 0.006 var(--base-hue));
   --secondary-foreground: oklch(0.985 0 0);
@@ -232,6 +240,7 @@
   );
   --input-icon: oklch(35.33% 0.028 var(--base-hue));
   --wash: oklch(56.78% 0.05 var(--base-hue));
+  --wash-lift: 40%;
   --ring: oklch(0.552 0.016 var(--base-hue));
   /* Deep to bright in dark, the mirror of light's run: a dark end here would
      vanish into the page instead of reading as the top of the scale. */
@@ -678,7 +687,8 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   user-select: none;
-  opacity: 1;
+  /* Quieter than the code, as a fenced block's numbers are. */
+  opacity: 0.65;
 }
 .sandpack-root .cm-scroller::-webkit-scrollbar {
   width: 8px;

@@ -23,8 +23,8 @@ that neither file makes obvious:
   `em`). The third is ours, not shadcn's, added per its "Adding Custom Colors" recipe, as
   `--success` and `--warning` were. **Do not substitute an opacity step for it**: an alpha
   composites against whatever surface sits behind the text, so the same tier would drift
-  between the page and a card, and it can neither darken past `--muted-foreground` in
-  light mode nor change chroma.
+  between the page and a card, and it cannot change chroma. The body and third tiers are
+  the reference's secondary and tertiary text in both themes (its gray-1100 and 1000).
 - **`--primary` is the thematic accent** shared by every active state (primary buttons,
   checked boxes, list markers, the note callout) and by hyperlinks, which `Anchor` takes
   straight from it. Not `--accent`, which is shadcn's muted hover *surface*.
