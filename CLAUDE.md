@@ -9,6 +9,7 @@ path, read the rule that covers it; before a task, load its skill.**
 
 ```bash
 bun dev              # Development server
+portless             # The same, at https://blog.lenysauzet.localhost
 bun run build        # Production build
 bun start            # Serve the production build
 bun lint             # ESLint (eslint-config-next)
@@ -19,6 +20,21 @@ bun run tweet-videos # Copy the videos of embedded posts on X to the CDN
 ```
 
 `bun test` runs Bun's own runner and will **not** work. Always `bun run test`.
+
+## Tools
+
+- **portless** puts the dev server behind a stable HTTPS name, set in `portless.json`.
+  It is installed globally and pre-1.0, so the scripts stay plain and `bun dev` works
+  without it. `portless clean` removes its state, CA trust entry and hosts entries.
+- **Cloudflare MCP** (the `cloudflare` plugin) reaches the account behind the CDN: the
+  `lenysauzet.com` zone, its cache rule, the `lenysauzet-assets` R2 bucket and its CORS.
+  Purge a stale CDN file through it rather than asking.
+- **wrangler** writes to that bucket, as `bun run tweet-videos` does:
+  `bunx wrangler r2 object put lenysauzet-assets/<key> --file <path> --remote`. An allow
+  rule in the user's own settings covers exactly that put; deleting an object, or
+  touching another bucket, stays theirs to approve.
+- **Playwright MCP** is the browser for verification (the `figure-verify` skill). Claude
+  in Chrome only connects to Google Chrome or Edge, not to Dia.
 
 ## Verification gate
 
