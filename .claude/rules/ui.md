@@ -239,13 +239,17 @@ the glass, being text that has to be read.
 
 **`BeforeAfterSlider` drags on motion values.** The position, the pull and the surface's
 size drive the divider, the clip and the labels' fade without a render; React state only
-says whether the surface is measured, and `aria-valuenow` follows once a frame. The
-divider is an SVG path that bows by up to 8px behind a fast drag, on an under-damped
-spring, and the after image is clipped by that same path, so both are measured inside
-the border, the box they are laid out in: measured outside it they part by its width.
-Until then the clip is a plain `inset`, or the first paint would show no split. A
-transform reads every input before it branches, since it subscribes only to what its
-last run read. The geometry and the fade are pure, in `divider.ts`.
+says whether the surface is measured and whether it is held, and `aria-valuenow` follows
+the target once a frame. What is drawn chases that target on the Slider's own spring,
+`FOLLOW_SPRING` in `lib/springs.ts`, so a click or a key glides and the two controls
+feel alike; its overshoot is held at the image's edges. Held, the handle grows to 1.1,
+being picked up rather than pressed. The divider is an SVG path that bows by up to 8px
+behind a fast drag, on an under-damped spring, and the after image is clipped by that
+same path, so both are measured inside the border, the box they are laid out in:
+measured outside it they part by its width. Until then the clip is a plain `inset`, or
+the first paint would show no split. A transform reads every input before it branches,
+since it subscribes only to what its last run read. The geometry and the fade are pure,
+in `divider.ts`.
 
 **Select is a raised surface, not an inset field.** Where `Input` is cut into the page,
 the trigger sits *on* it, on `--wash/30`, the slider's own wash, and answers a hover by

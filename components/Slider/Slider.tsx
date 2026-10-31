@@ -22,27 +22,13 @@ import {
   sliderFill,
   sliderGrip,
 } from '@/components/ui/slider';
+import { FOLLOW_SPRING } from '@/lib/springs';
 import { cn } from '@/lib/utils';
 
 // Damping ratio is damping / (2 * sqrt(stiffness * mass)); at or above 1 there
 // is no overshoot at all and the motion is merely smooth. The give is free to be
 // loose, since it only ever springs back to rest.
 const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
-
-/**
- * One spring, running for the life of the component, that the fill chases the
- * whole time. Nothing here is triggered: a chase lags while its mark is moving
- * and catches up once it stops, which is the softness under a drag and the
- * settle at the end of one, from a single behaviour.
- *
- * Derived from the reference rather than guessed. Its fill trails a moving
- * pointer by 6.35 points at 125 points a second and converges to 0.001 the
- * moment the pointer holds still, and its clicks overshoot 1.2% of whatever
- * they cover. A lag of `2 * ratio * speed / frequency` and an overshoot of
- * `exp(-pi * ratio / sqrt(1 - ratio^2))` put that at a ratio of 0.81 and a
- * frequency of 32 rad/s, which is this.
- */
-const FOLLOW_SPRING = { stiffness: 632, damping: 41, mass: 1 };
 
 // How far the bar gives when dragged past its end, and how quickly that give
 // runs out. Both are small on purpose: the point is to answer the drag, not to

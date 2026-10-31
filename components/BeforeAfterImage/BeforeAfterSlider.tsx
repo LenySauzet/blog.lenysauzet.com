@@ -14,11 +14,15 @@ import NextImage from 'next/image';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
 import { glassSurface } from '@/components/ui/glass';
+import { FOLLOW_SPRING } from '@/lib/springs';
 import { cn } from '@/lib/utils';
 
 import { afterRegion, dividerPath, labelOpacity, type LabelSpan, pullFor } from './divider';
 
 const STEP = 5;
+const HELD_SCALE = 1.1;
+// A pickup, its own spring: loose enough to pop, and untouched by tuning the chase.
+const HELD_SPRING = { type: 'spring', stiffness: 500, damping: 22, mass: 0.6 } as const;
 const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
 // Sits on the image, not on a theme surface, so it is a fixed tint that reads in
 // both themes rather than a semantic token.
@@ -100,10 +104,15 @@ export function BeforeAfterSlider({
   const reduce = useReducedMotion();
   const [position, setPosition] = useState(() => clamp(defaultPosition));
   const [measured, setMeasured] = useState(false);
+  const [held, setHeld] = useState(false);
 
-  // Dragging moves motion values, never waiting on a React render; `aria-valuenow`
-  // follows once a frame.
-  const progress = useMotionValue(position);
+  // Input moves the target and the drawing chases it on a spring, so a click or a
+  // key glides there; neither waits on a React render, and `aria-valuenow` follows
+  // the target once a frame.
+  const target = useMotionValue(position);
+  const follow = useSpring(target, FOLLOW_SPRING);
+  // The overshoot past an end is held at the edge, or the line would leave the image.
+  const progress = useTransform(follow, clamp);
   const surfaceWidth = useMotionValue(0);
   const surfaceHeight = useMotionValue(0);
   const pullTarget = useMotionValue(0);
@@ -119,11 +128,12 @@ export function BeforeAfterSlider({
 
   const frame = useRef(0);
   const apply = (next: number) => {
-    progress.set(clamp(next));
+    target.set(clamp(next));
+    if (reduce) follow.jump(target.get());
     if (frame.current) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
-      setPosition(progress.get());
+      setPosition(target.get());
     });
   };
 
@@ -145,12 +155,13 @@ export function BeforeAfterSlider({
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0) return;
     release();
-    // Guarded: throws for a pointer that has already been released.
+    // Throws for a pointer already released, which has nothing left to drag.
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
-      /* no-op */
+      return;
     }
+    setHeld(true);
     const x = xFrom(event.clientX);
     drag.current = { pointerId: event.pointerId, originX: x, x, time: event.timeStamp };
   };
@@ -169,11 +180,12 @@ export function BeforeAfterSlider({
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (drag.current?.pointerId !== event.pointerId) return;
     drag.current = null;
+    setHeld(false);
     release();
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
-    const base = progress.get();
+    const base = target.get();
     const moves: Record<string, number> = {
       ArrowLeft: base - STEP,
       ArrowRight: base + STEP,
@@ -280,6 +292,8 @@ export function BeforeAfterSlider({
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 z-[1] flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md backdrop-blur-md backdrop-saturate-[115%]"
+        animate={{ scale: held && !reduce ? HELD_SCALE : 1 }}
+        transition={HELD_SPRING}
         style={{
           left: handleLeft,
           background: 'oklch(0.62 0.035 var(--base-hue) / 0.42)',
