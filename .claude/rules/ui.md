@@ -227,9 +227,9 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   already marks that spot. Match it with a tolerance rather than an equality: both sides
   are a division reduced to a percentage, and thirds do not land on the same last digit.
 
-**`components/ui/glass` is the site's one translucent material**: the Dynamic
-Island's own recipe, which the island, `ui/select.tsx`, the tooltip and the legend all
-now take. It is `--card/75` rather than a `--wash` step **because `--card` is defined
+**`components/ui/glass` is the material of panels over content**: the Dynamic
+Island's own recipe, which the island, the tooltip, the legend and a code block's fold
+button take. It is `--card/75` rather than a `--wash` step **because `--card` is defined
 in both themes**: a single translucency cannot be right over a light page and a dark
 one, and a panel that has to be read needs the surface under its text to follow the
 theme rather than tint it. The 115% saturation is load-bearing, a plain blur greying
@@ -238,7 +238,7 @@ floating over photography rather than over the page.
 
 **Select is a raised surface, not an inset field.** Where `Input` is cut into the page,
 the trigger sits *on* it, on `--wash/30`, the slider's own wash, and answers a hover by
-lifting to `/40` rather than taking an edge. The panel wears the same wash over
+lifting to `--wash-lift` (the same step in both themes) rather than taking an edge. The panel wears the same wash over
 `backdrop-blur-md backdrop-saturate-[115%]`, so what it covers stays readable through it,
 and its items are inset by `mx-1` so a highlight reads as a card lifting out of the list
 rather than a band across it.

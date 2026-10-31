@@ -36,7 +36,7 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--primary-foreground`    | Text on primary backgrounds        |
 | `--secondary`             | Subtle backgrounds                 |
 | `--muted`                 | Muted surface                      |
-| `--muted-foreground`      | Muted text                         |
+| `--muted-foreground`      | Body copy, second text tier        |
 | `--accent`                | Accent surface                     |
 | `--border`                | Border color                       |
 | `--subtle-foreground`     | Third text tier, dimmest copy      |
@@ -44,6 +44,7 @@ The color system is built on a single `--base-hue` variable (259.815, Tailwind's
 | `--input-icon`            | A field's idle icon                |
 | `--glow`                  | Bloom under interactive surfaces   |
 | `--wash`                  | Raised controls' translucent fill  |
+| `--wash-lift`             | Its hover alpha, one step per theme |
 
 ### Code Tokens
 

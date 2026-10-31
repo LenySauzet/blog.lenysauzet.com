@@ -20,6 +20,6 @@
   and is declared the day a figure needs one. A fill is the tone mixed toward the page,
   so one definition lightens on a light page and darkens on a dark one.
 - **`guide` is not `--border`.** A border is the edge of a surface and measures 1.23
-  against the page, which is a line nobody can follow. The construction lines take a
-  mix of `--muted-foreground`, 2.20 in light and 3.16 in dark, which is where the
-  reference's own `#ACB5CA` lands.
+  against the page, which is a line nobody can follow. The construction lines take
+  `--figure-guide`, a mix of `--muted-foreground` set per theme: 2.04 in light, where
+  the reference's own `#ACB5CA` lands (2.06), and 3.16 in dark.
