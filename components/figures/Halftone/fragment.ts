@@ -35,6 +35,8 @@ void main() {
   float radius = min(uRadius * mix(1.0, 0.1 + dot(LUMA, color), uLuma), 0.5);
   float reach = length(gl_FragCoord.xy - centre) / cell;
   float disc = 1.0 - smoothstep(radius - fwidth(reach), radius, reach);
-  fragColor = vec4(color, mix(1.0, disc, uDots));
+  // A picture, so it owns its ground, the unlit screen its light falls on, in
+  // either theme: on a light page, brightness would size dots into the page.
+  fragColor = vec4(color * mix(1.0, disc, uDots), 1.0);
 }
 `;
