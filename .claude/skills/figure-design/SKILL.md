@@ -60,7 +60,8 @@ computed live, and a figure the reader learns from by pushing it to its limits.
   mark drawn into a picture (a halftone's dot) is part of that picture and keeps its
   own colour.
 - **Tokens only, both themes.** A literal colour is a bug unless it names something in
-  the world. Draw onto transparency so a theme flip repaints the ink and nothing else.
+  the world. Draw onto transparency so a theme flip repaints the ink and nothing else;
+  a picture is the exception, opaque on its own ground, the same in both themes.
 
 How the companions are chosen and measured: [color.md](color.md).
 

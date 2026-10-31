@@ -17,7 +17,8 @@
   so a playing shader never re-renders React, and a still one with no colour to watch
   runs no loop at all. The first frame only reads the clock: a frame's timestamp can
   predate the call that asked for it, and stepping from that call ran time backwards.
-- **It draws onto transparency**, so a theme flip repaints only the ink.
+- **It draws onto transparency**, so a theme flip repaints only the ink, unless the
+  figure is a picture: `Halftone` and `VideoHalftone` are opaque, the same in both themes.
 - **The engine reports a status, React reads it through `useSyncExternalStore`**:
   no WebGL 2 or a lost context, a shader that does not link (checked by hand, since OGL
   then throws inside the loop), an image or video that does not load, a video the
