@@ -25,7 +25,7 @@ bun run tweet-videos # Copy the videos of embedded posts on X to the CDN
 
 - **portless** puts the dev server behind a stable HTTPS name, set in `portless.json`.
   It is installed globally and pre-1.0, so the scripts stay plain and `bun dev` works
-  without it. `portless clean` removes its CA, state and hosts entries.
+  without it. `portless clean` removes its state, CA trust entry and hosts entries.
 - **Cloudflare MCP** (the `cloudflare` plugin) reaches the account behind the CDN: the
   `lenysauzet.com` zone, its cache rule, the `lenysauzet-assets` R2 bucket and its CORS.
   Purge a stale CDN file through it rather than asking.
