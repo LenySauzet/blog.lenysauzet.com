@@ -153,7 +153,7 @@ export function SlideshowCarousel({
             >
               <div
                 className={cn(
-                  'overflow-hidden rounded-frame-lg border-2 border-border bg-card',
+                  'overflow-hidden rounded-frame-xl border-2 border-border bg-card',
                   current &&
                     'group-focus-visible/slideshow:ring-2 group-focus-visible/slideshow:ring-ring group-focus-visible/slideshow:ring-offset-2 group-focus-visible/slideshow:ring-offset-background'
                 )}
