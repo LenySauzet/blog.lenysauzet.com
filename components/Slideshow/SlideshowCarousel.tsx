@@ -240,7 +240,6 @@ export function SlideshowCarousel({
               style={{ aspectRatio: `${width} / ${height}` }}
             >
               <motion.div
-                layoutId={index === selected ? zoomId : undefined}
                 className={cn(
                   'relative size-full',
                   index === selected && 'cursor-zoom-in active:cursor-grabbing',
@@ -275,6 +274,10 @@ export function SlideshowCarousel({
             </CarouselItem>
           ))}
         </CarouselContent>
+        {/* What the lightbox morphs from: the frame, which the current slide fills at
+            rest. Not the slide itself, which rides Embla's transformed track, and Motion
+            measures a box under a transform it does not own a slide-width per slide off. */}
+        <motion.div layoutId={zoomId} aria-hidden="true" className="pointer-events-none invisible absolute inset-0" />
         {leaving !== null && (
           <motion.div
             key={leaving}
