@@ -19,18 +19,19 @@ describe('keyFor', () => {
     }
   });
 
-  it('takes Home, End and Space only when the slideshow holds focus', () => {
+  it('takes Home, End, Space and Enter only when the slideshow holds focus', () => {
     expect(keyFor(press('Home'), true)).toBe('first');
     expect(keyFor(press('End'), true)).toBe('last');
     expect(keyFor(press(' '), true)).toBe('toggle');
-    for (const key of ['Home', 'End', ' ']) expect(keyFor(press(key), false)).toBeNull();
+    expect(keyFor(press('Enter'), true)).toBe('open');
+    for (const key of ['Home', 'End', ' ', 'Enter']) expect(keyFor(press(key), false)).toBeNull();
   });
 
   it('leaves any chord and any other key alone', () => {
     for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey'] as const)
       expect(keyFor(press('ArrowRight', { [modifier]: true }), true)).toBeNull();
     expect(keyFor(press('ArrowUp'), true)).toBeNull();
-    expect(keyFor(press('Enter'), true)).toBeNull();
+    expect(keyFor(press('Tab'), true)).toBeNull();
   });
 });
 

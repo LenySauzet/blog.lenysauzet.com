@@ -5,16 +5,25 @@ import { motion, useInView, useMotionValue, useTransform } from 'motion/react';
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
+import { IMAGE_SIZES } from '@/components/Image/ImageZoom';
+import { Lightbox } from '@/components/Image/Lightbox';
+import { ZoomCaption } from '@/components/Image/ZoomCaption';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { usePlayback } from '@/hooks/use-playback';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 
-import { bendFor, MAX_BEND, slidePath } from './bend';
+import { bendFor, MAX_BEND, PARALLAX, parallaxShift, slidePath } from './bend';
 import { Controls } from './Controls';
 import { registerSlideshow, type SlideshowKey } from './keyboard';
 
 const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
+// An image bleeds past its slide by the most the parallax moves it, plus the seam's
+// bulge, so neither ever uncovers an edge; the cross-fade's copy wears the same crop.
+const BLEED = {
+  left: `calc(${-PARALLAX * 100}% - ${MAX_BEND}px)`,
+  width: `calc(${100 + 2 * PARALLAX * 100}% + ${2 * MAX_BEND}px)`,
+};
 
 export interface SlideshowCarouselProps {
   /** Fully resolved URLs; resolution happens on the server. */
@@ -45,6 +54,8 @@ export function SlideshowCarousel({
   const [selected, setSelected] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
   const [leaving, setLeaving] = useState<number | null>(null);
+  const [zoom, setZoom] = useState<'closed' | 'opening' | 'open'>('closed');
+  const layers = useRef<(HTMLDivElement | null)[]>([]);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
@@ -124,10 +135,19 @@ export function SlideshowCarousel({
     return true;
   };
 
+  const enlarge = () => {
+    playback.pause();
+    setZoom('opening');
+  };
+
   const handle = useEffectEvent((key: SlideshowKey) => {
     if (key === 'toggle') {
       if (!plays) return false;
       playback.toggle();
+      return true;
+    }
+    if (key === 'open') {
+      enlarge();
       return true;
     }
     const moved = go({ previous: selected - 1, next: selected + 1, first: 0, last: count - 1 }[key]);
@@ -139,11 +159,29 @@ export function SlideshowCarousel({
     if (!api) return;
     // Embla's own speed, which an instant jump leaves at zero, so autoplay's
     // cross-fade never bends; read off its engine, as its tween examples do.
-    const onScroll = () => bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
-    const onSettle = () => bend.set(0);
-    api.on('scroll', onScroll).on('settle', onSettle);
+    // Each image lags its frame by how far that frame sits from the middle of the view,
+    // measured from the slides themselves, which the loop moves about on its own.
+    const place = () => {
+      const view = rootRef.current!;
+      const left = view.getBoundingClientRect().left + view.clientLeft;
+      const width = view.clientWidth;
+      api.slideNodes().forEach((slide, index) => {
+        const distance = (slide.getBoundingClientRect().left - left) / width;
+        layers.current[index]?.style.setProperty('translate', `${reduced ? 0 : parallaxShift(distance, width)}px 0`);
+      });
+    };
+    const onScroll = () => {
+      bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
+      place();
+    };
+    const onSettle = () => {
+      bend.set(0);
+      place();
+    };
+    place();
+    api.on('scroll', onScroll).on('settle', onSettle).on('reInit', place);
     return () => {
-      api.off('scroll', onScroll).off('settle', onSettle);
+      api.off('scroll', onScroll).off('settle', onSettle).off('reInit', place);
     };
   }, [api, bend, reduced]);
 
@@ -203,20 +241,31 @@ export function SlideshowCarousel({
             className="pl-0"
             style={{ aspectRatio: `${width} / ${height}` }}
           >
-            <motion.div className="relative size-full" style={{ clipPath: outline }}>
-              <NextImage
-                src={src}
-                alt={alt}
-                width={width}
-                height={height}
-                sizes={SIZES}
-                draggable={false}
-                // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
-                loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
-                className="pointer-events-none absolute inset-y-0 h-full max-w-none object-cover select-none"
-                // It bleeds past the slide to fill the seam's bulge.
-                style={{ left: -MAX_BEND, width: `calc(100% + ${2 * MAX_BEND}px)` }}
-              />
+            <motion.div
+              className={cn('relative size-full', index === selected && 'cursor-zoom-in active:cursor-grabbing')}
+              style={{ clipPath: outline }}
+              // Embla swallows the click that ends a drag, so this is a click alone.
+              onClick={index === selected ? enlarge : undefined}
+            >
+              <div
+                ref={(layer) => {
+                  layers.current[index] = layer;
+                }}
+                className="absolute inset-y-0"
+                style={BLEED}
+              >
+                <NextImage
+                  src={src}
+                  alt={alt}
+                  width={width}
+                  height={height}
+                  sizes={SIZES}
+                  draggable={false}
+                  // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+                  loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
+                  className="pointer-events-none size-full object-cover select-none"
+                />
+              </div>
             </motion.div>
           </CarouselItem>
         ))}
@@ -231,15 +280,17 @@ export function SlideshowCarousel({
           transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
           onAnimationComplete={() => setLeaving(null)}
         >
-          <NextImage
-            src={images[leaving]}
-            alt=""
-            width={width}
-            height={height}
-            sizes={SIZES}
-            draggable={false}
-            className="size-full object-cover select-none"
-          />
+          <div className="absolute inset-y-0" style={BLEED}>
+            <NextImage
+              src={images[leaving]}
+              alt=""
+              width={width}
+              height={height}
+              sizes={SIZES}
+              draggable={false}
+              className="size-full object-cover select-none"
+            />
+          </div>
         </motion.div>
       )}
       {count > 1 && (
@@ -253,6 +304,30 @@ export function SlideshowCarousel({
           interval={interval}
         />
       )}
+      <Lightbox open={zoom !== 'closed'} onOpenChange={(open) => setZoom(open ? 'opening' : 'closed')} title={alt}>
+        <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
+          {/* The whole image, uncropped: the slide frames it, the lightbox shows it. */}
+          <motion.div
+            initial={reduced ? false : { opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
+            onAnimationComplete={() => setZoom((state) => (state === 'opening' ? 'open' : state))}
+            style={{ aspectRatio: `${width} / ${height}` }}
+            className="min-h-0 max-h-full max-w-full"
+          >
+            <NextImage
+              src={images[selected]}
+              alt=""
+              width={width}
+              height={height}
+              sizes={IMAGE_SIZES}
+              className="h-full w-full rounded-frame-xl object-contain"
+            />
+          </motion.div>
+          <ZoomCaption start={zoom === 'open'}>{alt}</ZoomCaption>
+        </div>
+      </Lightbox>
     </Carousel>
   );
 }

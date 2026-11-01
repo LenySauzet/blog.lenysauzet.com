@@ -1,4 +1,4 @@
-export type SlideshowKey = 'previous' | 'next' | 'first' | 'last' | 'toggle';
+export type SlideshowKey = 'previous' | 'next' | 'first' | 'last' | 'toggle' | 'open';
 
 interface KeyPress {
   key: string;
@@ -10,8 +10,8 @@ interface KeyPress {
 
 /**
  * What a key asks of a slideshow. The arrows reach one from anywhere on the page;
- * Home, End and Space only one that holds focus itself, since elsewhere they
- * scroll the page.
+ * Home, End, Space and Enter only one that holds focus itself, since elsewhere they
+ * scroll the page or belong to what has focus.
  */
 export function keyFor(press: KeyPress, focused: boolean): SlideshowKey | null {
   if (press.altKey || press.ctrlKey || press.metaKey || press.shiftKey) return null;
@@ -21,6 +21,7 @@ export function keyFor(press: KeyPress, focused: boolean): SlideshowKey | null {
   if (press.key === 'Home') return 'first';
   if (press.key === 'End') return 'last';
   if (press.key === ' ') return 'toggle';
+  if (press.key === 'Enter') return 'open';
   return null;
 }
 
