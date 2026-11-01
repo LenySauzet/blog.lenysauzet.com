@@ -43,6 +43,7 @@ export default async function Slideshow({
         interval={interval}
         width={measurement.width}
         height={measurement.height}
+        className="w-full"
       />
       <figcaption className="pt-2.5 font-display text-sm leading-6 text-subtle-foreground">{alt}</figcaption>
     </figure>

@@ -2,16 +2,14 @@ import { ArrowLeft01Icon, ArrowRight01Icon, PauseIcon, PlayIcon } from '@hugeico
 import { HugeiconsIcon } from '@hugeicons/react';
 import { motion } from 'motion/react';
 
+import { mediaGlass } from '@/components/ui/glass';
 import { cn } from '@/lib/utils';
 
 import { isEdge, stepWindow } from './steps';
 
-// The page's own control surface, the Select trigger's: the row sits under the
-// images, on the page, so it follows the theme.
-const SURFACE = 'border border-muted-foreground/5 bg-wash/30';
 const BUTTON = cn(
-  SURFACE,
-  'grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-foreground [transition:scale_.2s,background-color_.25s] enabled:hover:scale-105 enabled:hover:bg-wash/(--wash-lift) enabled:active:scale-[0.97] disabled:cursor-default disabled:[&_svg]:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none motion-reduce:enabled:hover:scale-100 motion-reduce:enabled:active:scale-100'
+  mediaGlass,
+  'pointer-events-auto relative grid size-8 shrink-0 cursor-pointer place-items-center rounded-full [transition:scale_.2s] enabled:hover:scale-105 enabled:active:scale-[0.97] disabled:cursor-default disabled:[&_svg]:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none motion-reduce:enabled:hover:scale-100 motion-reduce:enabled:active:scale-100'
 );
 
 export interface ControlsProps {
@@ -33,7 +31,7 @@ export function Controls({ count, selected, loop, onGo, playback, timer, interva
   // The buttons stay out of the tab order: the slideshow takes the arrows itself,
   // and only the pause button, which a reader must be able to reach, is a stop.
   return (
-    <div className={cn('flex justify-center gap-1', className)}>
+    <div className={cn('pointer-events-none absolute inset-x-0 bottom-4 z-[1] flex justify-center gap-1', className)}>
       <button
         type="button"
         tabIndex={-1}
@@ -46,7 +44,7 @@ export function Controls({ count, selected, loop, onGo, playback, timer, interva
       </button>
       {/* Each step is a box padded around its dot, so the pill's inset is the same at
           either end whatever is active. */}
-      <div className={cn(SURFACE, 'flex rounded-full p-1')}>
+      <div className={cn(mediaGlass, 'pointer-events-auto relative flex rounded-full p-1')}>
         {Array.from({ length: count }, (_, index) => {
           const active = index === selected;
           const filling = active && timer !== null;
@@ -68,14 +66,14 @@ export function Controls({ count, selected, loop, onGo, playback, timer, interva
                 aria-hidden="true"
                 className={cn(
                   'relative h-2 w-full overflow-hidden rounded-full [transition:background-color_.5s_cubic-bezier(0.215,0.61,0.355,1),scale_.5s_cubic-bezier(0.215,0.61,0.355,1)] motion-reduce:transition-none',
-                  active && !filling ? 'bg-foreground' : 'bg-foreground/30',
+                  active && !filling ? 'bg-media-ink' : 'bg-media-ink/30',
                   isEdge(index, count, shown) && 'scale-65'
                 )}
               >
                 {filling && (
                   <motion.span
                     key={timer}
-                    className="absolute inset-0 bg-foreground"
+                    className="absolute inset-0 bg-media-ink"
                     initial={{ clipPath: 'inset(0 100% 0 0)' }}
                     animate={{ clipPath: 'inset(0 0% 0 0)' }}
                     transition={{ duration: interval / 1000, ease: 'linear' }}

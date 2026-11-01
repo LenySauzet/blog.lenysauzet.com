@@ -1,7 +1,7 @@
 'use client';
 
 import Autoplay from 'embla-carousel-autoplay';
-import { useInView } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
@@ -13,9 +13,7 @@ import { cn } from '@/lib/utils';
 import { Controls } from './Controls';
 import { registerSlideshow, type SlideshowKey } from './keyboard';
 
-// A slide is the article's width, or the screen's less a peek of each neighbour.
-const SLIDE = 'basis-[min(42rem,calc(100%-3rem))]';
-const SIZES = '(max-width: 768px) calc(100vw - 3rem), 672px';
+const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
 
 export interface SlideshowCarouselProps {
   /** Fully resolved URLs; resolution happens on the server. */
@@ -45,6 +43,7 @@ export function SlideshowCarousel({
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
+  const [leaving, setLeaving] = useState<number | null>(null);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
@@ -55,10 +54,17 @@ export function SlideshowCarousel({
   const loop = plays;
   const playing = plays && playback.playing && inView;
 
+  // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
+  // plays by itself, while a drag, a key or a button still slides the track.
   const plugins = useMemo(
-    () => (plays ? [Autoplay({ delay: interval, playOnInit: false, stopOnFocusIn: false })] : []),
+    () => (plays ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []),
     [plays, interval]
   );
+
+  // Under reduced motion autoplay simply jumps: nothing is left behind to fade.
+  const leave = useEffectEvent(() => {
+    if (api && !reduced) setLeaving(api.previousScrollSnap());
+  });
 
   useEffect(() => {
     if (!api) return;
@@ -67,9 +73,17 @@ export function SlideshowCarousel({
     const onTimerSet = () => setTimer((previous) => (previous ?? 0) + 1);
     const onTimerStopped = () => setTimer(null);
     onSelect();
-    api.on('select', onSelect).on('autoplay:timerset', onTimerSet).on('autoplay:timerstopped', onTimerStopped);
+    api
+      .on('select', onSelect)
+      .on('autoplay:timerset', onTimerSet)
+      .on('autoplay:timerstopped', onTimerStopped)
+      .on('autoplay:select', leave);
     return () => {
-      api.off('select', onSelect).off('autoplay:timerset', onTimerSet).off('autoplay:timerstopped', onTimerStopped);
+      api
+        .off('select', onSelect)
+        .off('autoplay:timerset', onTimerSet)
+        .off('autoplay:timerstopped', onTimerStopped)
+        .off('autoplay:select', leave);
     };
   }, [api]);
 
@@ -78,7 +92,7 @@ export function SlideshowCarousel({
     // Embla re-creates its plugins on every resize, stopped: the state is re-applied.
     const sync = () => {
       const autoplay = api.plugins().autoplay;
-      if (playing) autoplay.play(reduced);
+      if (playing) autoplay.play();
       else autoplay.stop();
     };
     sync();
@@ -86,12 +100,13 @@ export function SlideshowCarousel({
     return () => {
       api.off('reInit', sync);
     };
-  }, [api, playing, reduced]);
+  }, [api, playing]);
 
   const go = (index: number) => {
     if (!api) return false;
     const target = loop ? (index + count) % count : Math.min(Math.max(index, 0), count - 1);
     if (target === api.selectedScrollSnap()) return false;
+    setLeaving(null);
     api.scrollTo(target, reduced);
     api.plugins().autoplay?.reset();
     return true;
@@ -112,20 +127,20 @@ export function SlideshowCarousel({
     if (count > 1) return registerSlideshow({ root: rootRef.current!, handle: (key) => handle(key) });
   }, [count]);
 
-  // The track runs the width of the screen, each slide framed at the article's
-  // width with its neighbours in view; the controls sit under it, on the page.
   return (
     <Carousel
       ref={rootRef}
       setApi={setApi}
       plugins={plugins}
-      // Not contained: the first and last slides centre like the rest.
-      opts={{ loop, align: 'center', containScroll: false }}
+      opts={{ loop }}
       tabIndex={count > 1 ? 0 : undefined}
       aria-label={alt}
       aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
       data-slideshow=""
-      className={cn('group/slideshow relative left-1/2 -mx-[50vw] w-screen focus-visible:outline-none', className)}
+      className={cn(
+        'overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+        className
+      )}
     >
       {count > 1 && (
         <>
@@ -139,42 +154,54 @@ export function SlideshowCarousel({
       )}
       <CarouselContent
         className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
-        onPointerDown={playback.pause}
+        onPointerDown={() => {
+          playback.pause();
+          setLeaving(null);
+        }}
       >
-        {images.map((src, index) => {
-          const current = index === selected;
-          return (
-            <CarouselItem
-              key={`${index}-${src}`}
-              aria-label={`${index + 1} of ${count}`}
-              aria-hidden={!current}
-              onClick={current ? undefined : () => go(index)}
-              className={cn('px-2', SLIDE)}
-            >
-              <div
-                className={cn(
-                  'overflow-hidden rounded-frame-xl border-2 border-border bg-card',
-                  current &&
-                    'group-focus-visible/slideshow:ring-2 group-focus-visible/slideshow:ring-ring group-focus-visible/slideshow:ring-offset-2 group-focus-visible/slideshow:ring-offset-background'
-                )}
-                style={{ aspectRatio: `${width} / ${height}` }}
-              >
-                <NextImage
-                  src={src}
-                  alt={alt}
-                  width={width}
-                  height={height}
-                  sizes={SIZES}
-                  draggable={false}
-                  // Once on screen the neighbours load ahead: they are in view either side.
-                  loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
-                  className="pointer-events-none size-full object-cover select-none"
-                />
-              </div>
-            </CarouselItem>
-          );
-        })}
+        {images.map((src, index) => (
+          <CarouselItem
+            key={`${index}-${src}`}
+            aria-label={`${index + 1} of ${count}`}
+            inert={index !== selected}
+            className="pl-0"
+            style={{ aspectRatio: `${width} / ${height}` }}
+          >
+            <NextImage
+              src={src}
+              alt={alt}
+              width={width}
+              height={height}
+              sizes={SIZES}
+              draggable={false}
+              // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+              loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
+              className="pointer-events-none size-full object-cover select-none"
+            />
+          </CarouselItem>
+        ))}
       </CarouselContent>
+      {leaving !== null && (
+        <motion.div
+          key={leaving}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+          onAnimationComplete={() => setLeaving(null)}
+        >
+          <NextImage
+            src={images[leaving]}
+            alt=""
+            width={width}
+            height={height}
+            sizes={SIZES}
+            draggable={false}
+            className="size-full object-cover select-none"
+          />
+        </motion.div>
+      )}
       {count > 1 && (
         <Controls
           count={count}
@@ -184,7 +211,6 @@ export function SlideshowCarousel({
           playback={plays ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
           timer={timer}
           interval={interval}
-          className="mt-4"
         />
       )}
     </Carousel>

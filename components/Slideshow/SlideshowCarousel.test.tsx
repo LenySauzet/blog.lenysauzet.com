@@ -25,10 +25,10 @@ describe('SlideshowCarousel', () => {
     expect(slides.map((slide) => slide.getAttribute('aria-label'))).toEqual(['1 of 3', '2 of 3', '3 of 3']);
   });
 
-  it('hides the neighbours from assistive technology, the current slide alone read', () => {
+  it('leaves only the current slide reachable', () => {
     render(<SlideshowCarousel {...props} />);
     const slides = screen.getAllByRole('group', { hidden: true });
-    expect(slides.map((slide) => slide.getAttribute('aria-hidden'))).toEqual(['false', 'true', 'true']);
+    expect(slides.map((slide) => slide.hasAttribute('inert'))).toEqual([false, true, true]);
   });
 
   it('offers previous, next and a step per image, the first step current', () => {
