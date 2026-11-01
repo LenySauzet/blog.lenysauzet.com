@@ -54,7 +54,7 @@ export function SlideshowCarousel({
 
   const [plugins] = useState(() =>
     autoPlay
-      ? [Fade(), Autoplay({ delay: interval, playOnInit: false, stopOnInteraction: false, stopOnFocusIn: false })]
+      ? [Fade(), Autoplay({ delay: interval, playOnInit: false, stopOnFocusIn: false })]
       : []
   );
 
@@ -72,10 +72,18 @@ export function SlideshowCarousel({
   }, [api]);
 
   useEffect(() => {
-    const autoplay = api?.plugins().autoplay;
-    if (!autoplay) return;
-    if (playing) autoplay.play(reduced);
-    else autoplay.stop();
+    if (!api?.plugins().autoplay) return;
+    // Embla re-creates its plugins on every resize, stopped: the state is re-applied.
+    const sync = () => {
+      const autoplay = api.plugins().autoplay;
+      if (playing) autoplay.play(reduced);
+      else autoplay.stop();
+    };
+    sync();
+    api.on('reInit', sync);
+    return () => {
+      api.off('reInit', sync);
+    };
   }, [api, playing, reduced]);
 
   const go = (index: number) => {
@@ -98,7 +106,9 @@ export function SlideshowCarousel({
     return go(index);
   });
 
-  useEffect(() => registerSlideshow({ root: rootRef.current!, handle: (key) => handle(key) }), []);
+  useEffect(() => {
+    if (count > 1) return registerSlideshow({ root: rootRef.current!, handle: (key) => handle(key) });
+  }, [count]);
 
   return (
     <Carousel
@@ -108,19 +118,23 @@ export function SlideshowCarousel({
       opts={{ loop }}
       tabIndex={count > 1 ? 0 : undefined}
       aria-label={alt}
-      aria-describedby={`${id}-keys ${id}-status`}
+      aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
       data-slideshow=""
       className={cn(
         'overflow-hidden rounded-frame-lg border-2 border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
         className
       )}
     >
-      <p id={`${id}-keys`} className="sr-only">
-        Use the Left and Right arrow keys to change images{autoPlay ? ', and Space to pause or play' : ''}.
-      </p>
-      <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
-        Image {selected + 1} of {count}.
-      </p>
+      {count > 1 && (
+        <>
+          <p id={`${id}-keys`} className="sr-only">
+            Use the Left and Right arrow keys to change images{autoPlay ? ', and Space to pause or play' : ''}.
+          </p>
+          <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
+            Image {selected + 1} of {count}.
+          </p>
+        </>
+      )}
       <CarouselContent
         className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
         onPointerDown={playback.pause}
@@ -140,8 +154,8 @@ export function SlideshowCarousel({
               height={height}
               sizes={SIZES}
               draggable={false}
-              // The neighbours load ahead, so a drag never reveals a blank slide.
-              loading={Math.abs(index - selected) <= 1 || (loop && index === count - 1) ? 'eager' : 'lazy'}
+              // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+              loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
               className="pointer-events-none size-full object-cover select-none"
             />
           </CarouselItem>

@@ -92,7 +92,10 @@ function onKeyDown(event: KeyboardEvent) {
     entry = list[nearestToCentre(list.map((each) => each.root.getBoundingClientRect()), innerWidth, innerHeight)];
   }
 
-  if (key && entry?.handle(key)) event.preventDefault();
+  if (!key || !entry) return;
+  // A held Space would flip playback thirty times a second; it still must not scroll.
+  if (key === 'toggle' && event.repeat) event.preventDefault();
+  else if (entry.handle(key)) event.preventDefault();
 }
 
 /** One listener for the page, however many slideshows it holds. */

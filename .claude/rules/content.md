@@ -217,10 +217,14 @@ draws a pause button, `interval` its pace. What it rests on:
 - **Autoplay follows `usePlayback`**: still under reduced motion until asked, paused by
   any drag or key, stopped off screen. The step's fill restarts on Embla's
   `autoplay:timerset`, so it never drifts from the timer after a pause.
-- **Under reduced motion every move jumps**, and `usePrefersReducedMotion` reads the
-  preference live, where Motion's `useReducedMotion` reads it once at mount.
-- The window of steps (five at most, the ends shrinking when more lie beyond) and the
-  key routing are pure, in `steps.ts` and `keyboard.ts`.
+- **Under reduced motion every move it makes by itself or by key jumps** (a released
+  drag still settles), and `usePrefersReducedMotion` reads the preference live, where
+  Motion's `useReducedMotion` reads it once at mount.
+- **Embla re-creates its plugins, stopped, on every resize**, so playback is re-applied
+  on `reInit`; and `stopOnInteraction` stays on, or a tap on a paused slideshow would
+  restart it behind its own Play button.
+- The window of steps (five at most, the ends shrinking when more lie beyond) is pure in
+  `steps.ts`; the key routing lives in `keyboard.ts`, tested against fake slideshows.
 
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in

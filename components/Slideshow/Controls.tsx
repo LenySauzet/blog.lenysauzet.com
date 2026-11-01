@@ -11,7 +11,6 @@ const BUTTON = cn(
   glassSurface,
   'grid size-8 cursor-pointer place-items-center rounded-full text-foreground [transition:scale_.2s] enabled:hover:scale-105 enabled:active:scale-[0.97] disabled:cursor-default disabled:[&_svg]:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none motion-reduce:enabled:hover:scale-100 motion-reduce:enabled:active:scale-100'
 );
-const EASE = 'cubic-bezier(0.215,0.61,0.355,1)';
 
 export interface ControlsProps {
   count: number;
@@ -56,20 +55,18 @@ export function Controls({ count, selected, loop, onGo, playback, timer, interva
               aria-current={active || undefined}
               onClick={() => onGo(index)}
               className={cn(
-                'flex h-full cursor-pointer items-center justify-center motion-reduce:transition-none',
+                'flex h-full cursor-pointer items-center justify-center [transition:width_.5s_cubic-bezier(0.215,0.61,0.355,1)] motion-reduce:transition-none',
                 active ? 'w-8' : 'w-5',
                 (index < shown.start || index >= shown.end) && 'hidden'
               )}
-              style={{ transition: `width .5s ${EASE}` }}
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  'relative h-2 w-full overflow-hidden rounded-full motion-reduce:transition-none',
+                  'relative h-2 w-full overflow-hidden rounded-full [transition:background-color_.5s_cubic-bezier(0.215,0.61,0.355,1),scale_.5s_cubic-bezier(0.215,0.61,0.355,1)] motion-reduce:transition-none',
                   active ? (filling ? 'bg-foreground/30' : 'bg-foreground') : 'mx-1.5 bg-foreground/30',
                   isEdge(index, count, shown) && 'scale-65'
                 )}
-                style={{ transition: `background-color .5s ${EASE}, scale .5s ${EASE}` }}
               >
                 {filling && (
                   <motion.span
