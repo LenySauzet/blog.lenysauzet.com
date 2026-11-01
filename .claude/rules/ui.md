@@ -17,6 +17,13 @@ listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
 `.claude/rules/command-palette.md` for `command`, in `.claude/rules/tables.md` for
 `table`, and in the `figure-chart` skill's reference for `chart`.
 
+**`components/ui/carousel.tsx` is shadcn's, added by hand.** `add carousel` would overwrite
+`button.tsx` for the stock Previous and Next, which nothing here uses, so they are left
+out; the CLI's copy also imported `cn` from a package named `cn` and never unbound
+`reInit`. The stock arrow-key handler is gone too: `Slideshow` takes the arrows
+page-wide, and two handlers would each move it a step. Embla is 8.6, with its autoplay
+and fade plugins.
+
 **`@base-ui/react` is a real dependency, used by exactly one component**:
 `components/ui/combobox.tsx`, built on Base UI's combobox primitive: Radix ships none, so
 shadcn's own combobox takes it even in the Radix style. Radix is the primitive layer for

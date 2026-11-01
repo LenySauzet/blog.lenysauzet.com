@@ -205,6 +205,23 @@ it after changing that file. A block over 24 lines folds to its first 16 under a
 a floating button unfolding it, and shows whole in print or without script: split a
 listing rather than let it fold when every line matters.
 
+**`components/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
+alt="…" />`, `alt` doubling as caption and name; `autoPlay` cross-fades, goes round and
+draws a pause button, `interval` its pace. What it rests on:
+
+- **The first image sets the frame**, measured at build; the others are cropped to it,
+  so give a slideshow images of one shape.
+- **The arrows reach it from anywhere on the page**: focused, it takes them along with
+  Home, End and Space; otherwise the one nearest the middle of the screen does, unless
+  focus sits in something that answers arrows itself. One listener serves the page.
+- **Autoplay follows `usePlayback`**: still under reduced motion until asked, paused by
+  any drag or key, stopped off screen. The step's fill restarts on Embla's
+  `autoplay:timerset`, so it never drifts from the timer after a pause.
+- **Under reduced motion every move jumps**, and `usePrefersReducedMotion` reads the
+  preference live, where Motion's `useReducedMotion` reads it once at mount.
+- The window of steps (five at most, the ends shrinking when more lie beyond) and the
+  key routing are pure, in `steps.ts` and `keyboard.ts`.
+
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in
 `app/globals.css` under `ol[data-list='ordered']`, a deliberate exception to the

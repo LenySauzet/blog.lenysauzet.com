@@ -37,6 +37,7 @@ import Image from '@/components/Image';
 import { List, ListItem } from '@/components/List';
 import { PostH2 } from '@/components/PostH2';
 import { Sandpack } from '@/components/Sandpack';
+import Slideshow from '@/components/Slideshow';
 import SupportCallout from '@/components/SupportCallout';
 import Table from '@/components/Table';
 import Tweet from '@/components/Tweet';
@@ -81,6 +82,7 @@ export const components = {
   VideoHalftone,
   Wave,
   Sandpack,
+  Slideshow,
   SupportCallout,
   Tweet,
 
