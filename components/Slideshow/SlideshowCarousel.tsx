@@ -48,15 +48,22 @@ export function SlideshowCarousel({
   const playback = usePlayback();
   const inView = useInView(rootRef);
   const count = images.length;
+  // One image has nowhere to go, and Autoplay throws when asked to play it.
+  const plays = autoPlay && count > 1;
   // A slideshow that plays itself goes round; one the reader drives stops at its ends.
-  const loop = autoPlay;
-  const playing = autoPlay && playback.playing && inView;
+  const loop = plays;
+  const playing = plays && playback.playing && inView;
 
   // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
   // plays by itself, while a drag, a key or a button still slides the track.
   const [plugins] = useState(() =>
-    autoPlay ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []
+    plays ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []
   );
+
+  // Under reduced motion autoplay simply jumps: nothing is left behind to fade.
+  const leave = useEffectEvent(() => {
+    if (api && !reduced) setLeaving(api.previousScrollSnap());
+  });
 
   useEffect(() => {
     if (!api) return;
@@ -64,19 +71,18 @@ export function SlideshowCarousel({
     // The fill restarts with Embla's own timer, so the two never drift after a pause.
     const onTimerSet = () => setTimer((previous) => (previous ?? 0) + 1);
     const onTimerStopped = () => setTimer(null);
-    const onAutoplaySelect = () => setLeaving(api.previousScrollSnap());
     onSelect();
     api
       .on('select', onSelect)
       .on('autoplay:timerset', onTimerSet)
       .on('autoplay:timerstopped', onTimerStopped)
-      .on('autoplay:select', onAutoplaySelect);
+      .on('autoplay:select', leave);
     return () => {
       api
         .off('select', onSelect)
         .off('autoplay:timerset', onTimerSet)
         .off('autoplay:timerstopped', onTimerStopped)
-        .off('autoplay:select', onAutoplaySelect);
+        .off('autoplay:select', leave);
     };
   }, [api]);
 
@@ -99,6 +105,7 @@ export function SlideshowCarousel({
     if (!api) return false;
     const target = loop ? (index + count) % count : Math.min(Math.max(index, 0), count - 1);
     if (target === api.selectedScrollSnap()) return false;
+    setLeaving(null);
     api.scrollTo(target, reduced);
     api.plugins().autoplay?.reset();
     return true;
@@ -106,13 +113,13 @@ export function SlideshowCarousel({
 
   const handle = useEffectEvent((key: SlideshowKey) => {
     if (key === 'toggle') {
-      if (!autoPlay) return false;
+      if (!plays) return false;
       playback.toggle();
       return true;
     }
-    playback.pause();
-    const index = { previous: selected - 1, next: selected + 1, first: 0, last: count - 1 }[key];
-    return go(index);
+    const moved = go({ previous: selected - 1, next: selected + 1, first: 0, last: count - 1 }[key]);
+    if (moved) playback.pause();
+    return moved;
   });
 
   useEffect(() => {
@@ -137,7 +144,7 @@ export function SlideshowCarousel({
       {count > 1 && (
         <>
           <p id={`${id}-keys`} className="sr-only">
-            Use the Left and Right arrow keys to change images{autoPlay ? ', and Space to pause or play' : ''}.
+            Use the Left and Right arrow keys to change images{plays ? ', and Space to pause or play' : ''}.
           </p>
           <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
             Image {selected + 1} of {count}.
@@ -173,7 +180,7 @@ export function SlideshowCarousel({
           </CarouselItem>
         ))}
       </CarouselContent>
-      {leaving !== null && !reduced && (
+      {leaving !== null && (
         <motion.div
           key={leaving}
           aria-hidden="true"
@@ -200,7 +207,7 @@ export function SlideshowCarousel({
           selected={selected}
           loop={loop}
           onGo={go}
-          playback={autoPlay ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
+          playback={plays ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
           timer={timer}
           interval={interval}
         />

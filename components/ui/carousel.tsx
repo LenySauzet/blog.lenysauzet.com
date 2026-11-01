@@ -15,14 +15,12 @@ type CarouselPlugin = UseCarouselParameters[1]
 type CarouselProps = {
   opts?: CarouselOptions
   plugins?: CarouselPlugin
-  orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
 }
 
 type CarouselContextProps = {
   carouselRef: ReturnType<typeof useEmblaCarousel>[0]
-  api: ReturnType<typeof useEmblaCarousel>[1]
-} & CarouselProps
+}
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
@@ -36,8 +34,10 @@ function useCarousel() {
   return context
 }
 
+// Trimmed from shadcn's: horizontal only, and the arrow keys and the navigation
+// state are the caller's, since `Slideshow` answers the arrows page-wide and draws
+// its own controls.
 function Carousel({
-  orientation = "horizontal",
   opts,
   setApi,
   plugins,
@@ -45,23 +45,15 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
-  const [carouselRef, api] = useEmblaCarousel(
-    {
-      ...opts,
-      axis: orientation === "horizontal" ? "x" : "y",
-    },
-    plugins
-  )
+  const [carouselRef, api] = useEmblaCarousel(opts, plugins)
 
   React.useEffect(() => {
     if (!api || !setApi) return
     setApi(api)
   }, [api, setApi])
 
-  // The arrow keys and the navigation state are the caller's: the stock Previous and
-  // Next are not used here, and `Slideshow` answers the arrows page-wide.
   return (
-    <CarouselContext.Provider value={{ carouselRef, api, opts, orientation }}>
+    <CarouselContext.Provider value={{ carouselRef }}>
       <div
         className={cn("relative", className)}
         role="region"
@@ -76,7 +68,7 @@ function Carousel({
 }
 
 function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
-  const { carouselRef, orientation } = useCarousel()
+  const { carouselRef } = useCarousel()
 
   return (
     <div
@@ -84,31 +76,18 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
       className="overflow-hidden"
       data-slot="carousel-content"
     >
-      <div
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
-        )}
-        {...props}
-      />
+      <div className={cn("-ml-4 flex", className)} {...props} />
     </div>
   )
 }
 
 function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
-  const { orientation } = useCarousel()
-
   return (
     <div
       role="group"
       aria-roledescription="slide"
       data-slot="carousel-item"
-      className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
-        orientation === "horizontal" ? "pl-4" : "pt-4",
-        className
-      )}
+      className={cn("min-w-0 shrink-0 grow-0 basis-full pl-4", className)}
       {...props}
     />
   )

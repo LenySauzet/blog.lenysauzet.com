@@ -1,8 +1,9 @@
 /**
  * The glass of panels read over the page: the Dynamic Island's own material,
- * which is where it was first settled. A wash of `--card` over a blurred, slightly saturated
- * backdrop, edged in a hairline. It is what lets a panel sit *over* content
- * and stay readable, where `Card` and `Input` are cut *into* the page.
+ * which is where it was first settled. A wash of `--card` over a blurred,
+ * slightly saturated backdrop, edged in a hairline. It is what lets a panel sit
+ * *over* content and stay readable, where `Card` and `Input` are cut *into* the
+ * page.
  *
  * `--card` rather than `--wash` because it is defined in both themes: a single
  * value cannot be the right translucency over a light page and a dark one, and

@@ -46,9 +46,12 @@ describe('SlideshowCarousel', () => {
     expect(screen.getByRole('button', { name: 'Play slideshow' })).toBeInTheDocument();
   });
 
-  it('draws no controls for a single image', () => {
-    render(<SlideshowCarousel {...props} images={props.images.slice(0, 1)} />);
-    expect(screen.queryByRole('button')).toBeNull();
-    expect(screen.getByRole('region')).not.toHaveAttribute('tabindex');
+  it('draws no controls for a single image, even one asked to play', () => {
+    for (const autoPlay of [false, true]) {
+      const { unmount } = render(<SlideshowCarousel {...props} autoPlay={autoPlay} images={props.images.slice(0, 1)} />);
+      expect(screen.queryByRole('button')).toBeNull();
+      expect(screen.getByRole('region')).not.toHaveAttribute('tabindex');
+      unmount();
+    }
   });
 });
