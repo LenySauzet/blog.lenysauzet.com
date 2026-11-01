@@ -1,11 +1,11 @@
 'use client';
 
 import Autoplay from 'embla-carousel-autoplay';
-import { motion, useInView, useMotionValue, useTransform } from 'motion/react';
+import { motion, MotionConfig, useInView, useMotionValue, useTransform } from 'motion/react';
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
-import { IMAGE_SIZES } from '@/components/Image/ImageZoom';
+import { IMAGE_SIZES, ZOOM_TRANSITION } from '@/components/Image/ImageZoom';
 import { Lightbox } from '@/components/Image/Lightbox';
 import { ZoomCaption } from '@/components/Image/ZoomCaption';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
@@ -13,17 +13,13 @@ import { usePlayback } from '@/hooks/use-playback';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 
-import { bendFor, MAX_BEND, PARALLAX, parallaxShift, slidePath } from './bend';
+import { bendFor, MAX_BEND, parallaxShift, slidePath } from './bend';
 import { Controls } from './Controls';
 import { registerSlideshow, type SlideshowKey } from './keyboard';
 
-const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
-// An image bleeds past its slide by the most the parallax moves it, plus the seam's
-// bulge, so neither ever uncovers an edge; the cross-fade's copy wears the same crop.
-const BLEED = {
-  left: `calc(${-PARALLAX * 100}% - ${MAX_BEND}px)`,
-  width: `calc(${100 + 2 * PARALLAX * 100}% + ${2 * MAX_BEND}px)`,
-};
+// An image bleeds past its slide by the seam's bulge, the parallax needing none; the
+// cross-fade's copy wears the same crop.
+const BLEED = { left: -MAX_BEND, width: `calc(100% + ${2 * MAX_BEND}px)` };
 
 export interface SlideshowCarouselProps {
   /** Fully resolved URLs; resolution happens on the server. */
@@ -55,6 +51,7 @@ export function SlideshowCarousel({
   const [timer, setTimer] = useState<number | null>(null);
   const [leaving, setLeaving] = useState<number | null>(null);
   const [zoom, setZoom] = useState<'closed' | 'opening' | 'open'>('closed');
+  const zoomId = `slideshow-zoom-${id}`;
   const layers = useRef<(HTMLDivElement | null)[]>([]);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
@@ -202,132 +199,138 @@ export function SlideshowCarousel({
   }, [count]);
 
   return (
-    <Carousel
-      ref={rootRef}
-      setApi={setApi}
-      plugins={plugins}
-      opts={{ loop }}
-      tabIndex={count > 1 ? 0 : undefined}
-      aria-label={alt}
-      aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
-      data-slideshow=""
-      className={cn(
-        'overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
-        className
-      )}
-    >
-      {count > 1 && (
-        <>
-          <p id={`${id}-keys`} className="sr-only">
-            Use the Left and Right arrow keys to change images{plays ? ', and Space to pause or play' : ''}.
-          </p>
-          <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
-            Image {selected + 1} of {count}.
-          </p>
-        </>
-      )}
-      <CarouselContent
-        className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
-        onPointerDown={() => {
-          playback.pause();
-          setLeaving(null);
-        }}
+    <MotionConfig reducedMotion="user" transition={ZOOM_TRANSITION}>
+      <Carousel
+        ref={rootRef}
+        setApi={setApi}
+        plugins={plugins}
+        opts={{ loop }}
+        tabIndex={count > 1 ? 0 : undefined}
+        aria-label={alt}
+        aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
+        data-slideshow=""
+        className={cn(
+          'overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+          className
+        )}
       >
-        {images.map((src, index) => (
-          <CarouselItem
-            key={`${index}-${src}`}
-            aria-label={`${index + 1} of ${count}`}
-            inert={index !== selected}
-            className="pl-0"
-            style={{ aspectRatio: `${width} / ${height}` }}
-          >
-            <motion.div
-              className={cn('relative size-full', index === selected && 'cursor-zoom-in active:cursor-grabbing')}
-              style={{ clipPath: outline }}
-              // Embla swallows the click that ends a drag, so this is a click alone.
-              onClick={index === selected ? enlarge : undefined}
-            >
-              <div
-                ref={(layer) => {
-                  layers.current[index] = layer;
-                }}
-                className="absolute inset-y-0"
-                style={BLEED}
-              >
-                <NextImage
-                  src={src}
-                  alt={alt}
-                  width={width}
-                  height={height}
-                  sizes={SIZES}
-                  draggable={false}
-                  // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
-                  loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
-                  className="pointer-events-none size-full object-cover select-none"
-                />
-              </div>
-            </motion.div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      {leaving !== null && (
-        <motion.div
-          key={leaving}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
-          onAnimationComplete={() => setLeaving(null)}
+        {count > 1 && (
+          <>
+            <p id={`${id}-keys`} className="sr-only">
+              Use the Left and Right arrow keys to change images{plays ? ', and Space to pause or play' : ''}.
+            </p>
+            <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
+              Image {selected + 1} of {count}.
+            </p>
+          </>
+        )}
+        <CarouselContent
+          className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
+          onPointerDown={() => {
+            playback.pause();
+            setLeaving(null);
+          }}
         >
-          <div className="absolute inset-y-0" style={BLEED}>
-            <NextImage
-              src={images[leaving]}
-              alt=""
-              width={width}
-              height={height}
-              sizes={SIZES}
-              draggable={false}
-              className="size-full object-cover select-none"
-            />
-          </div>
-        </motion.div>
-      )}
-      {count > 1 && (
-        <Controls
-          count={count}
-          selected={selected}
-          loop={loop}
-          onGo={go}
-          playback={plays ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
-          timer={timer}
-          interval={interval}
-        />
-      )}
-      <Lightbox open={zoom !== 'closed'} onOpenChange={(open) => setZoom(open ? 'opening' : 'closed')} title={alt}>
-        <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
-          {/* The whole image, uncropped: the slide frames it, the lightbox shows it. */}
+          {images.map((src, index) => (
+            <CarouselItem
+              key={`${index}-${src}`}
+              aria-label={`${index + 1} of ${count}`}
+              inert={index !== selected}
+              className="pl-0"
+              style={{ aspectRatio: `${width} / ${height}` }}
+            >
+              <motion.div
+                layoutId={index === selected ? zoomId : undefined}
+                className={cn(
+                  'relative size-full',
+                  index === selected && 'cursor-zoom-in active:cursor-grabbing',
+                  // Hidden only while the copy rests in the lightbox, as ImageZoom does.
+                  index === selected && zoom === 'open' && 'invisible'
+                )}
+                style={{ clipPath: outline }}
+                // Embla swallows the click that ends a drag, so this is a click alone.
+                onClick={index === selected ? enlarge : undefined}
+              >
+                <div
+                  ref={(layer) => {
+                    layers.current[index] = layer;
+                  }}
+                  className="absolute inset-y-0"
+                  style={BLEED}
+                >
+                  <NextImage
+                    src={src}
+                    alt={alt}
+                    width={width}
+                    height={height}
+                    // The lightbox's own sizes, so the image it opens on is already loaded.
+                    sizes={IMAGE_SIZES}
+                    draggable={false}
+                    // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+                    loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
+                    className="pointer-events-none size-full object-cover select-none"
+                  />
+                </div>
+              </motion.div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        {leaving !== null && (
           <motion.div
-            initial={reduced ? false : { opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
-            onAnimationComplete={() => setZoom((state) => (state === 'opening' ? 'open' : state))}
-            style={{ aspectRatio: `${width} / ${height}` }}
-            className="min-h-0 max-h-full max-w-full"
+            key={leaving}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+            onAnimationComplete={() => setLeaving(null)}
           >
-            <NextImage
-              src={images[selected]}
-              alt=""
-              width={width}
-              height={height}
-              sizes={IMAGE_SIZES}
-              className="h-full w-full rounded-frame-xl object-contain"
-            />
+            <div className="absolute inset-y-0" style={BLEED}>
+              <NextImage
+                src={images[leaving]}
+                alt=""
+                width={width}
+                height={height}
+                sizes={IMAGE_SIZES}
+                draggable={false}
+                className="size-full object-cover select-none"
+              />
+            </div>
           </motion.div>
-          <ZoomCaption start={zoom === 'open'}>{alt}</ZoomCaption>
-        </div>
-      </Lightbox>
-    </Carousel>
+        )}
+        {count > 1 && (
+          <Controls
+            count={count}
+            selected={selected}
+            loop={loop}
+            onGo={go}
+            playback={plays ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
+            timer={timer}
+            interval={interval}
+          />
+        )}
+        <Lightbox open={zoom !== 'closed'} onOpenChange={(open) => setZoom(open ? 'opening' : 'closed')} title={alt}>
+          <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
+            {/* The slide morphs into the whole image, uncropped, as an Image zooms. */}
+            <motion.div
+              layoutId={zoomId}
+              onLayoutAnimationComplete={() => setZoom((state) => (state === 'opening' ? 'open' : state))}
+              style={{ aspectRatio: `${width} / ${height}`, willChange: 'transform' }}
+              className="min-h-0 max-h-full max-w-full"
+            >
+              <NextImage
+                src={images[selected]}
+                alt=""
+                width={width}
+                height={height}
+                sizes={IMAGE_SIZES}
+                className="h-full w-full rounded-frame-xl object-contain"
+              />
+            </motion.div>
+            <ZoomCaption start={zoom === 'open'}>{alt}</ZoomCaption>
+          </div>
+        </Lightbox>
+      </Carousel>
+    </MotionConfig>
   );
 }

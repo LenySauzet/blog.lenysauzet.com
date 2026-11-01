@@ -58,7 +58,18 @@ describe('parallaxShift', () => {
     expect(parallaxShift(-1, 600)).toBeCloseTo(PARALLAX * 600);
   });
 
-  it('never moves the image further than its bleed allows', () => {
-    for (let distance = -5; distance <= 5; distance += 0.05) expect(Math.abs(parallaxShift(distance, 600))).toBeLessThanOrEqual(PARALLAX * 600 + 1e-9);
+  it('opens a gap only on the side out of view, so the image needs no bleed for it', () => {
+    for (let distance = -1; distance <= 1; distance += 0.01) {
+      const shift = parallaxShift(distance, 600);
+      // A slide `distance` from the middle hides |distance| of its width past the view,
+      // on the side the image pulls away from.
+      expect(Math.abs(shift)).toBeLessThanOrEqual(Math.abs(distance) * 600 + 1e-9);
+      if (distance !== 0) expect(Math.sign(shift)).toBe(-Math.sign(distance));
+    }
+  });
+
+  it('holds still once a slide is out of view', () => {
+    expect(parallaxShift(3, 600)).toBe(parallaxShift(1, 600));
+    expect(parallaxShift(-3, 600)).toBe(parallaxShift(-1, 600));
   });
 });

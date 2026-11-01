@@ -13,7 +13,7 @@ import { ZoomCaption } from './ZoomCaption';
 
 // A tween, not a spring: layout projection ignores `restDelta`, so a spring exit
 // lingers past its last visible frame.
-const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
+export const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
 
 export const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 

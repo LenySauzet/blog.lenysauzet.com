@@ -2,7 +2,7 @@
 export const MAX_BEND = 16;
 
 /** How much slower than its frame a slide's image travels, as a share of the slide. */
-export const PARALLAX = 0.06;
+export const PARALLAX = 0.2;
 
 /**
  * The bow for a track moving at `velocity`, Embla's own unit (pixels per step of its
@@ -27,7 +27,9 @@ export function slidePath(width: number, height: number, bend: number) {
 /**
  * Where a slide's image sits inside its frame, for a slide `distance` slide-widths
  * from the middle of the view: it lags its frame by PARALLAX, so it reads as further
- * away. Beyond a slide-width it is out of view and stays at the most it ever moves.
+ * away. It needs no bleed: the edge it pulls away from is always the one past the
+ * view, a slide `distance` out hiding exactly `distance` of itself, more than the
+ * shift ever is. Beyond a slide-width it is out of view and holds still.
  */
 export function parallaxShift(distance: number, width: number) {
   return -Math.min(Math.max(distance, -1), 1) * PARALLAX * width;
