@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft02Icon, ArrowRight02Icon } from '@hugeicons/core-free-icons';
+import { ChevronsLeftRightIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   motion,
@@ -13,7 +13,7 @@ import {
 import NextImage from 'next/image';
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 
-import { glassSurface } from '@/components/ui/glass';
+import { mediaGlass } from '@/components/ui/glass';
 import { FOLLOW_SPRING } from '@/lib/springs';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +24,8 @@ const HELD_SCALE = 1.1;
 // A pickup, its own spring: loose enough to pop, and untouched by tuning the chase.
 const HELD_SPRING = { type: 'spring', stiffness: 500, damping: 22, mass: 0.6 } as const;
 const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
-// Sits on the image, not on a theme surface, so it is a fixed tint that reads in
-// both themes rather than a semantic token.
+// The divider sits on the image, not on a theme surface, so it is a fixed tint that
+// reads in both themes rather than a semantic token.
 const HANDLE_EDGE = 'oklch(0.82 0.03 var(--base-hue) / 0.45)';
 const clamp = (value: number) => Math.min(Math.max(value, 0), 100);
 
@@ -80,8 +80,8 @@ function Label({ side, progress, width }: LabelProps) {
       aria-hidden="true"
       style={{ opacity }}
       className={cn(
-        glassSurface,
-        'pointer-events-none absolute top-3 z-[1] rounded-full px-2.5 py-0.5 font-display text-xs font-medium text-foreground',
+        mediaGlass,
+        'pointer-events-none absolute top-3 z-[1] rounded-full px-2.5 py-0.5 font-display text-xs font-medium',
         side === 'before' ? 'left-3' : 'right-3'
       )}
     >
@@ -277,17 +277,15 @@ export function BeforeAfterSlider({
       )}
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 z-[1] flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md backdrop-blur-md backdrop-saturate-[115%]"
+        className={cn(
+          mediaGlass,
+          'pointer-events-none absolute top-1/2 z-[1] flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg'
+        )}
         animate={{ scale: held && !reduce ? HELD_SCALE : 1 }}
         transition={HELD_SPRING}
-        style={{
-          left: handleLeft,
-          background: 'oklch(0.62 0.035 var(--base-hue) / 0.42)',
-          border: `1px solid ${HANDLE_EDGE}`,
-        }}
+        style={{ left: handleLeft }}
       >
-        <HugeiconsIcon icon={ArrowLeft02Icon} size={14} strokeWidth={2.2} />
-        <HugeiconsIcon icon={ArrowRight02Icon} size={14} strokeWidth={2.2} />
+        <HugeiconsIcon icon={ChevronsLeftRightIcon} size={16} strokeWidth={2} />
       </motion.div>
     </div>
   );

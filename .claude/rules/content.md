@@ -207,13 +207,17 @@ listing rather than let it fold when every line matters.
 
 **`components/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
 alt="…" />`, `alt` doubling as caption and name; `autoPlay` cross-fades, goes round and
-draws a pause button, `interval` its pace. What it rests on:
+draws a pause button, `interval` its pace. Its frame is `--card`, which shows wherever
+an image has not loaded. What it rests on:
 
 - **The first image sets the frame**, measured at build; the others are cropped to it,
   so give a slideshow images of one shape.
 - **The arrows reach it from anywhere on the page**: focused, it takes them along with
   Home, End and Space; otherwise the one nearest the middle of the screen does, unless
   focus sits in something that answers arrows itself. One listener serves the page.
+- **Autoplay fades, the reader slides.** Embla cannot do both, so autoplay jumps and
+  the image it leaves is laid on top and faded out (`autoplay:select`, then
+  `previousScrollSnap`); a drag, a key or a button slides the track.
 - **Autoplay follows `usePlayback`**: still under reduced motion until asked, paused by
   any drag or key, stopped off screen. The step's fill restarts on Embla's
   `autoplay:timerset`, so it never drifts from the timer after a pause.

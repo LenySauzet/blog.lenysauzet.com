@@ -22,7 +22,7 @@ listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
 out with the navigation state that fed them; the CLI's copy also imported `cn` from a
 package named `cn`. The stock arrow-key handler is gone too: `Slideshow` takes the
 arrows page-wide, and two handlers would each move it a step. Embla is 8.6, with its autoplay
-and fade plugins.
+plugin.
 
 **`@base-ui/react` is a real dependency, used by exactly one component**:
 `components/ui/combobox.tsx`, built on Base UI's combobox primitive: Radix ships none, so
@@ -240,9 +240,16 @@ button take. It is `--card/75` rather than a `--wash` step **because `--card` is
 in both themes**: a single translucency cannot be right over a light page and a dark
 one, and a panel that has to be read needs the surface under its text to follow the
 theme rather than tint it. The 115% saturation is load-bearing, a plain blur greying
-what it covers. `BeforeAfterSlider`'s handle deliberately keeps its own heavier fill,
-floating over photography rather than over the page; its Before and After labels take
-the glass, being text that has to be read.
+what it covers.
+
+**`mediaGlass`, beside it, is the glass of controls floating on imagery**: the
+Slideshow's controls and the Before/After's handle and labels. Maxime Heckel's
+material: a fill at 30% so the picture shows through, under `glass-rim`, a masked ring
+lit from above as `callout-surface` is. **It is the same in both themes**, on
+`--media-glass` and `--media-ink`, the dark theme's wash and foreground pinned: it sits
+on the picture rather than the page, and themed it put dark ink on dark photographs and
+lit its rim in black. Light ink on a very bright photograph stays faint; 3:1 there would
+take a fill near 80%, which is no longer glass. The Dynamic Island keeps the panel glass.
 
 **`BeforeAfterSlider` drags on motion values.** The position, the pull and the surface's
 size drive the divider, the clip and the labels' fade without a render; React state only

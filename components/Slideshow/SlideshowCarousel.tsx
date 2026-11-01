@@ -1,8 +1,7 @@
 'use client';
 
 import Autoplay from 'embla-carousel-autoplay';
-import Fade from 'embla-carousel-fade';
-import { useInView } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 
@@ -44,6 +43,7 @@ export function SlideshowCarousel({
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
+  const [leaving, setLeaving] = useState<number | null>(null);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
@@ -52,10 +52,10 @@ export function SlideshowCarousel({
   const loop = autoPlay;
   const playing = autoPlay && playback.playing && inView;
 
+  // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
+  // plays by itself, while a drag, a key or a button still slides the track.
   const [plugins] = useState(() =>
-    autoPlay
-      ? [Fade(), Autoplay({ delay: interval, playOnInit: false, stopOnFocusIn: false })]
-      : []
+    autoPlay ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []
   );
 
   useEffect(() => {
@@ -64,10 +64,19 @@ export function SlideshowCarousel({
     // The fill restarts with Embla's own timer, so the two never drift after a pause.
     const onTimerSet = () => setTimer((previous) => (previous ?? 0) + 1);
     const onTimerStopped = () => setTimer(null);
+    const onAutoplaySelect = () => setLeaving(api.previousScrollSnap());
     onSelect();
-    api.on('select', onSelect).on('autoplay:timerset', onTimerSet).on('autoplay:timerstopped', onTimerStopped);
+    api
+      .on('select', onSelect)
+      .on('autoplay:timerset', onTimerSet)
+      .on('autoplay:timerstopped', onTimerStopped)
+      .on('autoplay:select', onAutoplaySelect);
     return () => {
-      api.off('select', onSelect).off('autoplay:timerset', onTimerSet).off('autoplay:timerstopped', onTimerStopped);
+      api
+        .off('select', onSelect)
+        .off('autoplay:timerset', onTimerSet)
+        .off('autoplay:timerstopped', onTimerStopped)
+        .off('autoplay:select', onAutoplaySelect);
     };
   }, [api]);
 
@@ -76,7 +85,7 @@ export function SlideshowCarousel({
     // Embla re-creates its plugins on every resize, stopped: the state is re-applied.
     const sync = () => {
       const autoplay = api.plugins().autoplay;
-      if (playing) autoplay.play(reduced);
+      if (playing) autoplay.play();
       else autoplay.stop();
     };
     sync();
@@ -84,7 +93,7 @@ export function SlideshowCarousel({
     return () => {
       api.off('reInit', sync);
     };
-  }, [api, playing, reduced]);
+  }, [api, playing]);
 
   const go = (index: number) => {
     if (!api) return false;
@@ -121,7 +130,7 @@ export function SlideshowCarousel({
       aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
       data-slideshow=""
       className={cn(
-        'overflow-hidden rounded-frame-lg border-2 border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+        'overflow-hidden rounded-frame-lg border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
         className
       )}
     >
@@ -137,7 +146,10 @@ export function SlideshowCarousel({
       )}
       <CarouselContent
         className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
-        onPointerDown={playback.pause}
+        onPointerDown={() => {
+          playback.pause();
+          setLeaving(null);
+        }}
       >
         {images.map((src, index) => (
           <CarouselItem
@@ -161,6 +173,27 @@ export function SlideshowCarousel({
           </CarouselItem>
         ))}
       </CarouselContent>
+      {leaving !== null && !reduced && (
+        <motion.div
+          key={leaving}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+          onAnimationComplete={() => setLeaving(null)}
+        >
+          <NextImage
+            src={images[leaving]}
+            alt=""
+            width={width}
+            height={height}
+            sizes={SIZES}
+            draggable={false}
+            className="size-full object-cover select-none"
+          />
+        </motion.div>
+      )}
       {count > 1 && (
         <Controls
           count={count}
