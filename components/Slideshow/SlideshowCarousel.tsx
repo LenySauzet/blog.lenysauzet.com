@@ -1,7 +1,7 @@
 'use client';
 
 import Autoplay from 'embla-carousel-autoplay';
-import { motion, useInView } from 'motion/react';
+import { motion, useInView, useMotionValue, useTransform } from 'motion/react';
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
@@ -10,6 +10,7 @@ import { usePlayback } from '@/hooks/use-playback';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 
+import { bendFor, MAX_BEND, slidePath } from './bend';
 import { Controls } from './Controls';
 import { registerSlideshow, type SlideshowKey } from './keyboard';
 
@@ -47,6 +48,17 @@ export function SlideshowCarousel({
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
+  // The seam between two moving slides bows with the track's speed, as the
+  // Before/After's divider does with the hand's; at rest the outline is the slide.
+  const slideWidth = useMotionValue(0);
+  const slideHeight = useMotionValue(0);
+  const bend = useMotionValue(0);
+  const outline = useTransform(() => {
+    const width = slideWidth.get();
+    const height = slideHeight.get();
+    const path = slidePath(width, height, bend.get());
+    return width ? `path("${path}")` : 'none';
+  });
   const count = images.length;
   // One image has nowhere to go, and Autoplay throws when asked to play it.
   const plays = autoPlay && count > 1;
@@ -124,6 +136,30 @@ export function SlideshowCarousel({
   });
 
   useEffect(() => {
+    if (!api) return;
+    // Embla's own speed, which an instant jump leaves at zero, so autoplay's
+    // cross-fade never bends; read off its engine, as its tween examples do.
+    const onScroll = () => bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
+    const onSettle = () => bend.set(0);
+    api.on('scroll', onScroll).on('settle', onSettle);
+    return () => {
+      api.off('scroll', onScroll).off('settle', onSettle);
+    };
+  }, [api, bend, reduced]);
+
+  useEffect(() => {
+    const root = rootRef.current!;
+    const measure = () => {
+      slideWidth.set(root.clientWidth);
+      slideHeight.set(root.clientHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [slideWidth, slideHeight]);
+
+  useEffect(() => {
     if (count > 1) return registerSlideshow({ root: rootRef.current!, handle: (key) => handle(key) });
   }, [count]);
 
@@ -167,17 +203,21 @@ export function SlideshowCarousel({
             className="pl-0"
             style={{ aspectRatio: `${width} / ${height}` }}
           >
-            <NextImage
-              src={src}
-              alt={alt}
-              width={width}
-              height={height}
-              sizes={SIZES}
-              draggable={false}
-              // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
-              loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
-              className="pointer-events-none size-full object-cover select-none"
-            />
+            <motion.div className="relative size-full" style={{ clipPath: outline }}>
+              <NextImage
+                src={src}
+                alt={alt}
+                width={width}
+                height={height}
+                sizes={SIZES}
+                draggable={false}
+                // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+                loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
+                className="pointer-events-none absolute inset-y-0 h-full max-w-none object-cover select-none"
+                // It bleeds past the slide to fill the seam's bulge.
+                style={{ left: -MAX_BEND, width: `calc(100% + ${2 * MAX_BEND}px)` }}
+              />
+            </motion.div>
           </CarouselItem>
         ))}
       </CarouselContent>
