@@ -3,7 +3,7 @@
 import Autoplay from 'embla-carousel-autoplay';
 import { motion, useInView } from 'motion/react';
 import NextImage from 'next/image';
-import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { usePlayback } from '@/hooks/use-playback';
@@ -56,8 +56,9 @@ export function SlideshowCarousel({
 
   // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
   // plays by itself, while a drag, a key or a button still slides the track.
-  const [plugins] = useState(() =>
-    plays ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []
+  const plugins = useMemo(
+    () => (plays ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []),
+    [plays, interval]
   );
 
   // Under reduced motion autoplay simply jumps: nothing is left behind to fade.
