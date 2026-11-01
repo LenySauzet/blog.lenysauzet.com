@@ -41,19 +41,19 @@ describe('afterRegion', () => {
 
 describe('pullFor', () => {
   it('is still at no speed, saturates fast, and follows the direction', () => {
-    expect(pullFor(0, 100)).toBe(0);
-    expect(pullFor(50, 100)).toBeCloseTo(MAX_PULL);
-    expect(pullFor(-50, 100)).toBeCloseTo(-MAX_PULL);
+    expect(pullFor(0, 1200)).toBe(0);
+    expect(pullFor(5000, 1200)).toBeCloseTo(MAX_PULL);
+    expect(pullFor(-5000, 1200)).toBeCloseTo(-MAX_PULL);
   });
 
-  it('barely flexes on a slow drag', () => {
-    expect(pullFor(0.1, 100)).toBeGreaterThan(0);
-    expect(pullFor(0.1, 100)).toBeLessThan(1);
+  it('reads a speed in percent a second across the surface', () => {
+    expect(pullFor(100, 1200)).toBeCloseTo(MAX_PULL * Math.tanh(1));
+    expect(pullFor(100, 600)).toBeCloseTo(MAX_PULL * Math.tanh(0.5));
   });
 
-  it('grows with the distance dragged, up to 48px', () => {
-    expect(Math.abs(pullFor(50, 12))).toBeCloseTo(MAX_PULL / 4);
-    expect(pullFor(50, 48)).toBeCloseTo(pullFor(50, 480));
+  it('barely flexes when slow', () => {
+    expect(pullFor(10, 1200)).toBeGreaterThan(0);
+    expect(pullFor(10, 1200)).toBeLessThan(1);
   });
 });
 

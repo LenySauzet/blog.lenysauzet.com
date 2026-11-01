@@ -11,7 +11,7 @@ import {
   useTransform,
 } from 'motion/react';
 import NextImage from 'next/image';
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 
 import { glassSurface } from '@/components/ui/glass';
 import { FOLLOW_SPRING } from '@/lib/springs';
@@ -115,8 +115,10 @@ export function BeforeAfterSlider({
   const progress = useTransform(follow, clamp);
   const surfaceWidth = useMotionValue(0);
   const surfaceHeight = useMotionValue(0);
-  const pullTarget = useMotionValue(0);
-  const pull = useSpring(pullTarget, { stiffness: 380, damping: 20, mass: 0.45 });
+  // Re-run on each spring frame for the spring's own speed, which `jump` zeroes.
+  // `useVelocity` would read a reduced-motion jump as speed, and drops to 0
+  // between frames mid-drag, flickering the bow.
+  const pull = useTransform(follow, () => pullFor(follow.getVelocity(), surfaceWidth.get()));
 
   const divider = useTransform(() =>
     dividerPath((progress.get() / 100) * surfaceWidth.get(), pull.get(), surfaceWidth.get(), surfaceHeight.get())
@@ -137,24 +139,15 @@ export function BeforeAfterSlider({
     });
   };
 
-  const drag = useRef<{ pointerId: number; originX: number; x: number; time: number } | null>(null);
-  const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const release = () => {
-    clearTimeout(settle.current);
-    pullTarget.set(0);
-  };
+  const pointer = useRef<number | null>(null);
 
-  const xFrom = (clientX: number) => {
+  const moveTo = (clientX: number) => {
     const wrap = wrapRef.current!;
-    const width = wrap.clientWidth;
-    const x = Math.min(width, Math.max(0, clientX - wrap.getBoundingClientRect().left - wrap.clientLeft));
-    apply((x / width) * 100);
-    return x;
+    apply(((clientX - wrap.getBoundingClientRect().left - wrap.clientLeft) / wrap.clientWidth) * 100);
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0) return;
-    release();
     // Throws for a pointer already released, which has nothing left to drag.
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -162,26 +155,16 @@ export function BeforeAfterSlider({
       return;
     }
     setHeld(true);
-    const x = xFrom(event.clientX);
-    drag.current = { pointerId: event.pointerId, originX: x, x, time: event.timeStamp };
+    pointer.current = event.pointerId;
+    moveTo(event.clientX);
   };
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const current = drag.current;
-    if (!current || current.pointerId !== event.pointerId) return;
-    const x = xFrom(event.clientX);
-    const velocity = (x - current.x) / Math.max(8, event.timeStamp - current.time);
-    drag.current = { ...current, x, time: event.timeStamp };
-    if (reduce) return;
-    pullTarget.set(pullFor(velocity, x - current.originX));
-    // A pointer that stops sends no more moves, so the line settles on its own.
-    clearTimeout(settle.current);
-    settle.current = setTimeout(() => pullTarget.set(0), 80);
+    if (pointer.current === event.pointerId) moveTo(event.clientX);
   };
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (drag.current?.pointerId !== event.pointerId) return;
-    drag.current = null;
+    if (pointer.current !== event.pointerId) return;
+    pointer.current = null;
     setHeld(false);
-    release();
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -213,15 +196,10 @@ export function BeforeAfterSlider({
     observer.observe(wrap);
     return () => {
       observer.disconnect();
-      clearTimeout(settle.current);
       cancelAnimationFrame(frame.current);
       frame.current = 0;
     };
   }, [surfaceWidth, surfaceHeight]);
-
-  useEffect(() => {
-    if (reduce) pull.jump(0);
-  }, [reduce, pull]);
 
   const imageClass = 'pointer-events-none block h-auto w-full select-none';
 

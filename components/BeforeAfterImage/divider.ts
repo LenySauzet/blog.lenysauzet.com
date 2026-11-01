@@ -1,4 +1,4 @@
-/** How far, in pixels, a fast drag bows the divider's ends behind its middle. */
+/** How far, in pixels, a fast move bows the divider's ends behind its middle. */
 export const MAX_PULL = 8;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -18,11 +18,12 @@ export function afterRegion(divider: string, width: number, height: number) {
 }
 
 /**
- * The pull for a drag moving at `velocity` px/ms, `travel` px from where it began:
- * a short, slow drag barely flexes, a fast one saturates at MAX_PULL.
+ * The pull for a divider moving at `speed` percent a second across `width` px: a
+ * slow one barely flexes, a fast one saturates at MAX_PULL.
  */
-export function pullFor(velocity: number, travel: number) {
-  return MAX_PULL * Math.tanh(velocity / 1.2) * Math.min(1, Math.abs(travel) / 48);
+export function pullFor(speed: number, width: number) {
+  const pxPerMs = (speed * width) / 100 / 1000;
+  return MAX_PULL * Math.tanh(pxPerMs / 1.2);
 }
 
 export interface LabelSpan {
