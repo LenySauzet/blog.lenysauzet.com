@@ -244,7 +244,7 @@ theme rather than tint it. The 115% saturation is load-bearing, a plain blur gre
 what it covers.
 
 **`mediaGlass`, beside it, is the glass of controls floating on imagery**: the
-Slideshow's controls and the Before/After's handle and labels. Maxime Heckel's
+Before/After's handle and labels. Maxime Heckel's
 material: a fill at 30% so the picture shows through, under `glass-rim`, a masked ring
 lit from above as `callout-surface` is. **It is the same in both themes**, on
 `--media-glass` and `--media-ink`, the dark theme's wash and foreground pinned: it sits
