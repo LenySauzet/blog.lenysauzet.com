@@ -187,10 +187,10 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   which is a beat too late.
 - **Its constants were derived from the reference, not guessed.** Measured there: 6.35
   points of lag behind a pointer moving at 125 points a second, converging to 0.001 the
-  moment it holds still, and clicks overshooting 1.2% of whatever they cover. Lag is
-  `2 * ratio * speed / frequency` and overshoot is `exp(-pi * ratio / sqrt(1 - ratio^2))`,
-  which solves to a ratio of 0.81 and a frequency of 25 rad/s. Ours then measures 6.21,
-  0.001, and 0.12 / 1.02 against its 0.12 / 1.00.
+  moment it holds still, and clicks overshooting 1.2% of whatever they cover. The
+  overshoot, `exp(-pi * ratio / sqrt(1 - ratio^2))`, solves to a damping ratio of 0.81;
+  the stiffness was then fitted to the lag. Ours measures 6.21, 0.001, and 0.12 / 1.02
+  against its 0.12 / 1.00. The constants live in `lib/springs.ts`.
 - **Sample an animation from inside the page**, through `requestAnimationFrame`, not by
   polling over the Playwright wire. Each round trip costs 15-20ms, which is enough to
   step over a peak: the same 93-point move read 0.50 polled and 0.90 sampled in-page.
@@ -234,7 +234,25 @@ in both themes**: a single translucency cannot be right over a light page and a 
 one, and a panel that has to be read needs the surface under its text to follow the
 theme rather than tint it. The 115% saturation is load-bearing, a plain blur greying
 what it covers. `BeforeAfterSlider`'s handle deliberately keeps its own heavier fill,
-floating over photography rather than over the page.
+floating over photography rather than over the page; its Before and After labels take
+the glass, being text that has to be read.
+
+**`BeforeAfterSlider` drags on motion values.** The position, the pull and the surface's
+size drive the divider, the clip and the labels' fade without a render; React state only
+says whether the surface is measured and whether it is held; `aria-valuenow` is written
+to the element once a frame, so a drag renders nothing. What is drawn chases that target
+on the Slider's own spring, `FOLLOW_SPRING` in `lib/springs.ts`, so a click or a key
+glides and the two controls feel alike; its overshoot is held at the image's edges.
+Held, the handle grows to 1.1, being picked up rather than pressed. Under reduced motion
+every input jumps the spring, which zeroes the bow, and the handle never grows. The
+divider is an SVG path that bows by up to 8px with the spring's own speed, so a click, a
+key and a drag all bend it and it straightens as the spring settles; not `useVelocity`,
+which reads a reduced-motion jump as speed and flickers to 0 mid-drag; the after image
+is clipped by that same path, so both are measured inside the border, the box they are
+laid out in: measured outside it they part by its width. Until then the clip is a plain
+`inset` and the line a straight div, or the server's page would show neither. A
+transform reads every input before it branches, since it subscribes only to what it read
+when the component last rendered. The geometry and the fade are pure, in `divider.ts`.
 
 **Select is a raised surface, not an inset field.** Where `Input` is cut into the page,
 the trigger sits *on* it, on `--wash/30`, the slider's own wash, and answers a hover by
