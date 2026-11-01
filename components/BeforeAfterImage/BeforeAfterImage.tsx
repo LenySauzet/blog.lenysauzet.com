@@ -1,5 +1,6 @@
 import { resolveImageUrl } from '@/lib/cdn';
 import { getImageDimensions } from '@/lib/image-utils';
+import { cn } from '@/lib/utils';
 
 import { BeforeAfterSlider } from './BeforeAfterSlider';
 
@@ -14,6 +15,7 @@ export interface BeforeAfterImageProps {
   /** Both given skips the build-time dimension lookup. */
   width?: number;
   height?: number;
+  className?: string;
 }
 
 // URL resolution and the dimension lookup run at build time, so only the slider
@@ -26,6 +28,7 @@ export default async function BeforeAfterImage({
   defaultPosition = 50,
   width,
   height,
+  className,
 }: BeforeAfterImageProps) {
   const before = resolveImageUrl(beforeSrc);
   const after = resolveImageUrl(afterSrc);
@@ -33,7 +36,7 @@ export default async function BeforeAfterImage({
     width && height ? { width, height } : await getImageDimensions(before);
 
   return (
-    <figure className="my-6 flex w-full flex-col items-start gap-0">
+    <figure className={cn('my-6 flex w-full flex-col items-start gap-0', className)}>
       <BeforeAfterSlider
         beforeSrc={before}
         afterSrc={after}

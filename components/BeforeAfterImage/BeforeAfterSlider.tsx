@@ -38,17 +38,16 @@ export interface BeforeAfterSliderProps {
   defaultPosition: number;
   width: number;
   height: number;
+  className?: string;
 }
 
-function Label({
-  side,
-  progress,
-  width,
-}: {
+interface LabelProps {
   side: 'before' | 'after';
   progress: MotionValue<number>;
   width: MotionValue<number>;
-}) {
+}
+
+function Label({ side, progress, width }: LabelProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const span = useMotionValue<LabelSpan | null>(null);
 
@@ -67,8 +66,8 @@ function Label({
     return () => observer.disconnect();
   }, [span]);
 
-  // Every input is read before branching: a transform subscribes only to the values
-  // its last run read, so one skipped while unmeasured would never be tracked.
+  // Every input is read before branching: a transform subscribes only to what it read
+  // when the component last rendered, so one skipped while unmeasured goes untracked.
   const opacity = useTransform(() => {
     const x = (progress.get() / 100) * width.get();
     const measured = span.get();
@@ -98,18 +97,18 @@ export function BeforeAfterSlider({
   defaultPosition,
   width,
   height,
+  className,
 }: BeforeAfterSliderProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const clipId = useId();
   const reduce = useReducedMotion();
-  const [position, setPosition] = useState(() => clamp(defaultPosition));
   const [measured, setMeasured] = useState(false);
   const [held, setHeld] = useState(false);
 
   // Input moves the target and the drawing chases it on a spring, so a click or a
-  // key glides there; neither waits on a React render, and `aria-valuenow` follows
-  // the target once a frame.
-  const target = useMotionValue(position);
+  // key glides there. Nothing re-renders: `aria-valuenow` is written to the element
+  // once a frame, and React, whose prop never changes, leaves it alone.
+  const target = useMotionValue(clamp(defaultPosition));
   const follow = useSpring(target, FOLLOW_SPRING);
   // The overshoot past an end is held at the edge, or the line would leave the image.
   const progress = useTransform(follow, clamp);
@@ -135,7 +134,7 @@ export function BeforeAfterSlider({
     if (frame.current) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
-      setPosition(target.get());
+      wrapRef.current?.setAttribute('aria-valuenow', String(Math.round(target.get())));
     });
   };
 
@@ -212,7 +211,7 @@ export function BeforeAfterSlider({
       aria-orientation="horizontal"
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={Math.round(position)}
+      aria-valuenow={Math.round(clamp(defaultPosition))}
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -221,7 +220,8 @@ export function BeforeAfterSlider({
       onLostPointerCapture={endDrag}
       className={cn(
         'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-xl border-2 border-border select-none',
-        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none'
+        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+        className
       )}
     >
       <NextImage
@@ -267,6 +267,14 @@ export function BeforeAfterSlider({
         </defs>
         {measured && <motion.path d={divider} fill="none" strokeWidth={1} style={{ stroke: HANDLE_EDGE }} />}
       </motion.svg>
+      {/* The server's line, straight, until the surface is measured and the path draws. */}
+      {!measured && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 z-[1] w-px -translate-x-1/2"
+          style={{ left: handleLeft, backgroundColor: HANDLE_EDGE }}
+        />
+      )}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 z-[1] flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-lg text-white shadow-md backdrop-blur-md backdrop-saturate-[115%]"
