@@ -71,7 +71,7 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output six times over: its
+`components/ui/command.tsx` is customized beyond the CLI output seven times over: its
 `CommandInput` is a bare box laid out inline rather than through `InputGroup`, no
 leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier
 and the selected one steps up to `--foreground` on a faint wash**, never the accent,
@@ -80,9 +80,9 @@ match keeps it, being the reader's own word); **`CommandHint` names what a row s
 right** and lifts it with the selection the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate
-its own exit), **a row's selection is not transitioned** and
-**the dialog travels its backdrop's radius on the way out** rather
-than only its opacity. The row eased its colour and its wash over 100ms while
+its own exit), **a row's selection is not transitioned**, **Motion animates the dialog rather
+than the primitive's keyframes**, and **it travels its backdrop's radius both ways**
+rather than only its opacity. The row eased its colour and its wash over 100ms while
 the icon, whose colour is set on the `svg` and carries no transition of its
 own, snapped: one change arriving at two speeds. Only the press is animated
 now, which is the same reason the reading rail's titles take their accent at
@@ -90,7 +90,9 @@ once. A blurred backdrop is as good as fully blurred at an opacity of
 zero, so fading alone held the page blurred to the last frame and let it snap back,
 which reads as a missing exit where there is detail behind the panel. The closed value
 keeps the same function list, or there is nothing to interpolate between and it jumps
-all the same. Update it with
+all the same. Mounting the palette takes one frame of 65 to 85ms, and a
+CSS animation is timed from that frame's start: the 100ms entrance was nine tenths
+done when first painted, so none was ever seen. Motion's starts on the frame after. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.

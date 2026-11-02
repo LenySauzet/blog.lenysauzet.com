@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Command, CommandDialog, CommandInput } from '@/components/ui/command';
+import { Command, CommandDialog, CommandInput, DIALOG_SECONDS } from '@/components/ui/command';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
@@ -21,11 +21,11 @@ import { CommandRegistry, commandValue } from './CommandRegistry';
 import { PostSearch } from './PostSearch';
 
 /**
- * What the surface takes to leave, matching the dialog's own `duration-100`. A
- * command that repaints the page inside that window reads as a cut rather than an
- * exit. A timer and not `animationend`, which never fires when animation is off.
+ * What the surface takes to leave. A command that repaints the page inside that
+ * window reads as a cut rather than an exit. A timer and not an end event, which
+ * never fires when animation is off.
  */
-const EXIT_MS = 120;
+const EXIT_MS = DIALOG_SECONDS * 1000 + 20;
 
 /**
  * One pane at a time: a page is a `CommandList`, and two inside one `Command`

@@ -2,15 +2,11 @@
 
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
+import { AnimatePresence, motion } from "motion/react"
+import { Dialog as DialogPrimitive } from "radix-ui"
 
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 import { cn } from "@/lib/utils"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Tick02Icon } from "@hugeicons/core-free-icons"
 
@@ -30,43 +26,75 @@ function Command({
   )
 }
 
+/** How long the dialog takes to come and go, which a command that repaints
+    the page waits out. */
+const DIALOG_SECONDS = 0.15
+
+// Custom, not from the CLI: Motion animates the dialog rather than the
+// primitive's keyframes. Mounting the palette takes a frame of 65 to 85ms and a
+// CSS animation is timed from that frame's start, so a 100ms entrance was nine
+// tenths done by the time it was first painted; Motion's starts on the frame
+// after. The backdrop's radius travels too, not just the opacity: a blurred
+// backdrop is as good as fully blurred at an opacity of zero, so fading alone
+// held the page blurred to the last frame and then let it snap back. Its rest
+// keeps the same function list, or there is nothing to interpolate between.
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
+  open,
+  onOpenChange,
   children,
   className,
-  showCloseButton = false,
-  ...props
-}: React.ComponentProps<typeof Dialog> & {
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   title?: string
   description?: string
+  children: React.ReactNode
   className?: string
-  showCloseButton?: boolean
 }) {
+  const still = usePrefersReducedMotion()
+  const transition = { duration: DIALOG_SECONDS, ease: "easeOut" } as const
+  const away = {
+    opacity: 0,
+    scale: still ? 1 : 0.95,
+    backdropFilter: "blur(0.5px) saturate(1.15)",
+  }
+
   return (
-    <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
-      <DialogContent
-        className={cn(
-          // The radius travels on the way out, not just the layer's opacity: a
-          // blurred backdrop is as good as fully blurred at an opacity of
-          // zero, so fading alone holds the page blurred to the last frame and
-          // then lets it snap back. Two traps in the closed value: it keeps the
-          // same function list, or there is nothing to interpolate between, and
-          // it lands on half a pixel rather than none, Lightning CSS minifying
-          // `blur(0px)` to the invalid `blur()` and taking the declaration with
-          // it.
-          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[backdrop-filter] duration-100 ease-out data-closed:[backdrop-filter:blur(0.5px)_saturate(1.15)] sm:max-w-[600px]",
-          className
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <AnimatePresence>
+        {open && (
+          <DialogPrimitive.Portal forceMount>
+            <DialogPrimitive.Overlay data-slot="dialog-overlay" forceMount asChild>
+              <motion.div
+                className="fixed inset-0 isolate z-50 bg-background/80"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={transition}
+              />
+            </DialogPrimitive.Overlay>
+            <DialogPrimitive.Content data-slot="dialog-content" forceMount asChild>
+              <motion.div
+                className={cn(
+                  "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none",
+                  className
+                )}
+                initial={away}
+                animate={{ opacity: 1, scale: 1, backdropFilter: "blur(6px) saturate(1.15)" }}
+                exit={away}
+                transition={transition}
+              >
+                <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+                <DialogPrimitive.Description className="sr-only">{description}</DialogPrimitive.Description>
+                {children}
+              </motion.div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
         )}
-        showCloseButton={showCloseButton}
-      >
-        {children}
-      </DialogContent>
-    </Dialog>
+      </AnimatePresence>
+    </DialogPrimitive.Root>
   )
 }
 
@@ -211,6 +239,7 @@ function CommandShortcut({
 export {
   Command,
   CommandDialog,
+  DIALOG_SECONDS,
   CommandInput,
   CommandList,
   CommandEmpty,
