@@ -26,7 +26,6 @@ function Command({
   )
 }
 
-
 // Custom, not from the CLI: Motion animates the dialog rather than the
 // primitive's keyframes. Mounting the palette takes a frame of 65 to 85ms and a
 // CSS animation is timed from that frame's start, so a 100ms entrance was nine
@@ -56,7 +55,7 @@ function CommandDialog({
 }) {
   const still = usePrefersReducedMotion()
   const transition = { duration: 0.15, ease: "easeOut" } as const
-  const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0.5px" }
+  const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -104,7 +103,7 @@ function Panel(props: React.ComponentProps<typeof motion.div>) {
   return (
     <motion.div
       inert={!present}
-      // Enter alone: the shortcut that reopens it is read on the window, past here.
+      // Enter alone: the shortcut that reopens it is read on the document, past here.
       onKeyDownCapture={(event) => {
         if (!present && event.key === "Enter") event.stopPropagation()
       }}
@@ -229,7 +228,7 @@ function CommandItem({
     Exported as a class as well, for a mark that has to be a motion element to
     animate its own exit. */
 const commandHint =
-  "ml-auto truncate pl-6 text-sm text-muted-foreground/70 group-data-selected/command-item:text-foreground"
+  "ml-auto truncate pl-6 text-sm font-normal text-muted-foreground/70 group-data-selected/command-item:text-foreground"
 
 function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
   return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />

@@ -59,7 +59,7 @@ export function DynamicIsland() {
   const state = useOpening(resolved, resting);
 
   // A reader who points at the island has found it: the hint's own visit, coming or
-  // under way, is called off, and it shows only while they point.
+  // under way, is called off, and it shows only while they point or focus.
   const point = () => {
     window.clearTimeout(mention.current);
     useIslandStore.getState().dismiss(hint.id);

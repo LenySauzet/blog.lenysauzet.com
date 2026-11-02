@@ -79,8 +79,12 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     run?.();
   }, []);
 
+  // Reopened mid-exit, the box was inert when `open` focused it, so the focus
+  // is handed over again once the open dialog has rendered.
   useEffect(() => {
-    if (isOpen) runPicked();
+    if (!isOpen) return;
+    runPicked();
+    input.current?.focus();
   }, [isOpen, runPicked]);
   const lastMeasured = useRef<HTMLElement | null>(null);
 

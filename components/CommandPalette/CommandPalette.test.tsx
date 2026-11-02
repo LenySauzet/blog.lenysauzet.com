@@ -350,6 +350,27 @@ describe('CommandPalette', () => {
     expect(setTheme).toHaveBeenCalledTimes(1);
   });
 
+  // jsdom neither takes the focus from an inert box nor refuses to give it one,
+  // so the test does both the way a browser would.
+  it('takes the keyboard again when reopened before it has left', async () => {
+    const focus = HTMLElement.prototype.focus;
+    const refused = vi
+      .spyOn(HTMLElement.prototype, 'focus')
+      .mockImplementation(function (this: HTMLElement, options) {
+        if (!this.closest('[inert]')) focus.call(this, options);
+      });
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Toggle theme'));
+    act(() => screen.getByRole('combobox').blur());
+    await user.keyboard('{Meta>}k{/Meta}');
+
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus());
+    refused.mockRestore();
+  });
+
   // cmdk refuses to move its selection onto a disabled row, which left whichever row
   // held it lit and reading as the one under the cursor.
   it('takes the selection off the last row when a disabled one is pointed at', async () => {
