@@ -73,10 +73,10 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
 
   // Held invisible until the bytes land: shown while loading, a source that is
   // going to fail paints the browser's broken glyph first.
-  const image = (className: string, altText: string, at?: { loading: 'eager'; decoding: 'sync' }) => (
+  const image = (className: string, altText: string, travels = false) => (
     <NextImage
       {...props}
-      {...at}
+      {...(travels && { loading: 'eager', decoding: 'sync' })}
       alt={altText}
       sizes={ZOOM_SIZES}
       className={cn(
@@ -151,7 +151,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
               // Painted with its first frame: lazy and decoded off the main thread,
               // Safari showed nothing while the article's copy had already gone,
               // and the image leapt in mid-flight.
-              image('h-full w-full rounded-frame-xl object-contain', '', { loading: 'eager', decoding: 'sync' })
+              image('h-full w-full rounded-frame-xl object-contain', '', true)
             )}
           </motion.div>
           <ZoomCaption start={zoom.stage === 'open'}>{alt}</ZoomCaption>

@@ -70,8 +70,8 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
       sizes={ZOOM_SIZES}
       bleed={frame.bleed}
       loading={preload ? 'eager' : 'lazy'}
-      // The lightbox's end mounts as it opens: decoded off the main thread, Safari
-      // painted nothing while the slide had already gone.
+      // Each end first paints on the frame the other hides: decoded off the main
+      // thread, Safari painted nothing there and the image leapt.
       decoding="sync"
     />
   );
