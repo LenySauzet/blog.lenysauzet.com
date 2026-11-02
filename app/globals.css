@@ -67,7 +67,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
   /* A framed block's corners, which a frame around it shrinks through --frame-radius
      so they nest in its own. */
-  --radius-frame-lg: var(--frame-radius, var(--radius-lg));
   --radius-frame-xl: var(--frame-radius, var(--radius-xl));
 }
 
@@ -628,6 +627,18 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
 /* The rim of glass floating over imagery, after the callout's: a hairline lit from
    above, drawn on a masked ring so the fill inside stays the glass. The element
    positions itself; `mediaGlass` in components/ui/glass.ts is the whole material. */
+/* A framed block that frames blocks of its own, a tweet or a Details: `frame-container`
+   on the block notes its own corner, `frame-nest` on the region holding the rest steps
+   theirs down one, never past its own, so they nest in its corners even inside a
+   Callout. Two names because a property defined through itself is invalid. */
+@utility frame-container {
+  --frame-outer: var(--frame-radius, var(--radius-xl));
+}
+
+@utility frame-nest {
+  --frame-radius: min(var(--radius-lg), var(--frame-outer));
+}
+
 @utility glass-rim {
   isolation: isolate;
 

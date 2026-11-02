@@ -76,6 +76,7 @@ one `--code-accent`, which `LOG_LEVELS` in `components/CodeBlock/read-code.ts` s
 | `rounded-md`   | `calc(var(--radius) - 2px)` |
 | `rounded-lg`   | `var(--radius)`         |
 | `rounded-xl`   | `calc(var(--radius) + 4px)` |
+| `rounded-frame-xl` | A framed block's corner: `var(--frame-radius, var(--radius-xl))` |
 
 ### Typography Tokens
 

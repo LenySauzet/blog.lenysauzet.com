@@ -94,7 +94,7 @@ export function CodeEditorPane({ height }: { height: string }) {
   return (
     <div
       ref={wrapRef}
-      className="sp-editor-wrap relative flex min-w-0 flex-1 overflow-hidden rounded-xl border border-[var(--code-border)]"
+      className="sp-editor-wrap relative flex min-w-0 flex-1 overflow-hidden rounded-frame-xl border border-[var(--code-border)]"
       style={{ height }}
     >
       <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
