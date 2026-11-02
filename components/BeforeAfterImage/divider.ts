@@ -4,12 +4,14 @@ export const MAX_PULL = 8;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 /**
- * The divider as an SVG path through `center` at mid-height. A pull bows it: the
- * ends trail behind the middle by up to MAX_PULL, staying inside the image.
+ * The divider as an SVG path through `center` at mid-height. A pull bows it in one arc
+ * over the full height, as the Slideshow's seam bows: the ends trail behind the middle
+ * by up to MAX_PULL, staying inside the image. A quadratic's middle sits halfway to its
+ * control point, which is why the control is the middle's mirror of the ends.
  */
 export function dividerPath(center: number, pull: number, width: number, height: number) {
   const edge = clamp(center - clamp(pull, -MAX_PULL, MAX_PULL), 0, width);
-  return `M ${edge} 0 C ${edge} ${height * 0.25} ${center} ${height * 0.25} ${center} ${height * 0.5} C ${center} ${height * 0.75} ${edge} ${height * 0.75} ${edge} ${height}`;
+  return `M ${edge} 0 Q ${2 * center - edge} ${height / 2} ${edge} ${height}`;
 }
 
 /** The region right of the divider, where the after image shows. */
