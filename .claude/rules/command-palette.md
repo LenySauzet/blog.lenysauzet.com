@@ -76,7 +76,9 @@ once it stopped.
 leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier
 and the selected one steps up to `--foreground` on a faint wash**, never the accent,
 which belongs to what the reader chose rather than to where the cursor is (a search
-match keeps it, being the reader's own word); **`CommandHint` names what a row says on its
+match keeps it, being the reader's own word); **only a device with a fine pointer shows the selection**
+(`any-pointer-fine`, so a tablet with a trackpad keeps it), cmdk always selecting a
+row, which under a finger alone is no cursor and read as one row stuck lit; **`CommandHint` names what a row says on its
 right** and lifts it with the selection the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate

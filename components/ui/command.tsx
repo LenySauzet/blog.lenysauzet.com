@@ -212,8 +212,9 @@ function CommandSeparator({
 
 // Custom, not from the CLI: rows rest on the body tier and the selected one
 // steps up to `--foreground` on a faint wash, the accent being left to what the
-// reader chose rather than to where the cursor is. Re-run `add command --diff`
-// and re-apply.
+// reader chose rather than to where the cursor is. Only where a fine pointer
+// exists: cmdk always selects a row, which under a finger alone is no cursor at
+// all and read as one row stuck lit. Re-run `add command --diff` and re-apply.
 function CommandItem({
   className,
   children,
@@ -223,7 +224,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-foreground/5 data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-foreground",
+        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 any-pointer-fine:data-selected:bg-foreground/5 any-pointer-fine:data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] any-pointer-fine:data-selected:**:[svg]:text-foreground",
         className
       )}
       {...props}
@@ -241,7 +242,7 @@ function CommandItem({
     Exported as a class as well, for a mark that has to be a motion element to
     animate its own exit. */
 const commandHint =
-  "ml-auto truncate pl-6 text-sm font-normal text-subtle-foreground group-data-selected/command-item:text-foreground"
+  "ml-auto truncate pl-6 text-sm font-normal text-subtle-foreground any-pointer-fine:group-data-selected/command-item:text-foreground"
 
 function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
   return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />
@@ -255,7 +256,7 @@ function CommandShortcut({
     <span
       data-slot="command-shortcut"
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground group-data-selected/command-item:text-foreground",
+        "ml-auto text-xs tracking-widest text-muted-foreground any-pointer-fine:group-data-selected/command-item:text-foreground",
         className
       )}
       {...props}
