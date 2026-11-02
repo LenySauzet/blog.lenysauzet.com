@@ -260,14 +260,15 @@ on the Slider's own spring, `FOLLOW_SPRING` in `lib/springs.ts`, so a click or a
 glides and the two controls feel alike; its overshoot is held at the image's edges.
 Held, the handle grows to 1.1, being picked up rather than pressed. Under reduced motion
 every input jumps the spring, which zeroes the bow, and the handle never grows. The
-divider is an SVG path that bows by up to 8px with the spring's own speed, so a click, a
-key and a drag all bend it and it straightens as the spring settles; not `useVelocity`,
-which reads a reduced-motion jump as speed and flickers to 0 mid-drag; the after image
-is clipped by that same path, so both are measured inside the border, the box they are
-laid out in: measured outside it they part by its width. Until then the clip is a plain
-`inset` and the line a straight div, or the server's page would show neither. A
-transform reads every input before it branches, since it subscribes only to what it read
-when the component last rendered. The geometry and the fade are pure, in `divider.ts`.
+divider is an SVG path that bows in one arc over its full height, by up to 16px as the
+Slideshow's seam does, with the spring's own speed, so a click, a key and a drag all
+bend it and it straightens as the spring settles; not `useVelocity`, which reads a
+reduced-motion jump as speed and flickers to 0 mid-drag; the after image is clipped by
+that same path, so both are measured inside the border, the box they are laid out in:
+measured outside it they part by its width. Until then the clip is a plain `inset` and
+the line a straight div, or the server's page would show neither. A transform reads
+every input before it branches, since it subscribes only to what it read when the
+component last rendered. The geometry and the fade are pure, in `divider.ts`.
 
 **Select is a raised surface, not an inset field.** Where `Input` is cut into the page,
 the trigger sits *on* it, on `--wash/30`, the slider's own wash, and answers a hover by

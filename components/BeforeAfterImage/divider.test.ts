@@ -75,7 +75,7 @@ describe('pullFor', () => {
 
   it('barely flexes when slow', () => {
     expect(pullFor(10, 1200)).toBeGreaterThan(0);
-    expect(pullFor(10, 1200)).toBeLessThan(1);
+    expect(pullFor(10, 1200)).toBeLessThan(MAX_PULL / 10);
   });
 });
 

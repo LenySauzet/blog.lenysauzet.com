@@ -1,5 +1,8 @@
-/** How far, in pixels, a fast move bows the divider's ends behind its middle. */
-export const MAX_PULL = 8;
+/**
+ * How far, in pixels, a fast move bows the divider's ends behind its middle: the
+ * Slideshow's MAX_BEND, an arc over the full height reading flat at less.
+ */
+export const MAX_PULL = 16;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
