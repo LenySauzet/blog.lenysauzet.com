@@ -7,7 +7,11 @@ import { SlideshowCarousel } from './SlideshowCarousel';
 // What stands without it: the slideshow is one named carousel, its slides are
 // labelled and only the current one is reachable, and the controls it offers.
 const props = {
-  images: ['https://cdn.example.com/a.png', 'https://cdn.example.com/b.png', 'https://cdn.example.com/c.png'],
+  images: [
+    { src: 'https://cdn.example.com/a.png', alt: 'A meadow' },
+    { src: 'https://cdn.example.com/b.png', alt: 'A harbour' },
+    { src: 'https://cdn.example.com/c.png', alt: '' },
+  ],
   width: 1600,
   height: 900,
   alt: 'Three paintings',
@@ -46,11 +50,26 @@ describe('SlideshowCarousel', () => {
     expect(screen.getByRole('button', { name: 'Play slideshow' })).toBeInTheDocument();
   });
 
-  it('draws no controls for a single image, even one asked to play', () => {
+  it('reads each image as itself, an image without its own alt left to the caption', () => {
+    const { container } = render(<SlideshowCarousel {...props} />);
+    expect([...container.querySelectorAll('img')].map((image) => image.getAttribute('alt'))).toEqual([
+      'A meadow',
+      'A harbour',
+      '',
+      // The lift's still copy, which the slide fills at rest.
+      '',
+    ]);
+  });
+
+  // Enter opening it lifts the image out of a frame jsdom gives no size, so the
+  // browser proves that; here, that a single image is still reachable and says how.
+  it('draws no controls for a single image, even one asked to play, yet stays reachable', () => {
     for (const autoPlay of [false, true]) {
       const { unmount } = render(<SlideshowCarousel {...props} autoPlay={autoPlay} images={props.images.slice(0, 1)} />);
       expect(screen.queryByRole('button')).toBeNull();
-      expect(screen.getByRole('region')).not.toHaveAttribute('tabindex');
+      const carousel = screen.getByRole('region');
+      expect(carousel).toHaveAttribute('tabindex', '0');
+      expect(carousel).toHaveAccessibleDescription('Press Enter to enlarge the image.');
       unmount();
     }
   });

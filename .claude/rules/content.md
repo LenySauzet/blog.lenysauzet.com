@@ -214,18 +214,21 @@ a floating button unfolding it, and shows whole in print or without script: spli
 listing rather than let it fold when every line matters.
 
 **`components/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
-alt="…" />`, `alt` doubling as caption and name; `autoPlay` cross-fades, goes round and
-draws a pause button, `interval` its pace. Its frame is `--card`, which shows wherever
-an image has not loaded. `SlideshowCarousel` wires Embla to the slides; each concern
-beside it is its own module: `use-autoplay`, `use-track-motion`, `Lift`, `Controls`,
-`Picture`, and the pure `bend`, `steps` and `keyboard`. What it rests on:
+alt="…" />`, `alt` doubling as caption and name, and each image a path alone or `{ src,
+alt }`, its own `alt` read on its slide and naming it enlarged (a bare path leaves it to
+the caption); `autoPlay` cross-fades, goes round and draws a pause button, `interval`
+its pace. Its frame is `--card`, which shows wherever an image has not loaded.
+`SlideshowCarousel` wires Embla to the slides; each concern beside it is its own module:
+`use-autoplay`, `use-track-motion`, `Lift`, `Controls`, `Picture`, and the pure `bend`,
+`steps` and `keyboard`. What it rests on:
 
 - **The first image sets the frame**, measured at build; the others are cropped to it,
   so give a slideshow images of one shape.
 - **The arrows reach it from anywhere on the page**: focused, it takes them along with
   Home, End, Space and Enter; otherwise the one nearest the middle of the screen does,
   unless focus sits in something that answers arrows itself. One listener serves the
-  page, keyed by each slideshow's root.
+  page, keyed by each slideshow's root; a single image is still focusable and opens by
+  Enter, but never takes the page's arrows, having nowhere to go.
 - **Autoplay fades, the reader slides.** Embla cannot do both, so autoplay jumps and the
   image it leaves is laid on top and faded out (`autoplay:select`, then
   `previousScrollSnap`); a drag, a key or a button slides the track.

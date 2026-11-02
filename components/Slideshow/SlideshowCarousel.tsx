@@ -23,9 +23,15 @@ import { useTrackMotion } from './use-track-motion';
 const SLIDE_SIZES = '(max-width: 768px) calc(100vw - 2rem), 672px';
 const BLEED = `${MAX_BEND}px`;
 
+export interface SlideshowImage {
+  src: string;
+  /** What it shows, read on its slide and naming it enlarged; empty leaves it to the caption. */
+  alt: string;
+}
+
 export interface SlideshowCarouselProps {
-  /** Fully resolved URLs; resolution happens on the server. */
-  images: string[];
+  /** Fully resolved URLs, each with what it shows; resolution happens on the server. */
+  images: SlideshowImage[];
   /** The first image's, which sets the frame every slide shares. */
   width: number;
   height: number;
@@ -124,9 +130,8 @@ export function SlideshowCarousel({
     return moved;
   });
 
-  useEffect(() => {
-    if (navigable) return registerSlideshow(rootRef.current!, (key) => handle(key));
-  }, [navigable]);
+  // A single image still opens by Enter; only one that can move takes the page's arrows.
+  useEffect(() => registerSlideshow(rootRef.current!, (key) => handle(key), navigable), [navigable]);
 
   return (
     <MotionConfig reducedMotion="user" transition={ZOOM_TRANSITION}>
@@ -136,9 +141,9 @@ export function SlideshowCarousel({
           setApi={setApi}
           plugins={autoplay.plugins}
           opts={{ loop }}
-          tabIndex={navigable ? 0 : undefined}
+          tabIndex={0}
           aria-label={alt}
-          aria-describedby={navigable ? `${id}-keys` : undefined}
+          aria-describedby={`${id}-keys`}
           data-slideshow=""
           // Keyboard focus anywhere in the slideshow stops it, as the APG carousel pattern asks.
           onFocus={(event) => {
@@ -146,16 +151,15 @@ export function SlideshowCarousel({
           }}
           className="overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         >
+          <p id={`${id}-keys`} className="sr-only">
+            {navigable
+              ? `Use the Left and Right arrow keys to change images, and Enter to enlarge one${plays ? ', and Space to pause or play' : ''}.`
+              : 'Press Enter to enlarge the image.'}
+          </p>
           {navigable && (
-            <>
-              <p id={`${id}-keys`} className="sr-only">
-                Use the Left and Right arrow keys to change images, and Enter to enlarge one
-                {plays ? ', and Space to pause or play' : ''}.
-              </p>
-              <p className="sr-only" aria-live="polite" aria-atomic="true">
-                {announced !== null && `Image ${announced + 1} of ${count}.`}
-              </p>
-            </>
+            <p className="sr-only" aria-live="polite" aria-atomic="true">
+              {announced !== null && `Image ${announced + 1} of ${count}.`}
+            </p>
           )}
           <CarouselContent
             className={cn('ml-0', navigable && 'cursor-grab active:cursor-grabbing')}
@@ -165,7 +169,7 @@ export function SlideshowCarousel({
               autoplay.clearLeaving();
             }}
           >
-            {images.map((src, index) => (
+            {images.map(({ src, alt: shows }, index) => (
               <CarouselItem
                 key={`${index}-${src}`}
                 aria-label={`${index + 1} of ${count}`}
@@ -186,6 +190,7 @@ export function SlideshowCarousel({
                   <Picture
                     ref={track.layer(index)}
                     src={src}
+                    alt={shows}
                     width={width}
                     height={height}
                     sizes={SLIDE_SIZES}
@@ -208,7 +213,7 @@ export function SlideshowCarousel({
               onAnimationComplete={autoplay.clearLeaving}
             >
               <Picture
-                src={images[autoplay.leaving]}
+                src={images[autoplay.leaving].src}
                 width={width}
                 height={height}
                 sizes={SLIDE_SIZES}
@@ -232,8 +237,8 @@ export function SlideshowCarousel({
         <Lift
           lift={lift}
           id={`slideshow-lift-${id}`}
-          src={images[selected]}
-          alt={alt}
+          src={images[selected].src}
+          alt={images[selected].alt || alt}
           width={width}
           height={height}
           preload={inView}

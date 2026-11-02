@@ -2,11 +2,14 @@ import { resolveImageUrl } from '@/lib/cdn';
 import { measureImage } from '@/lib/image-utils';
 import { cn } from '@/lib/utils';
 
-import { SlideshowCarousel } from './SlideshowCarousel';
+import { type SlideshowImage, SlideshowCarousel } from './SlideshowCarousel';
 
 export interface SlideshowProps {
-  /** Paths relative to the CDN's images prefix, or absolute URLs, in order. */
-  images: string[];
+  /**
+   * In order, each a path relative to the CDN's images prefix or an absolute URL, alone
+   * or with what it shows as `alt`, which a screen reader reads on that slide.
+   */
+  images: (string | SlideshowImage)[];
   /** Doubles as the caption and the slideshow's accessible name. */
   alt: string;
   /** Plays on its own, cross-fading and going round, with a pause button. */
@@ -31,13 +34,18 @@ export default async function Slideshow({
   className,
 }: SlideshowProps) {
   if (images.length === 0) return null;
-  const urls = images.map(resolveImageUrl);
-  const measurement = width && height ? { width, height } : await measureImage(urls[0]);
+  // A bare path shows nothing a reader needs beyond the caption.
+  const resolved = images.map((image) =>
+    typeof image === 'string'
+      ? { src: resolveImageUrl(image), alt: '' }
+      : { src: resolveImageUrl(image.src), alt: image.alt }
+  );
+  const measurement = width && height ? { width, height } : await measureImage(resolved[0].src);
 
   return (
     <figure className={cn('my-6 flex w-full flex-col items-start gap-0', className)}>
       <SlideshowCarousel
-        images={urls}
+        images={resolved}
         alt={alt}
         autoPlay={autoPlay}
         interval={interval}

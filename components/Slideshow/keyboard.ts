@@ -70,7 +70,13 @@ const OWNS_KEYS = [
   '[role="dialog"]',
 ].join(',');
 
-const handlers = new Map<HTMLElement, SlideshowHandler>();
+interface Entry {
+  handle: SlideshowHandler;
+  /** Whether it has anywhere to go, which alone earns it the page's bare arrows. */
+  roams: boolean;
+}
+
+const entries = new Map<HTMLElement, Entry>();
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.defaultPrevented || event.isComposing) return;
@@ -80,14 +86,14 @@ function onKeyDown(event: KeyboardEvent) {
   let handle: SlideshowHandler | undefined;
   let key: SlideshowKey | null;
   if (focusedRoot) {
-    handle = handlers.get(focusedRoot);
+    handle = entries.get(focusedRoot)?.handle;
     key = keyFor(event, focus === focusedRoot);
   } else {
     if (event.target instanceof Element && event.target.closest(OWNS_KEYS)) return;
     key = keyFor(event, false);
     if (!key) return;
-    const roots = [...handlers.keys()];
-    handle = handlers.get(roots[nearestToCentre(roots.map((root) => root.getBoundingClientRect()), innerWidth, innerHeight)]);
+    const roots = [...entries].filter(([, entry]) => entry.roams).map(([root]) => root);
+    handle = entries.get(roots[nearestToCentre(roots.map((root) => root.getBoundingClientRect()), innerWidth, innerHeight)])?.handle;
   }
 
   if (!key || !handle) return;
@@ -97,11 +103,11 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 /** One listener for the page, however many slideshows it holds. */
-export function registerSlideshow(root: HTMLElement, handle: SlideshowHandler) {
-  if (handlers.size === 0) document.addEventListener('keydown', onKeyDown);
-  handlers.set(root, handle);
+export function registerSlideshow(root: HTMLElement, handle: SlideshowHandler, roams: boolean) {
+  if (entries.size === 0) document.addEventListener('keydown', onKeyDown);
+  entries.set(root, { handle, roams });
   return () => {
-    handlers.delete(root);
-    if (handlers.size === 0) document.removeEventListener('keydown', onKeyDown);
+    entries.delete(root);
+    if (entries.size === 0) document.removeEventListener('keydown', onKeyDown);
   };
 }

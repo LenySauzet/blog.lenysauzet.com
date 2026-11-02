@@ -56,7 +56,7 @@ describe('nearestToCentre', () => {
 });
 
 describe('registerSlideshow', () => {
-  const mount = (top: number) => {
+  const mount = (top: number, roams = true) => {
     const root = document.createElement('div');
     root.dataset.slideshow = '';
     root.tabIndex = 0;
@@ -65,7 +65,7 @@ describe('registerSlideshow', () => {
     root.append(pause);
     document.body.append(root);
     const keys: SlideshowKey[] = [];
-    const unregister = registerSlideshow(root, (key) => (keys.push(key), true));
+    const unregister = registerSlideshow(root, (key) => (keys.push(key), true), roams);
     return { root, pause, keys, unregister };
   };
   const press = (target: EventTarget, key: string, repeat = false) => {
@@ -91,6 +91,16 @@ describe('registerSlideshow', () => {
     expect(press(document.body, 'ArrowRight')).toBe(true);
     expect(near.keys).toEqual(['next']);
     expect(far.keys).toEqual([]);
+  });
+
+  it('never hands the bare arrows to a slideshow with nowhere to go, however near', () => {
+    near.unregister();
+    // Dead centre, so only its having nowhere to go keeps the arrows from it.
+    const still = mount(250, false);
+    expect(press(document.body, 'ArrowRight')).toBe(true);
+    expect(still.keys).toEqual([]);
+    expect(far.keys).toEqual(['next']);
+    still.unregister();
   });
 
   it('leaves the arrows to a link, a dialog or anything else that owns them', () => {
