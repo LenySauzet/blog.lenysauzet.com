@@ -77,13 +77,13 @@ leading icon, with a `hint` slot at the end of its row; **rows rest on the body 
 and the selected one steps up to `--foreground` on a faint wash**, never the accent,
 which belongs to what the reader chose rather than to where the cursor is (a search
 match keeps it, being the reader's own word); **the selection shows only where a fine
-pointer exists or the keys are moving it**: cmdk always selects a row, which under a
+pointer exists or the keyboard is driving**: cmdk always selects a row, which under a
 finger alone is no cursor and read as one row stuck lit, so it takes
 `any-pointer-fine` (a tablet with a trackpad keeps it) or `data-keyed`, which the root
-sets on an arrow, Home, End or a page key and a touch clears, the selection being the
-only focus indicator for a keyboard on a phone, DOM focus staying in the box;
-**`CommandHint` names what a row says on its
-right** and lifts it with the selection the way a shortcut does, since the one
+sets on any key and a touch clears. Any key, not the arrows alone: a query typed on a
+phone makes Enter run the first row, and cmdk also moves on Ctrl+N and Ctrl+P. The
+selection is the only focus indicator there, DOM focus staying in the box;
+**`CommandHint` names what a row says on its right** and lifts it with the selection the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate
 its own exit), **a row's selection is not transitioned**, **Motion animates the dialog rather

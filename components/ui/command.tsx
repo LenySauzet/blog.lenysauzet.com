@@ -10,12 +10,10 @@ import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Tick02Icon } from "@hugeicons/core-free-icons"
 
-const STEPS = new Set(["ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"])
-
-// Custom, not from the CLI: `data-keyed` marks a selection the keys are moving, so a
-// row shows it with no fine pointer too (a phone or tablet with a keyboard, a switch
-// device): the selection is then the only focus indicator, DOM focus staying in the
-// box. A touch clears it.
+// Custom, not from the CLI: `data-keyed` marks a palette the keyboard is driving,
+// any key, so a row shows the selection with no fine pointer too: arrows on a
+// phone's keyboard, or a query typed before Enter runs the first row. The selection
+// is then the only focus indicator, DOM focus staying in the box. A touch clears it.
 function Command({
   className,
   onKeyDown,
@@ -28,7 +26,7 @@ function Command({
       data-slot="command"
       data-keyed={keyed ? "" : undefined}
       onKeyDown={(event) => {
-        if (STEPS.has(event.key)) setKeyed(true)
+        setKeyed(true)
         onKeyDown?.(event)
       }}
       onPointerDown={(event) => {
@@ -231,7 +229,7 @@ function CommandSeparator({
 // Custom, not from the CLI: rows rest on the body tier and the selected one
 // steps up to `--foreground` on a faint wash, the accent being left to what the
 // reader chose rather than to where the cursor is. Only where a fine pointer
-// exists or the keys are moving it: cmdk always selects a row, which under a
+// exists or the keyboard is driving: cmdk always selects a row, which under a
 // finger alone is no cursor at all and read as one row stuck lit. Re-run
 // `add command --diff` and re-apply.
 function CommandItem({

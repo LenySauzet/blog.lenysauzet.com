@@ -90,15 +90,15 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
-  // Under a finger the selection shows only once the keys move it.
-  it('marks a selection the keys are moving, until a touch', async () => {
+  // Under a finger the selection shows only once the keyboard drives the palette.
+  it('marks a palette the keyboard is driving, until a touch', async () => {
     const user = userEvent.setup();
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     const root = (await screen.findByRole('combobox')).closest('[data-slot="command"]')!;
     expect(root).not.toHaveAttribute('data-keyed');
 
-    await user.keyboard('{ArrowDown}');
+    await user.keyboard('t');
     expect(root).toHaveAttribute('data-keyed');
 
     fireEvent.pointerDown(root);
