@@ -41,11 +41,15 @@ that neither file makes obvious:
   (`ui/input.tsx` uses border and shadow, `CopyButton` a background). Grep for it with
   care: `focus-visible:outline-` matches `focus-visible:outline-none` itself.
 - **Every framed block rounds its outer corners with `rounded-frame-xl`**, one radius for
-  code, tables, images, video, Before/After, slideshows, tweets, `Details`, figure panels
-  and sandboxes, unless a container sets `--frame-radius`. A container that frames blocks
-  sets it, as `Callout` and a tweet's panel do, so what sits inside nests in its corners
-  rather than matching them. A new framed block takes it too, never a plain `rounded-xl`,
-  which would not nest.
+  code, tables, images, video, Before/After, slideshows, tweets, cards, `Details`, figure
+  panels and sandboxes, unless a container sets `--frame-radius`. A new framed block takes
+  it too, never a plain `rounded-xl`, which would not nest.
+- **A container sets `--frame-radius` so what it frames nests in its corners**, never
+  rounder than itself. `Callout` sets it outright, its own corner being a plain
+  `rounded-xl`. A framed block that frames blocks, a tweet or a `Details`, takes
+  `frame-container` on itself and `frame-nest` on the region holding the rest: one step
+  down, capped at its own corner, so a tweet in a Callout stays concentric. The cap needs
+  the two names, a property defined through itself being invalid.
 - **Inline code is not syntax-highlighted.** It takes a flat `--code-inline`, because a
   bare identifier tokenises as plain text in any grammar and highlighting only dimmed it
   into the prose. Set in `next.config.ts` via `defaultLang`.

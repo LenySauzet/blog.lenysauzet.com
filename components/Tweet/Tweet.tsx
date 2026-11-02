@@ -103,7 +103,10 @@ function Quoted({ tweet, copied }: { tweet: QuotedTweet; copied: ReadonlySet<str
         <Posted date={tweet.created_at} url={url} />
       </div>
       <TweetText tweet={tweet} url={url} className="text-sm leading-6" />
-      {tweet.mediaDetails?.length ? <TweetMedia tweet={tweet} url={url} copied={copied} /> : null}
+      {/* A level deeper: its media nests in the quote's own corners. */}
+      {tweet.mediaDetails?.length ? (
+        <TweetMedia tweet={tweet} url={url} copied={copied} className="[--frame-radius:min(var(--radius-md),var(--frame-outer))]" />
+      ) : null}
     </blockquote>
   );
 }
@@ -124,7 +127,7 @@ export default async function Tweet({ id, className }: TweetProps) {
   const url = postUrl(tweet);
 
   return (
-    <figure className={cn('my-6 flex flex-col gap-4 p-4 sm:p-5', PANEL, className)}>
+    <figure className={cn('frame-container my-6 flex flex-col gap-4 p-4 sm:p-5', PANEL, className)}>
       <figcaption className="flex items-start justify-between gap-4">
         <Author tweet={tweet} />
         <a href={url} aria-label="View this post on X" className="text-subtle-foreground transition-colors hover:text-foreground">
@@ -132,8 +135,7 @@ export default async function Tweet({ id, className }: TweetProps) {
         </a>
       </figcaption>
 
-      {/* What is framed inside the panel nests in its corners, as in a Callout. */}
-      <blockquote cite={url} className="flex flex-col gap-4 [--frame-radius:var(--radius-lg)]">
+      <blockquote cite={url} className="frame-nest flex flex-col gap-4">
         <TweetText tweet={tweet} url={url} />
         {tweet.mediaDetails?.length ? <TweetMedia tweet={tweet} url={url} copied={copied} /> : null}
         {tweet.quoted_tweet && <Quoted tweet={tweet.quoted_tweet} copied={copied} />}

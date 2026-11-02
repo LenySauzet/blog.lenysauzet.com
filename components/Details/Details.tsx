@@ -34,7 +34,7 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
         value={ITEM_VALUE}
         // `group` drives the open-state styling off Radix's data-state;
         // overflow-hidden clips the accent glow so it only bleeds inward.
-        className="group relative overflow-hidden rounded-frame-xl border border-border bg-card"
+        className="frame-container group relative overflow-hidden rounded-frame-xl border border-border bg-card"
       >
         <AccordionPrimitive.Header className="flex">
           <AccordionPrimitive.Trigger className="relative flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left outline-none">
@@ -69,7 +69,7 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
         >
           {/* `[&>*]:my-0` neutralises each child's own margin so the gap alone
               sets the rhythm, letting any block sit inside. */}
-          <div className="flex flex-col gap-4 px-4 pb-6 font-display text-base leading-7 text-muted-foreground [&>*]:my-0">
+          <div className="frame-nest flex flex-col gap-4 px-4 pb-6 font-display text-base leading-7 text-muted-foreground [&>*]:my-0">
             {children}
           </div>
         </AccordionPrimitive.Content>

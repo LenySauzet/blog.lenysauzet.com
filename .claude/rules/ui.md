@@ -37,10 +37,11 @@ Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status
 `destructive` is kept alongside `danger`.
 
 **`components/ui/card.tsx` is intentionally customized** beyond the CLI output, like
-`badge.tsx`. Three edits: the edge is a `border` resolving from `--border` rather than
+`badge.tsx`. Four edits: the edge is a `border` resolving from `--border` rather than
 `ring-1 ring-foreground/10`, so it matches every other inset surface; `size` defaults to
-`sm`, since 16px is this site's rhythm; and `CardTitle` / `CardContent` carry the prose
-type posts use.
+`sm`, since 16px is this site's rhythm; `CardTitle` / `CardContent` carry the prose
+type posts use; and its corners, an edge image's included, are `rounded-frame-xl`, a
+framed block's, so a Callout nests it.
 
 **`components/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
