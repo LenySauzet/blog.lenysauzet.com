@@ -94,7 +94,7 @@ bunx shadcn@latest add <component>
 Import them with the `@/components/ui` alias:
 ```tsx
 import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
+import { Card } from '@/components/ui/card';
 ```
 
 ## Icons

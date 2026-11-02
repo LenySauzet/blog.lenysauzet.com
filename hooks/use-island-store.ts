@@ -45,7 +45,9 @@ export const useIslandStore = create<IslandStore>((set, get) => ({
 
   dismiss: (id) => {
     renew(id);
-    set({ presented: get().presented.filter((raised) => raised.id !== id) });
+    const presented = get().presented.filter((raised) => raised.id !== id);
+    // The island dismisses its hint on every hover: a fresh list would re-render for nothing.
+    if (presented.length !== get().presented.length) set({ presented });
   },
 
   setPost: (post) => set({ post }),

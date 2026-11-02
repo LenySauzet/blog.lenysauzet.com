@@ -71,24 +71,38 @@ fresh one per scroll event re-renders both of them sixty times a second to say
 nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
-`components/ui/command.tsx` is customized beyond the CLI output six times over: its
-`CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
-slot at the end of its row, a selected item carries `--primary` rather than
-`--foreground`, **`CommandHint` names what a row says on its
+`components/ui/command.tsx` is customized beyond the CLI output seven times over: its
+`CommandInput` is a bare box laid out inline rather than through `InputGroup`, no
+leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier
+and the selected one steps up to `--foreground` on a faint wash**, never the accent,
+which belongs to what the reader chose rather than to where the cursor is (a search
+match keeps it, being the reader's own word); **`CommandHint` names what a row says on its
 right** and lifts it with the selection the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate
-its own exit), **a row's selection is not transitioned** and
-**the dialog travels its backdrop's radius on the way out** rather
-than only its opacity. The row eased its colour and its wash over 100ms while
+its own exit), **a row's selection is not transitioned**, **Motion animates the dialog rather
+than the primitive's keyframes**, and **it travels its backdrop's radius both ways**
+rather than only its opacity. The row eased its colour and its wash over 100ms while
 the icon, whose colour is set on the `svg` and carries no transition of its
 own, snapped: one change arriving at two speeds. Only the press is animated
 now, which is the same reason the reading rail's titles take their accent at
 once. A blurred backdrop is as good as fully blurred at an opacity of
 zero, so fading alone held the page blurred to the last frame and let it snap back,
-which reads as a missing exit where there is detail behind the panel. The closed value
-keeps the same function list, or there is nothing to interpolate between and it jumps
-all the same. Update it with
+which reads as a missing exit where there is detail behind the panel. Mounting the palette takes one frame of 65 to 85ms, and a
+CSS animation is timed from that frame's start: the 100ms entrance was nine tenths
+done when first painted, so none was ever seen. Motion's starts on the frame after. A command the reader picks runs on the
+dialog's `onExitComplete`, not on a timer guessing its length, and at once if the
+palette is reopened first, the exit then never completing. **A leaving dialog is shut**: AnimatePresence keeps
+the props it last had, an open one's, so the box takes `inert` from `useIsPresent`,
+and stops Enter as well, the browser only taking back the focus it holds at the next
+frame: three quick presses otherwise ran a command twice. Enter alone, or the ⌘K that
+reopens it mid-exit is swallowed too; and reopened so, it hands the box its focus again
+once rendered, `inert` having refused the first. **With no trigger, Radix has nothing to hand the focus
+back to**, so the dialog notes what held it on opening and returns it on closing; a
+keyboard reader otherwise started again from the top of the page. **The box is 16px
+below `sm`**, the size under which iOS zooms the page on focus, and 14px above. **`ui/dialog.tsx` is gone**, nothing
+using it once the dialog was built on Radix's primitives: `add command` brings it
+back as a dependency, so drop it again. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.

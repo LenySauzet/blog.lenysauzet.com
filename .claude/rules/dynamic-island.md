@@ -41,6 +41,9 @@ What the shape forces, none of it obvious:
   oscillation back.
 - **A wheel over the island does nothing on its own.** `body` does not scroll and the
   scrolling column is a sibling, so the delta is handed on by hand.
+- **The hint is for a reader who has not found the island yet.** It visits once after
+  load, unless the island is pointed at or focused first: that calls off the visit to
+  come, or ends the one under way, and from then on the hint shows only while pointed or focused.
 - **A button centres its text**, so the island's content wrapper undoes it once
   rather than every multi-line state fighting the same browser default.
 - **A state that reports on something else goes `inert`**, and the positioner is

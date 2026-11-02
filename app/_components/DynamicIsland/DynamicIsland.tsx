@@ -45,18 +45,24 @@ export function DynamicIsland() {
     [pathname, hovered, post, atTop, finished]
   );
 
+  const mention = useRef(0);
+
   useEffect(() => {
-    const timer = window.setTimeout(
+    mention.current = window.setTimeout(
       () => useIslandStore.getState().present(hint, { ttl: MENTIONS_PALETTE_FOR }),
       MENTIONS_PALETTE_AFTER
     );
-    return () => window.clearTimeout(timer);
+    return () => window.clearTimeout(mention.current);
   }, []);
 
   const resolved = presented.at(-1) ?? resolve(context);
   const state = useOpening(resolved, resting);
 
+  // A reader who points at the island has found it: the hint's own visit, coming or
+  // under way, is called off, and it shows only while they point or focus.
   const point = () => {
+    window.clearTimeout(mention.current);
+    useIslandStore.getState().dismiss(hint.id);
     setWidthWhenPointed(pill.current?.offsetWidth);
     setHovered(true);
   };
@@ -95,7 +101,8 @@ export function DynamicIsland() {
           }}
           className={cn(
             glassSurface,
-            "flex items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+            // The rim stands in for the hairline only where relative colour can draw it.
+            'glass-rim relative flex items-center overflow-hidden supports-[color:oklch(from_red_l_c_h)]:border-0 [--rim-highlight:0.16] [--rim-ink:var(--foreground)] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background'
           )}
         >
           <div aria-hidden className="pointer-events-none flex w-full items-center text-left">

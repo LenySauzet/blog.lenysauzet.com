@@ -250,7 +250,11 @@ lit from above as `callout-surface` is. **It is the same in both themes**, on
 `--media-glass` and `--media-ink`, the dark theme's wash and foreground pinned: it sits
 on the picture rather than the page, and themed it put dark ink on dark photographs and
 lit its rim in black. Light ink on a very bright photograph stays faint; 3:1 there would
-take a fill near 80%, which is no longer glass. The Dynamic Island keeps the panel glass.
+take a fill near 80%, which is no longer glass. The Dynamic Island keeps the panel glass
+but trades its hairline for `glass-rim`, inked in `--foreground` through `--rim-ink` and
+lit at `--rim-highlight: 0.16`, under half a control's peak: a quiet pill, not a
+spotlight. Where relative colour is missing the rim cannot be drawn, so the hairline
+stays.
 
 **`BeforeAfterSlider` drags on motion values.** The position, the pull and the surface's
 size drive the divider, the clip and the labels' fade without a render; React state only

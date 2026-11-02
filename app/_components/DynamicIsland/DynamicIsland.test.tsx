@@ -117,6 +117,30 @@ describe('DynamicIsland', () => {
     await waitFor(() => expect(island()).toHaveTextContent('Shades of Halftone'));
   });
 
+  it('calls off its own hint once the island has been pointed at', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    fireEvent.pointerEnter(island());
+    fireEvent.pointerLeave(island());
+
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(island()).not.toHaveTextContent('for commands');
+  });
+
+  it('lets a hint under way go the moment the pointer leaves', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(island()).toHaveTextContent('for commands');
+
+    fireEvent.pointerEnter(island());
+    fireEvent.pointerLeave(island());
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(island()).not.toHaveTextContent('for commands');
+  });
+
   it('never shrinks below the state the hint covers', async () => {
     const user = userEvent.setup();
     useIslandStore.setState({ post: { title: 'Shades of Halftone' } });

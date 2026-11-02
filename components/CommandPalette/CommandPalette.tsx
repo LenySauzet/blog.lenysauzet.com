@@ -21,13 +21,6 @@ import { CommandRegistry, commandValue } from './CommandRegistry';
 import { PostSearch } from './PostSearch';
 
 /**
- * What the surface takes to leave, matching the dialog's own `duration-100`. A
- * command that repaints the page inside that window reads as a cut rather than an
- * exit. A timer and not `animationend`, which never fires when animation is off.
- */
-const EXIT_MS = 120;
-
-/**
  * One pane at a time: a page is a `CommandList`, and two inside one `Command`
  * have cmdk ranking and arrowing through rows nobody can see. The blur
  * resolves to `none`, or every pane holds a composited layer.
@@ -77,6 +70,23 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const lastMeasured = useRef<HTMLElement | null>(null);
+  // What the reader picked, run once the dialog has left: repainting the page
+  // under it would read as a cut rather than an exit. Reopened before then, the
+  // exit never completes, so it runs at once rather than at the next close.
+  const afterExit = useRef<(() => void) | null>(null);
+  const runPicked = useCallback(() => {
+    const run = afterExit.current;
+    afterExit.current = null;
+    run?.();
+  }, []);
+
+  // Reopened mid-exit, the box was inert when `open` focused it, so the focus
+  // is handed over again once the open dialog has rendered.
+  useEffect(() => {
+    if (!isOpen) return;
+    runPicked();
+    input.current?.focus();
+  }, [isOpen, runPicked]);
 
   /**
    * The arriving pane only: entering a page clears the box too, so the one on
@@ -178,8 +188,8 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
 
       if (!useCmdkStore.getState().isOpen) return command.run(context);
 
+      afterExit.current = () => command.run(context);
       close();
-      window.setTimeout(() => command.run(context), EXIT_MS);
     },
     [close, context]
   );
@@ -210,7 +220,11 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   }, [available, close, open, runCommand]);
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={(next) => (next ? open() : close())}>
+    <CommandDialog
+      open={isOpen}
+      onOpenChange={(next) => (next ? open() : close())}
+      onExitComplete={runPicked}
+    >
       <Command
         value={selected}
         onValueChange={setSelected}
@@ -263,8 +277,8 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
                   query={query}
                   onResults={onResults}
                   onPick={(slug) => {
+                    afterExit.current = () => router.push(`/posts/${slug}`);
                     close();
-                    window.setTimeout(() => router.push(`/posts/${slug}`), EXIT_MS);
                   }}
                 />
               )}

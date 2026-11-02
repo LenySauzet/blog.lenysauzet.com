@@ -2,17 +2,13 @@
 
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
+import { AnimatePresence, motion, useIsPresent } from "motion/react"
+import { Dialog as DialogPrimitive } from "radix-ui"
 
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 import { cn } from "@/lib/utils"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { SearchIcon, Tick02Icon } from "@hugeicons/core-free-icons"
+import { Tick02Icon } from "@hugeicons/core-free-icons"
 
 function Command({
   className,
@@ -30,48 +26,107 @@ function Command({
   )
 }
 
+// Custom, not from the CLI: Motion animates the dialog rather than the
+// primitive's keyframes. Mounting the palette takes a frame of 65 to 85ms and a
+// CSS animation is timed from that frame's start, so a 100ms entrance was nine
+// tenths done by the time it was first painted; Motion's starts on the frame
+// after. The backdrop's radius travels too, not just the opacity: a blurred
+// backdrop is as good as fully blurred at an opacity of zero, so fading alone
+// held the page blurred to the last frame and then let it snap back. Motion
+// moves a variable rather than the property, so Tailwind still writes the
+// prefixed one Safari before 18 reads.
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
+  open,
+  onOpenChange,
+  onExitComplete,
   children,
   className,
-  showCloseButton = false,
-  ...props
-}: React.ComponentProps<typeof Dialog> & {
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  /** Once it has left: what repaints the page waits for this, or reads as a cut. */
+  onExitComplete?: () => void
   title?: string
   description?: string
+  children: React.ReactNode
   className?: string
-  showCloseButton?: boolean
 }) {
+  const still = usePrefersReducedMotion()
+  // No trigger holds the dialog, so Radix has nothing to hand the focus back to.
+  const returnTo = React.useRef<HTMLElement | null>(null)
+  const transition = { duration: 0.15, ease: "easeOut" } as const
+  const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
+
   return (
-    <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
-      <DialogContent
-        className={cn(
-          // The radius travels on the way out, not just the layer's opacity: a
-          // blurred backdrop is as good as fully blurred at an opacity of
-          // zero, so fading alone holds the page blurred to the last frame and
-          // then lets it snap back. Two traps in the closed value: it keeps the
-          // same function list, or there is nothing to interpolate between, and
-          // it lands on half a pixel rather than none, Lightning CSS minifying
-          // `blur(0px)` to the invalid `blur()` and taking the declaration with
-          // it.
-          "top-[20%] w-[600px] max-w-[95vw] translate-y-0 overflow-hidden rounded-xl! border border-muted-foreground/15 bg-card/75 p-0 ring-0 backdrop-blur-[6px] backdrop-saturate-[115%] transition-[backdrop-filter] duration-100 ease-out data-closed:[backdrop-filter:blur(0.5px)_saturate(1.15)] sm:max-w-[600px]",
-          className
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <AnimatePresence onExitComplete={onExitComplete}>
+        {open && (
+          <DialogPrimitive.Portal forceMount>
+            <DialogPrimitive.Overlay data-slot="dialog-overlay" forceMount asChild>
+              <motion.div
+                className="fixed inset-0 isolate z-50 bg-background/80"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={transition}
+              />
+            </DialogPrimitive.Overlay>
+            <DialogPrimitive.Content
+              data-slot="dialog-content"
+              forceMount
+              asChild
+              onOpenAutoFocus={() => {
+                returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+              }}
+              onCloseAutoFocus={(event) => {
+                event.preventDefault()
+                if (returnTo.current?.isConnected) returnTo.current.focus()
+              }}
+            >
+              <Panel
+                className={cn(
+                  "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none backdrop-blur-(--dialog-blur) backdrop-saturate-[115%]",
+                  className
+                )}
+                initial={away}
+                animate={{ opacity: 1, scale: 1, "--dialog-blur": "6px" }}
+                exit={away}
+                transition={transition}
+              >
+                <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+                <DialogPrimitive.Description className="sr-only">{description}</DialogPrimitive.Description>
+                {children}
+              </Panel>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
         )}
-        showCloseButton={showCloseButton}
-      >
-        {children}
-      </DialogContent>
-    </Dialog>
+      </AnimatePresence>
+    </DialogPrimitive.Root>
   )
 }
 
-// Laid out inline rather than through InputGroup: this is a search box with a
-// leading icon, not a field with an addon floating over it.
+/** The dialog's box, shut once it is leaving: AnimatePresence keeps the props
+    it last had, an open dialog's, and cmdk would still run a row on Enter.
+    `inert` alone lets through a key pressed before the next frame, when the
+    browser takes back the focus it holds. */
+function Panel(props: React.ComponentProps<typeof motion.div>) {
+  const present = useIsPresent()
+  return (
+    <motion.div
+      {...props}
+      inert={!present}
+      // Enter alone: the shortcut that reopens it is read on the document, past here.
+      onKeyDownCapture={(event) => {
+        if (!present && event.key === "Enter") event.stopPropagation()
+      }}
+    />
+  )
+}
+
+// Laid out inline rather than through InputGroup: a bare box with room at its
+// end, not a field with an addon floating over it.
 function CommandInput({
   className,
   hint,
@@ -83,11 +138,10 @@ function CommandInput({
   return (
     <div data-slot="command-input-wrapper">
       <div className="flex h-[55px] items-center gap-3 border-b-[1.5px] border-foreground/10 px-[18px]">
-        <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="size-4 shrink-0 opacity-40" />
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full bg-transparent text-base outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-base outline-hidden placeholder:text-subtle-foreground sm:text-sm disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
@@ -135,7 +189,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "overflow-hidden text-foreground not-first:mt-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-sm **:[[cmdk-group-heading]]:text-muted-foreground",
+        "overflow-hidden text-foreground not-first:mt-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[0.8125rem] **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-subtle-foreground",
         className
       )}
       {...props}
@@ -156,9 +210,10 @@ function CommandSeparator({
   )
 }
 
-// Custom, not from the CLI: the selected row carries the accent rather than
-// `--foreground`, so the one under the cursor reads as live. Re-run
-// `add command --diff` and re-apply.
+// Custom, not from the CLI: rows rest on the body tier and the selected one
+// steps up to `--foreground` on a faint wash, the accent being left to what the
+// reader chose rather than to where the cursor is. Re-run `add command --diff`
+// and re-apply.
 function CommandItem({
   className,
   children,
@@ -168,7 +223,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-[0.95rem] outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-primary/10 data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-primary",
+        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-foreground/5 data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-foreground",
         className
       )}
       {...props}
@@ -186,7 +241,7 @@ function CommandItem({
     Exported as a class as well, for a mark that has to be a motion element to
     animate its own exit. */
 const commandHint =
-  "ml-auto truncate pl-6 text-sm text-muted-foreground/70 group-data-selected/command-item:text-foreground"
+  "ml-auto truncate pl-6 text-sm font-normal text-subtle-foreground group-data-selected/command-item:text-foreground"
 
 function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
   return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />
