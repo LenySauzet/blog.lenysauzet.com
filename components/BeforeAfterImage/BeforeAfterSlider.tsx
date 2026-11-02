@@ -279,7 +279,7 @@ export function BeforeAfterSlider({
         aria-hidden="true"
         className={cn(
           mediaGlass,
-          // Drawn, never held: the whole surface drags, so a phone's handle can be small.
+          // Not a touch target, the whole surface dragging, so a phone's handle can be small.
           'pointer-events-none absolute top-1/2 z-[1] flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md sm:size-8 sm:rounded-lg'
         )}
         animate={{ scale: held && !reduce ? HELD_SCALE : 1 }}

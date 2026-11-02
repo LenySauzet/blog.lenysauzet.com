@@ -104,7 +104,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
         className={cn(
           'block w-full rounded-frame-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
           gone ? 'cursor-default' : 'cursor-zoom-in',
-          zoom.stage === 'closing' && 'relative z-[101]'
+          zoom.stage === 'closing' && 'relative z-101'
         )}
       >
         <motion.div

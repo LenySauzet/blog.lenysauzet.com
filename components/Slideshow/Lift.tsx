@@ -80,7 +80,7 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
         layoutCrossfade={false}
         aria-hidden="true"
         onLayoutAnimationComplete={settle}
-        className={cn('pointer-events-none absolute overflow-hidden', stage === 'closing' ? 'z-[101]' : 'invisible')}
+        className={cn('pointer-events-none absolute overflow-hidden', stage === 'closing' ? 'z-101' : 'invisible')}
         style={{ inset: frame.inset, borderRadius: frame.radius }}
       >
         {face}
@@ -94,7 +94,7 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
             style={{
               aspectRatio: `${width} / ${height}`,
               // The image is laid absolutely to keep its crop, so the box sizes itself:
-              // the lightbox's width, held to the screen's height less its padding and caption.
+              // the lightbox's width, held to the screen's height less its widest padding and caption.
               width: `min(100%, calc((100dvh - 8rem) * ${width / height}))`,
               borderRadius: frame.radius,
               willChange: 'transform',

@@ -186,7 +186,9 @@ image stands (`closed`, `opening`, `open`, `closing`), each end hiding by it, an
 a stage on a timer when Motion drops the morph's completion. Motion hides the end left
 behind with `visibility`, so **`ImageZoom`'s button never travels**: a div inside it
 does, and the button keeps the focus the lightbox hands back. On the way back the
-article's copy rides at `z-[101]`, over the veil. **A phone's lightbox pads by the
+article's copy rides at `z-101`, over the veil, unless an ancestor isolates it: in a
+`Callout` it returns under the veil, softened, and a `Details` clips it, as the
+slideshow's lift does. **A phone's lightbox pads by the
 column's 16px gutter**, or the image shrank on its way in, 358px in the article to
 326px enlarged, and `ZOOM_SIZES` follows.
 
