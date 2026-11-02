@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Command, CommandDialog, CommandInput, DIALOG_SECONDS } from '@/components/ui/command';
+import { Command, CommandDialog, CommandInput } from '@/components/ui/command';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useHue } from '@/hooks/use-hue';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
@@ -19,13 +19,6 @@ import { AccentPicker } from './AccentPicker';
 import { BackHint } from './BackHint';
 import { CommandRegistry, commandValue } from './CommandRegistry';
 import { PostSearch } from './PostSearch';
-
-/**
- * What the surface takes to leave. A command that repaints the page inside that
- * window reads as a cut rather than an exit. A timer and not an end event, which
- * never fires when animation is off.
- */
-const EXIT_MS = DIALOG_SECONDS * 1000 + 20;
 
 /**
  * One pane at a time: a page is a `CommandList`, and two inside one `Command`
@@ -76,6 +69,19 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const [travelling, setTravelling] = useState(false);
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
+  // What the reader picked, run once the dialog has left: repainting the page
+  // under it would read as a cut rather than an exit. Reopened before then, the
+  // exit never completes, so it runs at once rather than at the next close.
+  const afterExit = useRef<(() => void) | null>(null);
+  const runPicked = useCallback(() => {
+    const run = afterExit.current;
+    afterExit.current = null;
+    run?.();
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) runPicked();
+  }, [isOpen, runPicked]);
   const lastMeasured = useRef<HTMLElement | null>(null);
 
   /**
@@ -178,8 +184,8 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
 
       if (!useCmdkStore.getState().isOpen) return command.run(context);
 
+      afterExit.current = () => command.run(context);
       close();
-      window.setTimeout(() => command.run(context), EXIT_MS);
     },
     [close, context]
   );
@@ -210,7 +216,11 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   }, [available, close, open, runCommand]);
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={(next) => (next ? open() : close())}>
+    <CommandDialog
+      open={isOpen}
+      onOpenChange={(next) => (next ? open() : close())}
+      onExitComplete={runPicked}
+    >
       <Command
         value={selected}
         onValueChange={setSelected}
@@ -263,8 +273,8 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
                   query={query}
                   onResults={onResults}
                   onPick={(slug) => {
+                    afterExit.current = () => router.push(`/posts/${slug}`);
                     close();
-                    window.setTimeout(() => router.push(`/posts/${slug}`), EXIT_MS);
                   }}
                 />
               )}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MiniSearch from 'minisearch';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -87,6 +87,7 @@ describe('CommandPalette', () => {
 
     await user.keyboard('{Meta>}k{/Meta}');
     expect(useCmdkStore.getState().isOpen).toBe(false);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('offers every command that suits the page, under its own heading', async () => {
@@ -321,6 +322,32 @@ describe('CommandPalette', () => {
     expect(useCmdkStore.getState().isOpen).toBe(false);
     expect(setTheme).not.toHaveBeenCalled();
     await waitFor(() => expect(setTheme).toHaveBeenCalledWith('light'));
+  });
+
+  it('runs a row once, however often Enter lands while it leaves', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.type(await screen.findByRole('combobox'), 'toggle theme');
+    await user.keyboard('{Enter}{Enter}{Enter}');
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(setTheme).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs what was picked at once when reopened before it has left', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+
+    await user.click(await screen.findByText('Toggle theme'));
+    act(() => useCmdkStore.setState({ isOpen: true }));
+    expect(setTheme).toHaveBeenCalledTimes(1);
+
+    act(() => useCmdkStore.setState({ isOpen: false }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(setTheme).toHaveBeenCalledTimes(1);
   });
 
   // cmdk refuses to move its selection onto a disabled row, which left whichever row

@@ -92,7 +92,13 @@ which reads as a missing exit where there is detail behind the panel. The closed
 keeps the same function list, or there is nothing to interpolate between and it jumps
 all the same. Mounting the palette takes one frame of 65 to 85ms, and a
 CSS animation is timed from that frame's start: the 100ms entrance was nine tenths
-done when first painted, so none was ever seen. Motion's starts on the frame after. Update it with
+done when first painted, so none was ever seen. Motion's starts on the frame after. A command the reader picks runs on the
+dialog's `onExitComplete`, not on a timer guessing its length, and at once if the
+palette is reopened first, the exit then never completing. **A leaving dialog is shut**: AnimatePresence keeps
+the props it last had, an open one's, so the box takes `inert` from `useIsPresent`,
+and stops Enter as well, the browser only taking back the focus it holds at the next
+frame: three quick presses otherwise ran a command twice. Enter alone, or the ⌘K that
+reopens it mid-exit is swallowed too. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
 selected colour from a caller's `className` does not work: `cn()` drops it as a
 conflict with the primitive's own, silently.

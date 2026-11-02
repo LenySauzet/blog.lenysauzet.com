@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, useIsPresent } from "motion/react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
@@ -26,9 +26,6 @@ function Command({
   )
 }
 
-/** How long the dialog takes to come and go, which a command that repaints
-    the page waits out. */
-const DIALOG_SECONDS = 0.15
 
 // Custom, not from the CLI: Motion animates the dialog rather than the
 // primitive's keyframes. Mounting the palette takes a frame of 65 to 85ms and a
@@ -36,34 +33,34 @@ const DIALOG_SECONDS = 0.15
 // tenths done by the time it was first painted; Motion's starts on the frame
 // after. The backdrop's radius travels too, not just the opacity: a blurred
 // backdrop is as good as fully blurred at an opacity of zero, so fading alone
-// held the page blurred to the last frame and then let it snap back. Its rest
-// keeps the same function list, or there is nothing to interpolate between.
+// held the page blurred to the last frame and then let it snap back. Motion
+// moves a variable rather than the property, so Tailwind still writes the
+// prefixed one Safari before 18 reads.
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
   open,
   onOpenChange,
+  onExitComplete,
   children,
   className,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Once it has left: what repaints the page waits for this, or reads as a cut. */
+  onExitComplete?: () => void
   title?: string
   description?: string
   children: React.ReactNode
   className?: string
 }) {
   const still = usePrefersReducedMotion()
-  const transition = { duration: DIALOG_SECONDS, ease: "easeOut" } as const
-  const away = {
-    opacity: 0,
-    scale: still ? 1 : 0.95,
-    backdropFilter: "blur(0.5px) saturate(1.15)",
-  }
+  const transition = { duration: 0.15, ease: "easeOut" } as const
+  const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0.5px" }
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <AnimatePresence>
+      <AnimatePresence onExitComplete={onExitComplete}>
         {open && (
           <DialogPrimitive.Portal forceMount>
             <DialogPrimitive.Overlay data-slot="dialog-overlay" forceMount asChild>
@@ -76,25 +73,43 @@ function CommandDialog({
               />
             </DialogPrimitive.Overlay>
             <DialogPrimitive.Content data-slot="dialog-content" forceMount asChild>
-              <motion.div
+              <Panel
                 className={cn(
-                  "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none",
+                  "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none backdrop-blur-(--dialog-blur) backdrop-saturate-[115%]",
                   className
                 )}
                 initial={away}
-                animate={{ opacity: 1, scale: 1, backdropFilter: "blur(6px) saturate(1.15)" }}
+                animate={{ opacity: 1, scale: 1, "--dialog-blur": "6px" }}
                 exit={away}
                 transition={transition}
               >
                 <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
                 <DialogPrimitive.Description className="sr-only">{description}</DialogPrimitive.Description>
                 {children}
-              </motion.div>
+              </Panel>
             </DialogPrimitive.Content>
           </DialogPrimitive.Portal>
         )}
       </AnimatePresence>
     </DialogPrimitive.Root>
+  )
+}
+
+/** The dialog's box, shut once it is leaving: AnimatePresence keeps the props
+    it last had, an open dialog's, and cmdk would still run a row on Enter.
+    `inert` alone lets through a key pressed before the next frame, when the
+    browser takes back the focus it holds. */
+function Panel(props: React.ComponentProps<typeof motion.div>) {
+  const present = useIsPresent()
+  return (
+    <motion.div
+      inert={!present}
+      // Enter alone: the shortcut that reopens it is read on the window, past here.
+      onKeyDownCapture={(event) => {
+        if (!present && event.key === "Enter") event.stopPropagation()
+      }}
+      {...props}
+    />
   )
 }
 
@@ -239,7 +254,6 @@ function CommandShortcut({
 export {
   Command,
   CommandDialog,
-  DIALOG_SECONDS,
   CommandInput,
   CommandList,
   CommandEmpty,
