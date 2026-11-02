@@ -226,14 +226,15 @@ beside it is its own module: `use-autoplay`, `use-track-motion`, `Lift`, `Contro
   Home, End, Space and Enter; otherwise the one nearest the middle of the screen does,
   unless focus sits in something that answers arrows itself. One listener serves the
   page, keyed by each slideshow's root.
-- **Autoplay fades, the reader slides.** Embla cannot do both, so autoplay jumps and
-  the image it leaves is laid on top and faded out (`autoplay:select`, then
+- **Autoplay fades, the reader slides.** Embla cannot do both, so autoplay jumps and the
+  image it leaves is laid on top and faded out (`autoplay:select`, then
   `previousScrollSnap`); a drag, a key or a button slides the track.
 - **Autoplay follows `usePlayback`**: still under reduced motion until asked, paused by
-  any drag, key or keyboard focus (the APG carousel pattern), stopped off screen and
-  while any lightbox covers the page (`useLightboxStore`). The step's fill restarts on
-  Embla's `autoplay:timerset`, so it never drifts from the timer after a pause. The live
-  region announces only the reader's own moves.
+  any press, key or keyboard focus within it (the APG carousel pattern), stopped off
+  screen and while any lightbox covers the page (`useLightboxStore`). The step's fill
+  restarts on Embla's `autoplay:timerset`, so it never drifts from the timer after a
+  pause. The live region announces only the reader's own moves, and empties on
+  autoplay's, so a move back to the image last announced is announced again.
 - **Embla re-creates its plugins, stopped, on every resize**, so playback is re-applied
   on `reInit`; and `stopOnInteraction` stays on, or a tap on a paused slideshow would
   restart it behind its own Play button.
@@ -242,17 +243,18 @@ beside it is its own module: `use-autoplay`, `use-track-motion`, `Lift`, `Contro
   which a jump leaves at zero so autoplay never bends. Both edges of every slide bow
   alike, so neighbours meet seam to seam; an image bleeds `MAX_BEND` past its slide to
   fill the bulge, and every copy of it is a `Picture`, so all crop alike.
-- **Each image lags its frame by 20%** of a slide, a parallax read from the slides'
-  own rects, all read before any is written. It needs no bleed: the edge it pulls
-  away from is always the one past the view.
+- **Each image lags its frame by 20%** of a slide, a parallax read from the slides' own
+  rects, all read before any is written. It needs no bleed: the edge it pulls away from
+  is always the one past the view.
 - **A click, or Enter, lifts the image into the lightbox and back** (`Lift`), one image
-  travelling with no crossfade, its crop and corner kept. It lifts from a still box
-  over the frame, never from the slide: the slide rides Embla's transformed track, and
-  Motion measures a box under a transform it does not own one slide-width off per
-  slide. That box is outside the frame's clip and, on the way back, over the
-  lightbox's veil. Motion can drop the morph's completion after a resize, so each
-  stage also ends on a timer. Slides load at the column's size and only the current
-  image at the lightbox's, ahead.
+  travelling with no crossfade, its crop and corner kept. It lifts from a still box over
+  the frame, never from the slide: the slide rides Embla's transformed track, and Motion
+  measures a box under a transform it does not own one slide-width off per slide. That
+  box is outside the frame's clip and, on the way back, over the lightbox's veil, unless
+  an ancestor isolates it, as a `Callout` does: there it returns under the veil,
+  softened. Motion can drop the morph's completion after a resize, so each stage also
+  ends on a timer. Slides load at the column's size and only the current image at the
+  lightbox's, ahead.
 - **Under reduced motion every move it makes by itself or by key jumps** (a released
   drag still settles), nothing bends or lags, and `usePrefersReducedMotion` reads the
   preference live, where Motion's `useReducedMotion` reads it once at mount.

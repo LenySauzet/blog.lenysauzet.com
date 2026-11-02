@@ -50,8 +50,9 @@ export function SlideshowCarousel({
   const rootRef = useRef<HTMLDivElement>(null);
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
-  // What the live region says: only moves the reader made, never autoplay's.
-  const [announced, setAnnounced] = useState(0);
+  // What the live region says: the reader's own moves, emptied by autoplay's, so a
+  // move back to the image last announced is still announced.
+  const [announced, setAnnounced] = useState<number | null>(null);
   const byReader = useRef(false);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
@@ -76,13 +77,18 @@ export function SlideshowCarousel({
     const onSelect = () => {
       const index = api.selectedScrollSnap();
       setSelected(index);
-      if (byReader.current) setAnnounced(index);
+      setAnnounced(byReader.current ? index : null);
+      byReader.current = false;
+    };
+    // A press that moves nothing (a tap, a drag that snaps back) selects nothing;
+    // Embla raises this after any select a press does make.
+    const onRelease = () => {
       byReader.current = false;
     };
     onSelect();
-    api.on('select', onSelect);
+    api.on('select', onSelect).on('pointerUp', onRelease);
     return () => {
-      api.off('select', onSelect);
+      api.off('select', onSelect).off('pointerUp', onRelease);
     };
   }, [api]);
 
@@ -132,11 +138,11 @@ export function SlideshowCarousel({
           opts={{ loop }}
           tabIndex={navigable ? 0 : undefined}
           aria-label={alt}
-          aria-describedby={navigable ? `${id}-keys ${id}-status` : undefined}
+          aria-describedby={navigable ? `${id}-keys` : undefined}
           data-slideshow=""
-          // Keyboard focus on the slideshow stops it, as the APG carousel pattern asks.
+          // Keyboard focus anywhere in the slideshow stops it, as the APG carousel pattern asks.
           onFocus={(event) => {
-            if (event.target === event.currentTarget && event.currentTarget.matches(':focus-visible')) playback.pause();
+            if (event.target.matches(':focus-visible')) playback.pause();
           }}
           className="overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         >
@@ -146,8 +152,8 @@ export function SlideshowCarousel({
                 Use the Left and Right arrow keys to change images, and Enter to enlarge one
                 {plays ? ', and Space to pause or play' : ''}.
               </p>
-              <p id={`${id}-status`} className="sr-only" aria-live="polite" aria-atomic="true">
-                Image {announced + 1} of {count}.
+              <p className="sr-only" aria-live="polite" aria-atomic="true">
+                {announced !== null && `Image ${announced + 1} of ${count}.`}
               </p>
             </>
           )}
@@ -180,7 +186,6 @@ export function SlideshowCarousel({
                   <Picture
                     ref={track.layer(index)}
                     src={src}
-                    alt={alt}
                     width={width}
                     height={height}
                     sizes={SLIDE_SIZES}

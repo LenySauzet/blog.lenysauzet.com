@@ -6,9 +6,9 @@ export interface StepWindow {
   end: number;
 }
 
-/** The steps on show: up to `visible` of them, the active one as central as the ends allow. */
-export function stepWindow(count: number, active: number, visible = MAX_STEPS): StepWindow {
-  const size = Math.max(0, Math.min(count, visible));
+/** The steps on show: up to MAX_STEPS of them, the active one as central as the ends allow. */
+export function stepWindow(count: number, active: number): StepWindow {
+  const size = Math.min(count, MAX_STEPS);
   const start = Math.min(Math.max(active - Math.floor(size / 2), 0), count - size);
   return { start, end: start + size };
 }

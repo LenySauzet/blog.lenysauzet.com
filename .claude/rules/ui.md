@@ -17,13 +17,12 @@ listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
 `.claude/rules/command-palette.md` for `command`, in `.claude/rules/tables.md` for
 `table`, and in the `figure-chart` skill's reference for `chart`.
 
-**`components/ui/carousel.tsx` is shadcn's, added by hand.** `add carousel` would overwrite
-`button.tsx` for the stock Previous and Next, which nothing here uses, so they are left
-out with the navigation state that fed them, and so is the vertical orientation nothing
-asks for; the CLI's copy also imported `cn` from a package named `cn`. The stock
+**`components/ui/carousel.tsx` is shadcn's, added by hand.** `add carousel` would
+overwrite `button.tsx` for the stock Previous and Next, which nothing here uses, so they
+are left out with the navigation state that fed them, and so is the vertical orientation
+nothing asks for; the CLI's copy also imported `cn` from a package named `cn`. The stock
 arrow-key handler is gone too: `Slideshow` takes the arrows page-wide, and two handlers
-would each move it a step. Embla is 8.6, with its autoplay
-plugin.
+would each move it a step. Embla is 8.6, with its autoplay plugin.
 
 **`@base-ui/react` is a real dependency, used by exactly one component**:
 `components/ui/combobox.tsx`, built on Base UI's combobox primitive: Radix ships none, so
