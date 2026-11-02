@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isEdge, MAX_STEPS, stepWindow } from './steps';
+import { isEdge, isNear, MAX_STEPS, stepTarget, stepWindow } from './steps';
 
 describe('stepWindow', () => {
   it('shows every step when they fit', () => {
@@ -42,5 +42,31 @@ describe('isEdge', () => {
   it('shrinks nothing when every step fits', () => {
     const shown = stepWindow(4, 2);
     for (let index = 0; index < 4; index++) expect(isEdge(index, 4, shown)).toBe(false);
+  });
+});
+
+describe('stepTarget', () => {
+  it('holds a move at the ends when the slideshow does not loop', () => {
+    expect(stepTarget(-1, 4, false)).toBe(0);
+    expect(stepTarget(4, 4, false)).toBe(3);
+    for (let index = 0; index < 4; index++) expect(stepTarget(index, 4, false)).toBe(index);
+  });
+
+  it('goes round the ends when it loops', () => {
+    expect(stepTarget(-1, 4, true)).toBe(3);
+    expect(stepTarget(4, 4, true)).toBe(0);
+    expect(stepTarget(-5, 4, true)).toBe(3);
+  });
+});
+
+describe('isNear', () => {
+  it('marks the selected slide and its neighbours', () => {
+    expect([0, 1, 2, 3, 4].map((index) => isNear(index, 2, 5, false))).toEqual([false, true, true, true, false]);
+  });
+
+  it('counts round the ends only when it loops', () => {
+    expect(isNear(4, 0, 5, true)).toBe(true);
+    expect(isNear(4, 0, 5, false)).toBe(false);
+    expect(isNear(2, 0, 5, true)).toBe(false);
   });
 });

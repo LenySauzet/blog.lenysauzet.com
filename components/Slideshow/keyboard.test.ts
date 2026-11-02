@@ -65,7 +65,7 @@ describe('registerSlideshow', () => {
     root.append(pause);
     document.body.append(root);
     const keys: SlideshowKey[] = [];
-    const unregister = registerSlideshow({ root, handle: (key) => (keys.push(key), true) });
+    const unregister = registerSlideshow(root, (key) => (keys.push(key), true));
     return { root, pause, keys, unregister };
   };
   const press = (target: EventTarget, key: string, repeat = false) => {

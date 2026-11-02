@@ -2,9 +2,11 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MotionConfig } from 'motion/react';
 import { useState, type ReactNode } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { Lightbox, useLightboxOpen } from './Lightbox';
+import { useLightboxStore } from '@/hooks/use-lightbox-store';
+
+import { Lightbox } from './Lightbox';
 
 /**
  * Motion caches `prefers-reduced-motion` at module scope, so whether the value
@@ -23,7 +25,7 @@ const Instantly = ({ children }: { children: ReactNode }) => (
 // Dismissal is asserted here, not on ImageZoom: this surface has no shared-layout
 // morph, so its exit completes under jsdom's zero-sized boxes.
 function Covered() {
-  return <output data-testid="covered">{String(useLightboxOpen())}</output>;
+  return <output data-testid="covered">{String(useLightboxStore((state) => state.open > 0))}</output>;
 }
 
 function Harness() {
@@ -199,5 +201,28 @@ describe('Lightbox', () => {
     expect(screen.getByTestId('covered')).toHaveTextContent('true');
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.getByTestId('covered')).toHaveTextContent('false'));
+  });
+
+  it('holds focus on the surface while its parent re-renders with a new callback', () => {
+    const focused = vi.fn();
+    // Opened from a focusable trigger, as a slideshow opens it: closing would hand
+    // focus back to it, which is what a re-run of the effect did on every render.
+    const surface = (open: boolean, callback: () => void) => (
+      <Instantly>
+        <button type="button">Trigger</button>
+        <Lightbox open={open} onOpenChange={callback} title="Steady">
+          <div>zoomed</div>
+        </Lightbox>
+      </Instantly>
+    );
+    const { rerender } = render(surface(false, () => {}));
+    screen.getByRole('button', { name: 'Trigger' }).focus();
+    rerender(surface(true, () => {}));
+    const dialog = screen.getByRole('dialog');
+    dialog.addEventListener('focus', focused);
+    rerender(surface(true, () => {}));
+    rerender(surface(true, () => {}));
+    expect(focused).not.toHaveBeenCalled();
+    expect(dialog).toHaveFocus();
   });
 });

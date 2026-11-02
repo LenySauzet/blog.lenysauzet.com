@@ -3,35 +3,16 @@
 import { AnimatePresence, motion } from 'motion/react';
 import {
   useEffect,
+  useEffectEvent,
   useRef,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useLightboxStore } from '@/hooks/use-lightbox-store';
+
 const NEVER_CHANGES = () => () => {};
-
-// How many lightboxes are open, so what plays on its own behind the veil can hold still.
-let opened = 0;
-const listeners = new Set<() => void>();
-const subscribe = (change: () => void) => {
-  listeners.add(change);
-  return () => {
-    listeners.delete(change);
-  };
-};
-const setOpened = (by: number) => {
-  opened += by;
-  listeners.forEach((change) => change());
-};
-
-/** Whether a lightbox covers the page. */
-export const useLightboxOpen = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => opened > 0,
-    () => false
-  );
 
 /** Portals need a DOM, and this component is rendered on the server too. */
 const useIsHydrated = () =>
@@ -65,10 +46,16 @@ export function Lightbox({
   const surface = useRef<HTMLDivElement>(null);
   const restoreFocusTo = useRef<HTMLElement | null>(null);
 
+  // Read at the moment it is called, so the effects below depend on `open` alone: a
+  // parent's new callback on every render would otherwise close and reopen them,
+  // bouncing focus out of the open surface and back.
+  const dismiss = useEffectEvent(() => onOpenChange(false));
+
+  useEffect(() => (open ? useLightboxStore.getState().cover() : undefined), [open]);
+
   useEffect(() => {
     if (!open) return;
 
-    setOpened(1);
     const surfaceEl = surface.current;
     restoreFocusTo.current = document.activeElement as HTMLElement | null;
 
@@ -76,13 +63,12 @@ export function Lightbox({
     surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onOpenChange(false);
+      if (event.key === 'Escape') dismiss();
       if (event.key === 'Tab') event.preventDefault();
     };
     document.addEventListener('keydown', onKeyDown);
 
     return () => {
-      setOpened(-1);
       document.removeEventListener('keydown', onKeyDown);
 
       // This cleanup also runs on unmount (a route change), where stealing focus
@@ -93,7 +79,7 @@ export function Lightbox({
 
       if (focusIsOurs) restoreFocusTo.current?.focus({ preventScroll: true });
     };
-  }, [open, onOpenChange]);
+  }, [open]);
 
   if (!isHydrated) return null;
 

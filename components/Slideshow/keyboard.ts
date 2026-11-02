@@ -47,11 +47,8 @@ export function nearestToCentre(boxes: Box[], width: number, height: number) {
   return nearest;
 }
 
-export interface SlideshowEntry {
-  root: HTMLElement;
-  /** Whether the key moved anything, which is what decides `preventDefault`. */
-  handle: (key: SlideshowKey) => boolean;
-}
+/** Whether the key moved anything, which is what decides `preventDefault`. */
+export type SlideshowHandler = (key: SlideshowKey) => boolean;
 
 // Anything that answers the arrows itself keeps them.
 const OWNS_KEYS = [
@@ -73,38 +70,38 @@ const OWNS_KEYS = [
   '[role="dialog"]',
 ].join(',');
 
-const entries = new Set<SlideshowEntry>();
+const handlers = new Map<HTMLElement, SlideshowHandler>();
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.defaultPrevented || event.isComposing) return;
   const focus = document.activeElement;
   const focusedRoot = focus?.closest<HTMLElement>('[data-slideshow]') ?? null;
 
-  let entry: SlideshowEntry | undefined;
+  let handle: SlideshowHandler | undefined;
   let key: SlideshowKey | null;
   if (focusedRoot) {
-    entry = [...entries].find((candidate) => candidate.root === focusedRoot);
+    handle = handlers.get(focusedRoot);
     key = keyFor(event, focus === focusedRoot);
   } else {
     if (event.target instanceof Element && event.target.closest(OWNS_KEYS)) return;
     key = keyFor(event, false);
     if (!key) return;
-    const list = [...entries];
-    entry = list[nearestToCentre(list.map((each) => each.root.getBoundingClientRect()), innerWidth, innerHeight)];
+    const roots = [...handlers.keys()];
+    handle = handlers.get(roots[nearestToCentre(roots.map((root) => root.getBoundingClientRect()), innerWidth, innerHeight)]);
   }
 
-  if (!key || !entry) return;
+  if (!key || !handle) return;
   // A held Space would flip playback thirty times a second; it still must not scroll.
   if (key === 'toggle' && event.repeat) event.preventDefault();
-  else if (entry.handle(key)) event.preventDefault();
+  else if (handle(key)) event.preventDefault();
 }
 
 /** One listener for the page, however many slideshows it holds. */
-export function registerSlideshow(entry: SlideshowEntry) {
-  if (entries.size === 0) document.addEventListener('keydown', onKeyDown);
-  entries.add(entry);
+export function registerSlideshow(root: HTMLElement, handle: SlideshowHandler) {
+  if (handlers.size === 0) document.addEventListener('keydown', onKeyDown);
+  handlers.set(root, handle);
   return () => {
-    entries.delete(entry);
-    if (entries.size === 0) document.removeEventListener('keydown', onKeyDown);
+    handlers.delete(root);
+    if (handlers.size === 0) document.removeEventListener('keydown', onKeyDown);
   };
 }

@@ -1,23 +1,27 @@
 'use client';
 
-import Autoplay from 'embla-carousel-autoplay';
-import { motion, MotionConfig, useInView, useMotionValue, useTransform } from 'motion/react';
-import NextImage from 'next/image';
-import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
+import { motion, MotionConfig, useInView } from 'motion/react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 
-import { Lightbox, useLightboxOpen, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
+import { ZOOM_TRANSITION } from '@/components/Lightbox';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { useLightboxStore } from '@/hooks/use-lightbox-store';
 import { usePlayback } from '@/hooks/use-playback';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 
-import { bendFor, MAX_BEND, parallaxShift, slidePath } from './bend';
+import { MAX_BEND } from './bend';
 import { Controls } from './Controls';
 import { registerSlideshow, type SlideshowKey } from './keyboard';
+import { Lift, useLift } from './Lift';
+import { Picture } from './Picture';
+import { isNear, stepTarget } from './steps';
+import { useAutoplay } from './use-autoplay';
+import { useTrackMotion } from './use-track-motion';
 
-// An image bleeds past its slide by the seam's bulge, the parallax needing none; the
-// cross-fade's copy wears the same crop.
-const BLEED = { left: -MAX_BEND, width: `calc(100% + ${2 * MAX_BEND}px)` };
+// The article's column; the lift loads the current image at the lightbox's own sizes.
+const SLIDE_SIZES = '(max-width: 768px) calc(100vw - 2rem), 672px';
+const BLEED = `${MAX_BEND}px`;
 
 export interface SlideshowCarouselProps {
   /** Fully resolved URLs; resolution happens on the server. */
@@ -46,125 +50,60 @@ export function SlideshowCarousel({
   const rootRef = useRef<HTMLDivElement>(null);
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
-  const [timer, setTimer] = useState<number | null>(null);
-  const [leaving, setLeaving] = useState<number | null>(null);
-  const [zoom, setZoom] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
-  // The frame's inner corner and the image's bleed as a share of its width, taken when
-  // it lifts, so the image keeps both whatever size it is drawn at on the way.
-  const [lift, setLift] = useState({ radius: 0, bleed: 0 });
-  const zoomId = `slideshow-zoom-${id}`;
-  const layers = useRef<(HTMLDivElement | null)[]>([]);
+  // What the live region says: only moves the reader made, never autoplay's.
+  const [announced, setAnnounced] = useState(0);
+  const byReader = useRef(false);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
-  // The seam between two moving slides bows with the track's speed, as the
-  // Before/After's divider does with the hand's; at rest the outline is the slide.
-  const slideWidth = useMotionValue(0);
-  const slideHeight = useMotionValue(0);
-  const bend = useMotionValue(0);
-  const outline = useTransform(() => {
-    const width = slideWidth.get();
-    const height = slideHeight.get();
-    const path = slidePath(width, height, bend.get());
-    return width ? `path("${path}")` : 'none';
-  });
+  // Any lightbox, this one's or another figure's, covers the page: nothing plays behind it.
+  const covered = useLightboxStore((state) => state.open > 0);
+  const lift = useLift(rootRef);
+
   const count = images.length;
+  const navigable = count > 1;
   // One image has nowhere to go, and Autoplay throws when asked to play it.
-  const plays = autoPlay && count > 1;
+  const plays = autoPlay && navigable;
   // A slideshow that plays itself goes round; one the reader drives stops at its ends.
   const loop = plays;
-  // Any lightbox, this one's or another figure's, covers the page: nothing plays behind it.
-  const covered = useLightboxOpen();
   const playing = plays && playback.playing && inView && !covered;
 
-  // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
-  // plays by itself, while a drag, a key or a button still slides the track.
-  const plugins = useMemo(
-    () => (plays ? [Autoplay({ delay: interval, jump: true, playOnInit: false, stopOnFocusIn: false })] : []),
-    [plays, interval]
-  );
-
-  // Under reduced motion autoplay simply jumps: nothing is left behind to fade.
-  const leave = useEffectEvent(() => {
-    if (api && !reduced) setLeaving(api.previousScrollSnap());
-  });
+  const autoplay = useAutoplay(api, { plays, playing, interval, reduced });
+  const track = useTrackMotion(api, rootRef, reduced);
 
   useEffect(() => {
     if (!api) return;
-    const onSelect = () => setSelected(api.selectedScrollSnap());
-    // The fill restarts with Embla's own timer, so the two never drift after a pause.
-    const onTimerSet = () => setTimer((previous) => (previous ?? 0) + 1);
-    const onTimerStopped = () => setTimer(null);
+    const onSelect = () => {
+      const index = api.selectedScrollSnap();
+      setSelected(index);
+      if (byReader.current) setAnnounced(index);
+      byReader.current = false;
+    };
     onSelect();
-    api
-      .on('select', onSelect)
-      .on('autoplay:timerset', onTimerSet)
-      .on('autoplay:timerstopped', onTimerStopped)
-      .on('autoplay:select', leave);
+    api.on('select', onSelect);
     return () => {
-      api
-        .off('select', onSelect)
-        .off('autoplay:timerset', onTimerSet)
-        .off('autoplay:timerstopped', onTimerStopped)
-        .off('autoplay:select', leave);
+      api.off('select', onSelect);
     };
   }, [api]);
 
-  useEffect(() => {
-    if (!api?.plugins().autoplay) return;
-    // Embla re-creates its plugins on every resize, stopped: the state is re-applied.
-    const sync = () => {
-      const autoplay = api.plugins().autoplay;
-      if (playing) autoplay.play();
-      else autoplay.stop();
-    };
-    sync();
-    api.on('reInit', sync);
-    return () => {
-      api.off('reInit', sync);
-    };
-  }, [api, playing]);
-
   const go = (index: number) => {
-    if (!api) return false;
-    const target = loop ? (index + count) % count : Math.min(Math.max(index, 0), count - 1);
+    if (!api || lift.lifted) return false;
+    const target = stepTarget(index, count, loop);
     if (target === api.selectedScrollSnap()) return false;
-    setLeaving(null);
+    byReader.current = true;
+    autoplay.clearLeaving();
     api.scrollTo(target, reduced);
     api.plugins().autoplay?.reset();
     return true;
   };
 
   const enlarge = () => {
-    const root = rootRef.current!;
     playback.pause();
-    setLift({
-      radius: parseFloat(getComputedStyle(root).borderTopLeftRadius) - root.clientLeft,
-      bleed: MAX_BEND / root.clientWidth,
-    });
-    setZoom('opening');
+    lift.open();
   };
 
-  // The current image as the slide draws it, at any size: what travels to the lightbox
-  // and back, so the morph never changes what it shows.
-  const face = (
-    <div
-      className="absolute inset-y-0"
-      style={{ left: `${-lift.bleed * 100}%`, width: `${100 + 2 * lift.bleed * 100}%` }}
-    >
-      <NextImage
-        src={images[selected]}
-        alt=""
-        width={width}
-        height={height}
-        sizes={ZOOM_SIZES}
-        draggable={false}
-        className="size-full object-cover select-none"
-      />
-    </div>
-  );
-
   const handle = useEffectEvent((key: SlideshowKey) => {
+    if (lift.lifted) return false;
     if (key === 'toggle') {
       if (!plays) return false;
       playback.toggle();
@@ -180,50 +119,8 @@ export function SlideshowCarousel({
   });
 
   useEffect(() => {
-    if (!api) return;
-    // Embla's own speed, which an instant jump leaves at zero, so autoplay's
-    // cross-fade never bends; read off its engine, as its tween examples do.
-    // Each image lags its frame by how far that frame sits from the middle of the view,
-    // measured from the slides themselves, which the loop moves about on its own.
-    const place = () => {
-      const view = rootRef.current!;
-      const left = view.getBoundingClientRect().left + view.clientLeft;
-      const width = view.clientWidth;
-      api.slideNodes().forEach((slide, index) => {
-        const distance = (slide.getBoundingClientRect().left - left) / width;
-        layers.current[index]?.style.setProperty('translate', `${reduced ? 0 : parallaxShift(distance, width)}px 0`);
-      });
-    };
-    const onScroll = () => {
-      bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
-      place();
-    };
-    const onSettle = () => {
-      bend.set(0);
-      place();
-    };
-    place();
-    api.on('scroll', onScroll).on('settle', onSettle).on('reInit', place);
-    return () => {
-      api.off('scroll', onScroll).off('settle', onSettle).off('reInit', place);
-    };
-  }, [api, bend, reduced]);
-
-  useEffect(() => {
-    const root = rootRef.current!;
-    const measure = () => {
-      slideWidth.set(root.clientWidth);
-      slideHeight.set(root.clientHeight);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(root);
-    return () => observer.disconnect();
-  }, [slideWidth, slideHeight]);
-
-  useEffect(() => {
-    if (count > 1) return registerSlideshow({ root: rootRef.current!, handle: (key) => handle(key) });
-  }, [count]);
+    if (navigable) return registerSlideshow(rootRef.current!, (key) => handle(key));
+  }, [navigable]);
 
   return (
     <MotionConfig reducedMotion="user" transition={ZOOM_TRANSITION}>
@@ -231,29 +128,35 @@ export function SlideshowCarousel({
         <Carousel
           ref={rootRef}
           setApi={setApi}
-          plugins={plugins}
+          plugins={autoplay.plugins}
           opts={{ loop }}
-          tabIndex={count > 1 ? 0 : undefined}
+          tabIndex={navigable ? 0 : undefined}
           aria-label={alt}
-          aria-describedby={count > 1 ? `${id}-keys ${id}-status` : undefined}
+          aria-describedby={navigable ? `${id}-keys ${id}-status` : undefined}
           data-slideshow=""
+          // Keyboard focus on the slideshow stops it, as the APG carousel pattern asks.
+          onFocus={(event) => {
+            if (event.target === event.currentTarget && event.currentTarget.matches(':focus-visible')) playback.pause();
+          }}
           className="overflow-hidden rounded-frame-xl border-2 border-border bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         >
-          {count > 1 && (
+          {navigable && (
             <>
               <p id={`${id}-keys`} className="sr-only">
-                Use the Left and Right arrow keys to change images{plays ? ', and Space to pause or play' : ''}.
+                Use the Left and Right arrow keys to change images, and Enter to enlarge one
+                {plays ? ', and Space to pause or play' : ''}.
               </p>
-              <p id={`${id}-status`} className="sr-only" aria-live={playing ? 'off' : 'polite'} aria-atomic="true">
-                Image {selected + 1} of {count}.
+              <p id={`${id}-status`} className="sr-only" aria-live="polite" aria-atomic="true">
+                Image {announced + 1} of {count}.
               </p>
             </>
           )}
           <CarouselContent
-            className={cn('ml-0', count > 1 && 'cursor-grab active:cursor-grabbing')}
+            className={cn('ml-0', navigable && 'cursor-grab active:cursor-grabbing')}
             onPointerDown={() => {
+              byReader.current = true;
               playback.pause();
-              setLeaving(null);
+              autoplay.clearLeaving();
             }}
           >
             {images.map((src, index) => (
@@ -268,115 +171,68 @@ export function SlideshowCarousel({
                   className={cn(
                     'relative size-full',
                     index === selected && 'cursor-zoom-in active:cursor-grabbing',
-                    // Lifted out from the click until the image has come back to rest.
-                    index === selected && zoom !== 'closed' && 'invisible'
+                    index === selected && lift.lifted && 'invisible'
                   )}
-                  style={{ clipPath: outline }}
+                  style={{ clipPath: track.outline }}
                   // Embla swallows the click that ends a drag, so this is a click alone.
                   onClick={index === selected ? enlarge : undefined}
                 >
-                  <div
-                    ref={(layer) => {
-                      layers.current[index] = layer;
-                    }}
-                    className="absolute inset-y-0"
-                    style={BLEED}
-                  >
-                    <NextImage
-                      src={src}
-                      alt={alt}
-                      width={width}
-                      height={height}
-                      // The lightbox's own sizes, so the image it opens on is already loaded.
-                      sizes={ZOOM_SIZES}
-                      draggable={false}
-                      // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
-                      loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
-                      className="pointer-events-none size-full object-cover select-none"
-                    />
-                  </div>
+                  <Picture
+                    ref={track.layer(index)}
+                    src={src}
+                    alt={alt}
+                    width={width}
+                    height={height}
+                    sizes={SLIDE_SIZES}
+                    bleed={BLEED}
+                    // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+                    loading={inView && isNear(index, selected, count, loop) ? 'eager' : 'lazy'}
+                  />
                 </motion.div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          {leaving !== null && (
+          {autoplay.leaving !== null && (
             <motion.div
-              key={leaving}
+              key={autoplay.leaving}
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               initial={{ opacity: 1 }}
               animate={{ opacity: 0 }}
               transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
-              onAnimationComplete={() => setLeaving(null)}
+              onAnimationComplete={autoplay.clearLeaving}
             >
-              <div className="absolute inset-y-0" style={BLEED}>
-                <NextImage
-                  src={images[leaving]}
-                  alt=""
-                  width={width}
-                  height={height}
-                  sizes={ZOOM_SIZES}
-                  draggable={false}
-                  className="size-full object-cover select-none"
-                />
-              </div>
+              <Picture
+                src={images[autoplay.leaving]}
+                width={width}
+                height={height}
+                sizes={SLIDE_SIZES}
+                bleed={BLEED}
+                loading="eager"
+              />
             </motion.div>
           )}
-          {count > 1 && (
+          {navigable && (
             <Controls
               count={count}
               selected={selected}
               loop={loop}
               onGo={go}
               playback={plays ? { playing: playback.playing, onToggle: playback.toggle } : undefined}
-              timer={timer}
+              timer={autoplay.timer}
               interval={interval}
             />
           )}
         </Carousel>
-        {/* Where the image lifts from and lands back: the frame, which the current slide
-            fills at rest. Not the slide itself, which rides Embla's transformed track, and
-            Motion measures a box under a transform it does not own a slide-width per slide
-            off. Outside the frame, whose clip would cut the image's way back. */}
-        <motion.div
-          layoutId={zoomId}
-          layoutCrossfade={false}
-          aria-hidden="true"
-          onLayoutAnimationComplete={() => setZoom((state) => (state === 'closing' ? 'closed' : state))}
-          // Over the lightbox's veil on the way back, or its blur would soften it.
-          className={cn('pointer-events-none absolute inset-0.5 overflow-hidden', zoom === 'closing' ? 'z-[101]' : 'invisible')}
-          style={{ borderRadius: lift.radius }}
-        >
-          {face}
-        </motion.div>
-        <Lightbox
-          open={zoom === 'opening' || zoom === 'open'}
-          onOpenChange={(open) => setZoom(open ? 'opening' : 'closing')}
-          title={alt}
-        >
-          <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
-            {/* The same image, crop and corner as the slide, so the morph only moves and
-                scales it; the radius in style is what Motion corrects for the scale. */}
-            <motion.div
-              layoutId={zoomId}
-              layoutCrossfade={false}
-              onLayoutAnimationComplete={() => setZoom((state) => (state === 'opening' ? 'open' : state))}
-              style={{
-                aspectRatio: `${width} / ${height}`,
-                // The image is laid absolutely to keep its crop, so the box sizes itself:
-                // the lightbox's width, held to the screen's height less its padding and caption.
-                width: `min(100%, calc((100dvh - 8rem) * ${width / height}))`,
-                borderRadius: lift.radius,
-                willChange: 'transform',
-              }}
-              // The way back is the frame's copy, so this one leaves at once.
-              className={cn('relative overflow-hidden', zoom === 'closing' && 'invisible')}
-            >
-              {face}
-            </motion.div>
-            <ZoomCaption start={zoom === 'open'}>{alt}</ZoomCaption>
-          </div>
-        </Lightbox>
+        <Lift
+          lift={lift}
+          id={`slideshow-lift-${id}`}
+          src={images[selected]}
+          alt={alt}
+          width={width}
+          height={height}
+          preload={inView}
+        />
       </div>
     </MotionConfig>
   );

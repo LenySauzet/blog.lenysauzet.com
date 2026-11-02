@@ -41,6 +41,7 @@ function Video({ medium, mirror, url, author }: VideoProps) {
         className="group relative flex items-center justify-center overflow-hidden rounded-frame-lg border-2 border-border"
         aria-label={`${alt}, to watch on X`}
       >
+        {/* As large as the photos beside it, which zoom, so the grid draws them alike. */}
         <NextImage src={largeUrl(medium)} alt="" fill sizes={ZOOM_SIZES} className="object-cover" />
         <span className="relative flex items-center gap-2 rounded-full bg-background/80 px-4 py-2 font-display text-sm text-foreground backdrop-blur-sm transition-transform group-hover:scale-105">
           <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={1.8} />

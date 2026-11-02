@@ -5,6 +5,9 @@ paths:
   - "lib/cdn.ts"
   - "lib/image-utils.ts"
   - "components/Image/**"
+  - "components/Lightbox/**"
+  - "components/Slideshow/**"
+  - "hooks/use-lightbox-store.ts"
   - "components/VideoPlayer/**"
   - "components/Blockquote/**"
   - "components/List/**"
@@ -165,12 +168,17 @@ a thematic break is what `<hr>` means, to a screen reader and to reader modes al
 where the Radix primitive is a decorative `div` built for menus and toolbars.
 `components/Separator.tsx` is something else, the dashed rule that opens a post's footer.
 
-**`components/Image/Lightbox.tsx` uses no dialog primitive**: not `ui/dialog.tsx`, not
-Radix, not Base UI. Radix ties its scroll lock to the layer's mount, and the layer must
-outlive a dismiss to animate out, so the page is frozen for the whole exit animation by
+**`components/Lightbox` uses no dialog primitive**: not `ui/dialog.tsx`, not Radix, not
+Base UI. Radix ties its scroll lock to the layer's mount, and the layer must outlive a
+dismiss to animate out, so the page is frozen for the whole exit animation by
 construction. The surface holds one decorative image, so a focus trap has nothing to
-trap. What remains is a portal, Escape, focus restoration and two ARIA attributes.
-Colocated on purpose; do not promote it until a second consumer exists.
+trap. What remains is a portal, Escape, focus restoration and two ARIA attributes. Two
+figures open it, `Image` and `Slideshow`, and share its `ZoomCaption`, its transition and
+`ZOOM_SIZES`, the size a zoomable image loads at so the lightbox opens on it. Its effects
+read `onOpenChange` through an effect event and depend on `open` alone: on a parent's
+new callback each render they would close and reopen, bouncing focus out of the open
+surface. While open it counts itself in `useLightboxStore`, so what plays on its own
+can hold still behind the veil.
 
 **`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
 `>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
@@ -208,27 +216,49 @@ listing rather than let it fold when every line matters.
 **`components/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
 alt="…" />`, `alt` doubling as caption and name; `autoPlay` cross-fades, goes round and
 draws a pause button, `interval` its pace. Its frame is `--card`, which shows wherever
-an image has not loaded. What it rests on:
+an image has not loaded. `SlideshowCarousel` wires Embla to the slides; each concern
+beside it is its own module: `use-autoplay`, `use-track-motion`, `Lift`, `Controls`,
+`Picture`, and the pure `bend`, `steps` and `keyboard`. What it rests on:
 
 - **The first image sets the frame**, measured at build; the others are cropped to it,
   so give a slideshow images of one shape.
 - **The arrows reach it from anywhere on the page**: focused, it takes them along with
-  Home, End and Space; otherwise the one nearest the middle of the screen does, unless
-  focus sits in something that answers arrows itself. One listener serves the page.
+  Home, End, Space and Enter; otherwise the one nearest the middle of the screen does,
+  unless focus sits in something that answers arrows itself. One listener serves the
+  page, keyed by each slideshow's root.
 - **Autoplay fades, the reader slides.** Embla cannot do both, so autoplay jumps and
   the image it leaves is laid on top and faded out (`autoplay:select`, then
   `previousScrollSnap`); a drag, a key or a button slides the track.
 - **Autoplay follows `usePlayback`**: still under reduced motion until asked, paused by
-  any drag or key, stopped off screen. The step's fill restarts on Embla's
-  `autoplay:timerset`, so it never drifts from the timer after a pause.
-- **Under reduced motion every move it makes by itself or by key jumps** (a released
-  drag still settles), and `usePrefersReducedMotion` reads the preference live, where
-  Motion's `useReducedMotion` reads it once at mount.
+  any drag, key or keyboard focus (the APG carousel pattern), stopped off screen and
+  while any lightbox covers the page (`useLightboxStore`). The step's fill restarts on
+  Embla's `autoplay:timerset`, so it never drifts from the timer after a pause. The live
+  region announces only the reader's own moves.
 - **Embla re-creates its plugins, stopped, on every resize**, so playback is re-applied
   on `reInit`; and `stopOnInteraction` stays on, or a tap on a paused slideshow would
   restart it behind its own Play button.
-- The window of steps (five at most, the ends shrinking when more lie beyond) is pure in
-  `steps.ts`; the key routing lives in `keyboard.ts`, tested against fake slideshows.
+- **The seam between two moving slides bows** in one arc over the full height, by up to
+  `MAX_BEND` (16px, the Before/After divider's too), driven by Embla's own velocity,
+  which a jump leaves at zero so autoplay never bends. Both edges of every slide bow
+  alike, so neighbours meet seam to seam; an image bleeds `MAX_BEND` past its slide to
+  fill the bulge, and every copy of it is a `Picture`, so all crop alike.
+- **Each image lags its frame by 20%** of a slide, a parallax read from the slides'
+  own rects, all read before any is written. It needs no bleed: the edge it pulls
+  away from is always the one past the view.
+- **A click, or Enter, lifts the image into the lightbox and back** (`Lift`), one image
+  travelling with no crossfade, its crop and corner kept. It lifts from a still box
+  over the frame, never from the slide: the slide rides Embla's transformed track, and
+  Motion measures a box under a transform it does not own one slide-width off per
+  slide. That box is outside the frame's clip and, on the way back, over the
+  lightbox's veil. Motion can drop the morph's completion after a resize, so each
+  stage also ends on a timer. Slides load at the column's size and only the current
+  image at the lightbox's, ahead.
+- **Under reduced motion every move it makes by itself or by key jumps** (a released
+  drag still settles), nothing bends or lags, and `usePrefersReducedMotion` reads the
+  preference live, where Motion's `useReducedMotion` reads it once at mount.
+- What can be pure is, and tested: the window of steps and where a move lands
+  (`steps.ts`), the seam and the parallax (`bend.ts`), and the key routing
+  (`keyboard.ts`, against fake slideshows).
 
 **Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in
