@@ -83,7 +83,8 @@ finger alone is no cursor and read as one row stuck lit, so it takes
 sets on any key and a touch clears. Any key, not the arrows alone: a query typed on a
 phone makes Enter run the first row, and cmdk also moves on Ctrl+N and Ctrl+P. The
 selection is the only focus indicator there, DOM focus staying in the box;
-**`CommandHint` names what a row says on its right** and lifts it with the selection the way a shortcut does, since the one
+**`CommandHint` names what a row says on its right** and lifts it with the selection
+the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate
 its own exit), **a row's selection is not transitioned**, **Motion animates the dialog rather

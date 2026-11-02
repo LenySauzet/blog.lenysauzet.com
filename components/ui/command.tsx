@@ -12,7 +12,7 @@ import { Tick02Icon } from "@hugeicons/core-free-icons"
 
 // Custom, not from the CLI: `data-keyed` marks a palette the keyboard is driving,
 // any key, so a row shows the selection with no fine pointer too: arrows on a
-// phone's keyboard, or a query typed before Enter runs the first row. The selection
+// keyboard paired with a phone, or a query typed before Enter runs the first row. The selection
 // is then the only focus indicator, DOM focus staying in the box. A touch clears it.
 function Command({
   className,
