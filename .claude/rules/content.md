@@ -180,6 +180,16 @@ new callback each render they would close and reopen, bouncing focus out of the 
 surface. While open it counts itself in `useLightboxStore`, so what plays on its own
 can hold still behind the veil.
 
+**Both figures send one image travelling, never two crossfading**: two copies cropped
+differently fading through each other read as a ghost. `useZoomStage` holds where the
+image stands (`closed`, `opening`, `open`, `closing`), each end hiding by it, and ends
+a stage on a timer when Motion drops the morph's completion. Motion hides the end left
+behind with `visibility`, so **`ImageZoom`'s button never travels**: a div inside it
+does, and the button keeps the focus the lightbox hands back. On the way back the
+article's copy rides at `z-[101]`, over the veil. **A phone's lightbox pads by the
+column's 16px gutter**, or the image shrank on its way in, 358px in the article to
+326px enlarged, and `ZOOM_SIZES` follows.
+
 **`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
 `>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
 the reference**, which renders its pull-quote in the default sans because its own

@@ -1,17 +1,13 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { type RefObject, useEffect, useState } from 'react';
+import { type RefObject, useState } from 'react';
 
-import { Lightbox, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
+import { Lightbox, useZoomStage, ZOOM_SIZES, ZoomCaption } from '@/components/Lightbox';
 import { cn } from '@/lib/utils';
 
 import { MAX_BEND } from './bend';
 import { Picture } from './Picture';
-
-type Stage = 'closed' | 'opening' | 'open' | 'closing';
-
-const settled = (stage: Stage): Stage => (stage === 'opening' ? 'open' : stage === 'closing' ? 'closed' : stage);
 
 /** The frame the image lifts from: its border, inner corner and the image's bleed in it. */
 interface Frame {
@@ -26,7 +22,7 @@ interface Frame {
  * from stands where Motion will measure it. The slide hides while `lifted`.
  */
 export function useLift(rootRef: RefObject<HTMLDivElement | null>) {
-  const [stage, setStage] = useState<Stage>('closed');
+  const zoom = useZoomStage();
   const [frame, setFrame] = useState<Frame>({ inset: 0, radius: 0, bleed: '0px' });
 
   const open = () => {
@@ -37,26 +33,10 @@ export function useLift(rootRef: RefObject<HTMLDivElement | null>) {
       // A share of the width, so the crop holds at any size on the way.
       bleed: `${(MAX_BEND / root.clientWidth) * 100}%`,
     });
-    requestAnimationFrame(() => setStage('opening'));
+    requestAnimationFrame(zoom.open);
   };
 
-  // Motion drops a morph's completion when a resize lands during one, or a close comes
-  // within 250ms of a resize, which would leave the slide hidden: each stage also ends
-  // on its own.
-  useEffect(() => {
-    if (stage !== 'opening' && stage !== 'closing') return;
-    const timeout = setTimeout(() => setStage(settled), ZOOM_TRANSITION.duration * 1000 + 100);
-    return () => clearTimeout(timeout);
-  }, [stage]);
-
-  return {
-    stage,
-    frame,
-    open,
-    close: () => setStage('closing'),
-    settle: () => setStage(settled),
-    lifted: stage !== 'closed',
-  };
+  return { ...zoom, frame, open };
 }
 
 export interface LiftProps {
