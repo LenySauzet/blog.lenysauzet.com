@@ -101,7 +101,7 @@ export function DynamicIsland() {
           }}
           className={cn(
             glassSurface,
-            "glass-rim relative border-0 [--rim-ink:var(--foreground)] flex items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+            "glass-rim relative border-0 [--rim-highlight:0.16] [--rim-ink:var(--foreground)] flex items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
           )}
         >
           <div aria-hidden className="pointer-events-none flex w-full items-center text-left">

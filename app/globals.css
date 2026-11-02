@@ -640,7 +640,8 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
 }
 
 /* An edge lit from above, inked in `--rim-ink`, `--media-ink` unless the caller
-   sets one. The caller positions it, since the rim hangs off its box. */
+   sets one, its peak at `--rim-highlight`. The caller positions it, since the rim
+   hangs off its box. */
 @utility glass-rim {
   isolation: isolate;
 
@@ -654,7 +655,7 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
     background:
       radial-gradient(
         ellipse 85% 100% at 50% 0%,
-        oklch(from var(--rim-ink, var(--media-ink)) l c h / 0.36),
+        oklch(from var(--rim-ink, var(--media-ink)) l c h / var(--rim-highlight, 0.36)),
         oklch(from var(--rim-ink, var(--media-ink)) l c h / 0.05) 45%,
         transparent 85%
       ),

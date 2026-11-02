@@ -14,7 +14,8 @@
  * covers, and 115% puts the colour back, so the surface reads as glass rather
  * than as fog.
  *
- * The Dynamic Island trades the hairline for `glass-rim`, inked in `--foreground`.
+ * The Dynamic Island trades the hairline for `glass-rim`, inked in `--foreground`
+ * and lit at under half the strength a control on a picture needs.
  *
  * Radius is the caller's, a pill, a tooltip and a dropdown not rounding alike.
  */
