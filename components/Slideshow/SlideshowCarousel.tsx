@@ -5,9 +5,7 @@ import { motion, MotionConfig, useInView, useMotionValue, useTransform } from 'm
 import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
-import { IMAGE_SIZES, ZOOM_TRANSITION } from '@/components/Image/ImageZoom';
-import { Lightbox, useLightboxOpen } from '@/components/Image/Lightbox';
-import { ZoomCaption } from '@/components/Image/ZoomCaption';
+import { Lightbox, useLightboxOpen, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { usePlayback } from '@/hooks/use-playback';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
@@ -159,7 +157,7 @@ export function SlideshowCarousel({
         alt=""
         width={width}
         height={height}
-        sizes={IMAGE_SIZES}
+        sizes={ZOOM_SIZES}
         draggable={false}
         className="size-full object-cover select-none"
       />
@@ -290,7 +288,7 @@ export function SlideshowCarousel({
                       width={width}
                       height={height}
                       // The lightbox's own sizes, so the image it opens on is already loaded.
-                      sizes={IMAGE_SIZES}
+                      sizes={ZOOM_SIZES}
                       draggable={false}
                       // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
                       loading={inView && (Math.abs(index - selected) <= 1 || (loop && index === count - 1)) ? 'eager' : 'lazy'}
@@ -317,7 +315,7 @@ export function SlideshowCarousel({
                   alt=""
                   width={width}
                   height={height}
-                  sizes={IMAGE_SIZES}
+                  sizes={ZOOM_SIZES}
                   draggable={false}
                   className="size-full object-cover select-none"
                 />

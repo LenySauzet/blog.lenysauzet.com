@@ -3,7 +3,8 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import NextImage, { getImageProps } from 'next/image';
 import type { MediaAnimatedGif, MediaVideo, Tweet } from 'react-tweet/api';
 
-import ImageZoom, { IMAGE_SIZES } from '@/components/Image/ImageZoom';
+import ImageZoom from '@/components/Image/ImageZoom';
+import { ZOOM_SIZES } from '@/components/Lightbox';
 import VideoPlayer from '@/components/VideoPlayer';
 import { largeUrl, videosOf } from '@/lib/tweet';
 import { cn } from '@/lib/utils';
@@ -40,7 +41,7 @@ function Video({ medium, mirror, url, author }: VideoProps) {
         className="group relative flex items-center justify-center overflow-hidden rounded-frame-lg border-2 border-border"
         aria-label={`${alt}, to watch on X`}
       >
-        <NextImage src={largeUrl(medium)} alt="" fill sizes={IMAGE_SIZES} className="object-cover" />
+        <NextImage src={largeUrl(medium)} alt="" fill sizes={ZOOM_SIZES} className="object-cover" />
         <span className="relative flex items-center gap-2 rounded-full bg-background/80 px-4 py-2 font-display text-sm text-foreground backdrop-blur-sm transition-transform group-hover:scale-105">
           <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={1.8} />
           Watch on X

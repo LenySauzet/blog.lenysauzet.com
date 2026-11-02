@@ -6,16 +6,8 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
+import { Lightbox, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
 import { cn } from '@/lib/utils';
-
-import { Lightbox } from './Lightbox';
-import { ZoomCaption } from './ZoomCaption';
-
-// A tween, not a spring: layout projection ignores `restDelta`, so a spring exit
-// lingers past its last visible frame.
-export const ZOOM_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] } as const;
-
-export const IMAGE_SIZES = '(max-width: 768px) calc(100vw - 4rem), 80vw';
 
 const FRAME = 'rounded-frame-lg border-2 border-border';
 
@@ -86,7 +78,7 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
     <NextImage
       {...props}
       alt={altText}
-      sizes={IMAGE_SIZES}
+      sizes={ZOOM_SIZES}
       className={cn(
         className,
         'transition-opacity duration-200',
