@@ -262,7 +262,8 @@ says whether the surface is measured and whether it is held; `aria-valuenow` is 
 to the element once a frame, so a drag renders nothing. What is drawn chases that target
 on the Slider's own spring, `FOLLOW_SPRING` in `lib/springs.ts`, so a click or a key
 glides and the two controls feel alike; its overshoot is held at the image's edges.
-Held, the handle grows to 1.1, being picked up rather than pressed. Under reduced motion
+Held, the handle grows to 1.1, being picked up rather than pressed. It is not a touch target,
+the whole surface dragging, so a phone's is 24px and 32px from `sm`. Under reduced motion
 every input jumps the spring, which zeroes the bow, and the handle never grows. The
 divider is an SVG path that bows in one arc over its full height, by up to 16px as the
 Slideshow's seam does, with the spring's own speed, so a click, a key and a drag all

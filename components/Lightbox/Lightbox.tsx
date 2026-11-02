@@ -93,8 +93,9 @@ export function Lightbox({
           aria-modal="true"
           aria-label={title}
           tabIndex={-1}
-          // z-100, not z-50: the site header already claims z-50.
-          className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-8 outline-none"
+          // z-100, not z-50: the site header already claims z-50. A phone's padding
+          // is the column's gutter: any wider and the image shrinks on its way in.
+          className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-4 outline-none sm:p-8"
           // Fading a custom property rather than opacity keeps the morphing
           // image out of the fade.
           style={{

@@ -6,7 +6,7 @@ import { motion, MotionConfig } from 'motion/react';
 import NextImage from 'next/image';
 import { useId, useState } from 'react';
 
-import { Lightbox, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
+import { Lightbox, useZoomStage, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
 import { cn } from '@/lib/utils';
 
 const FRAME = 'rounded-frame-xl border-2 border-border';
@@ -58,12 +58,11 @@ function Unavailable({ ratio, className }: { ratio: string; className?: string }
   );
 }
 
-// Both copies share one `layoutId`: Motion morphs one bounding box into the other
-// and crossfades between them, which is why the source has to stay visible for the
-// length of each transition.
+// Both copies share one `layoutId` and never crossfade, so one image travels: each
+// hides by the stage while the other is on its way. Two copies fading through each
+// other read as a ghost, the more so where the lightbox is barely larger, on a phone.
 export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
-  const [open, setOpen] = useState(false);
-  const [zoomed, setZoomed] = useState(false);
+  const zoom = useZoomStage();
   // One status for both copies: they are the same URL, so they succeed or fail
   // together, and the zoomed view must not start its own load from scratch.
   const [status, setStatus] = useState<Status>('loading');
@@ -74,9 +73,10 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
 
   // Held invisible until the bytes land: shown while loading, a source that is
   // going to fail paints the browser's broken glyph first.
-  const image = (className: string, altText: string) => (
+  const image = (className: string, altText: string, travels = false) => (
     <NextImage
       {...props}
+      {...(travels && { loading: 'eager', decoding: 'sync' })}
       alt={altText}
       sizes={ZOOM_SIZES}
       className={cn(
@@ -91,38 +91,46 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
 
   return (
     <MotionConfig reducedMotion="user" transition={ZOOM_TRANSITION}>
+      {/* The button never travels: Motion hides the end it leaves, and a hidden button
+          would lose the focus the lightbox hands back on closing. */}
       <motion.button
         type="button"
-        layoutId={layoutId}
-        onClick={() => setOpen(true)}
+        onClick={zoom.open}
         whileHover={gone ? undefined : { scale: 1.02 }}
         whileTap={gone ? undefined : { scale: 0.95 }}
         disabled={gone}
         style={{ willChange: 'transform' }}
-        // Hidden only between the two transitions, where the copy has left this box
-        // behind and Motion has handed its opacity back.
+        // On the way back it is the image travelling, so it rides over the lightbox's
+        // veil, whose blur would soften it.
         className={cn(
           'block w-full rounded-frame-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
           gone ? 'cursor-default' : 'cursor-zoom-in',
-          zoomed && 'invisible'
+          zoom.stage === 'closing' && 'relative z-101'
         )}
       >
-        {gone ? (
-          <Unavailable ratio={ratio} className={FRAME} />
-        ) : (
-          <div className="relative w-full">
-            {image(cn('h-auto w-full object-cover', FRAME), alt)}
-            {status === 'loading' ? <Skeleton /> : null}
-          </div>
-        )}
+        <motion.div
+          layoutId={layoutId}
+          layoutCrossfade={false}
+          onLayoutAnimationComplete={zoom.settle}
+          className={cn(
+            'rounded-frame-xl',
+            (zoom.stage === 'opening' || zoom.stage === 'open') && 'invisible'
+          )}
+        >
+          {gone ? (
+            <Unavailable ratio={ratio} className={FRAME} />
+          ) : (
+            <div className="relative w-full">
+              {image(cn('h-auto w-full object-cover', FRAME), alt)}
+              {status === 'loading' ? <Skeleton /> : null}
+            </div>
+          )}
+        </motion.div>
       </motion.button>
 
       <Lightbox
-        open={open}
-        onOpenChange={(next) => {
-          setOpen(next);
-          if (!next) setZoomed(false);
-        }}
+        open={zoom.stage === 'opening' || zoom.stage === 'open'}
+        onOpenChange={(next) => !next && zoom.close()}
         title={alt}
       >
         <div className="flex h-full w-full flex-col items-center justify-center md:w-[80dvw]">
@@ -130,18 +138,23 @@ export default function ImageZoom({ alt, ...props }: ImageZoomProps) {
               with a shrinkable box lets flex give the caption its room. */}
           <motion.div
             layoutId={layoutId}
+            layoutCrossfade={false}
             whileTap={{ scale: 0.98 }}
             style={{ aspectRatio: ratio, willChange: 'transform' }}
-            className="min-h-0 max-h-full max-w-full"
-            onLayoutAnimationComplete={() => setZoomed(true)}
+            // The way back is the article's copy, so this one leaves at once.
+            className={cn('min-h-0 max-h-full max-w-full', zoom.stage === 'closing' && 'invisible')}
+            onLayoutAnimationComplete={zoom.settle}
           >
             {gone ? (
               <Unavailable ratio={ratio} className="rounded-frame-xl" />
             ) : (
-              image('h-full w-full rounded-frame-xl object-contain', '')
+              // Painted with its first frame: lazy and decoded off the main thread,
+              // Safari showed nothing while the article's copy had already gone,
+              // and the image leapt in mid-flight.
+              image('h-full w-full rounded-frame-xl object-contain', '', true)
             )}
           </motion.div>
-          <ZoomCaption start={zoomed}>{alt}</ZoomCaption>
+          <ZoomCaption start={zoom.stage === 'open'}>{alt}</ZoomCaption>
         </div>
       </Lightbox>
     </MotionConfig>

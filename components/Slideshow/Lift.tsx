@@ -1,17 +1,13 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { type RefObject, useEffect, useState } from 'react';
+import { type RefObject, useState } from 'react';
 
-import { Lightbox, ZOOM_SIZES, ZOOM_TRANSITION, ZoomCaption } from '@/components/Lightbox';
+import { Lightbox, useZoomStage, ZOOM_SIZES, ZoomCaption } from '@/components/Lightbox';
 import { cn } from '@/lib/utils';
 
 import { MAX_BEND } from './bend';
 import { Picture } from './Picture';
-
-type Stage = 'closed' | 'opening' | 'open' | 'closing';
-
-const settled = (stage: Stage): Stage => (stage === 'opening' ? 'open' : stage === 'closing' ? 'closed' : stage);
 
 /** The frame the image lifts from: its border, inner corner and the image's bleed in it. */
 interface Frame {
@@ -26,7 +22,7 @@ interface Frame {
  * from stands where Motion will measure it. The slide hides while `lifted`.
  */
 export function useLift(rootRef: RefObject<HTMLDivElement | null>) {
-  const [stage, setStage] = useState<Stage>('closed');
+  const zoom = useZoomStage();
   const [frame, setFrame] = useState<Frame>({ inset: 0, radius: 0, bleed: '0px' });
 
   const open = () => {
@@ -37,26 +33,10 @@ export function useLift(rootRef: RefObject<HTMLDivElement | null>) {
       // A share of the width, so the crop holds at any size on the way.
       bleed: `${(MAX_BEND / root.clientWidth) * 100}%`,
     });
-    requestAnimationFrame(() => setStage('opening'));
+    requestAnimationFrame(zoom.open);
   };
 
-  // Motion drops a morph's completion when a resize lands during one, or a close comes
-  // within 250ms of a resize, which would leave the slide hidden: each stage also ends
-  // on its own.
-  useEffect(() => {
-    if (stage !== 'opening' && stage !== 'closing') return;
-    const timeout = setTimeout(() => setStage(settled), ZOOM_TRANSITION.duration * 1000 + 100);
-    return () => clearTimeout(timeout);
-  }, [stage]);
-
-  return {
-    stage,
-    frame,
-    open,
-    close: () => setStage('closing'),
-    settle: () => setStage(settled),
-    lifted: stage !== 'closed',
-  };
+  return { ...zoom, frame, open };
 }
 
 export interface LiftProps {
@@ -90,6 +70,9 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
       sizes={ZOOM_SIZES}
       bleed={frame.bleed}
       loading={preload ? 'eager' : 'lazy'}
+      // Each end first paints on the frame the other hides: decoded off the main
+      // thread, Safari painted nothing there and the image leapt.
+      decoding="sync"
     />
   );
 
@@ -100,7 +83,7 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
         layoutCrossfade={false}
         aria-hidden="true"
         onLayoutAnimationComplete={settle}
-        className={cn('pointer-events-none absolute overflow-hidden', stage === 'closing' ? 'z-[101]' : 'invisible')}
+        className={cn('pointer-events-none absolute overflow-hidden', stage === 'closing' ? 'z-101' : 'invisible')}
         style={{ inset: frame.inset, borderRadius: frame.radius }}
       >
         {face}
@@ -114,7 +97,7 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
             style={{
               aspectRatio: `${width} / ${height}`,
               // The image is laid absolutely to keep its crop, so the box sizes itself:
-              // the lightbox's width, held to the screen's height less its padding and caption.
+              // the lightbox's width, held to the screen's height less its widest padding and caption.
               width: `min(100%, calc((100dvh - 8rem) * ${width / height}))`,
               borderRadius: frame.radius,
               willChange: 'transform',
