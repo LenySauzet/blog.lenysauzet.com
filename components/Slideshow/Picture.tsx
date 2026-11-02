@@ -10,6 +10,7 @@ export interface PictureProps {
   /** How far past either side of its box the image reaches, as a CSS length. */
   bleed: string;
   loading?: 'eager' | 'lazy';
+  decoding?: 'sync' | 'async';
   ref?: Ref<HTMLDivElement>;
 }
 
@@ -18,7 +19,7 @@ export interface PictureProps {
  * draws from. Every copy of a slide's image is one, so the slide, its cross-fade and its
  * lift all crop alike.
  */
-export function Picture({ src, alt = '', width, height, sizes, bleed, loading, ref }: PictureProps) {
+export function Picture({ src, alt = '', width, height, sizes, bleed, loading, decoding, ref }: PictureProps) {
   return (
     <div
       ref={ref}
@@ -32,6 +33,7 @@ export function Picture({ src, alt = '', width, height, sizes, bleed, loading, r
         height={height}
         sizes={sizes}
         loading={loading}
+        decoding={decoding}
         draggable={false}
         className="pointer-events-none size-full object-cover select-none"
       />

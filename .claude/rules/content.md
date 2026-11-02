@@ -190,7 +190,10 @@ article's copy rides at `z-101`, over the veil, unless an ancestor isolates it: 
 `Callout` it returns under the veil, softened, and a `Details` clips it, as the
 slideshow's lift does. **A phone's lightbox pads by the
 column's 16px gutter**, or the image shrank on its way in, 358px in the article to
-326px enlarged, and `ZOOM_SIZES` follows.
+326px enlarged, and `ZOOM_SIZES` follows. **The lightbox's copy is eager and decoded
+synchronously**: it mounts as the morph starts, and lazy and decoded off the main
+thread, Safari painted nothing for its first frames while the article's copy had
+already gone, so the image leapt in mid-flight on an iPhone and never in Chrome.
 
 **`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
 `>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
