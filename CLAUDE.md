@@ -162,7 +162,7 @@ any other agent reads the one covering the files it touches.
 
 | Working in | Read |
 |---|---|
-| `content/`, posts, media, `Image`, `Blockquote`, `List`, math, the Markdown twin | `.claude/rules/content.md` |
+| `content/`, posts, media, `Image`, `Lightbox`, `Slideshow`, `Blockquote`, `List`, math, the Markdown twin | `.claude/rules/content.md` |
 | Any figure, chart, shader or sandbox, and the code under them | `.claude/rules/figures.md` |
 | `components/Table`, `ui/table.tsx` | `.claude/rules/tables.md` |
 | Any `.tsx` or `.css`: tokens, text tiers, focus rings, theming | `.claude/rules/styling.md` |

@@ -24,7 +24,6 @@ vi.mock('next/image', () => ({
   getImageProps: ({ src }: { src: string }) => ({ props: { src: `/_next/image?url=${encodeURIComponent(src)}` } }),
 }));
 vi.mock('@/components/Image/ImageZoom', () => ({
-  IMAGE_SIZES: '100vw',
   default: ({ src, alt }: { src: string; alt: string }) => <img data-testid="photo" src={src} alt={alt} />,
 }));
 vi.mock('@/components/VideoPlayer', () => ({

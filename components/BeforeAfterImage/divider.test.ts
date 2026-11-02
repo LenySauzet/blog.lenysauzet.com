@@ -3,24 +3,46 @@ import { describe, expect, it } from 'vitest';
 import { afterRegion, dividerPath, labelOpacity, MAX_PULL, pullFor } from './divider';
 
 const points = (path: string) => path.match(/-?\d+(\.\d+)?/g)!.map(Number);
+// The divider is one quadratic, top to bottom; `at` is where it crosses height t.
 const ends = (path: string) => {
-  const n = points(path);
-  return { top: n[0], middle: n[6], bottom: n.at(-2)! };
+  const [top, , control, , bottom] = points(path);
+  const at = (t: number) => (1 - t) ** 2 * top + 2 * (1 - t) * t * control + t ** 2 * bottom;
+  return { top, middle: at(0.5), bottom, at };
 };
 
 describe('dividerPath', () => {
   it('is a straight line through the centre at rest', () => {
-    expect(ends(dividerPath(300, 0, 600, 400))).toEqual({ top: 300, middle: 300, bottom: 300 });
+    const { top, middle, bottom } = ends(dividerPath(300, 0, 600, 400));
+    expect([top, middle, bottom]).toEqual([300, 300, 300]);
   });
 
   it('bows its ends behind its middle, never past MAX_PULL', () => {
     for (let pull = -40; pull <= 40; pull += 0.5) {
       const { top, middle, bottom } = ends(dividerPath(300, pull, 600, 400));
-      expect(middle).toBe(300);
+      expect(middle).toBeCloseTo(300);
       expect(top).toBe(bottom);
-      expect(Math.abs(middle - top)).toBeLessThanOrEqual(MAX_PULL);
-      expect(Math.sign(middle - top)).toBe(Math.sign(pull));
+      expect(Math.abs(middle - top)).toBeLessThanOrEqual(MAX_PULL + 1e-9);
+      if (pull !== 0) expect(Math.sign(middle - top)).toBe(Math.sign(pull));
     }
+  });
+
+  it('bows in one arc over the whole height, most at the middle', () => {
+    const { top, at } = ends(dividerPath(300, MAX_PULL, 600, 400));
+    for (let t = 0.05; t < 1; t += 0.05) {
+      expect(at(t)).toBeGreaterThan(top);
+      expect(at(t)).toBeLessThanOrEqual(at(0.5) + 1e-9);
+    }
+  });
+
+  it('never leaves the image, whatever the pull and wherever the divider', () => {
+    for (let center = 0; center <= 600; center += 2)
+      for (const pull of [-MAX_PULL, MAX_PULL]) {
+        const { at } = ends(dividerPath(center, pull, 600, 400));
+        for (let t = 0; t <= 1; t += 0.1) {
+          expect(at(t)).toBeGreaterThanOrEqual(-1e-9);
+          expect(at(t)).toBeLessThanOrEqual(600 + 1e-9);
+        }
+      }
   });
 
   it('keeps its ends inside the image at either edge', () => {
@@ -53,7 +75,7 @@ describe('pullFor', () => {
 
   it('barely flexes when slow', () => {
     expect(pullFor(10, 1200)).toBeGreaterThan(0);
-    expect(pullFor(10, 1200)).toBeLessThan(1);
+    expect(pullFor(10, 1200)).toBeLessThan(MAX_PULL / 10);
   });
 });
 

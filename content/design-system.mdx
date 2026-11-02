@@ -297,6 +297,25 @@ $$
   />
 </Fullbleed>
 
+## Slideshow
+
+<Slideshow
+  alt="Three images, one frame."
+  images={[
+    { src: 'blog/slide-1.jpg', alt: 'The crescent moon over the curve of the Earth, its atmosphere a thin blue line.' },
+    { src: 'blog/slide-2.jpg', alt: 'Cumulus clouds piled under a clear blue sky.' },
+    { src: 'blog/slide-3.jpg', alt: 'A painting of a ship in a storm, its sails torn under breaking waves.' },
+  ]}
+/>
+
+### Autoplay
+
+<Slideshow
+  alt="The same three, playing on their own."
+  images={['blog/slide-1.jpg', 'blog/slide-2.jpg', 'blog/slide-3.jpg']}
+  autoPlay
+/>
+
 ## Video
 
 <VideoPlayer

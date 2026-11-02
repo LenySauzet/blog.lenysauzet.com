@@ -1,23 +1,13 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 
-const REDUCED = '(prefers-reduced-motion: reduce)';
-
-const subscribe = (change: () => void) => {
-  const query = window.matchMedia(REDUCED);
-  query.addEventListener('change', change);
-  return () => query.removeEventListener('change', change);
-};
+import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 
 export function usePlayback() {
-  const reduced = useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(REDUCED).matches,
-    () => false,
-  );
+  const reduced = usePrefersReducedMotion();
   const [chosen, setChosen] = useState<boolean | null>(null);
   const playing = chosen ?? !reduced;
 
-  return { playing, toggle: () => setChosen(!playing) };
+  return { playing, toggle: () => setChosen(!playing), pause: () => setChosen(false) };
 }

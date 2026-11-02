@@ -39,6 +39,8 @@
   --color-input-disabled: var(--input-disabled);
   --color-input-icon: var(--input-icon);
   --color-wash: var(--wash);
+  --color-media-glass: var(--media-glass);
+  --color-media-ink: var(--media-ink);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
@@ -153,6 +155,11 @@
   /* The alpha a raised control lifts to on hover from its /30 rest: the same
      1.17:1 step in both themes, the light wash being the paler. */
   --wash-lift: 50%;
+  /* Glass over imagery, the same in both themes: a control on a photograph sits on
+     the picture, not the page, and dark ink on a dark photo, or a rim lit in black,
+     reads as a hole. The dark theme's wash and foreground, pinned, never redefined. */
+  --media-glass: oklch(56.78% 0.05 var(--base-hue));
+  --media-ink: oklch(93.66% 0.027 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
   /* A heatmap ramp, which no other token can stand in for: it has to run from
      the page toward a far end that stays legible under inverted text, and the
@@ -614,6 +621,35 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
       transparent 1px 6px
     );
     mask-image: radial-gradient(var(--callout-shape), #fff, transparent 75%);
+    pointer-events: none;
+  }
+}
+
+/* The rim of glass floating over imagery, after the callout's: a hairline lit from
+   above, drawn on a masked ring so the fill inside stays the glass. The element
+   positions itself; `mediaGlass` in components/ui/glass.ts is the whole material. */
+@utility glass-rim {
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    padding: 1.5px;
+    border-radius: inherit;
+    background:
+      radial-gradient(
+        ellipse 85% 100% at 50% 0%,
+        oklch(from var(--media-ink) l c h / 0.36),
+        oklch(from var(--media-ink) l c h / 0.05) 45%,
+        transparent 85%
+      ),
+      oklch(from var(--media-ink) l c h / 0.08);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
     pointer-events: none;
   }
 }
