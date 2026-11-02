@@ -69,6 +69,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const [travelling, setTravelling] = useState(false);
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
+  const lastMeasured = useRef<HTMLElement | null>(null);
   // What the reader picked, run once the dialog has left: repainting the page
   // under it would read as a cut rather than an exit. Reopened before then, the
   // exit never completes, so it runs at once rather than at the next close.
@@ -86,7 +87,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     runPicked();
     input.current?.focus();
   }, [isOpen, runPicked]);
-  const lastMeasured = useRef<HTMLElement | null>(null);
 
   /**
    * The arriving pane only: entering a page clears the box too, so the one on

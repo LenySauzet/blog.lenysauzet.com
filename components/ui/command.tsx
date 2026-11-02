@@ -54,6 +54,8 @@ function CommandDialog({
   className?: string
 }) {
   const still = usePrefersReducedMotion()
+  // No trigger holds the dialog, so Radix has nothing to hand the focus back to.
+  const returnTo = React.useRef<HTMLElement | null>(null)
   const transition = { duration: 0.15, ease: "easeOut" } as const
   const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
 
@@ -71,7 +73,18 @@ function CommandDialog({
                 transition={transition}
               />
             </DialogPrimitive.Overlay>
-            <DialogPrimitive.Content data-slot="dialog-content" forceMount asChild>
+            <DialogPrimitive.Content
+              data-slot="dialog-content"
+              forceMount
+              asChild
+              onOpenAutoFocus={() => {
+                returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+              }}
+              onCloseAutoFocus={(event) => {
+                event.preventDefault()
+                if (returnTo.current?.isConnected) returnTo.current.focus()
+              }}
+            >
               <Panel
                 className={cn(
                   "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none backdrop-blur-(--dialog-blur) backdrop-saturate-[115%]",
@@ -102,12 +115,12 @@ function Panel(props: React.ComponentProps<typeof motion.div>) {
   const present = useIsPresent()
   return (
     <motion.div
+      {...props}
       inert={!present}
       // Enter alone: the shortcut that reopens it is read on the document, past here.
       onKeyDownCapture={(event) => {
         if (!present && event.key === "Enter") event.stopPropagation()
       }}
-      {...props}
     />
   )
 }
@@ -128,7 +141,7 @@ function CommandInput({
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-base outline-hidden placeholder:text-subtle-foreground sm:text-sm disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
@@ -228,7 +241,7 @@ function CommandItem({
     Exported as a class as well, for a mark that has to be a motion element to
     animate its own exit. */
 const commandHint =
-  "ml-auto truncate pl-6 text-sm font-normal text-muted-foreground/70 group-data-selected/command-item:text-foreground"
+  "ml-auto truncate pl-6 text-sm font-normal text-subtle-foreground group-data-selected/command-item:text-foreground"
 
 function CommandHint({ className, ...props }: React.ComponentProps<"span">) {
   return <span data-slot="command-hint" className={cn(commandHint, className)} {...props} />

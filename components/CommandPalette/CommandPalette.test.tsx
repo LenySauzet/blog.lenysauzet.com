@@ -359,16 +359,37 @@ describe('CommandPalette', () => {
       .mockImplementation(function (this: HTMLElement, options) {
         if (!this.closest('[inert]')) focus.call(this, options);
       });
+    try {
+      const user = userEvent.setup();
+      useCmdkStore.setState({ isOpen: true });
+      render(<CommandPalette posts={posts} />);
+
+      await user.click(await screen.findByText('Toggle theme'));
+      act(() => screen.getByRole('combobox').blur());
+      await user.keyboard('{Meta>}k{/Meta}');
+
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus());
+    } finally {
+      refused.mockRestore();
+    }
+  });
+
+  it('hands the focus back to what held it once it has left', async () => {
     const user = userEvent.setup();
-    useCmdkStore.setState({ isOpen: true });
-    render(<CommandPalette posts={posts} />);
+    render(
+      <>
+        <button type="button">Before</button>
+        <CommandPalette posts={posts} />
+      </>
+    );
+    screen.getByRole('button', { name: 'Before' }).focus();
 
-    await user.click(await screen.findByText('Toggle theme'));
-    act(() => screen.getByRole('combobox').blur());
     await user.keyboard('{Meta>}k{/Meta}');
+    await screen.findByRole('dialog');
+    await user.keyboard('{Escape}');
 
-    await waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus());
-    refused.mockRestore();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
   });
 
   // cmdk refuses to move its selection onto a disabled row, which left whichever row

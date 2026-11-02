@@ -97,7 +97,10 @@ the props it last had, an open one's, so the box takes `inert` from `useIsPresen
 and stops Enter as well, the browser only taking back the focus it holds at the next
 frame: three quick presses otherwise ran a command twice. Enter alone, or the ⌘K that
 reopens it mid-exit is swallowed too; and reopened so, it hands the box its focus again
-once rendered, `inert` having refused the first. **`ui/dialog.tsx` is gone**, nothing
+once rendered, `inert` having refused the first. **With no trigger, Radix has nothing to hand the focus
+back to**, so the dialog notes what held it on opening and returns it on closing; a
+keyboard reader otherwise started again from the top of the page. **The box is 16px
+below `sm`**, the size under which iOS zooms the page on focus, and 14px above. **`ui/dialog.tsx` is gone**, nothing
 using it once the dialog was built on Radix's primitives: `add command` brings it
 back as a dependency, so drop it again. Update it with
 `bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
