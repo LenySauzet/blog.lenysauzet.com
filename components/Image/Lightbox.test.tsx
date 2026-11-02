@@ -4,7 +4,7 @@ import { MotionConfig } from 'motion/react';
 import { useState, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 
-import { Lightbox } from './Lightbox';
+import { Lightbox, useLightboxOpen } from './Lightbox';
 
 /**
  * Motion caches `prefers-reduced-motion` at module scope, so whether the value
@@ -22,11 +22,16 @@ const Instantly = ({ children }: { children: ReactNode }) => (
 
 // Dismissal is asserted here, not on ImageZoom: this surface has no shared-layout
 // morph, so its exit completes under jsdom's zero-sized boxes.
+function Covered() {
+  return <output data-testid="covered">{String(useLightboxOpen())}</output>;
+}
+
 function Harness() {
   const [open, setOpen] = useState(false);
 
   return (
     <Instantly>
+      <Covered />
       <button type="button" onClick={() => setOpen(true)}>
         Open
       </button>
@@ -184,5 +189,15 @@ describe('Lightbox', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     );
     expect(elsewhere).toHaveFocus();
+  });
+
+  it('tells the rest of the page while it covers it', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    expect(screen.getByTestId('covered')).toHaveTextContent('false');
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(screen.getByTestId('covered')).toHaveTextContent('true');
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByTestId('covered')).toHaveTextContent('false'));
   });
 });

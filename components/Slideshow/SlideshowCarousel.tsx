@@ -6,7 +6,7 @@ import NextImage from 'next/image';
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 
 import { IMAGE_SIZES, ZOOM_TRANSITION } from '@/components/Image/ImageZoom';
-import { Lightbox } from '@/components/Image/Lightbox';
+import { Lightbox, useLightboxOpen } from '@/components/Image/Lightbox';
 import { ZoomCaption } from '@/components/Image/ZoomCaption';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { usePlayback } from '@/hooks/use-playback';
@@ -75,7 +75,9 @@ export function SlideshowCarousel({
   const plays = autoPlay && count > 1;
   // A slideshow that plays itself goes round; one the reader drives stops at its ends.
   const loop = plays;
-  const playing = plays && playback.playing && inView;
+  // Any lightbox, this one's or another figure's, covers the page: nothing plays behind it.
+  const covered = useLightboxOpen();
+  const playing = plays && playback.playing && inView && !covered;
 
   // Autoplay jumps, and the image it leaves fades out on top: a cross-fade when it
   // plays by itself, while a drag, a key or a button still slides the track.
