@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { SearchIcon, Tick02Icon } from "@hugeicons/core-free-icons"
+import { Tick02Icon } from "@hugeicons/core-free-icons"
 
 function Command({
   className,
@@ -70,8 +70,8 @@ function CommandDialog({
   )
 }
 
-// Laid out inline rather than through InputGroup: this is a search box with a
-// leading icon, not a field with an addon floating over it.
+// Laid out inline rather than through InputGroup: a bare box with room at its
+// end, not a field with an addon floating over it.
 function CommandInput({
   className,
   hint,
@@ -83,11 +83,10 @@ function CommandInput({
   return (
     <div data-slot="command-input-wrapper">
       <div className="flex h-[55px] items-center gap-3 border-b-[1.5px] border-foreground/10 px-[18px]">
-        <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="size-4 shrink-0 opacity-40" />
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full bg-transparent text-base outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
@@ -135,7 +134,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "overflow-hidden text-foreground not-first:mt-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-sm **:[[cmdk-group-heading]]:text-muted-foreground",
+        "overflow-hidden text-foreground not-first:mt-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[0.8125rem] **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-subtle-foreground",
         className
       )}
       {...props}
@@ -156,9 +155,10 @@ function CommandSeparator({
   )
 }
 
-// Custom, not from the CLI: the selected row carries the accent rather than
-// `--foreground`, so the one under the cursor reads as live. Re-run
-// `add command --diff` and re-apply.
+// Custom, not from the CLI: rows rest on the body tier and the selected one
+// steps up to `--foreground` on a faint wash, the accent being left to what the
+// reader chose rather than to where the cursor is. Re-run `add command --diff`
+// and re-apply.
 function CommandItem({
   className,
   children,
@@ -168,7 +168,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-[0.95rem] outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-primary/10 data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-primary",
+        "group/command-item relative flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground outline-hidden select-none in-data-[slot=dialog-content]:rounded-lg! transition-[scale] duration-100 active:scale-[0.99] data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[disabled=true]:active:scale-100 data-selected:bg-foreground/5 data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15rem] data-selected:**:[svg]:text-foreground",
         className
       )}
       {...props}

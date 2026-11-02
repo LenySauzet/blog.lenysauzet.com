@@ -2,12 +2,12 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
-/** A row's own wash and accent, so the one target in the header belongs to
+/** A row's own wash, so the one target in the header belongs to
     the list rather than sitting beside it. */
 const CLASS = [
   'shrink-0 cursor-pointer rounded-md px-2 py-1 text-sm whitespace-nowrap',
   'text-muted-foreground/70 transition-[scale] duration-100',
-  'hover:bg-primary/10 hover:text-primary active:scale-[0.97] motion-reduce:active:scale-100',
+  'hover:bg-foreground/5 hover:text-foreground active:scale-[0.97] motion-reduce:active:scale-100',
   'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
   'focus-visible:ring-offset-background focus-visible:outline-none',
 ].join(' ');

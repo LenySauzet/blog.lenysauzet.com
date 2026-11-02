@@ -120,7 +120,7 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
 
             {/* The line it was found on, rather than the description every result
                 would otherwise repeat. */}
-            <p className="line-clamp-2 pl-8 text-sm text-muted-foreground/70">
+            <p className="line-clamp-2 pl-8 text-sm font-normal text-muted-foreground/70">
               {excerpt(result.text, result.terms).map((segment, position) => (
                 <span
                   key={position}

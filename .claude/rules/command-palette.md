@@ -72,9 +72,11 @@ nothing changed, which measured 189ms of scripting over 300 frames against 79ms
 once it stopped.
 
 `components/ui/command.tsx` is customized beyond the CLI output six times over: its
-`CommandInput` is laid out inline rather than through `InputGroup` and takes a `hint`
-slot at the end of its row, a selected item carries `--primary` rather than
-`--foreground`, **`CommandHint` names what a row says on its
+`CommandInput` is a bare box laid out inline rather than through `InputGroup`, no
+leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier
+and the selected one steps up to `--foreground` on a faint wash**, never the accent,
+which belongs to what the reader chose rather than to where the cursor is (a search
+match keeps it, being the reader's own word); **`CommandHint` names what a row says on its
 right** and lifts it with the selection the way a shortcut does, since the one
 thing on the line that does not answer the selection reads as disabled (it is
 exported as a class too, for a mark that has to be a motion element to animate
