@@ -67,7 +67,7 @@ export function Sandpack({
           <SandpackLayout>
             {showCode ? <CodeEditorPane height={paneHeight} /> : null}
             <div
-              className="sp-preview-card relative flex flex-1 flex-col overflow-hidden rounded-xl border border-[var(--code-border)] bg-[var(--code-bg)]"
+              className="sp-preview-card relative flex flex-1 flex-col overflow-hidden rounded-frame-xl border border-[var(--code-border)] bg-[var(--code-bg)]"
               style={{ height: paneHeight }}
             >
               <div className="pointer-events-none absolute inset-0 z-[1] grid place-items-center">

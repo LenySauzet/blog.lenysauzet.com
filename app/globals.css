@@ -67,7 +67,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
   /* A framed block's corners, which a frame around it shrinks through --frame-radius
      so they nest in its own. */
-  --radius-frame-lg: var(--frame-radius, var(--radius-lg));
   --radius-frame-xl: var(--frame-radius, var(--radius-xl));
 }
 

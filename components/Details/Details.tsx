@@ -34,7 +34,7 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
         value={ITEM_VALUE}
         // `group` drives the open-state styling off Radix's data-state;
         // overflow-hidden clips the accent glow so it only bleeds inward.
-        className="group relative overflow-hidden rounded-xl border border-border bg-card"
+        className="group relative overflow-hidden rounded-frame-xl border border-border bg-card"
       >
         <AccordionPrimitive.Header className="flex">
           <AccordionPrimitive.Trigger className="relative flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left outline-none">

@@ -10,7 +10,7 @@ export const Sandpack = dynamic(() => import('./Sandpack').then((mod) => mod.San
   loading: () => (
     <div
       style={{ height: EDITOR_HEIGHT }}
-      className="not-prose my-6 grid place-items-center rounded-xl border border-[var(--code-border)] bg-[var(--code-bg)] text-sm text-muted-foreground"
+      className="not-prose my-6 grid place-items-center rounded-frame-xl border border-[var(--code-border)] bg-[var(--code-bg)] text-sm text-muted-foreground"
     >
       Loading live editor…
     </div>

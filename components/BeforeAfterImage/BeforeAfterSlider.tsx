@@ -219,7 +219,7 @@ export function BeforeAfterSlider({
       onPointerCancel={endDrag}
       onLostPointerCapture={endDrag}
       className={cn(
-        'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-xl border-2 border-border select-none',
+        'relative flex w-full touch-none cursor-ew-resize overflow-hidden rounded-frame-xl border-2 border-border select-none',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
         className
       )}

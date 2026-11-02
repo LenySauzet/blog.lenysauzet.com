@@ -38,7 +38,7 @@ function Video({ medium, mirror, url, author }: VideoProps) {
       <a
         href={url}
         style={{ aspectRatio: `${width} / ${height}` }}
-        className="group relative flex items-center justify-center overflow-hidden rounded-frame-lg border-2 border-border"
+        className="group relative flex items-center justify-center overflow-hidden rounded-frame-xl border-2 border-border"
         aria-label={`${alt}, to watch on X`}
       >
         {/* As large as the photos beside it, which zoom, so the grid draws them alike. */}
