@@ -108,8 +108,10 @@
   --popover-foreground: oklch(0.141 0.005 var(--base-hue));
   /* The accent carries its own lightness so a preset can hold its contrast:
      only the hue turns for every other token, and the cool end of the circle
-     loses a third of its contrast on white at a fixed lightness. */
-  --primary: oklch(var(--accent-l, 0.615) 0.168 var(--base-hue));
+     loses a third of its contrast on white at a fixed lightness. On white it
+     sits LIGHT_SHIFT darker (lib/hues.ts), the step the most demanding preset
+     needs to read as text at 4.5:1; the dark page needs none. */
+  --primary: oklch(calc(var(--accent-l, 0.615) - 0.045) 0.168 var(--base-hue));
   --figure-second: var(--second-light, oklch(0.646 0.222 41.116));
   --figure-third: var(--third-light, oklch(0.596 0.145 163.225));
   --figure-shine: oklch(0.9 0.05 var(--base-hue));
@@ -130,10 +132,12 @@
   --subtle-foreground: oklch(0.5013 0.047 var(--base-hue));
   --accent: oklch(0.967 0.001 var(--base-hue));
   --accent-foreground: oklch(0.21 0.006 var(--base-hue));
-  --destructive: oklch(64.4% 0.204 21.9);
+  /* Both are read as text, a badge, a callout's title, a log, so on white they
+     sit dark enough for 4.5:1, the warning's amber turning toward brown. */
+  --destructive: oklch(0.585 0.204 21.9);
   /* Green and orange deliberately do not rotate with --base-hue. */
   --success: oklch(0.5284 0.117 170);
-  --warning: oklch(0.7412 0.181 60);
+  --warning: oklch(0.57 0.181 60);
   --border: oklch(0.9 0.005 var(--base-hue));
   --input: oklch(0.92 0.004 var(--base-hue));
   /* The fill a disabled field collapses to, borrowed by its border so the edge

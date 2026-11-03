@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -8,6 +11,7 @@ import {
   DEFAULT_HUE,
   HUES,
   hueOf,
+  LIGHT_SHIFT,
   LIGHTNESS,
   propertiesOf,
 } from './hues';
@@ -88,18 +92,30 @@ describe('HUES', () => {
    * chroma than any of them, so what a preset costs in contrast is decided by
    * its angle. At a fixed lightness the green and cyan arc falls to 3.17 on
    * white where the warm end reaches 4.06; each preset carries the lightness
-   * that buys it back. The floor is what the site shipped before any of this.
+   * that buys it back, and on white it sits LIGHT_SHIFT darker again, the
+   * accent being read as text: links, a badge, a button's label on it.
    */
-  it('clears the floor in both themes, every one of them', () => {
+  it('reads as text in both themes, every one of them', () => {
     const onWhite = luminance(1, 0, 0);
 
     for (const preset of HUES) {
-      const accent = luminance(preset.lightness ?? LIGHTNESS, CHROMA, preset.hue);
-      const onPage = luminance(0.1468, 0.01, preset.hue);
+      const lightness = preset.lightness ?? LIGHTNESS;
+      const onLight = luminance(lightness - LIGHT_SHIFT, CHROMA, preset.hue);
+      const onDark = luminance(lightness, CHROMA, preset.hue);
+      const page = luminance(0.1468, 0.01, preset.hue);
 
-      expect(contrast(accent, onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(3.79);
-      expect(contrast(accent, onPage), `${preset.label} in dark`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(onLight, onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(onDark, page), `${preset.label} in dark`).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+describe('LIGHT_SHIFT', () => {
+  // The stylesheet cannot import it, so it is checked against what was written there.
+  it('is the step the light page takes the accent down by', () => {
+    const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8');
+
+    expect(css).toContain(`--primary: oklch(calc(var(--accent-l, 0.615) - ${LIGHT_SHIFT}) 0.168 var(--base-hue));`);
   });
 });
 

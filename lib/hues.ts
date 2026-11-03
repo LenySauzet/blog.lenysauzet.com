@@ -33,6 +33,8 @@ export const HUES: Hue[] = [
 
 export const LIGHTNESS = 0.615;
 export const CHROMA = 0.168;
+/** How much darker the accent sits on the light page, written into globals.css. */
+export const LIGHT_SHIFT = 0.045;
 
 export const STORAGE_KEY = 'hue';
 

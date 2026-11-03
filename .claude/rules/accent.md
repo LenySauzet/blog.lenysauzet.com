@@ -20,11 +20,17 @@ and the choosing happens there.
   only the hue. It needs one: the accent carries far more chroma than anything else, so
   rotating it alone drops `--primary` on white from 4.06 at the warm end to 3.17 at
   teal, well under what the site shipped. Nine presets carry a lightness that buys it
-  back, by at most 0.05. Measured on the page after the change, teal in light mode
-  reads 3.84 where it read 3.17.
+  back, by at most 0.05.
+- **On the light page it sits `LIGHT_SHIFT` (0.045) darker**, one step for every
+  preset, the one sky needs: the accent is read as text, links, a badge, a button's
+  white label, so it holds 4.5:1 on white rather than the 3.79 it shipped at. One
+  shift rather than a second lightness per preset keeps each preset's own tuning and a
+  single number to change; the warmer presets land a little past the floor, pink at
+  4.89. The dark page takes no shift. `globals.css` writes the number, and a test
+  holds it to the constant.
 - **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself
-  and fails a preset that falls under 3.79 in light or 4.5 in dark. The conversion is
-  test-only and agrees with Chrome to within 0.02 of a ratio.
+  and fails a preset that falls under 4.5 in either theme. The conversion is test-only
+  and agrees with Chrome to within 0.02 of a ratio.
 - **There is no Neutral, and that is the answer rather than an omission.** Zeroing the
   accent's chroma only reaches `--primary`: every other token carries its own and
   points at whatever angle is set, so a grey accent sat on a pink page. Measured under
