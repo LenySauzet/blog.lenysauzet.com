@@ -90,6 +90,21 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
+  // Under a finger the selection shows only once the keyboard drives the palette.
+  it('marks a palette the keyboard is driving, until a touch', async () => {
+    const user = userEvent.setup();
+    useCmdkStore.setState({ isOpen: true });
+    render(<CommandPalette posts={posts} />);
+    const root = (await screen.findByRole('combobox')).closest('[data-slot="command"]')!;
+    expect(root).not.toHaveAttribute('data-keyed');
+
+    await user.keyboard('t');
+    expect(root).toHaveAttribute('data-keyed');
+
+    fireEvent.pointerDown(root);
+    expect(root).not.toHaveAttribute('data-keyed');
+  });
+
   it('offers every command that suits the page, under its own heading', async () => {
     pathname = '/posts/anything';
     useCmdkStore.setState({ isOpen: true });
