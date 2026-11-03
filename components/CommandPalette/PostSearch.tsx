@@ -124,7 +124,7 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
               {excerpt(result.text, result.terms).map((segment, position) => (
                 <span
                   key={position}
-                  className={segment.match ? 'text-primary' : undefined}
+                  className={segment.match ? 'text-on-wash-primary' : undefined}
                 >
                   {segment.text}
                 </span>

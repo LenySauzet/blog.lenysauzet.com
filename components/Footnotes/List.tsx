@@ -30,7 +30,7 @@ const FootnotesList = ({ notes }: FootnotesProps) => {
       border border-transparent
       w-fit min-w-[12px] h-[14px] p-px
       focus-within:border-primary focus-within:text-primary
-      hover:border-primary hover:text-primary
+      hover:border-primary hover:text-on-wash-primary
       transition-colors"
             >
               <a href={`#ref-${note.id}`}>{note.id}</a>

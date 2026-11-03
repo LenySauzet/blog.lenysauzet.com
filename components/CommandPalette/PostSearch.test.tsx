@@ -48,7 +48,7 @@ describe('PostSearch', () => {
     show('illusion');
 
     const marked = await screen.findByText('illusion');
-    expect(marked).toHaveClass('text-primary');
+    expect(marked).toHaveClass('text-on-wash-primary');
     expect(marked.closest('p')).toHaveTextContent('optical illusion');
   });
 

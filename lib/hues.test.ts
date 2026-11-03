@@ -18,9 +18,9 @@ import {
 } from './hues';
 
 /**
- * oklch to sRGB, so the contrast floor below is checked rather than asserted.
- * Test-only: nothing ships it, the browser doing this conversion itself.
- * Agrees with Chrome to within 0.02 of a ratio across all eighteen presets.
+ * oklch to encoded sRGB, so the contrast floors below are checked rather than
+ * asserted. Test-only: nothing ships it, the browser doing this conversion itself.
+ * Agrees with Chrome to within 0.02 of a ratio across every preset.
  */
 const encoded = (L: number, C: number, H: number) => {
   const h = (H * Math.PI) / 180;
@@ -136,24 +136,24 @@ describe('the stylesheet', () => {
 
 describe('INK_ON_WASH', () => {
   /**
-   * A badge writes its colour on a wash of the same colour, 15% at its darkest, a
-   * hover; the shifted accent alone reads near 4.0 there. Capped, it clears 4.5 on the
+   * A badge writes its colour on a wash of the same colour, 15% hovered and 20% for
+   * a destructive one; the shifted accent alone reads near 4.0 there. Capped, it clears 4.5 on the
    * light page and on a card under every preset, and so do the status colours.
    */
   it('reads at 4.5:1 over its own wash, every preset and status colour', () => {
-    const colours: [string, number, number, number][] = [
-      ...HUES.map((preset): [string, number, number, number] => [
-        preset.label, (preset.lightness ?? LIGHTNESS) - LIGHT_SHIFT, CHROMA, preset.hue,
+    const colours: [string, number, number, number, number][] = [
+      ...HUES.map((preset): [string, number, number, number, number] => [
+        preset.label, (preset.lightness ?? LIGHTNESS) - LIGHT_SHIFT, CHROMA, preset.hue, 0.15,
       ]),
-      ['success', 0.5284, 0.117, 170],
-      ['warning', 0.7412, 0.181, 60],
-      ['destructive', 0.644, 0.204, 21.9],
+      ['success', 0.5284, 0.117, 170, 0.15],
+      ['warning', 0.7412, 0.181, 60, 0.15],
+      ['destructive', 0.644, 0.204, 21.9, 0.2],
     ];
 
-    for (const [label, L, C, H] of colours) {
+    for (const [label, L, C, H, alpha] of colours) {
       const ink = relative(encoded(Math.min(L, INK_ON_WASH), C, H));
       for (const [surface, ground] of [['page', encoded(1, 0, 0)], ['card', encoded(0.98, 0.004, H)]] as const) {
-        const wash = encoded(L, C, H).map((channel, index) => 0.15 * channel + 0.85 * ground[index]);
+        const wash = encoded(L, C, H).map((channel, index) => alpha * channel + (1 - alpha) * ground[index]);
         expect(contrast(ink, relative(wash)), `${label} on a ${surface}`).toBeGreaterThanOrEqual(4.5);
       }
     }

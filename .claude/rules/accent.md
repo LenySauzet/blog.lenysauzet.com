@@ -29,7 +29,9 @@ and the choosing happens there.
   `--primary` serves both themes and the swatch, which writes the same `calc`, shows
   the colour the theme in force produces.
 - **Text on a wash of its own colour is capped**, `text-on-wash-*` at `INK_ON_WASH`
-  (0.45) on the light page: a badge, a destructive button. The shift alone leaves the
+  (0.45) on the light page: a badge, a destructive button, the text selection, a
+  footnote's hover, a search match. Under `selection:` its own dark variant compiles to
+  an empty `:is()` and drops out, so the selection names `dark:selection:` itself. The shift alone leaves the
   accent near 4.0 over its 15% hover wash, and an amber warning at 2.4. Callouts and
   code carry caps of their own. `hues.test.ts` holds both numbers to the stylesheet.
 - **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself

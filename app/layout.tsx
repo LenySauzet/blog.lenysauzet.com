@@ -72,8 +72,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      {/* `dark:selection:` is not redundant: on a pseudo-element the utility's own dark
+          variant compiles to an empty `:is()`, which drops it. */}
       <body
-        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
+        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-on-wash-primary dark:selection:text-primary`}
       >
         <script dangerouslySetInnerHTML={{ __html: paintHue }} />
 
