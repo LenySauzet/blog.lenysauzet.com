@@ -33,8 +33,9 @@ the first one does.
 
 **`components/ui/badge.tsx` is customized beyond the CLI output**: the "Pill" family.
 Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status variants
-(`info` / `success` / `warning` / `danger`), each a ~10% wash of its colour. shadcn's stock
-`destructive` is kept alongside `danger`.
+(`info` / `success` / `warning` / `danger`), each a ~10% wash of its colour, its text
+in `text-on-wash-*` so it reads at 4.5:1 over that wash (see `accent.md`). shadcn's
+stock `destructive` is kept alongside `danger`.
 
 **`components/ui/card.tsx` is intentionally customized** beyond the CLI output, like
 `badge.tsx`. Four edits: the edge is a `border` resolving from `--border` rather than

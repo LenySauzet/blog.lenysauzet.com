@@ -21,15 +21,20 @@ and the choosing happens there.
   rotating it alone drops `--primary` on white from 4.06 at the warm end to 3.17 at
   teal, well under what the site shipped. Nine presets carry a lightness that buys it
   back, by at most 0.05.
-- **On the light page it sits `LIGHT_SHIFT` (0.045) darker**, one step for every
-  preset, the one sky needs: the accent is read as text, links, a badge, a button's
-  white label, so it holds 4.5:1 on white rather than the 3.79 it shipped at. One
-  shift rather than a second lightness per preset keeps each preset's own tuning and a
-  single number to change; the warmer presets land a little past the floor, pink at
-  4.89. The dark page takes no shift. `globals.css` writes the number, and a test
-  holds it to the constant.
+- **On the light page it sits `--accent-shift` (`LIGHT_SHIFT`, 0.06) darker**, one
+  step for every preset, the one sky needs: the accent is read as text, links and a
+  button's white label, so it holds 4.5:1 on the page and on a card rather than the
+  3.79 it shipped at. One shift rather than a second lightness per preset keeps each
+  preset's own tuning and a single number to change. `.dark` sets it to zero, so one
+  `--primary` serves both themes and the swatch, which writes the same `calc`, shows
+  the colour the theme in force produces.
+- **Text on a wash of its own colour is capped**, `text-on-wash-*` at `INK_ON_WASH`
+  (0.45) on the light page: a badge, a destructive button. The shift alone leaves the
+  accent near 4.0 over its 15% hover wash, and an amber warning at 2.4. Callouts and
+  code carry caps of their own. `hues.test.ts` holds both numbers to the stylesheet.
 - **The floor is checked, not asserted.** `hues.test.ts` converts oklch to sRGB itself
-  and fails a preset that falls under 4.5 in either theme. The conversion is test-only
+  and fails a preset that falls under 4.5 in either theme, on the light page, a card,
+  or under the capped ink on its wash. The conversion is test-only
   and agrees with Chrome to within 0.02 of a ratio.
 - **There is no Neutral, and that is the answer rather than an omission.** Zeroing the
   accent's chroma only reaches `--primary`: every other token carries its own and

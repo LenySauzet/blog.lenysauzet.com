@@ -33,8 +33,10 @@ export const HUES: Hue[] = [
 
 export const LIGHTNESS = 0.615;
 export const CHROMA = 0.168;
-/** How much darker the accent sits on the light page, written into globals.css. */
-export const LIGHT_SHIFT = 0.045;
+/** How much darker the accent sits on the light page: `--accent-shift` in globals.css. */
+export const LIGHT_SHIFT = 0.06;
+/** The light page's cap on small text over its own wash: `text-on-wash-*` in globals.css. */
+export const INK_ON_WASH = 0.45;
 
 export const STORAGE_KEY = 'hue';
 
@@ -91,5 +93,6 @@ export const propertiesOf = (hue: Hue) => ({
   ),
 });
 
+/** The colour a preset produces in the theme in force, `--accent-shift` included. */
 export const accentOf = (hue: Hue) =>
-  `oklch(${hue.lightness ?? LIGHTNESS} ${CHROMA} ${hue.hue})`;
+  `oklch(calc(${hue.lightness ?? LIGHTNESS} - var(--accent-shift, 0)) ${CHROMA} ${hue.hue})`;

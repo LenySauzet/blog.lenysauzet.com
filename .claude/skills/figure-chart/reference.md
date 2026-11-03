@@ -148,8 +148,8 @@ bright in dark. That flip is what lets one threshold serve both, the count going
 `--background` past 58% of the ramp, `--background` being the opposite of the far end
 in either theme. Measured across 36 cells, the worst is 8.5:1 in dark and 6.78:1 in
 light. An earlier version mixed `--primary` into the surface and inverted to
-`--primary-foreground`: white on full `--primary` is 3.79:1 in both themes and 2.16:1
-on a half-mixed cell in light.
+`--primary-foreground`: white on full `--primary` was 3.79:1 in both themes then, and
+2.16:1 on a half-mixed cell in light.
 
 **Its column headers are named above them, not below.** A browser renders `thead`
 first whatever the source order, so an axis named at the far end of the grid from the

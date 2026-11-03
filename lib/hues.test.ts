@@ -11,6 +11,7 @@ import {
   DEFAULT_HUE,
   HUES,
   hueOf,
+  INK_ON_WASH,
   LIGHT_SHIFT,
   LIGHTNESS,
   propertiesOf,
@@ -21,7 +22,7 @@ import {
  * Test-only: nothing ships it, the browser doing this conversion itself.
  * Agrees with Chrome to within 0.02 of a ratio across all eighteen presets.
  */
-const luminance = (L: number, C: number, H: number) => {
+const encoded = (L: number, C: number, H: number) => {
   const h = (H * Math.PI) / 180;
   const a = C * Math.cos(h);
   const b = C * Math.sin(h);
@@ -38,10 +39,16 @@ const luminance = (L: number, C: number, H: number) => {
     .map((channel) => Math.min(1, Math.max(0, channel)))
     .map((channel) =>
       channel <= 0.0031308 ? 12.92 * channel : 1.055 * channel ** (1 / 2.4) - 0.055
-    )
+    );
+};
+
+/** From sRGB as encoded, the form a wash is composited in. */
+const relative = (rgb: number[]) =>
+  rgb
     .map((channel) => (channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
     .reduce((total, channel, index) => total + [0.2126, 0.7152, 0.0722][index] * channel, 0);
-};
+
+const luminance = (L: number, C: number, H: number) => relative(encoded(L, C, H));
 
 const contrast = (a: number, b: number) => {
   const [bright, dim] = [a, b].sort((x, y) => y - x);
@@ -102,20 +109,54 @@ describe('HUES', () => {
       const lightness = preset.lightness ?? LIGHTNESS;
       const onLight = luminance(lightness - LIGHT_SHIFT, CHROMA, preset.hue);
       const onDark = luminance(lightness, CHROMA, preset.hue);
+      const card = luminance(0.98, 0.004, preset.hue);
       const page = luminance(0.1468, 0.01, preset.hue);
 
       expect(contrast(onLight, onWhite), `${preset.label} in light`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(onLight, card), `${preset.label} on a light card`).toBeGreaterThanOrEqual(4.5);
       expect(contrast(onDark, page), `${preset.label} in dark`).toBeGreaterThanOrEqual(4.5);
     }
   });
 });
 
-describe('LIGHT_SHIFT', () => {
-  // The stylesheet cannot import it, so it is checked against what was written there.
-  it('is the step the light page takes the accent down by', () => {
-    const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8');
+describe('the stylesheet', () => {
+  const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8');
 
-    expect(css).toContain(`--primary: oklch(calc(var(--accent-l, 0.615) - ${LIGHT_SHIFT}) 0.168 var(--base-hue));`);
+  // It cannot import the constants, so it is checked against what was written there.
+  it('shifts the accent on the light page alone, by LIGHT_SHIFT', () => {
+    expect(css).toContain(`--accent-shift: ${LIGHT_SHIFT};`);
+    expect(css).toMatch(/\.dark \{[^}]*--accent-shift: 0;/);
+    expect(css.match(/--primary: oklch\(calc\(var\(--accent-l, 0\.615\) - var\(--accent-shift\)\)/g)).toHaveLength(1);
+  });
+
+  it('caps the ink of small text on its own wash at INK_ON_WASH', () => {
+    expect(css).toContain(`color: oklch(from --value(--color-*) min(l, ${INK_ON_WASH}) c h);`);
+  });
+});
+
+describe('INK_ON_WASH', () => {
+  /**
+   * A badge writes its colour on a wash of the same colour, 15% at its darkest, a
+   * hover; the shifted accent alone reads near 4.0 there. Capped, it clears 4.5 on the
+   * light page and on a card under every preset, and so do the status colours.
+   */
+  it('reads at 4.5:1 over its own wash, every preset and status colour', () => {
+    const colours: [string, number, number, number][] = [
+      ...HUES.map((preset): [string, number, number, number] => [
+        preset.label, (preset.lightness ?? LIGHTNESS) - LIGHT_SHIFT, CHROMA, preset.hue,
+      ]),
+      ['success', 0.5284, 0.117, 170],
+      ['warning', 0.7412, 0.181, 60],
+      ['destructive', 0.644, 0.204, 21.9],
+    ];
+
+    for (const [label, L, C, H] of colours) {
+      const ink = relative(encoded(Math.min(L, INK_ON_WASH), C, H));
+      for (const [surface, ground] of [['page', encoded(1, 0, 0)], ['card', encoded(0.98, 0.004, H)]] as const) {
+        const wash = encoded(L, C, H).map((channel, index) => 0.15 * channel + 0.85 * ground[index]);
+        expect(contrast(ink, relative(wash)), `${label} on a ${surface}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
   });
 });
 
@@ -169,7 +210,7 @@ describe('propertiesOf', () => {
 
 describe('accentOf', () => {
   it('paints what the preset will apply, not an approximation of it', () => {
-    expect(accentOf(hueOf('teal'))).toBe('oklch(0.565 0.168 182.503)');
-    expect(accentOf(hueOf('violet'))).toBe('oklch(0.615 0.168 292.717)');
+    expect(accentOf(hueOf('teal'))).toBe('oklch(calc(0.565 - var(--accent-shift, 0)) 0.168 182.503)');
+    expect(accentOf(hueOf('violet'))).toBe('oklch(calc(0.615 - var(--accent-shift, 0)) 0.168 292.717)');
   });
 });

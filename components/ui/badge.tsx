@@ -11,12 +11,12 @@ const badgeVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-        destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
+        destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-on-wash-destructive dark:bg-destructive/20",
         // Custom, not from the CLI: re-run `add badge --diff` and re-apply.
-        info: "bg-primary/10 [a]:hover:bg-primary/15 text-primary",
-        success: "bg-success/10 [a]:hover:bg-success/15 text-success",
-        warning: "bg-warning/10 [a]:hover:bg-warning/15 text-warning",
-        danger: "bg-destructive/10 [a]:hover:bg-destructive/15 text-destructive",
+        info: "bg-primary/10 [a]:hover:bg-primary/15 text-on-wash-primary",
+        success: "bg-success/10 [a]:hover:bg-success/15 text-on-wash-success",
+        warning: "bg-warning/10 [a]:hover:bg-warning/15 text-on-wash-warning",
+        danger: "bg-destructive/10 [a]:hover:bg-destructive/15 text-on-wash-destructive",
         outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
