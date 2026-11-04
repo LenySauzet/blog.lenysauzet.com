@@ -24,12 +24,19 @@ export function rounded({ x, z, width, depth, radius }: Plan, steps = 8): Vec2[]
     vec2(x + r, z + r),
   ];
 
-  return centres.flatMap((centre, corner) => {
+  const points = centres.flatMap((centre, corner) => {
     if (r === 0) return [centre];
     return Array.from({ length: steps + 1 }, (_, step) => {
       const angle = ((corner - 1 + step / steps) * Math.PI) / 2;
       return vec2(centre.x + r * Math.cos(angle), centre.y + r * Math.sin(angle));
     });
+  });
+
+  // At half a side the straight between two corners has no length, and the point both
+  // share would make an edge with no normal, read as turned away mid-face.
+  return points.filter((point, index) => {
+    const before = points[(index + points.length - 1) % points.length];
+    return Math.hypot(point.x - before.x, point.y - before.y) > 1e-9;
   });
 }
 

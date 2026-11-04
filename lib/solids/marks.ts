@@ -1,16 +1,26 @@
-import { signedArea } from '@/lib/polygon';
 import type { Vec2 } from '@/lib/vec2';
-import { add3, basis, cross, dot3, normalize3, scale3, sub3, vec3, view, type Camera, type Vec3 } from '@/lib/vec3';
+import {
+  add3,
+  basis,
+  cross,
+  dot3,
+  normalize3,
+  scale3,
+  sub3,
+  vec3,
+  view,
+  type Camera,
+  type Vec3,
+} from '@/lib/vec3';
 
 import { circle } from './outline';
+import { facingOf, runs, type Lines } from './prism';
 
-/**
- * Lines drawn on solids: seams, rulers, knurls, springs. Each is a list of polylines in
- * screen units, so it can be tested as geometry and written as one path.
- */
-export type Lines = Vec2[][];
-
-export const polyline = (points: readonly Vec3[], camera: Camera): Vec2[] => points.map((point) => view(camera)(point).at);
+/** Lines drawn on solids, as screen polylines: seams, rulers, knurls, springs. */
+export const polyline = (points: readonly Vec3[], camera: Camera): Vec2[] => {
+  const project = view(camera);
+  return points.map((point) => project(point).at);
+};
 
 /** A horizontal circle at height `y`, whole: a screw ring or a bezel on a top face. */
 export const ring = (centre: Vec2, radius: number, y: number, camera: Camera, steps = 40): Vec2[] => {
@@ -36,34 +46,22 @@ export function frontArc(centre: Vec2, radius: number, y: number, camera: Camera
  * solid's own silhouette: a weld, a lid seam, a band. Inset from the corners instead, it
  * would read as a texture that stops.
  */
-export function seam(ring: readonly Vec2[], y: number, camera: Camera): Lines {
-  const { toward } = basis(camera);
-  const count = ring.length;
-  const outward = signedArea(ring) > 0 ? 1 : -1;
-  const facing = ring.map((point, index) => {
-    const next = ring[(index + 1) % count];
-    return outward * ((next.y - point.y) * toward.x + (point.x - next.x) * toward.z) > 1e-9;
-  });
-  const first = facing.findIndex((on, index) => on && !facing[(index + count - 1) % count]);
-  if (first < 0) return [];
-
-  const lines: Lines = [];
-  let run: Vec3[] = [];
-  for (let step = 0; step <= count; step++) {
-    const index = (first + step) % count;
-    const { x, y: z } = ring[index];
-    const point = vec3(x, y, z);
-    if (step < count && facing[index]) run.push(point);
-    else if (run.length) {
-      lines.push(polyline([...run, point], camera));
-      run = [];
-    }
-  }
-  return lines;
-}
+export const seam = (outline: readonly Vec2[], y: number, camera: Camera): Lines =>
+  runs(facingOf(outline, camera), true).map((run) =>
+    polyline(
+      run.map((index) => vec3(outline[index].x, y, outline[index].y)),
+      camera,
+    ),
+  );
 
 /** Upright lines round the visible half of a post: the grip of a knob. */
-export function knurl(centre: Vec2, radius: number, [y0, y1]: readonly [number, number], count: number, camera: Camera): Lines {
+export function knurl(
+  centre: Vec2,
+  radius: number,
+  [y0, y1]: readonly [number, number],
+  count: number,
+  camera: Camera,
+): Lines {
   const { toward } = basis(camera);
   return Array.from({ length: count }, (_, index) => (2 * Math.PI * index) / count)
     // Closer to the limb than this, the lines crowd into a grey band.
@@ -123,42 +121,48 @@ export interface Scale {
 
 /** A ruler's ticks, rooted on the edge they hang from, on any face. */
 export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Scale, camera: Camera) {
+  if (!(step > 0)) throw new Error('ticks: the step must be positive');
   const span = sub3(to, from);
   const length = Math.hypot(span.x, span.y, span.z);
+  if (length === 0) return { minor: [] as Lines, major: [] as Lines };
   const count = Math.floor(length / step + 1e-9);
   const marks = { minor: [] as Lines, major: [] as Lines };
   for (let index = 0; index <= count; index++) {
     const root = add3(from, scale3(span, (index * step) / length));
     const big = index % every === 0;
-    marks[big ? 'major' : 'minor'].push(polyline([root, add3(root, scale3(outward, big ? major : minor))], camera));
+    const tip = add3(root, scale3(outward, big ? major : minor));
+    marks[big ? 'major' : 'minor'].push(polyline([root, tip], camera));
   }
   return marks;
 }
 
-/** Ticks round a dial on a top face; angle 0 points to -z and grows clockwise from above. */
+export interface Dial {
+  count: number;
+  /** Every how many ticks a major one falls, counted from `from`. */
+  every: number;
+  lengths: readonly [minor: number, major: number];
+  /** Where the ticks start, in radians: 0 points to -z, growing clockwise seen from above. */
+  from?: number;
+  /** How far round they run; a whole turn draws its zero once. */
+  span?: number;
+}
+
+/** Ticks round a dial on a top face at height `y`. */
 export function dial(
   centre: Vec2,
   radius: number,
   y: number,
-  { count, every, lengths: [minor, major], from = 0, span = 2 * Math.PI }: {
-    count: number;
-    every: number;
-    lengths: readonly [number, number];
-    from?: number;
-    span?: number;
-  },
+  { count, every, lengths: [minor, major], from = 0, span = 2 * Math.PI }: Dial,
   camera: Camera,
 ) {
-  const whole = Math.abs(span - 2 * Math.PI) < 1e-9;
+  const whole = Math.abs(Math.abs(span) - 2 * Math.PI) < 1e-9;
   const marks = { minor: [] as Lines, major: [] as Lines };
   for (let index = 0; index < (whole ? count : count + 1); index++) {
     const angle = from + (span * index) / count;
     const big = index % every === 0;
     const [dx, dz] = [Math.sin(angle), -Math.cos(angle)];
-    const inner = radius - (big ? major : minor);
-    marks[big ? 'major' : 'minor'].push(
-      polyline([vec3(centre.x + dx * inner, y, centre.y + dz * inner), vec3(centre.x + dx * radius, y, centre.y + dz * radius)], camera),
-    );
+    const at = (reach: number) => vec3(centre.x + dx * reach, y, centre.y + dz * reach);
+    marks[big ? 'major' : 'minor'].push(polyline([at(radius - (big ? major : minor)), at(radius)], camera));
   }
   return marks;
 }

@@ -10,5 +10,8 @@ export const tenth = (value: number) => (Math.round(value * 10) / 10).toFixed(1)
 export const pathOf = (lines: readonly (readonly Vec2[])[], closed = false) =>
   lines
     .filter((line) => line.length > 0)
-    .map((line) => line.map(({ x, y }, at) => `${at ? 'L' : 'M'}${tenth(x)} ${tenth(y)}`).join('') + (closed ? 'Z' : ''))
+    .map((line) => {
+      const moves = line.map(({ x, y }, at) => `${at ? 'L' : 'M'}${tenth(x)} ${tenth(y)}`).join('');
+      return closed ? `${moves}Z` : moves;
+    })
     .join('');

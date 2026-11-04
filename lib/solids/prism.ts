@@ -4,22 +4,28 @@ import { basis, dot3, normalize3, vec3, view, type Camera, type Vec3 } from '@/l
 
 import { circle, rounded, type Plan } from './outline';
 
+/** Polylines in screen units, ready to be written as one path. */
+export type Lines = Vec2[][];
+
 /** From turned away from the light to facing it. */
 export type Tone = 0 | 1 | 2 | 3;
 
 export const TONES = 4;
 
-/** A solid seen by one camera: every piece in screen units, painted in this order. */
+/**
+ * A solid seen by one camera, every piece in screen units, painted in this order: fill,
+ * sides, top, crease, bevel, silhouette.
+ */
 export interface Solid {
-  /** In the page's colour, hiding what stands behind: one hull, or a face each when concave. */
-  fill: Vec2[][];
+  /** The hull, in the page's colour, hiding what stands behind. */
+  fill: Vec2[];
   sides: { corners: Vec2[]; tone: Tone }[];
   top: Vec2[];
   /** Where the top meets the sides the viewer sees. */
-  crease: Vec2[][];
-  /** A highlight inset along the crease, when asked for. */
-  bevel: Vec2[][];
-  outline: Vec2[][];
+  crease: Lines;
+  /** A highlight inset along the crease, tapering into the silhouette at its ends. */
+  bevel: Lines;
+  silhouette: Lines;
   /** Larger is nearer: what a painter sorts on. */
   depth: number;
 }
@@ -28,10 +34,8 @@ export interface Rise {
   /** The height the solid stands on. */
   from: number;
   height: number;
-  /** Inset of the bevel along the top's visible edges; 0 draws none. */
+  /** How far the bevel sits in from the top's visible edges; 0 draws none. */
   bevel?: number;
-  /** An outline that turns inward: filled from its faces, since a hull would bridge the notch. */
-  concave?: boolean;
 }
 
 /**
@@ -47,11 +51,31 @@ export function lightOf(camera: Pick<Camera, 'yaw' | 'pitch'>): Vec3 {
 export const toneOf = (normal: Vec3, light: Vec3): Tone =>
   Math.min(TONES - 1, Math.floor(((dot3(normal, light) + 1) / 2) * TONES)) as Tone;
 
-/** Consecutive indices round a closed ring where `keep` holds, each run with its closing index. */
-function runs(flags: readonly boolean[], keep: boolean): number[][] {
+/** The outward normal of each edge of a floor outline, `i` to `i + 1`, whichever way it winds. */
+export function normalsOf(ring: readonly Vec2[]): Vec3[] {
+  const outward = signedArea(ring) > 0 ? 1 : -1;
+  return ring.map((point, index) => {
+    const next = ring[(index + 1) % ring.length];
+    return normalize3(vec3(outward * (next.y - point.y), 0, outward * (point.x - next.x)));
+  });
+}
+
+/** Which edges of a floor outline face the viewer. */
+export const facingOf = (ring: readonly Vec2[], camera: Pick<Camera, 'yaw' | 'pitch'>) => {
+  const { toward } = basis(camera);
+  return normalsOf(ring).map((normal) => dot3(normal, toward) > 1e-9);
+};
+
+/**
+ * The runs of edges where `flags` holds, round a closed ring, each as the indices of the
+ * points it passes through, its closing one included.
+ */
+export function runs(flags: readonly boolean[], keep: boolean): number[][] {
   const count = flags.length;
   const start = flags.findIndex((flag, index) => flag !== flags[(index + count - 1) % count]);
-  if (start < 0) return flags[0] === keep ? [Array.from({ length: count + 1 }, (_, index) => index % count)] : [];
+  if (start < 0) {
+    return flags[0] === keep ? [Array.from({ length: count + 1 }, (_, index) => index % count)] : [];
+  }
 
   const found: number[][] = [];
   let run: number[] | null = null;
@@ -69,68 +93,84 @@ function runs(flags: readonly boolean[], keep: boolean): number[][] {
   return found;
 }
 
-const turnedUp = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse() : points);
+const isConvex = (ring: readonly Vec2[]) => {
+  const turns = ring.map((point, index) => {
+    const [next, after] = [ring[(index + 1) % ring.length], ring[(index + 2) % ring.length]];
+    return (next.x - point.x) * (after.y - next.y) - (next.y - point.y) * (after.x - next.x);
+  });
+  return turns.every((turn) => turn >= -1e-9) || turns.every((turn) => turn <= 1e-9);
+};
 
-/** Any floor outline stood up along y and shaded by facing. */
-export function prism(ring: readonly Vec2[], { from, height, bevel = 0, concave = false }: Rise, camera: Camera): Solid {
+// Every piece wound one way on screen, so the sides of one solid never cancel each other
+// under the nonzero fill rule where they meet.
+const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse() : points);
+
+/**
+ * A convex floor outline stood up along y and shaded by facing, seen from above (a
+ * positive pitch). Anything concave, an L or a U, is built from convex pieces: only
+ * then is every edge it shows really in front.
+ */
+export function prism(ring: readonly Vec2[], { from, height, bevel = 0 }: Rise, camera: Camera): Solid {
+  if (!isConvex(ring)) {
+    throw new Error('prism: the outline must be convex; build a concave part from convex pieces');
+  }
+
   const project = view(camera);
-  const { toward } = basis(camera);
   const light = lightOf(camera);
   const count = ring.length;
-  const outward = signedArea(ring) > 0 ? 1 : -1;
-
-  const normals = ring.map((point, index) => {
-    const next = ring[(index + 1) % count];
-    return normalize3(vec3(outward * (next.y - point.y), 0, outward * (point.x - next.x)));
-  });
-  const facing = normals.map((normal) => dot3(normal, toward) > 1e-9);
+  const normals = normalsOf(ring);
+  const facing = facingOf(ring, camera);
   const top = ring.map(({ x, y }) => project(vec3(x, from + height, y)).at);
   const bottom = ring.map(({ x, y }) => project(vec3(x, from, y)).at);
+  const along = (points: Vec2[], run: number[]) => run.map((index) => points[index]);
+  const visible = runs(facing, true);
+  const standing = height > 0;
+
   const side = (index: number) => {
     const next = (index + 1) % count;
-    return turnedUp([top[index], top[next], bottom[next], bottom[index]]);
+    return wound([top[index], top[next], bottom[next], bottom[index]]);
   };
-  const along = (points: Vec2[], run: number[]) => run.map((index) => points[index]);
 
-  const visible = runs(facing, true);
-  const outline = [
-    ...runs(facing, false).map((run) => along(top, run)),
-    ...(height > 0 ? visible.map((run) => along(bottom, run)) : []),
-    ...(height > 0
-      ? ring.flatMap((_, index) => (facing[(index + count - 1) % count] !== facing[index] ? [[top[index], bottom[index]]] : []))
-      : []),
-  ];
-
-  const corner = (index: number) => {
+  // Inset along the bisector by enough to sit `bevel` from both edges it joins.
+  const inset = (index: number) => {
     const [a, b] = [normals[(index + count - 1) % count], normals[index]];
-    const length = Math.hypot(a.x + b.x, a.z + b.z) || 1;
+    const [sx, sz] = [a.x + b.x, a.z + b.z];
+    const reach = (2 * bevel) / Math.max(sx * sx + sz * sz, 1e-9);
     const { x, y } = ring[index];
-    return project(vec3(x - ((a.x + b.x) / length) * bevel, from + height, y - ((a.z + b.z) / length) * bevel)).at;
+    return project(vec3(x - sx * reach, from + height, y - sz * reach)).at;
   };
 
   const centre = ring.reduce((sum, { x, y }) => vec2(sum.x + x / count, sum.y + y / count), vec2(0, 0));
 
   return {
-    fill: concave
-      ? [turnedUp(top), turnedUp(bottom), ...ring.flatMap((_, index) => (facing[index] ? [side(index)] : []))]
-      : [hull([...top, ...bottom])],
-    sides:
-      height > 0
-        ? ring.flatMap((_, index) => (facing[index] ? [{ corners: side(index), tone: toneOf(normals[index], light) }] : []))
-        : [],
-    top: turnedUp(top),
+    fill: hull([...top, ...bottom]),
+    sides: standing
+      ? ring.flatMap((_, index) =>
+          facing[index] ? [{ corners: side(index), tone: toneOf(normals[index], light) }] : [],
+        )
+      : [],
+    top: wound(top),
     crease: visible.map((run) => along(top, run)),
     bevel:
       bevel > 0
-        ? visible.map((run) => [top[run[0]], ...run.slice(1, -1).map(corner), top[run[run.length - 1]]])
+        ? visible.map((run) => [top[run[0]], ...run.slice(1, -1).map(inset), top[run[run.length - 1]]])
         : [],
-    outline,
+    silhouette: [
+      ...runs(facing, false).map((run) => along(top, run)),
+      ...(standing ? visible.map((run) => along(bottom, run)) : []),
+      ...(standing
+        ? ring.flatMap((_, index) =>
+            facing[(index + count - 1) % count] !== facing[index] ? [[top[index], bottom[index]]] : [],
+          )
+        : []),
+    ],
     depth: project(vec3(centre.x, from + height / 2, centre.y)).depth,
   };
 }
 
 /** A rounded box: 2 to 4 `steps` to a corner for small parts, 8 to 10 for large ones. */
-export const box = (plan: Plan, rise: Rise, camera: Camera, steps = 8) => prism(rounded(plan, steps), rise, camera);
+export const box = (plan: Plan, rise: Rise, camera: Camera, steps = 8) =>
+  prism(rounded(plan, steps), rise, camera);
 
 /** A post, foot, puck or knob: 16 to 20 `steps` for small ones, 56 to 72 for wide discs. */
 export const post = (centre: Vec2, radius: number, rise: Rise, camera: Camera, steps = 32) =>

@@ -40,8 +40,9 @@ module and test beside `geometry.ts`. Register the figure in `mdx-components.tsx
   (`none`, `soft`, `solid`, `hatched`, or a share), and `outline` for an edge of its own.
 - **Parts**: `Leader` and `stack` for names in the margin, `Magnifier` and `Detail` for
   lenses, `Surface` for a heightfield, `Box` and `Frame` for systems.
-- **Space**: `lib/vec3.ts` (orthographic camera, `ISOMETRIC`), `lib/mesh.ts`
-  (heightfield, faces, silhouette), `scene` and `paintOrder` for depth.
+- **Space**: `lib/vec3.ts` (orthographic camera, `ISOMETRIC`, `fit`), `lib/mesh.ts`
+  (heightfield, faces, silhouette), `lib/solids` (prisms in four tones, the marks on
+  them), `scene` and `paintOrder` for depth.
 - **Time**: `useTimeline` for the parameter, `Playback` for the pause, `use-playback`.
 - **Tones**: `tones.ts`, applied through `paint()` as `--fill` and `--edge`.
 
@@ -69,7 +70,8 @@ magnifier, `Wave` for 3D, `Lerp` for a system in time.
   to two decimals and opacities to three, and depth sorts compare rounded depths then
   ids by code unit. Never format with the runtime's locale.
 - **Every piece in a re-sorted scene is keyed by a stable id**, never by index.
-- **3D stays in SVG while the subject is lines.** Lighting, or anything per pixel, is a
-  shader. Keep a turn well short of edge-on.
+- **3D stays in SVG while the subject is lines or solids.** A flat face takes one of four
+  tones from a light fixed to the camera (`lib/solids`); light that varies across a
+  surface, or anything per pixel, is a shader. Keep a turn well short of edge-on.
 - **A frame holds the drawing across the whole control**, not at rest. Size it from the
   sweep.

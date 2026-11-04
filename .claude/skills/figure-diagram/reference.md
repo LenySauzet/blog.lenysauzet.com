@@ -119,6 +119,14 @@ rather than a surface a screen reader cannot enter.
   `lib/mesh.ts` builds a heightfield, its faces and its silhouette. Perspective waits
   for the figure that needs it, and a phenomenon that lives per pixel, lighting
   included, is a canvas's.
+- **A solid is lit by face, not by pixel.** `lib/solids` stands a convex floor outline
+  up along y and gives each side facing the viewer one of four tones, from a level
+  light at the viewer's left fixed to the camera: an object turned with the eye keeps
+  its tones. It returns screen polygons and polylines, written to a path last, so a
+  test reads geometry. A concave part is built from convex pieces, which `prism`
+  insists on: an inward corner hides edges a convex drawing would show. A seam runs
+  round the visible side to the silhouette, never inset from it, and a coil comes in
+  the halves behind and in front of its axis, so the rod it wraps paints between.
 - **A silhouette is an edge between a face turned to the eye and one turned away, and
   the border**, drawn one weight heavier than the mesh: it is the line that detaches a
   form from its ground. Faces and edges are sorted together, back to front, so a fold

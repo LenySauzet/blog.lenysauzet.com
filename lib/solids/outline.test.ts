@@ -1,29 +1,44 @@
 import { describe, expect, it } from 'vitest';
 
 import { signedArea } from '@/lib/polygon';
-import { vec2 } from '@/lib/vec2';
+import { vec2, type Vec2 } from '@/lib/vec2';
 
 import { circle, cornersOf, inset, rounded } from './outline';
 import { pathOf, tenth } from './path';
 
 const PLAN = { x: -10, z: -5, width: 40, depth: 20, radius: 4 };
 
+const repeats = (ring: Vec2[]) =>
+  ring.filter((point, index) => {
+    const before = ring[(index + ring.length - 1) % ring.length];
+    return point.x === before.x && point.y === before.y;
+  }).length;
+
 describe('a floor outline', () => {
-  it('turns one way round, with every corner point on its corner’s circle', () => {
+  it('turns one way round, every corner point on its corner’s circle', () => {
     const ring = rounded(PLAN, 6);
     expect(ring).toHaveLength(4 * 7);
     expect(signedArea(ring)).toBeGreaterThan(0);
     const centre = vec2(PLAN.x + PLAN.width - PLAN.radius, PLAN.z + PLAN.radius);
-    for (const point of ring.slice(0, 7)) expect(Math.hypot(point.x - centre.x, point.y - centre.y)).toBeCloseTo(PLAN.radius, 9);
+    for (const { x, y } of ring.slice(0, 7)) {
+      expect(Math.hypot(x - centre.x, y - centre.y)).toBeCloseTo(PLAN.radius, 9);
+    }
   });
 
   it('keeps four sharp corners when it has no radius', () => {
     expect(rounded({ ...PLAN, radius: 0 })).toEqual([vec2(30, -5), vec2(30, 15), vec2(-10, 15), vec2(-10, -5)]);
   });
 
+  // At half a side two corners meet; a point they share would be an edge of no length.
+  it('never repeats a point where two corners meet', () => {
+    const pill = rounded({ ...PLAN, radius: 10 }, 6);
+    expect(repeats(pill)).toBe(0);
+    expect(pill).toHaveLength(4 * 7 - 2);
+  });
+
   it('never rounds more than half the shorter side', () => {
-    const ring = rounded({ ...PLAN, radius: 99 }, 4);
-    expect(Math.max(...ring.map(({ y }) => y)) - Math.min(...ring.map(({ y }) => y))).toBeCloseTo(PLAN.depth, 9);
+    const ys = rounded({ ...PLAN, radius: 99 }, 4).map(({ y }) => y);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(PLAN.depth, 9);
   });
 
   it('shrinks by the same amount on every side, and its radius with it', () => {

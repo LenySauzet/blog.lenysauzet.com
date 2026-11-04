@@ -108,4 +108,8 @@ describe('fit', () => {
     expect(Math.min(...ys) + Math.max(...ys)).toBeCloseTo(340, 6);
     expect(Math.min(Math.min(...xs), Math.min(...ys)) - 28).toBeCloseTo(0, 6);
   });
+
+  it('refuses points that span nothing', () => {
+    expect(() => fit([vec3(1, 2, 3)], ISOMETRIC, { width: 600, height: 340, pad: 28 })).toThrow(/span/);
+  });
 });

@@ -79,6 +79,7 @@ export function fit(
   const flat = points.map((point) => view({ ...angle, scale: 1, origin: vec2(0, 0) })(point).at);
   const [xs, ys] = [flat.map(({ x }) => x), flat.map(({ y }) => y)];
   const [left, right, top, bottom] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  if (!(right > left || bottom > top)) throw new Error('fit: the points must span some width or height');
   const scale = Math.min((width - 2 * pad) / (right - left), (height - 2 * pad) / (bottom - top));
 
   return {
