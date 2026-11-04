@@ -1,4 +1,4 @@
-import type { Vec2 } from '@/lib/vec2';
+import { vec2, type Vec2 } from '@/lib/vec2';
 import {
   add3,
   cross,
@@ -73,7 +73,7 @@ export function knurl(
     // Closer to the limb than this, the lines crowd into a grey band.
     .filter((angle) => (Math.cos(angle) * toward.x + Math.sin(angle) * toward.z) / level > 0.15)
     .map((angle) => {
-      const at = { x: centre.x + radius * Math.cos(angle), y: centre.y + radius * Math.sin(angle) };
+      const at = vec2(centre.x + radius * Math.cos(angle), centre.y + radius * Math.sin(angle));
       return [onFloor(at, y0), onFloor(at, y1)];
     });
 }
@@ -85,6 +85,7 @@ export function knurl(
 export function coil(from: Vec3, to: Vec3, radius: number, turns: number, camera: Camera, perTurn = 16) {
   const axis = sub3(to, from);
   if (!(Math.hypot(axis.x, axis.y, axis.z) > 0)) throw new Error('coil: its ends must be apart');
+  if (!(turns > 0)) throw new Error('coil: it must turn at least a little');
   const along = normalize3(axis);
   // Any direction off the axis seeds the two that span its cross-section.
   const u = normalize3(cross(Math.abs(along.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0), along));
@@ -112,7 +113,7 @@ export function coil(from: Vec3, to: Vec3, radius: number, turns: number, camera
   return halves;
 }
 
-export interface Scale {
+export interface Ruler {
   /** Where the scale starts and ends: the edge its ticks grow from. */
   from: Vec3;
   to: Vec3;
@@ -126,7 +127,7 @@ export interface Scale {
 }
 
 /** A ruler's ticks, rooted on the edge they hang from, on any face. */
-export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Scale) {
+export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Ruler) {
   if (!(step > 0) || !(every > 0)) throw new Error('ticks: the step and every must be positive');
   const span = sub3(to, from);
   const length = Math.hypot(span.x, span.y, span.z);

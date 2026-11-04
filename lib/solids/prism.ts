@@ -1,4 +1,4 @@
-import { area, hull, signedArea } from '@/lib/polygon';
+import { hull, signedArea } from '@/lib/polygon';
 import { vec2, type Vec2 } from '@/lib/vec2';
 import { basis, dot3, normalize3, towardViewer, vec3, view, type Camera, type Vec3 } from '@/lib/vec3';
 
@@ -46,8 +46,9 @@ function lightOf(camera: Camera): Vec3 {
   return normalize3(vec3(-right.x, 0, -right.z));
 }
 
-const shadeOf = (normal: Vec3, light: Vec3): Shade =>
-  Math.min(SHADES - 1, Math.floor(((dot3(normal, light) + 1) / 2) * SHADES)) as Shade;
+// The light is level and square to the view, so no side it falls on head-on is ever seen:
+// a visible side scores under 1, and the floor never reaches SHADES.
+const shadeOf = (normal: Vec3, light: Vec3) => Math.floor(((dot3(normal, light) + 1) / 2) * SHADES) as Shade;
 
 /** The outward normal of each edge of a floor outline, `i` to `i + 1`, whichever way it winds. */
 function normalsOf(ring: readonly Vec2[]): Vec3[] {
@@ -58,7 +59,7 @@ function normalsOf(ring: readonly Vec2[]): Vec3[] {
   });
 }
 
-/** Which edges of a floor outline, repeated points dropped, face the viewer. */
+/** Which edges of a floor outline face the viewer, given with repeated points dropped. */
 export const facingOf = (ring: readonly Vec2[], camera: Camera) => {
   const toward = towardViewer(camera);
   return normalsOf(ring).map((normal) => dot3(normal, toward) > 1e-9);
@@ -91,14 +92,20 @@ export function runs(flags: readonly boolean[], keep: boolean): number[][] {
   return found;
 }
 
-/** Simple and convex: every turn one way, and the outline its own hull, a star being neither. */
+/**
+ * Convex and simple: every turn the same way, none doubling back, and the turns adding up
+ * to one turn exactly, which a star, winding round its centre more than once, never does.
+ */
 function isConvex(ring: readonly Vec2[]) {
   const turns = ring.map((point, index) => {
     const [next, after] = [ring[(index + 1) % ring.length], ring[(index + 2) % ring.length]];
-    return (next.x - point.x) * (after.y - next.y) - (next.y - point.y) * (after.x - next.x);
+    const [ax, ay, bx, by] = [next.x - point.x, next.y - point.y, after.x - next.x, after.y - next.y];
+    return Math.atan2(ax * by - ay * bx, ax * bx + ay * by);
   });
   const oneWay = turns.every((turn) => turn >= -1e-9) || turns.every((turn) => turn <= 1e-9);
-  return oneWay && Math.abs(area(ring) - area(hull(ring))) < 1e-6 * Math.max(1, area(ring));
+  const total = turns.reduce((sum, turn) => sum + turn, 0);
+  const forward = turns.every((turn) => Math.abs(turn) < Math.PI - 1e-9);
+  return oneWay && forward && Math.abs(Math.abs(total) - 2 * Math.PI) < 1e-6;
 }
 
 const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse() : points);
@@ -110,10 +117,10 @@ const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse(
  */
 export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Rise, camera: Camera): Solid {
   if (!(height >= 0)) throw new Error('prism: the height must not be negative');
-  if (!(camera.pitch > 0)) throw new Error('prism: a solid is drawn seen from above');
+  if (!(towardViewer(camera).y > 0)) throw new Error('prism: a solid is drawn seen from above');
   const ring = distinct(outline);
-  if (!(area(ring) > 0) || !isConvex(ring)) {
-    throw new Error('prism: the outline must be convex and enclose an area; build a concave part from pieces');
+  if (!isConvex(ring)) {
+    throw new Error('prism: the outline must be convex and simple; build a concave part from pieces');
   }
 
   const project = view(camera);

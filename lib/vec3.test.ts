@@ -109,6 +109,11 @@ describe('fit', () => {
     expect(Math.min(Math.min(...xs), Math.min(...ys)) - 28).toBeCloseTo(0, 6);
   });
 
+  it('frames points that line up on screen, by the one extent they have', () => {
+    const camera = fit([vec3(0, 0, 0), vec3(0, 10, 0)], ISOMETRIC, { width: 600, height: 340, pad: 20 });
+    expect(camera.scale).toBeCloseTo(300 / (10 * Math.cos(ISOMETRIC.pitch)), 9);
+  });
+
   it('refuses points that span nothing', () => {
     expect(() => fit([vec3(1, 2, 3)], ISOMETRIC, { width: 600, height: 340, pad: 28 })).toThrow(/span/);
   });

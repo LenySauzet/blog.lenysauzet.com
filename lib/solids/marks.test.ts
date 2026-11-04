@@ -50,6 +50,14 @@ describe('the marks round a post', () => {
     expect(Math.max(...xs)).toBeCloseTo(Math.max(...uprights), 0);
   });
 
+  // Nearer the limb than this, the lines crowd into a grey band.
+  it('knurl no closer to the limb than its cut', () => {
+    for (const [bottom] of knurl(vec2(0, 0), 6, [0, 4], 72, CAMERA)) {
+      const facing = depthOf(bottom) - depthOf(vec3(0, 0, 0));
+      expect(facing / (6 * Math.cos(CAMERA.pitch))).toBeGreaterThan(0.15 - 1e-9);
+    }
+  });
+
   // How close to the limb the lines crowd is a matter of the floor, not of the pitch.
   it('knurl only the near side, cut at the same line at any pitch', () => {
     const counts = [0.3, ISOMETRIC.pitch, 1.2].map((pitch) => {
@@ -73,7 +81,8 @@ describe('a coil', () => {
   const axisAt = (point: Vec3, from: Vec3, to: Vec3) => {
     const along = vec3(to.x - from.x, to.y - from.y, to.z - from.z);
     const length = Math.hypot(along.x, along.y, along.z);
-    const t = ((point.x - from.x) * along.x + (point.y - from.y) * along.y + (point.z - from.z) * along.z) / length ** 2;
+    const t =
+      ((point.x - from.x) * along.x + (point.y - from.y) * along.y + (point.z - from.z) * along.z) / length ** 2;
     return vec3(from.x + along.x * t, from.y + along.y * t, from.z + along.z * t);
   };
 
@@ -92,8 +101,30 @@ describe('a coil', () => {
     }
   });
 
-  it('refuses ends that meet', () => {
+  it('winds one unbroken wire at its radius, sixteen samples a turn', () => {
+    const [from, to] = [vec3(-20, 6, 0), vec3(30, 6, 0)];
+    const { behind, front } = coil(from, to, 4, 6, CAMERA);
+    const strokes = [...behind, ...front];
+    expect(strokes.every((stroke) => stroke.length >= 2)).toBe(true);
+    for (const point of strokes.flat()) expect(Math.hypot(point.y - 6, point.z)).toBeCloseTo(4, 9);
+    const key = ({ x, y, z }: Vec3) => [x, y, z].map((value) => value.toFixed(9)).join();
+    const starts = new Set(strokes.map((stroke) => key(stroke[0])));
+    const joined = strokes.filter((stroke) => starts.has(key(stroke[stroke.length - 1])));
+    expect(joined).toHaveLength(strokes.length - 1);
+    expect(new Set(strokes.flat().map(key)).size).toBe(6 * 16 + 1);
+  });
+
+  // A wire turning to the other side on its very last sample leaves that point alone.
+  it('never ends on a stretch of one point', () => {
+    const { behind, front } = coil(vec3(-20, 6, 0), vec3(30, 6, 0), 4, 0.1459, CAMERA, 7);
+    expect([...behind, ...front].every((stroke) => stroke.length >= 2)).toBe(true);
+  });
+
+  it('refuses ends that meet, and a wire that does not turn', () => {
     expect(() => coil(vec3(1, 1, 1), vec3(1, 1, 1), 4, 6, CAMERA)).toThrow(/apart/);
+    for (const turns of [0, -3]) {
+      expect(() => coil(vec3(0, 0, 0), vec3(9, 0, 0), 4, turns, CAMERA)).toThrow(/turn/);
+    }
   });
 });
 
@@ -111,11 +142,15 @@ describe('a ruler', () => {
     const { minor, major } = ticks(scale);
     expect(major.map(([root]) => root.x)).toEqual([0, 25, 50, 75]);
     expect(minor).toHaveLength(16);
-    for (const [root, tip] of [...minor, ...major]) {
-      expect([root.y, root.z]).toEqual([0, 0]);
-      expect(tip.z).toBeGreaterThan(0);
-    }
+    for (const [root, tip] of minor) expect([root.y, root.z, tip.z]).toEqual([0, 0, 2]);
+    for (const [root, tip] of major) expect([root.y, root.z, tip.z]).toEqual([0, 0, 4]);
     expect([...minor, ...major].map(([root]) => root.x).sort((a, b) => a - b).slice(0, 2)).toEqual([0, 5]);
+  });
+
+  // 0.3 over 0.1 falls a hair short of 3 in floating point, and the last tick with it.
+  it('reaches the end of an edge that is a whole number of steps long', () => {
+    const { minor, major } = ticks({ ...scale, to: vec3(0.3, 0, 0), step: 0.1 });
+    expect(minor.length + major.length).toBe(4);
   });
 
   it('draws nothing along an edge with no length, and refuses a step or a period of nothing', () => {
@@ -150,6 +185,15 @@ describe('a dial', () => {
       [0, 15],
       [-15, 0],
     ]);
+  });
+
+  it('grows its ticks inward from the rim, the minor ones shorter, starting where asked', () => {
+    const { minor, major } = dial(vec2(0, 0), 15, 0, { count: 8, every: 2, lengths: [1, 2], from: Math.PI / 2 });
+    const reaches = (stroke: Vec3[]) => stroke.map(({ x, z }) => +Math.hypot(x, z).toFixed(9));
+    for (const stroke of minor) expect(reaches(stroke)).toEqual([14, 15]);
+    for (const stroke of major) expect(reaches(stroke)).toEqual([13, 15]);
+    expect(major[0][1].x).toBeCloseTo(15, 9);
+    expect(major[0][1].z).toBeCloseTo(0, 9);
   });
 
   it('refuses a dial of no ticks', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { signedArea } from '@/lib/polygon';
+import { hull, signedArea } from '@/lib/polygon';
 import { vec2, type Vec2 } from '@/lib/vec2';
 
 import { circle, cornersOf, inset, rounded } from './outline';
@@ -36,9 +36,18 @@ describe('a floor outline', () => {
     expect(pill).toHaveLength(4 * 7 - 2);
   });
 
-  it('never rounds more than half the shorter side', () => {
-    const ys = rounded({ ...PLAN, radius: 99 }, 4).map(({ y }) => y);
-    expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(PLAN.depth, 9);
+  it('stays inside its plan however large or small the radius asked', () => {
+    for (const radius of [-3, 99, 12]) {
+      const ring = rounded({ ...PLAN, radius }, 4);
+      expect(signedArea(ring)).toBeCloseTo(signedArea(hull(ring)), 9);
+      for (const { x, y } of ring) {
+        expect(x).toBeGreaterThanOrEqual(PLAN.x - 1e-9);
+        expect(x).toBeLessThanOrEqual(PLAN.x + PLAN.width + 1e-9);
+        expect(y).toBeGreaterThanOrEqual(PLAN.z - 1e-9);
+        expect(y).toBeLessThanOrEqual(PLAN.z + PLAN.depth + 1e-9);
+      }
+    }
+    expect(rounded({ ...PLAN, radius: -3 })).toEqual(rounded({ ...PLAN, radius: 0 }));
   });
 
   it('shrinks by the same amount on every side, and its radius with it', () => {
