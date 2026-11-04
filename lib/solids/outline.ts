@@ -32,13 +32,19 @@ export function rounded({ x, z, width, depth, radius }: Plan, steps = 8): Vec2[]
     });
   });
 
-  // At half a side the straight between two corners has no length, and the point both
-  // share would make an edge with no normal, read as turned away mid-face.
-  return points.filter((point, index) => {
-    const before = points[(index + points.length - 1) % points.length];
+  // At half a side the straight between two corners has no length.
+  return distinct(points);
+}
+
+/**
+ * The outline without a point repeating the one before it, its first included: an edge
+ * of no length has no normal, and would read as turned away in the middle of a face.
+ */
+export const distinct = (ring: readonly Vec2[]) =>
+  ring.filter((point, index) => {
+    const before = ring[(index + ring.length - 1) % ring.length];
     return Math.hypot(point.x - before.x, point.y - before.y) > 1e-9;
   });
-}
 
 export const circle = (centre: Vec2, radius: number, steps = 32): Vec2[] =>
   Array.from({ length: steps }, (_, step) => {

@@ -63,7 +63,7 @@ export const basis = ({ yaw, pitch }: Pick<Camera, 'yaw' | 'pitch'>) => {
 
 export const towardViewer = (camera: Camera) => basis(camera).toward;
 
-export interface Frame {
+export interface Viewport {
   width: number;
   height: number;
   /** Room kept clear on every side, in viewBox units. */
@@ -74,7 +74,7 @@ export interface Frame {
 export function fit(
   points: readonly Vec3[],
   angle: Pick<Camera, 'yaw' | 'pitch'>,
-  { width, height, pad }: Frame,
+  { width, height, pad }: Viewport,
 ): Camera {
   const flat = points.map((point) => view({ ...angle, scale: 1, origin: vec2(0, 0) })(point).at);
   const [xs, ys] = [flat.map(({ x }) => x), flat.map(({ y }) => y)];

@@ -1,44 +1,51 @@
 import type { Vec2 } from '@/lib/vec2';
 import {
   add3,
-  basis,
   cross,
   dot3,
   normalize3,
   scale3,
   sub3,
+  towardViewer,
   vec3,
   view,
   type Camera,
   type Vec3,
 } from '@/lib/vec3';
 
-import { circle } from './outline';
-import { facingOf, runs, type Lines } from './prism';
+import { circle, distinct } from './outline';
+import type { Lines } from './path';
+import { facingOf, runs } from './prism';
 
-/** Lines drawn on solids, as screen polylines: seams, rulers, knurls, springs. */
-export const polyline = (points: readonly Vec3[], camera: Camera): Vec2[] => {
+/**
+ * Lines drawn on solids, seams, rulers, knurls, springs, as world polylines: projected
+ * last, so what lies in front of what stays known to whoever sorts or checks them.
+ */
+export type Strokes = Vec3[][];
+
+export const projected = (strokes: Strokes, camera: Camera): Lines => {
   const project = view(camera);
-  return points.map((point) => project(point).at);
+  return strokes.map((stroke) => stroke.map((point) => project(point).at));
 };
 
-/** A horizontal circle at height `y`, whole: a screw ring or a bezel on a top face. */
-export const ring = (centre: Vec2, radius: number, y: number, camera: Camera, steps = 40): Vec2[] => {
-  const points = circle(centre, radius, steps);
-  return polyline([...points, points[0]].map(({ x, y: z }) => vec3(x, y, z)), camera);
-};
+const onFloor = ({ x, y: z }: Vec2, y: number) => vec3(x, y, z);
+
+/** A whole horizontal circle at height `y`: a screw ring or a bezel on a top face. */
+export function ring(centre: Vec2, radius: number, y: number, steps = 40): Strokes {
+  const points = circle(centre, radius, steps).map((point) => onFloor(point, y));
+  return [[...points, points[0]]];
+}
 
 /** The half of a horizontal circle facing the viewer: a seam or a band round a post. */
-export function frontArc(centre: Vec2, radius: number, y: number, camera: Camera, steps = 24): Vec2[] {
-  const { toward } = basis(camera);
+export function frontArc(centre: Vec2, radius: number, y: number, camera: Camera, steps = 24): Strokes {
+  const toward = towardViewer(camera);
   const facing = Math.atan2(toward.z, toward.x);
-  return polyline(
+  return [
     Array.from({ length: steps + 1 }, (_, step) => {
       const angle = facing - Math.PI / 2 + (Math.PI * step) / steps;
       return vec3(centre.x + radius * Math.cos(angle), y, centre.y + radius * Math.sin(angle));
     }),
-    camera,
-  );
+  ];
 }
 
 /**
@@ -46,13 +53,10 @@ export function frontArc(centre: Vec2, radius: number, y: number, camera: Camera
  * solid's own silhouette: a weld, a lid seam, a band. Inset from the corners instead, it
  * would read as a texture that stops.
  */
-export const seam = (outline: readonly Vec2[], y: number, camera: Camera): Lines =>
-  runs(facingOf(outline, camera), true).map((run) =>
-    polyline(
-      run.map((index) => vec3(outline[index].x, y, outline[index].y)),
-      camera,
-    ),
-  );
+export function seam(outline: readonly Vec2[], y: number, camera: Camera): Strokes {
+  const points = distinct(outline);
+  return runs(facingOf(points, camera), true).map((run) => run.map((index) => onFloor(points[index], y)));
+}
 
 /** Upright lines round the visible half of a post: the grip of a knob. */
 export function knurl(
@@ -61,14 +65,16 @@ export function knurl(
   [y0, y1]: readonly [number, number],
   count: number,
   camera: Camera,
-): Lines {
-  const { toward } = basis(camera);
+): Strokes {
+  const toward = towardViewer(camera);
+  // Measured on the floor alone, so the cut is the same at every pitch.
+  const level = Math.hypot(toward.x, toward.z);
   return Array.from({ length: count }, (_, index) => (2 * Math.PI * index) / count)
     // Closer to the limb than this, the lines crowd into a grey band.
-    .filter((angle) => Math.cos(angle) * toward.x + Math.sin(angle) * toward.z > 0.15)
+    .filter((angle) => (Math.cos(angle) * toward.x + Math.sin(angle) * toward.z) / level > 0.15)
     .map((angle) => {
-      const [x, z] = [centre.x + radius * Math.cos(angle), centre.y + radius * Math.sin(angle)];
-      return polyline([vec3(x, y0, z), vec3(x, y1, z)], camera);
+      const at = { x: centre.x + radius * Math.cos(angle), y: centre.y + radius * Math.sin(angle) };
+      return [onFloor(at, y0), onFloor(at, y1)];
     });
 }
 
@@ -78,16 +84,16 @@ export function knurl(
  */
 export function coil(from: Vec3, to: Vec3, radius: number, turns: number, camera: Camera, perTurn = 16) {
   const axis = sub3(to, from);
+  if (!(Math.hypot(axis.x, axis.y, axis.z) > 0)) throw new Error('coil: its ends must be apart');
   const along = normalize3(axis);
   // Any direction off the axis seeds the two that span its cross-section.
   const u = normalize3(cross(Math.abs(along.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0), along));
   const v = cross(along, u);
-  const { toward } = basis(camera);
-  const behind: Lines = [];
-  const front: Lines = [];
+  const toward = towardViewer(camera);
+  const halves = { behind: [] as Strokes, front: [] as Strokes };
+  const count = Math.max(1, Math.round(turns * perTurn));
   let run: Vec3[] = [];
   let near: boolean | null = null;
-  const count = Math.max(1, Math.round(turns * perTurn));
 
   for (let index = 0; index <= count; index++) {
     const angle = (2 * Math.PI * turns * index) / count;
@@ -97,13 +103,13 @@ export function coil(from: Vec3, to: Vec3, radius: number, turns: number, camera
     near ??= facing;
     run.push(point);
     if (facing !== near) {
-      (near ? front : behind).push(polyline(run, camera));
+      halves[near ? 'front' : 'behind'].push(run);
       run = [point];
       near = facing;
     }
   }
-  if (run.length > 1) (near ? front : behind).push(polyline(run, camera));
-  return { behind, front };
+  if (run.length > 1) halves[near ? 'front' : 'behind'].push(run);
+  return halves;
 }
 
 export interface Scale {
@@ -120,18 +126,16 @@ export interface Scale {
 }
 
 /** A ruler's ticks, rooted on the edge they hang from, on any face. */
-export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Scale, camera: Camera) {
-  if (!(step > 0)) throw new Error('ticks: the step must be positive');
+export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Scale) {
+  if (!(step > 0) || !(every > 0)) throw new Error('ticks: the step and every must be positive');
   const span = sub3(to, from);
   const length = Math.hypot(span.x, span.y, span.z);
-  if (length === 0) return { minor: [] as Lines, major: [] as Lines };
-  const count = Math.floor(length / step + 1e-9);
-  const marks = { minor: [] as Lines, major: [] as Lines };
-  for (let index = 0; index <= count; index++) {
+  const marks = { minor: [] as Strokes, major: [] as Strokes };
+  if (length === 0) return marks;
+  for (let index = 0; index <= Math.floor(length / step + 1e-9); index++) {
     const root = add3(from, scale3(span, (index * step) / length));
     const big = index % every === 0;
-    const tip = add3(root, scale3(outward, big ? major : minor));
-    marks[big ? 'major' : 'minor'].push(polyline([root, tip], camera));
+    marks[big ? 'major' : 'minor'].push([root, add3(root, scale3(outward, big ? major : minor))]);
   }
   return marks;
 }
@@ -153,16 +157,17 @@ export function dial(
   radius: number,
   y: number,
   { count, every, lengths: [minor, major], from = 0, span = 2 * Math.PI }: Dial,
-  camera: Camera,
 ) {
+  if (!(count > 0) || !(every > 0)) throw new Error('dial: count and every must be positive');
   const whole = Math.abs(Math.abs(span) - 2 * Math.PI) < 1e-9;
-  const marks = { minor: [] as Lines, major: [] as Lines };
+  const marks = { minor: [] as Strokes, major: [] as Strokes };
   for (let index = 0; index < (whole ? count : count + 1); index++) {
     const angle = from + (span * index) / count;
     const big = index % every === 0;
-    const [dx, dz] = [Math.sin(angle), -Math.cos(angle)];
-    const at = (reach: number) => vec3(centre.x + dx * reach, y, centre.y + dz * reach);
-    marks[big ? 'major' : 'minor'].push(polyline([at(radius - (big ? major : minor)), at(radius)], camera));
+    // Angle 0 at -z, so the radius at `angle` is (sin, -cos) on the floor.
+    const at = (reach: number) =>
+      vec3(centre.x + Math.sin(angle) * reach, y, centre.y - Math.cos(angle) * reach);
+    marks[big ? 'major' : 'minor'].push([at(radius - (big ? major : minor)), at(radius)]);
   }
   return marks;
 }
@@ -170,7 +175,8 @@ export function dial(
 /**
  * An SVG transform that lays a group's flat coordinates on any face: its x along `u`,
  * its y along `v`, from `origin`, all in world units. Text, screens and plates are drawn
- * flat inside it and land in the face's own plane.
+ * flat inside it and land in the face's own plane. To a thousandth, finer than a path's
+ * tenth, since the matrix scales whatever is drawn in it.
  */
 export function onFace(origin: Vec3, u: Vec3, v: Vec3, camera: Camera) {
   const project = view(camera);

@@ -1,16 +1,14 @@
-import { hull, signedArea } from '@/lib/polygon';
+import { area, hull, signedArea } from '@/lib/polygon';
 import { vec2, type Vec2 } from '@/lib/vec2';
-import { basis, dot3, normalize3, vec3, view, type Camera, type Vec3 } from '@/lib/vec3';
+import { basis, dot3, normalize3, towardViewer, vec3, view, type Camera, type Vec3 } from '@/lib/vec3';
 
-import { circle, rounded, type Plan } from './outline';
-
-/** Polylines in screen units, ready to be written as one path. */
-export type Lines = Vec2[][];
+import { circle, distinct, rounded, type Plan } from './outline';
+import type { Lines } from './path';
 
 /** From turned away from the light to facing it. */
-export type Tone = 0 | 1 | 2 | 3;
+export type Shade = 0 | 1 | 2 | 3;
 
-export const TONES = 4;
+export const SHADES = 4;
 
 /**
  * A solid seen by one camera, every piece in screen units, painted in this order: fill,
@@ -19,14 +17,15 @@ export const TONES = 4;
 export interface Solid {
   /** The hull, in the page's colour, hiding what stands behind. */
   fill: Vec2[];
-  sides: { corners: Vec2[]; tone: Tone }[];
+  /** Each wound the same way as `top`, so pieces of one solid never cancel where they meet. */
+  sides: { corners: Vec2[]; shade: Shade }[];
   top: Vec2[];
   /** Where the top meets the sides the viewer sees. */
   crease: Lines;
   /** A highlight inset along the crease, tapering into the silhouette at its ends. */
   bevel: Lines;
   silhouette: Lines;
-  /** Larger is nearer: what a painter sorts on. */
+  /** Larger is nearer, measured half way up: what a painter sorts on. */
   depth: number;
 }
 
@@ -39,20 +38,19 @@ export interface Rise {
 }
 
 /**
- * The light every solid is shaded by, level and from the viewer's left, a little in
- * front: fixed to the camera, so a turned object keeps its tones where the eye expects.
+ * The light every solid is shaded by, level and from the viewer's left: fixed to the
+ * camera, so a turned object keeps its shades where the eye expects them.
  */
-export function lightOf(camera: Pick<Camera, 'yaw' | 'pitch'>): Vec3 {
-  const { right, toward } = basis(camera);
-  return normalize3(vec3(0.4 * toward.x - right.x, 0, 0.4 * toward.z - right.z));
+function lightOf(camera: Camera): Vec3 {
+  const { right } = basis(camera);
+  return normalize3(vec3(-right.x, 0, -right.z));
 }
 
-/** How a side whose outward normal is `normal` is shaded, in `TONES` steps. */
-export const toneOf = (normal: Vec3, light: Vec3): Tone =>
-  Math.min(TONES - 1, Math.floor(((dot3(normal, light) + 1) / 2) * TONES)) as Tone;
+const shadeOf = (normal: Vec3, light: Vec3): Shade =>
+  Math.min(SHADES - 1, Math.floor(((dot3(normal, light) + 1) / 2) * SHADES)) as Shade;
 
 /** The outward normal of each edge of a floor outline, `i` to `i + 1`, whichever way it winds. */
-export function normalsOf(ring: readonly Vec2[]): Vec3[] {
+function normalsOf(ring: readonly Vec2[]): Vec3[] {
   const outward = signedArea(ring) > 0 ? 1 : -1;
   return ring.map((point, index) => {
     const next = ring[(index + 1) % ring.length];
@@ -60,9 +58,9 @@ export function normalsOf(ring: readonly Vec2[]): Vec3[] {
   });
 }
 
-/** Which edges of a floor outline face the viewer. */
-export const facingOf = (ring: readonly Vec2[], camera: Pick<Camera, 'yaw' | 'pitch'>) => {
-  const { toward } = basis(camera);
+/** Which edges of a floor outline, repeated points dropped, face the viewer. */
+export const facingOf = (ring: readonly Vec2[], camera: Camera) => {
+  const toward = towardViewer(camera);
   return normalsOf(ring).map((normal) => dot3(normal, toward) > 1e-9);
 };
 
@@ -93,26 +91,29 @@ export function runs(flags: readonly boolean[], keep: boolean): number[][] {
   return found;
 }
 
-const isConvex = (ring: readonly Vec2[]) => {
+/** Simple and convex: every turn one way, and the outline its own hull, a star being neither. */
+function isConvex(ring: readonly Vec2[]) {
   const turns = ring.map((point, index) => {
     const [next, after] = [ring[(index + 1) % ring.length], ring[(index + 2) % ring.length]];
     return (next.x - point.x) * (after.y - next.y) - (next.y - point.y) * (after.x - next.x);
   });
-  return turns.every((turn) => turn >= -1e-9) || turns.every((turn) => turn <= 1e-9);
-};
+  const oneWay = turns.every((turn) => turn >= -1e-9) || turns.every((turn) => turn <= 1e-9);
+  return oneWay && Math.abs(area(ring) - area(hull(ring))) < 1e-6 * Math.max(1, area(ring));
+}
 
-// Every piece wound one way on screen, so the sides of one solid never cancel each other
-// under the nonzero fill rule where they meet.
 const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse() : points);
 
 /**
- * A convex floor outline stood up along y and shaded by facing, seen from above (a
- * positive pitch). Anything concave, an L or a U, is built from convex pieces: only
- * then is every edge it shows really in front.
+ * A convex floor outline stood up along y and shaded by facing, seen from above. Anything
+ * concave, an L or a U, is built from convex pieces: only then is every edge it shows
+ * really in front.
  */
-export function prism(ring: readonly Vec2[], { from, height, bevel = 0 }: Rise, camera: Camera): Solid {
-  if (!isConvex(ring)) {
-    throw new Error('prism: the outline must be convex; build a concave part from convex pieces');
+export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Rise, camera: Camera): Solid {
+  if (!(height >= 0)) throw new Error('prism: the height must not be negative');
+  if (!(camera.pitch > 0)) throw new Error('prism: a solid is drawn seen from above');
+  const ring = distinct(outline);
+  if (!(area(ring) > 0) || !isConvex(ring)) {
+    throw new Error('prism: the outline must be convex and enclose an area; build a concave part from pieces');
   }
 
   const project = view(camera);
@@ -124,15 +125,29 @@ export function prism(ring: readonly Vec2[], { from, height, bevel = 0 }: Rise, 
   const bottom = ring.map(({ x, y }) => project(vec3(x, from, y)).at);
   const along = (points: Vec2[], run: number[]) => run.map((index) => points[index]);
   const visible = runs(facing, true);
-  const standing = height > 0;
+  const centre = ring.reduce((sum, { x, y }) => vec2(sum.x + x / count, sum.y + y / count), vec2(0, 0));
+  const depth = project(vec3(centre.x, from + height / 2, centre.y)).depth;
+
+  // A plate with no height is all edge: no side to crease against, no bevel to catch light.
+  if (height === 0) {
+    return {
+      fill: hull(top),
+      sides: [],
+      top: wound(top),
+      crease: [],
+      bevel: [],
+      silhouette: [[...top, top[0]]],
+      depth,
+    };
+  }
 
   const side = (index: number) => {
     const next = (index + 1) % count;
     return wound([top[index], top[next], bottom[next], bottom[index]]);
   };
 
-  // Inset along the bisector by enough to sit `bevel` from both edges it joins.
-  const inset = (index: number) => {
+  // Along the bisector by enough to sit `bevel` from both edges the corner joins.
+  const bevelled = (index: number) => {
     const [a, b] = [normals[(index + count - 1) % count], normals[index]];
     const [sx, sz] = [a.x + b.x, a.z + b.z];
     const reach = (2 * bevel) / Math.max(sx * sx + sz * sz, 1e-9);
@@ -140,31 +155,28 @@ export function prism(ring: readonly Vec2[], { from, height, bevel = 0 }: Rise, 
     return project(vec3(x - sx * reach, from + height, y - sz * reach)).at;
   };
 
-  const centre = ring.reduce((sum, { x, y }) => vec2(sum.x + x / count, sum.y + y / count), vec2(0, 0));
-
   return {
     fill: hull([...top, ...bottom]),
-    sides: standing
-      ? ring.flatMap((_, index) =>
-          facing[index] ? [{ corners: side(index), tone: toneOf(normals[index], light) }] : [],
-        )
-      : [],
+    sides: ring.flatMap((_, index) =>
+      facing[index] ? [{ corners: side(index), shade: shadeOf(normals[index], light) }] : [],
+    ),
     top: wound(top),
     crease: visible.map((run) => along(top, run)),
+    // A lone visible edge has no corner to inset, and its bevel would only retrace the crease.
     bevel:
       bevel > 0
-        ? visible.map((run) => [top[run[0]], ...run.slice(1, -1).map(inset), top[run[run.length - 1]]])
+        ? visible
+            .filter((run) => run.length > 2)
+            .map((run) => [top[run[0]], ...run.slice(1, -1).map(bevelled), top[run[run.length - 1]]])
         : [],
     silhouette: [
       ...runs(facing, false).map((run) => along(top, run)),
-      ...(standing ? visible.map((run) => along(bottom, run)) : []),
-      ...(standing
-        ? ring.flatMap((_, index) =>
-            facing[(index + count - 1) % count] !== facing[index] ? [[top[index], bottom[index]]] : [],
-          )
-        : []),
+      ...visible.map((run) => along(bottom, run)),
+      ...ring.flatMap((_, index) =>
+        facing[(index + count - 1) % count] !== facing[index] ? [[top[index], bottom[index]]] : [],
+      ),
     ],
-    depth: project(vec3(centre.x, from + height / 2, centre.y)).depth,
+    depth,
   };
 }
 
