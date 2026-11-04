@@ -46,9 +46,10 @@ function lightOf(camera: Camera): Vec3 {
   return normalize3(vec3(-right.x, 0, -right.z));
 }
 
-// The light is level and square to the view, so no side it falls on head-on is ever seen:
-// a visible side scores under 1, and the floor never reaches SHADES.
-const shadeOf = (normal: Vec3, light: Vec3) => Math.floor(((dot3(normal, light) + 1) / 2) * SHADES) as Shade;
+// The light is square to the view, so a side facing it head-on is seen edge on; but a
+// side a hair off that still counts as seen, and its cosine rounds to exactly 1.
+const shadeOf = (normal: Vec3, light: Vec3) =>
+  Math.min(SHADES - 1, Math.floor(((dot3(normal, light) + 1) / 2) * SHADES)) as Shade;
 
 /** The outward normal of each edge of a floor outline, `i` to `i + 1`, whichever way it winds. */
 function normalsOf(ring: readonly Vec2[]): Vec3[] {
@@ -138,7 +139,7 @@ export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Ris
   // A plate with no height is all edge: no side to crease against, no bevel to catch light.
   if (height === 0) {
     return {
-      fill: hull(top),
+      fill: wound(top),
       sides: [],
       top: wound(top),
       crease: [],
@@ -157,7 +158,7 @@ export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Ris
   const bevelled = (index: number) => {
     const [a, b] = [normals[(index + count - 1) % count], normals[index]];
     const [sx, sz] = [a.x + b.x, a.z + b.z];
-    const reach = (2 * bevel) / Math.max(sx * sx + sz * sz, 1e-9);
+    const reach = (2 * bevel) / (sx * sx + sz * sz);
     const { x, y } = ring[index];
     return project(vec3(x - sx * reach, from + height, y - sz * reach)).at;
   };
@@ -187,10 +188,10 @@ export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Ris
   };
 }
 
-/** A rounded box: 2 to 4 `steps` to a corner for small parts, 8 to 10 for large ones. */
-export const box = (plan: Plan, rise: Rise, camera: Camera, steps = 8) =>
+/** A rounded block: 2 to 4 `steps` to a corner for small parts, 8 to 10 for large ones. */
+export const block = (plan: Plan, rise: Rise, camera: Camera, steps = 8) =>
   prism(rounded(plan, steps), rise, camera);
 
 /** A post, foot, puck or knob: 16 to 20 `steps` for small ones, 56 to 72 for wide discs. */
-export const post = (centre: Vec2, radius: number, rise: Rise, camera: Camera, steps = 32) =>
+export const cylinder = (centre: Vec2, radius: number, rise: Rise, camera: Camera, steps = 32) =>
   prism(circle(centre, radius, steps), rise, camera);

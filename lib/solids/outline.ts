@@ -24,15 +24,15 @@ export function rounded({ x, z, width, depth, radius }: Plan, steps = 8): Vec2[]
     vec2(x + r, z + r),
   ];
 
-  const points = centres.flatMap((centre, corner) => {
-    if (r === 0) return [centre];
-    return Array.from({ length: steps + 1 }, (_, step) => {
+  const points = centres.flatMap((centre, corner) =>
+    Array.from({ length: steps + 1 }, (_, step) => {
       const angle = ((corner - 1 + step / steps) * Math.PI) / 2;
       return vec2(centre.x + r * Math.cos(angle), centre.y + r * Math.sin(angle));
-    });
-  });
+    }),
+  );
 
-  // At half a side the straight between two corners has no length.
+  // With no radius a corner is one point repeated, and at half a side the straight
+  // between two corners has no length.
   return distinct(points);
 }
 

@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { hull, signedArea } from '@/lib/polygon';
 import { vec2, type Vec2 } from '@/lib/vec2';
 
-import { circle, cornersOf, inset, rounded } from './outline';
-import { pathOf, tenth } from './path';
+import { circle, cornersOf, distinct, inset, rounded } from './outline';
 
 const PLAN = { x: -10, z: -5, width: 40, depth: 20, radius: 4 };
 
@@ -55,18 +54,13 @@ describe('a floor outline', () => {
     expect(inset(PLAN, 6).radius).toBe(0);
   });
 
+  it('drops a point repeating the one before it, by a hair or exactly, the first included', () => {
+    const square = [vec2(0, 0), vec2(10, 0), vec2(10, 1e-12), vec2(10, 10), vec2(0, 10), vec2(0, 0)];
+    expect(distinct(square)).toEqual([vec2(10, 0), vec2(10, 10), vec2(0, 10), vec2(0, 0)]);
+  });
+
   it('marks its corners and its circle where asked', () => {
     expect(cornersOf(PLAN, 3)).toEqual([vec2(-7, -2), vec2(27, -2), vec2(27, 12), vec2(-7, 12)]);
     expect(circle(vec2(1, 1), 2, 4)[1].y).toBeCloseTo(3, 9);
-  });
-});
-
-describe('a path', () => {
-  it('writes a tenth of a unit, dropping a trailing zero and any negative zero', () => {
-    expect([tenth(12.34), tenth(5), tenth(-0.04)]).toEqual(['12.3', '5', '0']);
-  });
-
-  it('joins every line into one path, closing each when asked', () => {
-    expect(pathOf([[vec2(0, 0), vec2(1.25, -3)], [], [vec2(2, 2)]], true)).toBe('M0 0L1.3 -3ZM2 2Z');
   });
 });

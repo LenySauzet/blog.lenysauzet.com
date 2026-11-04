@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { vec2, type Vec2 } from '@/lib/vec2';
 import { signedArea } from '@/lib/polygon';
+import { vec2, type Vec2 } from '@/lib/vec2';
 import { ISOMETRIC, vec3, view, type Camera } from '@/lib/vec3';
 
 import { rounded, type Plan } from './outline';
-import { box, post, prism, type Solid } from './prism';
+import { block, cylinder, prism, SHADES, type Solid } from './prism';
 
 const camera = (yaw = ISOMETRIC.yaw): Camera => ({
   yaw,
@@ -35,11 +35,11 @@ const turned = (points: Vec2[], angle: number) =>
 
 describe('a prism', () => {
   it('shows the two sides of a box that face the viewer, and no more', () => {
-    expect(box(BLOCK, RISE, camera()).sides).toHaveLength(2);
+    expect(block(BLOCK, RISE, camera()).sides).toHaveLength(2);
   });
 
   it('fills a hull that holds every side, so nothing behind shows through', () => {
-    const solid = box({ ...BLOCK, radius: 6 }, RISE, camera());
+    const solid = block({ ...BLOCK, radius: 6 }, RISE, camera());
     for (const { corners } of solid.sides) {
       for (const corner of corners) expect(inside(corner, solid.fill)).toBe(true);
     }
@@ -47,11 +47,28 @@ describe('a prism', () => {
 
   // The light comes from the viewer's left.
   it('shades the two sides of a box in the darkest and lightest steps', () => {
-    expect(shades(box(BLOCK, RISE, camera()))).toEqual([0, 3]);
+    expect(shades(block(BLOCK, RISE, camera()))).toEqual([0, 3]);
+  });
+
+  // A level light square to the view splits the near half turn by its cosine in quarters:
+  // 60 degrees dark, 30, 30, and 60 lit, at any yaw.
+  it('shades a cylinder by the quarter its light falls in', () => {
+    for (const yaw of [ISOMETRIC.yaw + 0.2, 0.37, 2.1]) {
+      const counts = [0, 0, 0, 0];
+      for (const { shade } of cylinder(vec2(0, 0), 10, RISE, camera(yaw), 360).sides) counts[shade]++;
+      expect(counts).toEqual([60, 30, 30, 60]);
+    }
+  });
+
+  // A side a hair off facing the light still shows, and its cosine rounds to exactly 1.
+  it('keeps every shade on its scale, even a side square to the light', () => {
+    for (const yaw of [1e-8, Math.PI / 2 + 1e-8, Math.PI + 1e-8]) {
+      for (const { shade } of block(BLOCK, RISE, camera(yaw)).sides) expect(shade).toBeLessThan(SHADES);
+    }
   });
 
   it('lights the left side more than the right', () => {
-    const [a, b] = box(BLOCK, RISE, camera()).sides;
+    const [a, b] = block(BLOCK, RISE, camera()).sides;
     const [left, right] = leftmost(a.corners) < leftmost(b.corners) ? [a, b] : [b, a];
     expect(left.shade).toBeGreaterThan(right.shade);
   });
@@ -98,7 +115,7 @@ describe('a prism', () => {
   });
 
   it('draws its silhouette round the bottom, up the sides it turns away, and over the back of its top', () => {
-    const solid = box(BLOCK, RISE, camera());
+    const solid = block(BLOCK, RISE, camera());
     expect(solid.silhouette.filter(isUpright)).toHaveLength(2);
     const ys = solid.fill.map(({ y }) => y);
     const [lowest, highest] = [Math.max(...ys), Math.min(...ys)];
@@ -108,27 +125,30 @@ describe('a prism', () => {
   });
 
   it('creases along the top, where it meets the sides the viewer sees', () => {
-    const solid = box(BLOCK, RISE, camera());
+    const solid = block(BLOCK, RISE, camera());
     const onTop = (point: Vec2) => solid.top.some(({ x, y }) => x === point.x && y === point.y);
     expect(solid.crease.flat().every(onTop)).toBe(true);
   });
 
   it('seen from straight above, shows no side and is outlined all round its top', () => {
-    const solid = box(BLOCK, RISE, { ...camera(), pitch: Math.PI / 2 });
+    const solid = block(BLOCK, RISE, { ...camera(), pitch: Math.PI / 2 });
     expect([solid.sides, solid.crease]).toEqual([[], []]);
     expect(solid.silhouette).toHaveLength(1);
+    const [loop] = solid.silhouette;
+    expect(loop).toHaveLength(solid.top.length + 1);
+    expect(loop[loop.length - 1]).toEqual(loop[0]);
   });
 
   // At half a side the corners meet, and a shared point would cut a face in two.
   it('keeps a pill whole: two upright edges and one crease', () => {
-    const pill = box({ x: -20, z: -10, width: 40, depth: 20, radius: 10 }, { ...RISE, bevel: 1 }, camera());
+    const pill = block({ x: -20, z: -10, width: 40, depth: 20, radius: 10 }, { ...RISE, bevel: 1 }, camera());
     expect(pill.silhouette.filter(isUpright)).toHaveLength(2);
     expect(pill.crease).toHaveLength(1);
     expect(pill.bevel).toHaveLength(1);
   });
 
   it('is all silhouette when it has no height: no side, crease or bevel', () => {
-    const flat = box(BLOCK, { from: 0, height: 0, bevel: 1 }, camera());
+    const flat = block(BLOCK, { from: 0, height: 0, bevel: 1 }, camera());
     expect(flat.sides).toEqual([]);
     expect([flat.crease, flat.bevel]).toEqual([[], []]);
     expect(flat.silhouette).toHaveLength(1);
@@ -138,7 +158,7 @@ describe('a prism', () => {
 
   // Seen square on, one side shows: its bevel would only retrace the crease.
   it('draws no bevel along a lone visible edge', () => {
-    expect(box(BLOCK, { ...RISE, bevel: 1 }, camera(0)).bevel).toEqual([]);
+    expect(block(BLOCK, { ...RISE, bevel: 1 }, camera(0)).bevel).toEqual([]);
   });
 
   it('refuses what it cannot draw truly', () => {
@@ -146,16 +166,18 @@ describe('a prism', () => {
       const angle = (4 * Math.PI * index) / 5;
       return vec2(10 * Math.cos(angle), 10 * Math.sin(angle));
     });
-    expect(() => box(BLOCK, { from: 0, height: -2 }, camera())).toThrow(/negative/);
+    for (const height of [-0.5, NaN]) {
+      expect(() => block(BLOCK, { from: 0, height }, camera())).toThrow(/negative/);
+    }
     const octagram = Array.from({ length: 8 }, (_, index) => {
       const angle = (6 * Math.PI * index) / 8;
       return vec2(10 * Math.cos(angle), 10 * Math.sin(angle));
     });
     const doubledBack = [vec2(0, 0), vec2(10, 0), vec2(10, 10), vec2(10, 5), vec2(10, 10), vec2(0, 10)];
     for (const pitch of [-0.3, 3.5]) {
-      expect(() => box(BLOCK, RISE, { ...camera(), pitch })).toThrow(/above/);
+      expect(() => block(BLOCK, RISE, { ...camera(), pitch })).toThrow(/above/);
     }
-    expect(box(BLOCK, RISE, { ...camera(), pitch: ISOMETRIC.pitch - 2 * Math.PI }).sides).toHaveLength(2);
+    expect(block(BLOCK, RISE, { ...camera(), pitch: ISOMETRIC.pitch - 2 * Math.PI }).sides).toHaveLength(2);
     const there = [vec2(-5.5, -2), vec2(-2.75, -1)];
     for (const outline of [star, octagram, doubledBack, there, [vec2(0, 0), vec2(5, 0), vec2(10, 0)]]) {
       expect(() => prism(outline, RISE, camera())).toThrow(/convex/);
@@ -163,8 +185,8 @@ describe('a prism', () => {
   });
 
   it('sets its bevel in by exactly the distance asked for, from both edges of a corner', () => {
-    const solid = box(BLOCK, { ...RISE, bevel: 2 }, camera());
-    expect(box(BLOCK, RISE, camera()).bevel).toEqual([]);
+    const solid = block(BLOCK, { ...RISE, bevel: 2 }, camera());
+    expect(block(BLOCK, RISE, camera()).bevel).toEqual([]);
     const [line] = solid.bevel;
     const corner = view(camera())(vec3(BLOCK.x + BLOCK.width - 2, RISE.height, BLOCK.z + BLOCK.depth - 2)).at;
     expect(line).toHaveLength(3);
@@ -175,7 +197,7 @@ describe('a prism', () => {
   // A wide corner needs more reach along its bisector than a right angle to keep its distance.
   it('keeps its bevel the same distance from the edges at any corner', () => {
     const [steps, radius, bevel] = [8, 20, 2];
-    const solid = post(vec2(0, 0), radius, { ...RISE, bevel }, camera(), steps);
+    const solid = cylinder(vec2(0, 0), radius, { ...RISE, bevel }, camera(), steps);
     const reach = radius - bevel / Math.cos(Math.PI / steps);
     const insetCorners = Array.from({ length: steps }, (_, index) => {
       const angle = (2 * Math.PI * index) / steps;
@@ -195,11 +217,15 @@ describe('a prism', () => {
   it('measures its depth half way up, where a painter compares it with its neighbours', () => {
     const away: Plan = { ...BLOCK, x: 35, z: -60 };
     const middle = view(camera())(vec3(away.x + away.width / 2, 25, away.z + away.depth / 2)).depth;
-    expect(box(away, { from: 5, height: 40 }, camera()).depth).toBeCloseTo(middle, 9);
+    expect(block(away, { from: 5, height: 40 }, camera()).depth).toBeCloseTo(middle, 9);
+  });
+
+  it('rounds a block with as many steps to a corner as asked', () => {
+    expect(block({ ...BLOCK, radius: 5 }, RISE, camera(), 2).top).toHaveLength(4 * 3);
   });
 
   it('is nearer the viewer the further it stands toward them', () => {
-    const near = box({ ...BLOCK, x: BLOCK.x + 40, z: BLOCK.z + 40 }, RISE, camera());
-    expect(near.depth).toBeGreaterThan(box(BLOCK, RISE, camera()).depth);
+    const near = block({ ...BLOCK, x: BLOCK.x + 40, z: BLOCK.z + 40 }, RISE, camera());
+    expect(near.depth).toBeGreaterThan(block(BLOCK, RISE, camera()).depth);
   });
 });

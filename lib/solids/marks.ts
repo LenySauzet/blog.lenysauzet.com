@@ -31,26 +31,14 @@ export const projected = (strokes: Strokes, camera: Camera): Lines => {
 const onFloor = ({ x, y: z }: Vec2, y: number) => vec3(x, y, z);
 
 /** A whole horizontal circle at height `y`: a screw ring or a bezel on a top face. */
-export function ring(centre: Vec2, radius: number, y: number, steps = 40): Strokes {
+export function rim(centre: Vec2, radius: number, y: number, steps = 40): Strokes {
   const points = circle(centre, radius, steps).map((point) => onFloor(point, y));
   return [[...points, points[0]]];
 }
 
-/** The half of a horizontal circle facing the viewer: a seam or a band round a post. */
-export function frontArc(centre: Vec2, radius: number, y: number, camera: Camera, steps = 24): Strokes {
-  const toward = towardViewer(camera);
-  const facing = Math.atan2(toward.z, toward.x);
-  return [
-    Array.from({ length: steps + 1 }, (_, step) => {
-      const angle = facing - Math.PI / 2 + (Math.PI * step) / steps;
-      return vec3(centre.x + radius * Math.cos(angle), y, centre.y + radius * Math.sin(angle));
-    }),
-  ];
-}
-
 /**
- * A line round the visible near side of a floor outline at height `y`, ending on the
- * solid's own silhouette: a weld, a lid seam, a band. Inset from the corners instead, it
+ * A line round the visible near side of a convex floor outline at height `y`, ending on
+ * the solid's own silhouette: a weld, a lid seam. Inset from the corners instead, it
  * would read as a texture that stops.
  */
 export function seam(outline: readonly Vec2[], y: number, camera: Camera): Strokes {
@@ -58,7 +46,14 @@ export function seam(outline: readonly Vec2[], y: number, camera: Camera): Strok
   return runs(facingOf(points, camera), true).map((run) => run.map((index) => onFloor(points[index], y)));
 }
 
-/** Upright lines round the visible half of a post: the grip of a knob. */
+/**
+ * A seam round a cylinder: given the cylinder's own `steps`, it ends on its silhouette,
+ * where a true half circle would overshoot the facets.
+ */
+export const band = (centre: Vec2, radius: number, y: number, camera: Camera, steps = 32) =>
+  seam(circle(centre, radius, steps), y, camera);
+
+/** Upright lines round the visible half of a cylinder: the grip of a knob. */
 export function knurl(
   centre: Vec2,
   radius: number,
@@ -85,14 +80,14 @@ export function knurl(
 export function coil(from: Vec3, to: Vec3, radius: number, turns: number, camera: Camera, perTurn = 16) {
   const axis = sub3(to, from);
   if (!(Math.hypot(axis.x, axis.y, axis.z) > 0)) throw new Error('coil: its ends must be apart');
-  if (!(turns > 0)) throw new Error('coil: it must turn at least a little');
+  if (!(turns > 0) || !(perTurn >= 1)) throw new Error('coil: it must turn, sampled at least once a turn');
   const along = normalize3(axis);
   // Any direction off the axis seeds the two that span its cross-section.
   const u = normalize3(cross(Math.abs(along.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0), along));
   const v = cross(along, u);
   const toward = towardViewer(camera);
   const halves = { behind: [] as Strokes, front: [] as Strokes };
-  const count = Math.max(1, Math.round(turns * perTurn));
+  const count = Math.ceil(turns * perTurn);
   let run: Vec3[] = [];
   let near: boolean | null = null;
 
@@ -159,7 +154,9 @@ export function dial(
   y: number,
   { count, every, lengths: [minor, major], from = 0, span = 2 * Math.PI }: Dial,
 ) {
-  if (!(count > 0) || !(every > 0)) throw new Error('dial: count and every must be positive');
+  if (!(count > 0) || !(every > 0) || span === 0) {
+    throw new Error('dial: count, every and span must not be nothing');
+  }
   const whole = Math.abs(Math.abs(span) - 2 * Math.PI) < 1e-9;
   const marks = { minor: [] as Strokes, major: [] as Strokes };
   for (let index = 0; index < (whole ? count : count + 1); index++) {

@@ -114,6 +114,10 @@ describe('fit', () => {
     expect(camera.scale).toBeCloseTo(300 / (10 * Math.cos(ISOMETRIC.pitch)), 9);
   });
 
+  it('refuses a pad that leaves no room', () => {
+    expect(() => fit([vec3(0, 0, 0), vec3(10, 0, 0)], ISOMETRIC, { width: 100, height: 100, pad: 50 })).toThrow(/room/);
+  });
+
   it('refuses points that span nothing', () => {
     expect(() => fit([vec3(1, 2, 3)], ISOMETRIC, { width: 600, height: 340, pad: 28 })).toThrow(/span/);
   });

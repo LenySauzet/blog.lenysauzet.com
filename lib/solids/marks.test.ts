@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { vec2, type Vec2 } from '@/lib/vec2';
 import { ISOMETRIC, vec3, view, type Camera, type Vec3 } from '@/lib/vec3';
 
-import { coil, dial, frontArc, knurl, onFace, projected, ring, seam, ticks } from './marks';
+import { band, coil, dial, knurl, onFace, projected, rim, seam, ticks } from './marks';
 import { rounded, type Plan } from './outline';
-import { box, post } from './prism';
+import { block, cylinder } from './prism';
 
 const CAMERA: Camera = { yaw: ISOMETRIC.yaw + 0.2, pitch: ISOMETRIC.pitch, scale: 2, origin: vec2(300, 170) };
 const lens = view(CAMERA);
@@ -23,7 +23,7 @@ describe('a seam', () => {
 
   // A seam stopping short of the corners reads as a texture that ends in mid-air.
   it('runs round the near side of a box, from one edge of its silhouette to the other', () => {
-    const uprights = uprightsOf(box(plan, { from: 0, height: 12 }, CAMERA).silhouette);
+    const uprights = uprightsOf(block(plan, { from: 0, height: 12 }, CAMERA).silhouette);
     const centre = depthOf(vec3(0, 5, 0));
     for (const outline of [rounded(plan, 8), [...rounded(plan, 8)].reverse()]) {
       const strokes = seam(outline, 5, CAMERA);
@@ -41,13 +41,14 @@ describe('a seam', () => {
 describe('the marks round a post', () => {
   const centre = depthOf(vec3(0, 4, 0));
 
-  it('band exactly the near half', () => {
-    const [arc] = frontArc(vec2(0, 0), 6, 4, CAMERA);
+  // A true half circle would overshoot the facets of the cylinder it bands.
+  it('band the near half, ending on the cylinder’s own edges', () => {
+    const [arc] = band(vec2(0, 0), 8, 4, CAMERA, 16);
     expect(depthOf(middleOf(arc))).toBeGreaterThan(centre);
-    const uprights = uprightsOf(post(vec2(0, 0), 6, { from: 0, height: 10 }, CAMERA, 96).silhouette);
+    const uprights = uprightsOf(cylinder(vec2(0, 0), 8, { from: 0, height: 10 }, CAMERA, 16).silhouette);
     const xs = ends(projected([arc], CAMERA)[0]).map(({ x }) => x);
-    expect(Math.min(...xs)).toBeCloseTo(Math.min(...uprights), 0);
-    expect(Math.max(...xs)).toBeCloseTo(Math.max(...uprights), 0);
+    expect(Math.min(...xs)).toBeCloseTo(Math.min(...uprights), 9);
+    expect(Math.max(...xs)).toBeCloseTo(Math.max(...uprights), 9);
   });
 
   // Nearer the limb than this, the lines crowd into a grey band.
@@ -65,12 +66,18 @@ describe('the marks round a post', () => {
       for (const [bottom] of strokes) expect(depthOf(bottom)).toBeGreaterThan(depthOf(vec3(0, 0, 0)));
       return strokes.length;
     });
-    expect(new Set(counts).size).toBe(1);
-    expect(counts[0]).toBeGreaterThan(8);
+    expect(counts).toEqual([16, 16, 16]);
+  });
+
+  it('knurl from the foot of the grip to its top', () => {
+    for (const [bottom, top] of knurl(vec2(0, 0), 6, [1, 4], 36, CAMERA)) {
+      expect([bottom.y, top.y]).toEqual([1, 4]);
+      expect([top.x, top.z]).toEqual([bottom.x, bottom.z]);
+    }
   });
 
   it('ring a face whole and closed', () => {
-    const [loop] = ring(vec2(1, 2), 3, 7, 12);
+    const [loop] = rim(vec2(1, 2), 3, 7, 12);
     expect(loop).toHaveLength(13);
     expect(loop[12]).toEqual(loop[0]);
     expect(loop.every(({ y }) => y === 7)).toBe(true);
@@ -120,8 +127,16 @@ describe('a coil', () => {
     expect([...behind, ...front].every((stroke) => stroke.length >= 2)).toBe(true);
   });
 
-  it('refuses ends that meet, and a wire that does not turn', () => {
+  it('draws a wire that barely turns, rather than nothing or numbers that are not', () => {
+    const { behind, front } = coil(vec3(0, 0, 0), vec3(10, 0, 0), 2, 0.01, CAMERA);
+    const points = [...behind, ...front].flat();
+    expect(points.length).toBeGreaterThanOrEqual(2);
+    expect(points.every(({ x, y, z }) => [x, y, z].every(Number.isFinite))).toBe(true);
+  });
+
+  it('refuses ends that meet, a wire that does not turn, or one never sampled', () => {
     expect(() => coil(vec3(1, 1, 1), vec3(1, 1, 1), 4, 6, CAMERA)).toThrow(/apart/);
+    expect(() => coil(vec3(0, 0, 0), vec3(9, 0, 0), 4, 6, CAMERA, 0)).toThrow(/turn/);
     for (const turns of [0, -3]) {
       expect(() => coil(vec3(0, 0, 0), vec3(9, 0, 0), 4, turns, CAMERA)).toThrow(/turn/);
     }
@@ -196,8 +211,9 @@ describe('a dial', () => {
     expect(major[0][1].z).toBeCloseTo(0, 9);
   });
 
-  it('refuses a dial of no ticks', () => {
-    expect(() => dial(vec2(0, 0), 15, 0, { count: 0, every: 1, lengths })).toThrow(/positive/);
+  it('refuses a dial of no ticks or no span', () => {
+    expect(() => dial(vec2(0, 0), 15, 0, { count: 0, every: 1, lengths })).toThrow(/nothing/);
+    expect(() => dial(vec2(0, 0), 15, 0, { count: 5, every: 1, lengths, span: 0 })).toThrow(/nothing/);
   });
 });
 
