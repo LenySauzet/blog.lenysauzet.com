@@ -5,6 +5,7 @@ import {
   basis,
   cross,
   dot3,
+  fit,
   ISOMETRIC,
   normalize3,
   scale3,
@@ -93,5 +94,18 @@ describe('basis', () => {
     expect(project(right).at.y - origin.y).toBeCloseTo(0);
     expect(project(up).at.y - origin.y).toBeCloseTo(-CAMERA.scale);
     expect(project(toward).depth).toBeCloseTo(1);
+  });
+});
+
+describe('fit', () => {
+  it('centres every point in the frame, as large as the pad allows', () => {
+    const points = [vec3(-120, -10, -60), vec3(140, 55, 70), vec3(-120, 55, 70), vec3(140, -10, -60)];
+    const frame = { width: 600, height: 340, pad: 28 };
+    const camera = fit(points, ISOMETRIC, frame);
+    const flat = points.map((point) => view(camera)(point).at);
+    const [xs, ys] = [flat.map(({ x }) => x), flat.map(({ y }) => y)];
+    expect(Math.min(...xs) + Math.max(...xs)).toBeCloseTo(600, 6);
+    expect(Math.min(...ys) + Math.max(...ys)).toBeCloseTo(340, 6);
+    expect(Math.min(Math.min(...xs), Math.min(...ys)) - 28).toBeCloseTo(0, 6);
   });
 });
