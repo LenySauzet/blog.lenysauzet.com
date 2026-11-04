@@ -5,6 +5,7 @@ import {
   basis,
   cross,
   dot3,
+  fit,
   ISOMETRIC,
   normalize3,
   scale3,
@@ -93,5 +94,40 @@ describe('basis', () => {
     expect(project(right).at.y - origin.y).toBeCloseTo(0);
     expect(project(up).at.y - origin.y).toBeCloseTo(-CAMERA.scale);
     expect(project(toward).depth).toBeCloseTo(1);
+  });
+});
+
+describe('fit', () => {
+  it('centres every point in the frame, as large as the pad allows', () => {
+    const points = [vec3(-120, -10, -60), vec3(140, 55, 70), vec3(-120, 55, 70), vec3(140, -10, -60)];
+    const frame = { width: 600, height: 340, pad: 28 };
+    const camera = fit(points, ISOMETRIC, frame);
+    const flat = points.map((point) => view(camera)(point).at);
+    const [xs, ys] = [flat.map(({ x }) => x), flat.map(({ y }) => y)];
+    expect(Math.min(...xs) + Math.max(...xs)).toBeCloseTo(600, 6);
+    expect(Math.min(...ys) + Math.max(...ys)).toBeCloseTo(340, 6);
+    expect(Math.min(Math.min(...xs), Math.min(...ys)) - 28).toBeCloseTo(0, 6);
+  });
+
+  it('frames points that line up on screen, by the one extent they have', () => {
+    const camera = fit([vec3(0, 0, 0), vec3(0, 10, 0)], ISOMETRIC, { width: 600, height: 340, pad: 20 });
+    expect(camera.scale).toBeCloseTo(300 / (10 * Math.cos(ISOMETRIC.pitch)), 9);
+  });
+
+  it('refuses a pad that leaves no room, either way', () => {
+    for (const viewport of [{ width: 100, height: 100, pad: 50 }, { width: 600, height: 40, pad: 20 }]) {
+      expect(() => fit([vec3(0, 0, 0), vec3(10, 0, 0)], ISOMETRIC, viewport)).toThrow(/room/);
+    }
+  });
+
+  // Two points in line with the eye land a rounding error apart.
+  it('refuses points in line with the eye', () => {
+    const along = basis(ISOMETRIC).toward;
+    const far = vec3(along.x * 10, along.y * 10, along.z * 10);
+    expect(() => fit([vec3(0, 0, 0), far], ISOMETRIC, { width: 600, height: 340, pad: 20 })).toThrow(/span/);
+  });
+
+  it('refuses points that span nothing', () => {
+    expect(() => fit([vec3(1, 2, 3)], ISOMETRIC, { width: 600, height: 340, pad: 28 })).toThrow(/span/);
   });
 });

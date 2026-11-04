@@ -8,6 +8,9 @@ export interface Vec3 {
 
 export const vec3 = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
+export const add3 = (a: Vec3, b: Vec3): Vec3 =>
+  vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+
 export const sub3 = (a: Vec3, b: Vec3): Vec3 =>
   vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 
@@ -59,3 +62,34 @@ export const basis = ({ yaw, pitch }: Pick<Camera, 'yaw' | 'pitch'>) => {
 };
 
 export const towardViewer = (camera: Camera) => basis(camera).toward;
+
+export interface Viewport {
+  width: number;
+  height: number;
+  /** Room kept clear on every side, in viewBox units. */
+  pad: number;
+}
+
+/** The camera at this angle that centres every point in the frame, as large as it fits. */
+export function fit(
+  points: readonly Vec3[],
+  angle: Pick<Camera, 'yaw' | 'pitch'>,
+  { width, height, pad }: Viewport,
+): Camera {
+  const flat = points.map((point) => view({ ...angle, scale: 1, origin: vec2(0, 0) })(point).at);
+  const [xs, ys] = [flat.map(({ x }) => x), flat.map(({ y }) => y)];
+  const [left, right, top, bottom] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  // Relative to the points' own size: two points in line with the eye differ by noise.
+  const size = Math.max(...points.flatMap(({ x, y, z }) => [Math.abs(x), Math.abs(y), Math.abs(z)]), 1);
+  if (!(Math.max(right - left, bottom - top) > 1e-9 * size)) {
+    throw new Error('fit: the points must span some width or height');
+  }
+  if (!(width > 2 * pad && height > 2 * pad)) throw new Error('fit: the pad leaves no room');
+  const scale = Math.min((width - 2 * pad) / (right - left), (height - 2 * pad) / (bottom - top));
+
+  return {
+    ...angle,
+    scale,
+    origin: vec2(width / 2 - ((left + right) / 2) * scale, height / 2 - ((top + bottom) / 2) * scale),
+  };
+}

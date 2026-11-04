@@ -126,6 +126,7 @@ hardcode `dark` anywhere. The traps behind each of those are in
 | `components/figures/Diagram` | The toolbox every drawn figure is composed from |
 | `components/Chart` | A figure with axes, on Recharts; `series.ts` is its logic |
 | `components/Table` | A table as an article reads it |
+| `lib/solids` | Solids an object figure is built from: prisms shaded by a camera-fixed light, and the marks on them |
 | `lib/shader.ts`, `components/Shader` | The one WebGL 2 engine, it as a component, and shared GLSL in `glsl.ts` |
 | `config/site.ts` | Site metadata, SEO, CDN origin, `getRootMetadata()` |
 | `config/code-theme.ts` | The Shiki theme, emitting token variables rather than colours |

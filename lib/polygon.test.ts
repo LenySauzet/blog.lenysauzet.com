@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { area, clip, rectangle } from './polygon';
+import { area, clip, hull, rectangle, signedArea } from './polygon';
 import { normalize, vec2 } from './vec2';
 
 const SQUARE = rectangle(vec2(0, 0), 10, 10);
@@ -36,5 +36,34 @@ describe('clip', () => {
     const flipped = { ...plane, normal: vec2(-plane.normal.x, -plane.normal.y) };
 
     expect(area(clip(SQUARE, plane)) + area(clip(SQUARE, flipped))).toBeCloseTo(100);
+  });
+});
+
+describe('signedArea', () => {
+  it('is positive turning counter-clockwise and negative the other way', () => {
+    const square = rectangle(vec2(0, 0), 2, 2);
+    expect(signedArea(square)).toBe(4);
+    expect(signedArea([...square].reverse())).toBe(-4);
+  });
+});
+
+describe('hull', () => {
+  it('drops the points inside and keeps the corners, turning counter-clockwise', () => {
+    const corners = rectangle(vec2(0, 0), 10, 10);
+    const found = hull([vec2(5, 5), ...corners, vec2(5, 0)]);
+    expect(found).toHaveLength(4);
+    expect(found).not.toContainEqual(vec2(5, 5));
+    expect(signedArea(found)).toBe(100);
+  });
+
+  // The chains only hold if points sharing an x are ordered among themselves.
+  it('keeps the corners that share an x, in whatever order they come', () => {
+    const points = [vec2(0, 3), vec2(2, 3), vec2(0, 0), vec2(1, 3), vec2(0, 2), vec2(0, 1), vec2(2, 1)];
+    expect(signedArea(hull(points))).toBe(5);
+  });
+
+  it('gives back a point or two as they are', () => {
+    expect(hull([vec2(3, 4)])).toEqual([vec2(3, 4)]);
+    expect(hull([vec2(5, 1), vec2(3, 4)])).toEqual([vec2(3, 4), vec2(5, 1)]);
   });
 });

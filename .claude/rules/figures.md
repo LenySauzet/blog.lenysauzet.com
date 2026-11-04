@@ -10,6 +10,7 @@ paths:
   - "lib/shader.ts"
   - "lib/vec2.ts"
   - "lib/vec3.ts"
+  - "lib/solids/**"
   - "lib/mesh.ts"
   - "lib/rect.ts"
   - "lib/polygon.ts"
@@ -27,7 +28,7 @@ keep a fix from breaking the figure at another value of its control or in the ot
 
 | Touching | Skill |
 |---|---|
-| A figure drawn in SVG, `Diagram`, `lib/vec*`, `lib/mesh`, `lib/rect`, `lib/polygon`, `test/figure.ts` | `figure-diagram` |
+| A figure drawn in SVG, `Diagram`, `lib/vec*`, `lib/mesh`, `lib/solids`, `lib/rect`, `lib/polygon`, `test/figure.ts` | `figure-diagram` |
 | `components/Chart`, `ui/chart.tsx`, `ConfusionMatrix` | `figure-chart` |
 | `components/Shader`, `lib/shader.ts`, `Backdrop`, and any figure rendering `<Shader>` (`LitWave`, `Halftone`, `VideoHalftone`: a folder with a `fragment.ts`) | `figure-shader` |
 | `components/Sandpack` | `figure-code` |
