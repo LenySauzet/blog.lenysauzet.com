@@ -114,8 +114,17 @@ describe('fit', () => {
     expect(camera.scale).toBeCloseTo(300 / (10 * Math.cos(ISOMETRIC.pitch)), 9);
   });
 
-  it('refuses a pad that leaves no room', () => {
-    expect(() => fit([vec3(0, 0, 0), vec3(10, 0, 0)], ISOMETRIC, { width: 100, height: 100, pad: 50 })).toThrow(/room/);
+  it('refuses a pad that leaves no room, either way', () => {
+    for (const viewport of [{ width: 100, height: 100, pad: 50 }, { width: 600, height: 40, pad: 20 }]) {
+      expect(() => fit([vec3(0, 0, 0), vec3(10, 0, 0)], ISOMETRIC, viewport)).toThrow(/room/);
+    }
+  });
+
+  // Two points in line with the eye land a rounding error apart.
+  it('refuses points in line with the eye', () => {
+    const along = basis(ISOMETRIC).toward;
+    const far = vec3(along.x * 10, along.y * 10, along.z * 10);
+    expect(() => fit([vec3(0, 0, 0), far], ISOMETRIC, { width: 600, height: 340, pad: 20 })).toThrow(/span/);
   });
 
   it('refuses points that span nothing', () => {

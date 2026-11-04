@@ -56,7 +56,7 @@ describe('hull', () => {
     expect(signedArea(found)).toBe(100);
   });
 
-  // The chains only hold if points sharing an x come bottom to top.
+  // The chains only hold if points sharing an x are ordered among themselves.
   it('keeps the corners that share an x, in whatever order they come', () => {
     const points = [vec2(0, 3), vec2(2, 3), vec2(0, 0), vec2(1, 3), vec2(0, 2), vec2(0, 1), vec2(2, 1)];
     expect(signedArea(hull(points))).toBe(5);
@@ -64,5 +64,6 @@ describe('hull', () => {
 
   it('gives back a point or two as they are', () => {
     expect(hull([vec2(3, 4)])).toEqual([vec2(3, 4)]);
+    expect(hull([vec2(5, 1), vec2(3, 4)])).toEqual([vec2(3, 4), vec2(5, 1)]);
   });
 });

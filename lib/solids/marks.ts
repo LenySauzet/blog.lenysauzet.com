@@ -13,9 +13,9 @@ import {
   type Vec3,
 } from '@/lib/vec3';
 
-import { circle, distinct } from './outline';
+import { circle } from './outline';
 import type { Lines } from './path';
-import { facingOf, runs } from './prism';
+import { convexRing, facingOf, runs } from './prism';
 
 /**
  * Lines drawn on solids, seams, rulers, knurls, springs, as world polylines: projected
@@ -42,7 +42,7 @@ export function rim(centre: Vec2, radius: number, y: number, steps = 40): Stroke
  * would read as a texture that stops.
  */
 export function seam(outline: readonly Vec2[], y: number, camera: Camera): Strokes {
-  const points = distinct(outline);
+  const points = convexRing(outline);
   return runs(facingOf(points, camera), true).map((run) => run.map((index) => onFloor(points[index], y)));
 }
 
@@ -123,7 +123,9 @@ export interface Ruler {
 
 /** A ruler's ticks, rooted on the edge they hang from, on any face. */
 export function ticks({ from, to, outward, step, every, lengths: [minor, major] }: Ruler) {
-  if (!(step > 0) || !(every > 0)) throw new Error('ticks: the step and every must be positive');
+  if (!(step > 0) || !(every >= 1) || !Number.isInteger(every)) {
+    throw new Error('ticks: the step must be positive and every a whole count');
+  }
   const span = sub3(to, from);
   const length = Math.hypot(span.x, span.y, span.z);
   const marks = { minor: [] as Strokes, major: [] as Strokes };
@@ -154,8 +156,8 @@ export function dial(
   y: number,
   { count, every, lengths: [minor, major], from = 0, span = 2 * Math.PI }: Dial,
 ) {
-  if (!(count > 0) || !(every > 0) || span === 0) {
-    throw new Error('dial: count, every and span must not be nothing');
+  if (![count, every].every((value) => value >= 1 && Number.isInteger(value)) || !(Math.abs(span) > 0)) {
+    throw new Error('dial: count and every must be whole counts, and span must not be nothing');
   }
   const whole = Math.abs(Math.abs(span) - 2 * Math.PI) < 1e-9;
   const marks = { minor: [] as Strokes, major: [] as Strokes };

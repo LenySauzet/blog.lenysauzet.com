@@ -59,6 +59,11 @@ describe('a floor outline', () => {
     expect(distinct(square)).toEqual([vec2(10, 0), vec2(10, 10), vec2(0, 10), vec2(0, 0)]);
   });
 
+  it('refuses a corner or a circle of too few steps', () => {
+    expect(() => rounded(PLAN, 0)).toThrow(/step/);
+    expect(() => circle(vec2(0, 0), 1, 2)).toThrow(/steps/);
+  });
+
   it('marks its corners and its circle where asked', () => {
     expect(cornersOf(PLAN, 3)).toEqual([vec2(-7, -2), vec2(27, -2), vec2(27, 12), vec2(-7, 12)]);
     expect(circle(vec2(1, 1), 2, 4)[1].y).toBeCloseTo(3, 9);

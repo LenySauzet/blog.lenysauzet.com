@@ -22,6 +22,12 @@ describe('a seam', () => {
   const plan: Plan = { x: -40, z: -30, width: 80, depth: 60, radius: 6 };
 
   // A seam stopping short of the corners reads as a texture that ends in mid-air.
+  // An inward corner hides part of the edges a seam would run along.
+  it('refuses a concave outline, as a solid does', () => {
+    const ell = [vec2(0, 0), vec2(30, 0), vec2(30, 10), vec2(10, 10), vec2(10, 30), vec2(0, 30)];
+    expect(() => seam(ell, 5, CAMERA)).toThrow(/convex/);
+  });
+
   it('runs round the near side of a box, from one edge of its silhouette to the other', () => {
     const uprights = uprightsOf(block(plan, { from: 0, height: 12 }, CAMERA).silhouette);
     const centre = depthOf(vec3(0, 5, 0));
@@ -33,6 +39,7 @@ describe('a seam', () => {
       }
       expect(depthOf(middleOf(strokes[0]))).toBeGreaterThan(centre);
       const [line] = projected(strokes, CAMERA);
+      expect(line[0]).toEqual(lens(strokes[0][0]).at);
       for (const end of ends(line)) expect(uprights.some((x) => near(x, end.x))).toBe(true);
     }
   });
@@ -171,7 +178,7 @@ describe('a ruler', () => {
   it('draws nothing along an edge with no length, and refuses a step or a period of nothing', () => {
     expect(ticks({ ...scale, to: scale.from })).toEqual({ minor: [], major: [] });
     expect(() => ticks({ ...scale, step: 0 })).toThrow(/positive/);
-    expect(() => ticks({ ...scale, every: 0 })).toThrow(/positive/);
+    for (const every of [0, 2.5]) expect(() => ticks({ ...scale, every })).toThrow(/whole/);
   });
 });
 
@@ -213,7 +220,9 @@ describe('a dial', () => {
 
   it('refuses a dial of no ticks or no span', () => {
     expect(() => dial(vec2(0, 0), 15, 0, { count: 0, every: 1, lengths })).toThrow(/nothing/);
-    expect(() => dial(vec2(0, 0), 15, 0, { count: 5, every: 1, lengths, span: 0 })).toThrow(/nothing/);
+    for (const asked of [{ count: 2.5 }, { every: 0 }, { every: 1.5 }, { span: 0 }, { span: NaN }]) {
+      expect(() => dial(vec2(0, 0), 15, 0, { count: 5, every: 1, lengths, ...asked })).toThrow(/whole|nothing/);
+    }
   });
 });
 

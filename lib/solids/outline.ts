@@ -16,6 +16,7 @@ export interface Plan {
 
 /** The outline of a plan, `steps` segments to a corner. */
 export function rounded({ x, z, width, depth, radius }: Plan, steps = 8): Vec2[] {
+  if (!(steps >= 1)) throw new Error('rounded: a corner takes at least one step');
   const r = Math.max(0, Math.min(radius, width / 2, depth / 2));
   const centres = [
     vec2(x + width - r, z + r),
@@ -46,11 +47,13 @@ export const distinct = (ring: readonly Vec2[]) =>
     return Math.hypot(point.x - before.x, point.y - before.y) > 1e-9;
   });
 
-export const circle = (centre: Vec2, radius: number, steps = 32): Vec2[] =>
-  Array.from({ length: steps }, (_, step) => {
+export function circle(centre: Vec2, radius: number, steps = 32): Vec2[] {
+  if (!(steps >= 3)) throw new Error('circle: it takes at least three steps');
+  return Array.from({ length: steps }, (_, step) => {
     const angle = (2 * Math.PI * step) / steps;
     return vec2(centre.x + radius * Math.cos(angle), centre.y + radius * Math.sin(angle));
   });
+}
 
 /** The plan shrunk by `by` on every side, or grown by a negative `by`. */
 export const inset = ({ x, z, width, depth, radius }: Plan, by: number): Plan => ({

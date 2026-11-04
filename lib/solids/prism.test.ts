@@ -166,15 +166,15 @@ describe('a prism', () => {
       const angle = (4 * Math.PI * index) / 5;
       return vec2(10 * Math.cos(angle), 10 * Math.sin(angle));
     });
-    for (const height of [-0.5, NaN]) {
-      expect(() => block(BLOCK, { from: 0, height }, camera())).toThrow(/negative/);
+    for (const rise of [{ height: -0.5 }, { height: NaN }, { height: Infinity }, { from: NaN }]) {
+      expect(() => block(BLOCK, { ...RISE, ...rise }, camera())).toThrow(/finite/);
     }
     const octagram = Array.from({ length: 8 }, (_, index) => {
       const angle = (6 * Math.PI * index) / 8;
       return vec2(10 * Math.cos(angle), 10 * Math.sin(angle));
     });
     const doubledBack = [vec2(0, 0), vec2(10, 0), vec2(10, 10), vec2(10, 5), vec2(10, 10), vec2(0, 10)];
-    for (const pitch of [-0.3, 3.5]) {
+    for (const pitch of [-0.3, 0, Math.PI, 3.5]) {
       expect(() => block(BLOCK, RISE, { ...camera(), pitch })).toThrow(/above/);
     }
     expect(block(BLOCK, RISE, { ...camera(), pitch: ISOMETRIC.pitch - 2 * Math.PI }).sides).toHaveLength(2);
@@ -188,6 +188,8 @@ describe('a prism', () => {
     const solid = block(BLOCK, { ...RISE, bevel: 2 }, camera());
     expect(block(BLOCK, RISE, camera()).bevel).toEqual([]);
     const [line] = solid.bevel;
+    const [crease] = solid.crease;
+    expect([line[0], line[line.length - 1]]).toEqual([crease[0], crease[crease.length - 1]]);
     const corner = view(camera())(vec3(BLOCK.x + BLOCK.width - 2, RISE.height, BLOCK.z + BLOCK.depth - 2)).at;
     expect(line).toHaveLength(3);
     expect(line[1].x).toBeCloseTo(corner.x, 9);

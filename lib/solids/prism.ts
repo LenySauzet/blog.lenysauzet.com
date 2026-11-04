@@ -33,7 +33,10 @@ export interface Rise {
   /** The height the solid stands on. */
   from: number;
   height: number;
-  /** How far the bevel sits in from the top's visible edges; 0 draws none. */
+  /**
+   * How far the bevel sits in from the top's visible edges; 0 draws none. Kept under
+   * half the top's narrowest width, or it crosses the face.
+   */
   bevel?: number;
 }
 
@@ -109,6 +112,18 @@ function isConvex(ring: readonly Vec2[]) {
   return oneWay && forward && Math.abs(Math.abs(total) - 2 * Math.PI) < 1e-6;
 }
 
+/**
+ * The outline with repeated points dropped, refused unless convex and simple: what a
+ * solid and the seams on it can draw truly.
+ */
+export function convexRing(outline: readonly Vec2[]) {
+  const ring = distinct(outline);
+  if (!isConvex(ring)) {
+    throw new Error('the outline must be convex and simple; build a concave part from pieces');
+  }
+  return ring;
+}
+
 const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse() : points);
 
 /**
@@ -117,12 +132,12 @@ const wound = (points: Vec2[]) => (signedArea(points) < 0 ? [...points].reverse(
  * really in front.
  */
 export function prism(outline: readonly Vec2[], { from, height, bevel = 0 }: Rise, camera: Camera): Solid {
-  if (!(height >= 0)) throw new Error('prism: the height must not be negative');
-  if (!(towardViewer(camera).y > 0)) throw new Error('prism: a solid is drawn seen from above');
-  const ring = distinct(outline);
-  if (!isConvex(ring)) {
-    throw new Error('prism: the outline must be convex and simple; build a concave part from pieces');
+  if (!(Number.isFinite(from) && Number.isFinite(height) && height >= 0)) {
+    throw new Error('prism: the height must be finite and not negative');
   }
+  // As facingOf does: a camera level to a hair sees no top, whichever way round it is.
+  if (!(towardViewer(camera).y > 1e-9)) throw new Error('prism: a solid is drawn seen from above');
+  const ring = convexRing(outline);
 
   const project = view(camera);
   const light = lightOf(camera);
