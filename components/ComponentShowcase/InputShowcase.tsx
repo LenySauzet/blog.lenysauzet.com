@@ -26,7 +26,6 @@ function Field({
   );
 }
 
-/** Left column empty, right column filled and disabled, as the reference does. */
 export default function InputShowcase() {
   return (
     <div className="my-6 flex flex-col gap-10">

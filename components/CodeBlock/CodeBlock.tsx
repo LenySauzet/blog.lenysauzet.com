@@ -26,8 +26,6 @@ function isTitle(child: ReactNode): child is TitleElement {
   return isValidElement(child) && 'data-rehype-pretty-code-title' in (child.props as object);
 }
 
-// Any other <figure> passes straight through, so only real code blocks pay for
-// the hooks below.
 export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<'figure'>) {
   if (!('data-rehype-pretty-code-figure' in props)) {
     return <figure {...props}>{children}</figure>;
@@ -35,11 +33,8 @@ export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<'figu
   return <CodeFigure {...props}>{children}</CodeFigure>;
 }
 
-// Distance over which an edge fade reaches full opacity.
-const FADE = 24;
+const EDGE_FADE_DISTANCE = 24;
 
-// A block longer than this folds to its first 16 lines (globals.css): folding less
-// than a third of it would hide too little to be worth the click.
 const FOLD_ABOVE = 24;
 
 function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<'figure'>) {
@@ -56,13 +51,12 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
     const update = () => {
       const max = pre.scrollWidth - pre.clientWidth;
-      const left = max <= 1 ? 0 : clamp(pre.scrollLeft / FADE);
-      const right = max <= 1 ? 0 : clamp((max - pre.scrollLeft) / FADE);
+      const left = max <= 1 ? 0 : clamp(pre.scrollLeft / EDGE_FADE_DISTANCE);
+      const right = max <= 1 ? 0 : clamp((max - pre.scrollLeft) / EDGE_FADE_DISTANCE);
       figure.style.setProperty('--edge-left', String(left));
       figure.style.setProperty('--edge-right', String(right));
       figure.style.setProperty('--scrollbar', `${pre.offsetHeight - pre.clientHeight}px`);
-      // Find in page scrolls a folded block down, past lines no reader could
-      // scroll back to: unfold it instead.
+      // Find in page scrolls a folded block down: unfold it instead.
       if (pre.scrollTop > 0) setExpanded(true);
     };
     update();
@@ -91,14 +85,12 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       setExpanded(true);
       return;
     }
-    // Folding pulls the button up past a reader scrolled deep into the block, so
-    // the block is brought back once it has shrunk, not measured before.
+    // Scrolled into view once it has shrunk, not measured before.
     flushSync(() => setExpanded(false));
     figureRef.current?.scrollIntoView({ block: 'nearest' });
   };
 
-  // From the line elements, so the line numbers in ::before stay out, and without
-  // the lines a diff removes: what is pasted is the code the post arrives at.
+  // From the line elements, so the ::before line numbers stay out.
   const getText = () => {
     const lineElements = figureRef.current?.querySelectorAll('pre [data-line]:not(.remove)');
     return lineElements?.length
@@ -132,8 +124,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 any-pointer-coarse:opacity-100"
         />
       )}
-      {/* Names the scrollable region. The <pre> is already tab-focusable
-          (rehype-pretty-code sets tabindex). */}
+      {/* No tabIndex: rehype-pretty-code already makes the <pre> focusable. */}
       <div
         ref={scrollRef}
         id={regionId}
@@ -155,8 +146,6 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
           style={{ opacity: 'var(--edge-right, 0)' }}
         />
         {folded && (
-          // The fold's veil: the background rising over the last lines, and a blur
-          // that deepens with it, so they recede rather than stop.
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-[var(--scrollbar,0px)] h-48 bg-gradient-to-t from-[var(--code-bg)] from-35% to-transparent backdrop-blur-[4px] [mask-image:linear-gradient(to_top,#000_50%,transparent)] print:hidden [@media(scripting:none)]:hidden"

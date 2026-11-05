@@ -7,7 +7,6 @@ import type { LogLevel } from './read-code';
 
 interface CodeHeaderProps {
   heading: ReactNode;
-  // Set when the fence gave its own title, before which a log still says its level.
   titled: boolean;
   level?: LogLevel;
   added: number;
@@ -16,7 +15,6 @@ interface CodeHeaderProps {
   className?: string;
 }
 
-// Replaces rehype's figcaption, so the copy button sits in the row beside the title.
 export function CodeHeader({ heading, titled, level, added, removed, getText, className }: CodeHeaderProps) {
   return (
     <div

@@ -42,12 +42,6 @@ describe('ConfusionMatrix', () => {
     expect(mix('3')).toBeLessThan(1);
   });
 
-  /**
-   * The ramp runs the other way in each theme, so one swap covers both: the
-   * far end is dark on a light page and bright on a dark one, and
-   * `--background` is the opposite of whichever it is. Measured at this
-   * threshold, the worst of 36 cells is 8.5:1 in dark and 6.78:1 in light.
-   */
   it('flips the count to the page colour only at the far end of the ramp', () => {
     const { container } = render(<ConfusionMatrix matrix={matrix} labels={labels} />);
     const cells = cellsOf(container);
@@ -75,7 +69,6 @@ describe('ConfusionMatrix', () => {
     expect(cellsOf(container)).toHaveLength(4);
   });
 
-  /** Every row answers "of all the Xs, how many were called Y". */
   it('names the row, the column and the share on each cell', async () => {
     const user = userEvent.setup();
     render(<ConfusionMatrix matrix={matrix} labels={labels} />);

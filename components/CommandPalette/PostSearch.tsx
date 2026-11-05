@@ -23,8 +23,6 @@ import { FadingList } from './FadingList';
 
 type Index = MiniSearch<SearchDocument>;
 
-/** Unsearched, a post's own description is the line worth showing, where a
-    match shows the line it was found on. */
 const listed = (post: PostSummary): PostMatch => ({
   slug: post.slug,
   title: post.title,
@@ -34,10 +32,8 @@ const listed = (post: PostSummary): PostMatch => ({
 });
 
 interface PostSearchProps {
-  /** From the server, so the unsearched list never waits on the index. */
   posts: PostSummary[];
   query: string;
-  /** Every row on show, so the palette can keep its selection on one. */
   onResults: (slugs: string[]) => void;
   onPick: (slug: string) => void;
 }
@@ -62,11 +58,6 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
     };
   }, [searching]);
 
-  /**
-   * Unsearched, the server's list; searched, the index's ranking; between the
-   * two, a plain match on what the server already gave, so the panel keeps
-   * something true on screen for the length of a fetch.
-   */
   const results = useMemo(() => {
     if (!asked) return posts.map(listed);
     if (index === 'failed') return [];
@@ -81,10 +72,6 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
     return searchPosts(index, asked);
   }, [index, asked, posts]);
 
-  /**
-   * cmdk moves its selection when its own search box changes, and nothing else:
-   * arriving here and the index landing both fill the list without a keystroke.
-   */
   useEffect(() => {
     onResults(results.map((result) => result.slug));
   }, [results, onResults]);
@@ -99,9 +86,7 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
         </CommandEmpty>
       )}
 
-      {/* The heading only has a group to name when there is one: rendered
-          unconditionally it sat over nothing while the archive loaded and
-          under every message saying there was nothing to show. */}
+      {/* Only with rows to name, or it sits over the loading and empty messages. */}
       <CommandGroup heading={results.length ? 'Blog posts' : undefined}>
         {results.map((result) => (
           <CommandItem
@@ -118,8 +103,6 @@ export function PostSearch({ posts, query, onResults, onPick }: PostSearchProps)
               </CommandHint>
             </div>
 
-            {/* The line it was found on, rather than the description every result
-                would otherwise repeat. */}
             <p className="line-clamp-2 pl-8 text-sm font-normal text-muted-foreground/70">
               {excerpt(result.text, result.terms).map((segment, position) => (
                 <span

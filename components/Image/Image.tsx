@@ -4,19 +4,17 @@ import { measureImage } from '@/lib/image-utils';
 import ImageZoom from './ImageZoom';
 
 export interface ImageProps {
-  /** Path relative to the CDN's images prefix, or an absolute URL. */
+  /** A CDN image path or an absolute URL. */
   src: string;
-  /** Doubles as the caption and the lightbox's accessible name. */
+  /** Also the caption. */
   alt: string;
-  /** Both given skips the build-time dimension lookup. */
+  /** Both given skip the build-time lookup. */
   width?: number;
   height?: number;
   priority?: boolean;
   quality?: number;
 }
 
-// URL resolution and the dimension lookup run at build time, so only the zoom
-// crosses to the client.
 export default async function Image({
   src,
   alt,
@@ -26,8 +24,7 @@ export default async function Image({
   ...props
 }: ImageProps) {
   const url = resolveImageUrl(src);
-  // Only the two numbers travel on: whether the CDN answered at build time is not
-  // something the DOM should be handed, and what a reader sees is decided at runtime.
+  // `measured` stays on the server: the DOM has no use for it.
   const measurement = width && height ? { width, height } : await measureImage(url);
   const dimensions = { width: measurement.width, height: measurement.height };
 

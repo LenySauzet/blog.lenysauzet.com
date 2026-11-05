@@ -1,9 +1,7 @@
 export interface Hue {
   id: string;
   label: string;
-  /** Tailwind's own angle for that name, which every token derives from. */
   hue: number;
-  /** Where the shipped lightness does not clear the contrast floor. */
   lightness?: number;
 }
 

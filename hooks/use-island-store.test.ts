@@ -17,7 +17,6 @@ describe('useIslandStore', () => {
     expect(useIslandStore.getState().presented).toEqual([]);
   });
 
-  // The island dismisses its hint on every hover.
   it('tells no one when there was nothing to dismiss', () => {
     const listener = vi.fn();
     const unsubscribe = useIslandStore.subscribe(listener);

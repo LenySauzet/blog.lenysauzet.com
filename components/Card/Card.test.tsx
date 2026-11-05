@@ -18,8 +18,6 @@ describe('Card', () => {
     expect(title.closest('[data-slot="card-header"]')).not.toBeNull();
   });
 
-  // The wrapper holds no style of its own, so what it must get right is which
-  // primitive slot each part lands in.
   it('routes the title through CardTitle and the body through CardContent', () => {
     const { container } = render(<Card title="A card title">Body</Card>);
 
@@ -31,9 +29,6 @@ describe('Card', () => {
     );
   });
 
-  // The separator is the header's own bottom border, so its presence is what a
-  // titleless card must not have. jsdom applies no Tailwind, so the rule itself
-  // is verified in a browser.
   it('renders no header at all without a title', () => {
     const { container } = render(<Card>Body</Card>);
 

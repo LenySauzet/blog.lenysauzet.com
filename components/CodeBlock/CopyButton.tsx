@@ -41,8 +41,7 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // Clipboard can be unavailable (insecure context, denied permission).
-      // Confirm the gesture anyway, so the feedback never silently stalls.
+      // Confirmed anyway (insecure context, denied permission), so feedback never stalls.
     }
     setCopied(true);
   };

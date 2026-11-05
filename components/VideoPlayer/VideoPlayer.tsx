@@ -13,7 +13,7 @@ interface VideoPlayerProps {
   type?: string;
   width?: number;
   height?: number;
-  /** Shown until the video plays, used as given rather than resolved against the CDN. */
+  /** Used as given, not resolved against the CDN. */
   poster?: string;
   autoPlay?: boolean;
   loop?: boolean;
@@ -39,7 +39,6 @@ const VideoPlayer = ({
   const isInView = useInView(ref, { amount: 0.1 });
   const isReducedMotion = useReducedMotion();
 
-  // Debounce visibility to avoid mounting/unmounting on small scroll jitter
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => {
     if (!isInView) return;

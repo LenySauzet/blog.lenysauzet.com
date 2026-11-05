@@ -6,7 +6,6 @@ const points = (path: string) => {
   const n = path.match(/-?\d+(\.\d+)?/g)!.map(Number);
   return Array.from({ length: n.length / 2 }, (_, i) => [n[2 * i], n[2 * i + 1]]);
 };
-// A quadratic from (x0, y0) through control (cx, cy) to (x1, y1), at t.
 const quadratic = (x0: number, cx: number, x1: number, t: number) => (1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x1;
 
 describe('bendFor', () => {
@@ -37,7 +36,6 @@ describe('slidePath', () => {
         const right = quadratic(600, rightControl, 600, t) - 600;
         const left = quadratic(0, leftControl, 0, t);
         expect(right).toBeCloseTo(left);
-        // An arc: bent everywhere between the corners, most at the middle.
         expect(Math.abs(left)).toBeLessThanOrEqual(Math.abs(bend) + 1e-9);
         if (bend !== 0 && t > 0.01 && t < 0.99) expect(Math.sign(left)).toBe(Math.sign(bend));
       }
@@ -61,8 +59,7 @@ describe('parallaxShift', () => {
   it('opens a gap only on the side out of view, so the image needs no bleed for it', () => {
     for (let distance = -1; distance <= 1; distance += 0.01) {
       const shift = parallaxShift(distance, 600);
-      // A slide `distance` from the middle hides |distance| of its width past the view,
-      // on the side the image pulls away from.
+      // A slide `distance` out hides |distance| of its width past the view.
       expect(Math.abs(shift)).toBeLessThanOrEqual(Math.abs(distance) * 600 + 1e-9);
       if (distance !== 0) expect(Math.sign(shift)).toBe(-Math.sign(distance));
     }

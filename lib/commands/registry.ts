@@ -35,7 +35,6 @@ const openExternally = (url: string) => () => {
 /** Same origin, so `download` is honoured and the page is never left behind. */
 const RESUME_ROUTE = '/resume'
 
-/** Copying a link or returning to the top only mean something inside an article. */
 const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
 
 const slugOf = ({ pathname }: CommandContext) =>
@@ -48,7 +47,6 @@ const whileReading = (context: CommandContext) =>
 
 const atTheEnd = (context: CommandContext) => onAPost(context) && context.finished
 
-/** Past the top of an article, where a reader has made a move to answer. */
 const underway = (context: CommandContext) =>
     whileReading(context) || atTheEnd(context)
 
@@ -115,8 +113,7 @@ export const commands: Command[] = [
         shortcut: 'ArrowUp',
         when: (context) => onAPost(context) && !context.atTop,
         recommend: underway,
-        // `body` is fixed and each column owns its overflow, so the window never
-        // scrolls: whichever column is marked is the thing that has to move.
+        // `body` is fixed and each column owns its overflow, so the window never scrolls.
         run: () => {
             const behavior = window.matchMedia('(prefers-reduced-motion: reduce)')
                 .matches
@@ -178,7 +175,6 @@ export const commands: Command[] = [
         icon: ArrowRight02Icon,
         group: 'Navigation',
         keywords: ['terms', 'definitions'],
-        // Listed so the shape of the site is visible before the page exists.
         disabled: true,
         run: ({ router }) => router.push('/glossary'),
     },

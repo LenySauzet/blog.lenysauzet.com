@@ -5,10 +5,7 @@ import { ReadingRail } from './ReadingRail';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/posts/anything' }));
 
-/** jsdom gives every box a height of zero, so a column has to be told it
-    scrolls before the rail reads a single heading out of it. Its ResizeObserver
-    is a stub too, so no tick is ever laid out here: what a DOM test can reach
-    is that the component stands, which is exactly where it once did not. */
+// jsdom boxes are zero high, so the column has to be told it scrolls.
 const column = (markup: string) => {
   const node = document.createElement('div');
   node.setAttribute('data-scroll-root', '');
@@ -21,9 +18,6 @@ const column = (markup: string) => {
 };
 
 describe('ReadingRail', () => {
-  // Most posts carry no heading at all, and the rail has to be a ruler for
-  // them rather than a crash: reading a title's state off an array sized by
-  // the sections once took every one of those pages down with it.
   it('stands on a page with no headings at all', () => {
     column('<p>Nothing to see here.</p>');
 
@@ -34,9 +28,7 @@ describe('ReadingRail', () => {
     expect(() => render(<ReadingRail />)).not.toThrow();
   });
 
-  // Without `data-prose` this read nothing and quietly retested the case
-  // above: only the article's own headings count, a widget's title not being
-  // a place in the article.
+  // Without `data-prose` this reads nothing and quietly retests the case above.
   it('stands on a page whose prose has them', () => {
     const node = column(
       '<div data-prose><h2 id="one">One</h2><h3 id="two">Two</h3></div>'

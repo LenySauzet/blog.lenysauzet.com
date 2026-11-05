@@ -21,9 +21,6 @@ export interface TweetProps {
   className?: string;
 }
 
-// X answers nothing for a post its author deleted or made private, and the article
-// follows that choice at the next build rather than keeping what was taken down. X
-// failing to answer degrades the same way, so it can never take a deploy down.
 async function load(id: string) {
   try {
     return await getTweet(id, { signal: AbortSignal.timeout(PATIENCE) });
@@ -32,7 +29,6 @@ async function load(id: string) {
   }
 }
 
-// Asked once, here, so that nothing below waits on the network.
 async function copiesOf(post: Post) {
   const videos = [post, post.quoted_tweet].flatMap((each) => (each ? videosOf(each) : []));
   const answered = await Promise.all(videos.map(({ mirror }) => answering(mirror)));
@@ -67,8 +63,8 @@ interface CountProps {
   href: string;
   icon: typeof FavouriteIcon;
   value: number;
-  /** What the link does, then what it counts, singular and plural. */
   action: string;
+  /** Singular, then plural. */
   noun: [string, string];
 }
 

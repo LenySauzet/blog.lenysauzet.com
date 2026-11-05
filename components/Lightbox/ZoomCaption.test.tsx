@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ZoomCaption } from './ZoomCaption';
 
-// `vitest-setup` forces `prefers-reduced-motion`, so this file only ever exercises the
-// still branch. The cascade itself is measured in a browser.
+// `vitest-setup` forces reduced motion, so only the still branch runs here.
 describe('ZoomCaption', () => {
   it('renders the caption as one plain paragraph under reduced motion', () => {
     const { container } = render(
@@ -14,12 +13,9 @@ describe('ZoomCaption', () => {
     expect(container.querySelector('p')).toHaveTextContent(
       "Monet's Meadow with Poplars"
     );
-    // No per-word split to animate, so no spans to leave behind.
     expect(container.querySelectorAll('span')).toHaveLength(0);
   });
 
-  // The lightbox is already named by the same text, so announcing it again, in
-  // pieces once it is split into words, would only repeat it.
   it('is hidden from assistive tech', () => {
     const { container } = render(<ZoomCaption start>A caption</ZoomCaption>);
 

@@ -28,9 +28,6 @@ describe('PasswordInput', () => {
     );
   });
 
-  // The label names the action, not the state, so a screen reader hears what
-  // pressing will do; aria-pressed carries the state, and is also what the
-  // stylesheet reads to redraw the eye.
   it('reports its state through aria-pressed', async () => {
     const user = userEvent.setup();
     render(<PasswordInput aria-label="Password" />);
@@ -50,7 +47,6 @@ describe('PasswordInput', () => {
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
-  // A live toggle on a dead field would reveal a value nobody can edit.
   it('disables the toggle along with the field', () => {
     render(<PasswordInput aria-label="Password" defaultValue="hunter2" disabled />);
 

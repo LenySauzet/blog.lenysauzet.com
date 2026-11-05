@@ -10,9 +10,7 @@ const PRIVATE_HOST = /^(localhost|.*\.local|.*\.internal)$/i;
 const isPrivate = (address: string) =>
   address.includes(':') ? PRIVATE_V6.test(address) : PRIVATE_V4.test(address);
 
-/** Returns the address the caller must then pin: handing the name on instead
-    leaves the request free to be sent elsewhere, nothing obliging a hostile
-    resolver to answer the second lookup the way it answered the first. */
+/** The address the caller must pin, never the name. */
 export async function resolvePublicAddress(url: URL): Promise<string | undefined> {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined;
   if (PRIVATE_HOST.test(url.hostname)) return undefined;

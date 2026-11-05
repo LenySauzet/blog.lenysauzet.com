@@ -114,8 +114,6 @@ ${colorConfig
   );
 };
 
-/** The heading is the x value, set apart from its rows rather than merely
-    bolder: the panel then reads as a reading at a place, not as four lines. */
 const LABEL_ROW =
   "-mx-3 -mt-2.5 mb-0.5 border-b border-border/60 px-3 pb-2 pt-2.5 font-mono text-xs tracking-wider text-foreground";
 

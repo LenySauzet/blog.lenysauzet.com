@@ -7,7 +7,6 @@ import { getPosts } from '@/lib/post-utils';
 import { INDEX_OPTIONS, type SearchDocument } from './config';
 import { toPlainText } from './plain-text';
 
-/** Drafts are left out by `getPosts`, so nothing hidden is findable here. */
 export async function buildSearchIndex(): Promise<string> {
   const posts = await getPosts();
 

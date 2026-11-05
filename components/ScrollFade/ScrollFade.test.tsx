@@ -24,19 +24,12 @@ describe('ScrollFade', () => {
     expect(colourLayer.className).toContain('bg-background');
   });
 
-  // The blur is ramped by a mask; without it the band would be a hard-edged
-  // blurred rectangle rather than a dissolve.
   it('ramps the blur with a mask instead of a hard edge', () => {
     const { container } = render(<ScrollFade />);
 
     expect(layers(container)[0].style.maskImage).toContain('to top');
   });
 
-  // A colour ramp laid over a surface of its own colour bands where it should
-  // be invisible, by about one part in 255, and a stop written `transparent`
-  // resolves to rgba(0,0,0,0) and interpolates through black. A flat fill
-  // behind the same mask has neither problem, so the colour layer must never
-  // go back to painting a gradient of its own.
   it('fades a flat fill behind a mask, never a gradient of colours', () => {
     const { container } = render(<ScrollFade />);
     const colourLayer = layers(container)[1];
@@ -45,8 +38,6 @@ describe('ScrollFade', () => {
     expect(colourLayer.style.background).toBe('');
   });
 
-  // Both layers describe the same dissolve, so they take the same ramp: two
-  // of them is two things to keep in step for no gain.
   it('ramps both layers with one mask', () => {
     const { container } = render(<ScrollFade />);
     const [blurLayer, colourLayer] = layers(container);
@@ -61,12 +52,7 @@ describe('ScrollFade', () => {
     expect(layers(container)[0].style.backdropFilter).toBe('blur(20px)');
   });
 
-  // The ramp runs from the clinging edge inward, so it flips with it.
-  //
-  // Asserted against `to top` in both directions rather than against each
-  // keyword in turn: `to bottom` is a gradient's default direction, and a CSS
-  // parser is free to drop it when serialising, which is what jsdom 30 started
-  // doing. Its absence is the only reading of "downward" that survives that.
+  // jsdom drops the default `to bottom` when serialising, so downward is no `to top`.
   describe('position', () => {
     it('clings to the bottom and runs upward by default', () => {
       const { container } = render(<ScrollFade />);

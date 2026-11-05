@@ -4,15 +4,9 @@ import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
-// Customized beyond the CLI output; see CLAUDE.md.
-//
-// Both class names are written out in full rather than composed: Tailwind scans
-// source for complete class strings, so a name built by interpolation is never
-// seen and the class is silently never generated.
 const BEVEL = "shadow-[var(--shadow-bevel)]";
 
-// Hover keeps the fill and blooms underneath in --glow, the same colour a field
-// takes on focus; only the spread differs.
+// A shadow replaces the whole list, so the hover repeats the bevel.
 const GLOW = "hover:shadow-[var(--shadow-bevel),0_2px_40px_-4px_var(--glow)]";
 
 const buttonVariants = cva(

@@ -9,7 +9,6 @@ const field = (defaultValue: string) => {
 };
 
 describe('EmailInput', () => {
-  // The tick is driven by :valid, so validity is the whole component contract.
   it.each(['hello@gmail.com', 'first.last@sub.example.co.uk'])(
     'accepts %s',
     (value) => {
@@ -25,9 +24,6 @@ describe('EmailInput', () => {
     }
   );
 
-  // Empty is valid on purpose: an untouched optional field is not an error.
-  // `:not(:placeholder-shown)` is what keeps the tick hidden, which is why the
-  // placeholder cannot be dropped.
   it('stays valid while empty, but keeps its placeholder', () => {
     const input = field('');
 

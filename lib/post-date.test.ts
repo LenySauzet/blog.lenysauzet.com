@@ -5,8 +5,7 @@ import { postDate } from './post-date';
 
 const here = process.env.TZ;
 
-// The bug this guards only shows west of Greenwich, and both the runner and CI sit
-// east of it. V8 re-reads `TZ` on the next `Date`, so the zone is moved for the test.
+// The bug only shows west of Greenwich, and V8 re-reads `TZ` on the next `Date`.
 const somewhereWest = (zone: string) => {
   process.env.TZ = zone;
 };
@@ -22,7 +21,6 @@ describe('postDate', () => {
     expect(format(postDate('2026-04-22'), 'MMM d, yyyy')).toBe('Apr 22, 2026');
   });
 
-  // A post published on a 1 January would otherwise be filed under the year before.
   it('keeps a new year on the right side of midnight', () => {
     somewhereWest('Pacific/Honolulu');
 

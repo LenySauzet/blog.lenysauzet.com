@@ -1,6 +1,5 @@
 const SPAN = 150;
 
-/** A third in, so the matched word has a run-up rather than opening the quote. */
 const LEAD = SPAN / 3;
 
 export interface ExcerptSegment {
@@ -10,11 +9,7 @@ export interface ExcerptSegment {
 
 const escape = (term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/**
- * Longest first, so `halftone` is not eaten by a shorter term inside it. The terms
- * are the document's words, not the query's: a prefix search for "moto" hands back
- * "motorcycle", which is what has to be found in the text.
- */
+// Longest first, so a shorter term inside `halftone` cannot eat it.
 const matcher = (terms: string[]) =>
   terms.length
     ? new RegExp(
@@ -23,7 +18,6 @@ const matcher = (terms: string[]) =>
       )
     : null;
 
-/** Snapped to a space, so a quote never opens or closes mid-word. */
 const wordStart = (text: string, at: number) => {
   if (at <= 0) return 0;
   const space = text.indexOf(' ', at);
@@ -52,9 +46,7 @@ export function excerpt(
 
   if (!pattern) return [{ text: quote, match: false }];
 
-  // A capturing split alternates plain, match, plain, so parity says which is which
-  // and the pattern is never asked a second question. Empties go after the mapping,
-  // or they take the parity with them.
+  // The capturing split alternates plain and match; drop empties only after, or parity breaks.
   return quote
     .split(pattern)
     .map((part, index) => ({ text: part, match: index % 2 === 1 }))

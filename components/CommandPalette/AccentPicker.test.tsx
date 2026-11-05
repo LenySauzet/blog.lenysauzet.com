@@ -26,8 +26,6 @@ describe('AccentPicker', () => {
     }
   });
 
-  // Unlike the root palette, which hides what would change nothing, a chooser
-  // has to say where the reader already is.
   it('marks the one in force rather than hiding it', () => {
     picker('teal');
 

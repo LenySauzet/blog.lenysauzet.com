@@ -15,8 +15,6 @@ export interface Scene {
   playing: boolean;
 }
 
-// A full-frame fragment shader costs every pixel it is given, and past two the extra
-// ones are not visible enough to pay for.
 const MAX_DPR = 2;
 const ANISOTROPY = 8;
 const NONE = [0, 0];
@@ -68,8 +66,7 @@ interface Source {
 
 export function createShader(host: HTMLElement, fragment: string, report: (status: Status) => void) {
   const canvas = document.createElement('canvas');
-  // Taken before OGL asks, so OGL is handed this context rather than falling back to
-  // WebGL 1, which a `#version 300 es` shader cannot compile on.
+  // Taken first, or OGL falls back to WebGL 1, which cannot compile `#version 300 es`.
   if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false })) {
     report('unavailable');
     return inert;
@@ -144,7 +141,6 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     Object.assign(element, { muted: true, loop: true, playsInline: true, preload: 'auto' });
     element.onloadeddata = () => show(name, element, [element.videoWidth, element.videoHeight]);
     const upload = () => (texture.needsUpdate = dirty = true);
-    // Without it, a playing video is uploaded on every frame whether it moved or not.
     const presents = typeof element.requestVideoFrameCallback === 'function';
     let pending = 0;
     const present = () => {
@@ -156,7 +152,6 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
       media: element,
       play(on: boolean) {
         if (!on) element.pause();
-        // A play cut short by a pause rejects with an AbortError, and is not a failure.
         else if (element.paused)
           element.play().catch((error: DOMException) => error.name === 'AbortError' || report('blocked'));
       },
@@ -202,8 +197,6 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   };
 
   let onScreen = false;
-  // A still shader with no colour to watch has nothing to do between changes, and every
-  // change draws on its own.
   const schedule = () => {
     const visible = onScreen && !document.hidden;
     for (const { play } of textures.values()) play?.(visible && playing);

@@ -5,8 +5,6 @@ export const dynamic = 'force-static';
 
 const { url, title, descriptionShort } = siteConfig;
 
-/** llmstxt.org: a heading, a summary, then sections of links. Each one points
-    at the post's Markdown rather than its page, which is the whole point. */
 export async function GET() {
   const posts = await getPosts();
 

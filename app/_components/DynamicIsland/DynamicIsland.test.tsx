@@ -237,9 +237,6 @@ describe('DynamicIsland', () => {
     await waitFor(() => expect(island()).not.toHaveTextContent('Shades of Halftone'));
   });
 
-  // Opened over the very link that raised it, it would take the pointer off that
-  // link, shrink back, hand it over again, and oscillate. The positioner is what
-  // has to go inert: it is a box of its own, and catches what the button does not.
   it('stops answering the pointer while it is showing someone else\'s link', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<DynamicIsland />);

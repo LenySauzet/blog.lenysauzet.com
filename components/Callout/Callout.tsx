@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// Each variant only sets the colour `callout-surface` derives everything from.
 const VARIANTS = {
   info: { icon: InformationCircleIcon, name: 'Note', accent: '[--callout:var(--primary)]' },
   warning: { icon: SpamIcon, name: 'Warning', accent: '[--callout:var(--warning)]' },
@@ -27,9 +26,7 @@ export function Callout({ variant = 'info', label, className, children }: Callou
   return (
     <aside
       className={cn(
-        // my-3 stacks on the post's block gap rather than collapsing into it: the
-        // parent is a flex column. --frame-radius shrinks the corners of a framed
-        // block inside, so they nest in the callout's.
+        // my-3 adds to the post's gap rather than collapsing: the parent is a flex column.
         'callout-surface my-3 rounded-xl p-4 [--frame-radius:var(--radius-md)]',
         accent,
         className,
@@ -48,9 +45,7 @@ export function Callout({ variant = 'info', label, className, children }: Callou
         )}
       </div>
 
-      {/* Set here as well as on the paragraph MDX wraps multi-line children in, so a
-          one-line callout reads like any other. `[&>*]:my-0` leaves the rhythm to the
-          gap alone, so any block can sit inside. */}
+      {/* `[&>p]:` too: MDX wraps multi-line children in a muted paragraph. */}
       <div className="flex flex-col gap-4 font-display text-base leading-7 text-foreground [&>*]:my-0 [&>p]:text-inherit">
         {children}
       </div>

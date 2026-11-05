@@ -7,23 +7,12 @@ import { cn } from '@/lib/utils';
 
 export interface EmailInputProps
   extends Omit<React.ComponentProps<'input'>, 'type'> {
-  /**
-   * Forces the tick. Only for a disabled or read-only control, which is barred
-   * from constraint validation and so matches neither `:valid` nor `:invalid`.
-   */
+  /** Forces the tick on a disabled or read-only control, which never matches `:valid`. */
   valid?: boolean;
 }
 
-// `type="email"` alone accepts `hello@a` and `hello@gmail.c`, both legal per
-// spec. `pattern` feeds `:valid` too, so narrowing it still costs no script.
 const EMAIL_PATTERN = '[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}';
 
-/**
- * An email field whose icon redraws into a tick once the address parses.
- *
- * The placeholder is load-bearing: `:placeholder-shown` separates empty from
- * filled, and an empty optional email input is `:valid` on its own.
- */
 export default function EmailInput({
   className,
   placeholder = 'hello@lenysauzet.com',

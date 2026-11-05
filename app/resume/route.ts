@@ -2,11 +2,7 @@ import siteConfig from '@/config/site'
 
 const FILENAME = siteConfig.resumeUrl.split('/').pop() ?? 'resume.pdf'
 
-/**
- * The PDF lives on the CDN, but `download` is ignored across origins: linked
- * straight to it the browser navigates away instead of saving. Served from here it
- * carries its own disposition, so the file lands and the reader stays on the page.
- */
+// Proxied: `download` is ignored across origins, so a CDN link navigates away.
 export async function GET() {
     const upstream = await fetch(siteConfig.resumeUrl)
 

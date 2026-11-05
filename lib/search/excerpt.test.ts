@@ -24,8 +24,6 @@ describe('excerpt', () => {
     ]);
   });
 
-  // MiniSearch hands back the document's word, not the query's, so the excerpt
-  // marks "motorcycle" for a search that only typed "moto".
   it('marks the whole word a prefix search reached', () => {
     expect(marked('Zen and motorcycle maintenance', ['motorcycle'])).toEqual([
       'motorcycle',
@@ -60,7 +58,6 @@ describe('excerpt', () => {
     expect(join(text, ['needle'], 80).length).toBeLessThanOrEqual(82);
   });
 
-  // Longest first, so "halftone" is not eaten by a shorter term inside it.
   it('prefers the longest term where two overlap', () => {
     expect(marked('A halftone grid.', ['half', 'halftone'])).toEqual(['halftone']);
   });

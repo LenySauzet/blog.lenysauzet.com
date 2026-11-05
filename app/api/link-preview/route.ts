@@ -31,7 +31,6 @@ const answer = (metadata: LinkMetadata) =>
     },
   });
 
-/** Redirects are walked by hand so the address is checked again on every hop. */
 async function reach(url: URL, accept: string) {
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
     const address = await resolvePublicAddress(url);
@@ -107,8 +106,6 @@ async function viaOembed(
   };
 }
 
-/** Answers in our own shape, and an empty one on every failure: the island then
-    keeps what the URL alone told it, which is already a preview. */
 export async function GET(request: Request) {
   const href = new URL(request.url).searchParams.get('url');
   if (!href || !URL.canParse(href)) return answer({});
@@ -118,7 +115,6 @@ export async function GET(request: Request) {
   try {
     if (!(await isLinkedFromAPost(target.hostname))) return answer({});
 
-    // Richer than their own tags, and a video they refuse here still has a page.
     const endpoint = OEMBED[target.hostname];
     const embedded = endpoint && (await viaOembed(endpoint, target));
     if (embedded) return answer(embedded);

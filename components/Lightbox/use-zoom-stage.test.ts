@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useZoomStage } from './use-zoom-stage';
 import { ZOOM_TRANSITION } from './zoom';
 
-// jsdom runs no layout animation, so the stages are driven by hand: `settle` is what
-// Motion's completion calls, and the timer what stands in when Motion drops it.
+// Past the timer standing in for a completion Motion drops.
 const ON_TIME = ZOOM_TRANSITION.duration * 1000 + 100;
 
 describe('useZoomStage', () => {

@@ -44,7 +44,6 @@ describe('layOutTicks', () => {
     expect(marked(ticks)).toEqual([[5, 'middle']]);
   });
 
-  // Two headings a paragraph apart are still two places to go.
   it('moves a section down rather than losing it to one already taken', () => {
     const ticks = layOutTicks(11, [section('first', 0.5), section('second', 0.51)]);
 
@@ -86,9 +85,6 @@ describe('sameSections', () => {
     expect(sameSections([one], [section('one', 0.5)])).toBe(true);
   });
 
-  // A shorter viewport leaves every heading where it was and still lengthens
-  // the travel under it, so the place on the rail moves while the measurement
-  // does not. Compared on `top` alone the rail froze.
   it('sees a place that moved under a heading that did not', () => {
     const moved: Section = { ...one, progress: 0.48 };
 
