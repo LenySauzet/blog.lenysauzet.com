@@ -13,7 +13,7 @@ paths:
 
 Several shadcn files are customised beyond the CLI output. Update one with
 `bunx shadcn@latest add <name> --diff` and re-apply its edits, never overwrite: they are
-listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
+listed here for `badge`, `button`, `card`, `input`, `input-group` and `slider`, in
 `.claude/rules/command-palette.md` for `command`, in `.claude/rules/tables.md` for
 `table`, and in the `figure-chart` skill's reference for `chart`.
 
@@ -35,6 +35,10 @@ the first one does.
 Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status variants
 (`info` / `success` / `warning` / `danger`), each a ~10% wash of its colour. shadcn's stock
 `destructive` is kept alongside `danger`.
+
+**`components/ui/button.tsx` is customised beyond the CLI output**: the default variant
+wears `--shadow-bevel` and blooms in `--glow` on hover, its press transition names
+`scale` rather than `transform`, and every variant carries `cursor-pointer`.
 
 **`components/ui/card.tsx` is intentionally customized** beyond the CLI output, like
 `badge.tsx`. Four edits: the edge is a `border` resolving from `--border` rather than

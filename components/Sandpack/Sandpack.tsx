@@ -38,12 +38,9 @@ export function Sandpack({
   const [selectedTab, setSelectedTab] = useState<Tab>(defaultTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCode, setShowCode] = useState(true);
-  // Remounting SandpackConsole is the only way to clear its logs; each
-  // useSandpackConsole holds its own local state.
   const [consoleKey, setConsoleKey] = useState(0);
 
-  // In an effect so the lock is released even if the editor unmounts on a route
-  // change without exiting fullscreen.
+  // An effect, so the lock is released if the editor unmounts while fullscreen.
   useEffect(() => {
     document.body.style.overflow = isFullscreen ? 'hidden' : '';
     return () => {

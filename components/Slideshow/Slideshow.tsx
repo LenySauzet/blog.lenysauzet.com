@@ -5,25 +5,19 @@ import { cn } from '@/lib/utils';
 import { type SlideshowImage, SlideshowCarousel } from './SlideshowCarousel';
 
 export interface SlideshowProps {
-  /**
-   * In order, each a path relative to the CDN's images prefix or an absolute URL, alone
-   * or with what it shows as `alt`, which a screen reader reads on that slide.
-   */
+  /** CDN image paths or absolute URLs. */
   images: (string | SlideshowImage)[];
-  /** Doubles as the caption and the slideshow's accessible name. */
+  /** Also the caption. */
   alt: string;
-  /** Plays on its own, cross-fading and going round, with a pause button. */
   autoPlay?: boolean;
-  /** Milliseconds each image holds while playing. */
+  /** Milliseconds. */
   interval?: number;
-  /** Both given skips the build-time lookup of the first image. */
+  /** Both given skip the build-time lookup. */
   width?: number;
   height?: number;
   className?: string;
 }
 
-// URL resolution and the lookup run at build time, so only the carousel crosses to
-// the client. The first image sets the frame; the others are cropped to it.
 export default async function Slideshow({
   images,
   alt,
@@ -34,7 +28,6 @@ export default async function Slideshow({
   className,
 }: SlideshowProps) {
   if (images.length === 0) return null;
-  // A bare path shows nothing a reader needs beyond the caption.
   const resolved = images.map((image) =>
     typeof image === 'string'
       ? { src: resolveImageUrl(image), alt: '' }

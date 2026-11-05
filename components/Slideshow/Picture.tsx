@@ -7,18 +7,13 @@ export interface PictureProps {
   width: number;
   height: number;
   sizes: string;
-  /** How far past either side of its box the image reaches, as a CSS length. */
+  /** A CSS length, past either side. */
   bleed: string;
   loading?: 'eager' | 'lazy';
   decoding?: 'sync' | 'async';
   ref?: Ref<HTMLDivElement>;
 }
 
-/**
- * An image covering its box and reaching `bleed` past either side, which a seam's bulge
- * draws from. Every copy of a slide's image is one, so the slide, its cross-fade and its
- * lift all crop alike.
- */
 export function Picture({ src, alt = '', width, height, sizes, bleed, loading, decoding, ref }: PictureProps) {
   return (
     <div

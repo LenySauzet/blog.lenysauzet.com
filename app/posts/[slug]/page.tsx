@@ -33,8 +33,6 @@ export async function generateMetadata({
       description: metadata.description,
       alternates: {
         canonical: postUrl,
-        // The page says where its own source lives, so nothing has to guess
-        // the path or read a listing to find it.
         types: { 'text/markdown': `${postUrl}/index.md` },
       },
       openGraph: {
@@ -72,9 +70,6 @@ export default async function Page({
       <article className="flex flex-col gap-8 pt-28 sm:pt-56 px-4">
         <AnnouncePost title={metadata.title} shortTitle={metadata.shortTitle} />
         <div className="w-full min-w-0 max-w-2xl mx-auto">
-          {/* `Anchor` already owns this: `direction` draws the arrow and slides it
-              on hover, `discreet` keeps it under the title until pointed at. No
-              favicon padding, which only an external link has a glyph to hold. */}
           <div className="mb-3">
             <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
               Home
@@ -104,9 +99,7 @@ export default async function Page({
             </div>
           </div>
 
-          {/* No font-weight here. The prose scale is built on a 400 body, so
-              `strong`, `em` and `h3` can step up to 500 and read as emphasis; a
-              blanket font-medium put the body at 500 and flattened all three. */}
+          {/* No font-weight: strong, em and h3 step up from a 400 body. */}
           <div data-prose className="flex flex-col gap-5">
             <Post />
           </div>
@@ -121,8 +114,7 @@ export default async function Page({
 }
 
 export async function generateStaticParams() {
-  // Drafts are hidden from the feed but still built, so their URL resolves
-  // under `dynamicParams = false`.
+  // Drafts are built too, so their URL resolves.
   const posts = await getPosts({ includeDrafts: true });
   return posts.map((post) => ({ slug: post.slug }));
 }

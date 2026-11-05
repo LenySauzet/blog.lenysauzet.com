@@ -6,11 +6,6 @@ import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { controlHitArea, controlSurface } from "@/components/ui/control-surface"
 
-// The dot is knocked out of the filled circle rather than painted on it, and
-// shrinks as it appears. On the item itself, not an Indicator: Radix unmounts
-// that on uncheck, which would cut the exit short.
-// The transition names `scale`, not `transform`: Tailwind's scale-* sets the
-// standalone property, so a transform transition never fires.
 const DOT =
   "before:absolute before:inset-0 before:scale-[0.7] before:rounded-full before:bg-background before:opacity-0 before:content-[''] before:[transition:scale_.3s_ease,opacity_.2s] disabled:before:bg-subtle-foreground motion-reduce:before:transition-none"
 

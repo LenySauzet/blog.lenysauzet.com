@@ -5,23 +5,18 @@ export type Post = {
     slug: string
     metadata: {
         title: string
-        /** The title cut for the island, which has far less room than a page. */
+        /** For the island, which has far less room than a page. */
         shortTitle?: string
         description: string
         date: string
-        /** Optional, and only set by hand: the day the post last changed in a way
-            worth telling a reader about. */
         updated?: string
         tags: string[]
-        /** Reachable by URL but hidden from every public listing. */
         draft?: boolean
     }
     content: string,
     lastModified: Date
 }
 
-/** A post as the app passes it around: what a listing, a preview or a search
-    row needs, without the body. */
 export type PostSummary = {
     slug: string
     title: string
@@ -37,7 +32,6 @@ export const summaryOf = ({ slug, metadata }: Post): PostSummary => ({
 })
 
 type GetPostsOptions = {
-    /** Off by default so the feed, RSS and sitemap never leak drafts. */
     includeDrafts?: boolean
 }
 

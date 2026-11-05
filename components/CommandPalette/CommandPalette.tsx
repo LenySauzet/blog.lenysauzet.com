@@ -20,11 +20,6 @@ import { BackHint } from './BackHint';
 import { CommandRegistry, commandValue } from './CommandRegistry';
 import { PostSearch } from './PostSearch';
 
-/**
- * One pane at a time: a page is a `CommandList`, and two inside one `Command`
- * have cmdk ranking and arrowing through rows nobody can see. The blur
- * resolves to `none`, or every pane holds a composited layer.
- */
 const TRAVEL = 28;
 const SMEAR = 7;
 
@@ -62,7 +57,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const still = useReducedMotion();
   const [query, setQuery] = useState('');
   const [page, setPage] = useState<Page | null>(null);
-  /** Which way the panes travel: into a page, or back out of one. */
+  /** 1 into a page, -1 back out of one. */
   const [towards, setTowards] = useState(1);
   const [pane, setPane] = useState<HTMLDivElement | null>(null);
   const [height, setHeight] = useState<number | 'auto'>('auto');
@@ -70,9 +65,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
   const [selected, setSelected] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const lastMeasured = useRef<HTMLElement | null>(null);
-  // What the reader picked, run once the dialog has left: repainting the page
-  // under it would read as a cut rather than an exit. Reopened before then, the
-  // exit never completes, so it runs at once rather than at the next close.
   const afterExit = useRef<(() => void) | null>(null);
   const runPicked = useCallback(() => {
     const run = afterExit.current;
@@ -80,20 +72,12 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     run?.();
   }, []);
 
-  // Reopened mid-exit, the box was inert when `open` focused it, so the focus
-  // is handed over again once the open dialog has rendered.
   useEffect(() => {
     if (!isOpen) return;
     runPicked();
     input.current?.focus();
   }, [isOpen, runPicked]);
 
-  /**
-   * The arriving pane only: entering a page clears the box too, so the one on
-   * its way out swells back to full height first. A box the size of a pane it
-   * has not measured before is a swap and travels; the same pane resizing
-   * again is the list filtering, and follows at once.
-   */
   useEffect(() => {
     if (!pane || pane.dataset.pane !== (page ?? 'root')) return;
 
@@ -107,8 +91,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     return () => resized.disconnect();
   }, [pane, page]);
 
-  /** The chooser opens on the accent in force. A frame late, cmdk laying its
-      own highlight on the first row as the rows mount. */
+  // A frame late: cmdk highlights the first row as the rows mount.
   useEffect(() => {
     if (page !== 'accent' || !isOpen) return;
 
@@ -140,26 +123,16 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     [recommended, rest]
   );
 
-  /**
-   * Where the palette starts, and returns to when a page is left. Named on the way
-   * in: resetting on the way out would show the root list flick back into a palette
-   * that is already leaving.
-   */
+  // Reset on the way in: on the way out the root list flicks back into a leaving palette.
   const toRoot = useCallback(() => {
     setTowards(-1);
     setPage(null);
     setQuery('');
     setSelected(rootValues[0] ?? '');
-    // The way back is a button that leaves with the page it belongs to, so
-    // the focus it took has to be handed somewhere.
     input.current?.focus();
   }, [rootValues]);
 
-  /**
-   * Opening and closing go through these, never through `setIsOpen`. A controlled
-   * dialog fires `onOpenChange` for the reader's own dismissals and nothing else, so
-   * a command closing the palette itself would skip everything hung off it.
-   */
+  // Never `setIsOpen` directly: `onOpenChange` fires only for the reader's own dismissals.
   const open = useCallback(() => {
     toRoot();
     setIsOpen(true);
@@ -167,7 +140,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
 
   const close = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  /** The selection follows the rows a page ranks for itself. */
   const onResults = useCallback((values: string[]) => {
     setSelected((current) =>
       values.includes(current) ? current : (values[0] ?? '')
@@ -180,8 +152,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
         setQuery('');
         setTowards(1);
         setPage(command.opens);
-        // A row reached with the mouse keeps the focus it was given, and the page
-        // it opens is a search box.
         input.current?.focus();
         return;
       }
@@ -229,9 +199,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
         value={selected}
         onValueChange={setSelected}
         shouldFilter={page === null || !PAGES[page].ranksItself}
-        // Backspace on an empty box leaves a page, the way a breadcrumb would be
-        // clicked. Read on the root: a row reached with the mouse holds the focus,
-        // and the key would never reach the box.
         onKeyDown={(event) => {
           if (page && event.key === 'Backspace' && query === '') toRoot();
         }}
@@ -244,15 +211,11 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
           hint={<BackHint shown={page !== null && query === ''} onBack={toRoot} />}
         />
 
-        {/* The box travels with its contents, by a measured height rather
-            than `layout`, which transforms the element and leaves the real
-            box to jump. */}
         <motion.div
           animate={{ height }}
           initial={false}
           transition={still || !travelling ? AT_ONCE : SWAP}
-          // Five rows of `h-11` plus the list's padding: filtered to one
-          // command the box fell to a single row and climbed back out.
+          // Five `h-11` rows plus the list's padding.
           className="min-h-[14.75rem] overflow-hidden"
         >
           <AnimatePresence mode="wait" initial={false} custom={towards}>
@@ -283,8 +246,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
                 />
               )}
 
-              {/* The page stays where every other command shuts it: a
-                  chooser has to let one accent be compared with the next. */}
+              {/* Stays open on a pick, so one accent can be compared with the next. */}
               {page === 'accent' && (
                 <AccentPicker current={hue} onPick={(preset) => setHue(preset.id)} />
               )}

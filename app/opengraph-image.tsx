@@ -10,8 +10,7 @@ export const size = {
 
 export const contentType = 'image/png';
 
-// Drawn from Logo, so the share card can never fall behind the mark. X takes
-// it too: without a twitter-image, Next fills twitter:image from this one.
+// Also X's card: without a twitter-image, Next fills twitter:image from this.
 export default function Image() {
   return new ImageResponse(
     <div tw="w-full h-full flex items-center justify-center bg-black text-white">

@@ -4,14 +4,6 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 
-/**
- * A positioning shell, not a bordered container: the control keeps its own
- * surface and the addon floats over it. Laid out as a flex sibling the addon
- * would take a box of its own, which breaks the focus glow across the edge.
- *
- * It is also the hover surface, since an addon overlaying the control leaves it
- * unhovered when pointed at.
- */
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -42,10 +34,6 @@ const inputGroupAddonVariants = cva(
   }
 )
 
-/**
- * Must follow the control in the DOM: its state colours read the control
- * through `peer-*`, which only sees earlier siblings.
- */
 function InputGroupAddon({
   className,
   align = "inline-start",
@@ -71,8 +59,7 @@ function InputGroupButton({
       type={type}
       data-slot="input-group-button"
       className={cn(
-        // The inner ring is the field's own fill: without that gap the focus
-        // ring hugs the glyph and reads as part of the icon.
+        // The background ring is a gap, or the focus ring reads as part of the glyph.
         "flex size-5.5 cursor-pointer items-center justify-center rounded-full outline-none [transition:box-shadow_.2s] motion-reduce:transition-none focus-visible:shadow-[0_0_0_3px_var(--background),0_0_0_5px_var(--primary)] disabled:cursor-not-allowed",
         className
       )}

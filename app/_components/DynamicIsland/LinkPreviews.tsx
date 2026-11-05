@@ -17,7 +17,7 @@ import { collapsing, linkPreview, LINK_PREVIEW } from './states/link-preview';
 
 const DWELL = 260;
 
-/** Long enough for the box to have all but arrived at the resting shape. */
+/** Milliseconds, until the box has all but reached its resting shape. */
 const COLLAPSE = 240;
 
 const anchorOf = (node: EventTarget | null) =>
@@ -44,8 +44,6 @@ export function LinkPreviews({ posts }: { posts: KnownPosts }) {
       window.clearTimeout(opening);
       pointed = href;
 
-      // Asked for at once and shown after the wait, so the answer is often in
-      // hand by the time the island opens at all.
       const asked = worthAsking(href) ? askAbout(href) : undefined;
 
       opening = window.setTimeout(() => {

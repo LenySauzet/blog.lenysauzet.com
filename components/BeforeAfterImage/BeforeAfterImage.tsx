@@ -5,22 +5,20 @@ import { cn } from '@/lib/utils';
 import { BeforeAfterSlider } from './BeforeAfterSlider';
 
 export interface BeforeAfterImageProps {
-  /** Paths relative to the CDN's images prefix, or absolute URLs. */
+  /** CDN image paths or absolute URLs. */
   beforeSrc: string;
   afterSrc: string;
-  /** Doubles as the caption and the slider's accessible name. */
+  /** Also the caption. */
   alt: string;
-  /** Initial divider position, 0–100. */
+  /** 0 to 100. */
   defaultPosition?: number;
-  /** Both given skips the build-time dimension lookup. */
+  /** Both given skip the build-time lookup. */
   width?: number;
   height?: number;
   className?: string;
 }
 
-// URL resolution and the dimension lookup run at build time, so only the slider
-// crosses to the client. One lookup covers both images: overlaid, they share an
-// intrinsic size.
+// One lookup covers both images: overlaid, they share an intrinsic size.
 export default async function BeforeAfterImage({
   beforeSrc,
   afterSrc,

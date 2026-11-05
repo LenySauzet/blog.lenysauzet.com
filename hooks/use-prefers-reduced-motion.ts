@@ -10,11 +10,7 @@ const subscribe = (change: () => void) => {
   return () => query.removeEventListener('change', change);
 };
 
-/**
- * The reader's preference, live and safe to hydrate. Motion's `useReducedMotion`
- * reads it once at mount, so a change made while reading would wait for the next
- * page; the server renders `false`, as the page does before any script.
- */
+/** Live, where Motion's `useReducedMotion` reads once at mount. */
 export function usePrefersReducedMotion() {
   return useSyncExternalStore(
     subscribe,

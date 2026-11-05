@@ -8,11 +8,6 @@ import { Button } from '@/components/ui/button';
 
 import Showcase from './ComponentShowcase';
 
-/**
- * Every Button variant, size and state in one place, so the design can be
- * judged on screen rather than in a diff. Lives with the showcase rather than
- * in the post, because it is markup, not prose.
- */
 export default function ButtonShowcase() {
   return (
     <>

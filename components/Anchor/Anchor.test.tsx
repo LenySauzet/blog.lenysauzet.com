@@ -37,14 +37,7 @@ describe('Anchor', () => {
     expect(iconsIn(link)).toHaveLength(1);
   });
 
-  // MDX wraps a component's children in a paragraph as soon as they sit on
-  // their own line, and `p` is globally mapped to muted prose type. That
-  // paragraph used to keep its own colour while the icon kept the anchor's,
-  // splitting one link across two colours.
-  //
-  // jsdom applies no Tailwind, so it cannot see the resulting colour; it can
-  // only hold the override in place. The colour itself is asserted in a real
-  // browser (see the PR).
+  // jsdom applies no Tailwind: this can only hold the override in place, not see the colour.
   describe('children arriving wrapped in a paragraph, as MDX emits them', () => {
     it('still renders the label inside the link', () => {
       render(

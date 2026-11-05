@@ -27,7 +27,6 @@ ${words(400)}`;
     expect(readingTime(source)).toBe(2);
   });
 
-  // Component names and props are markup, not reading.
   it('reads the text inside a component, not its tags', () => {
     const source = `<Callout variant="info" className="my-6">${words(400)}</Callout>`;
     expect(readingTime(source)).toBe(2);

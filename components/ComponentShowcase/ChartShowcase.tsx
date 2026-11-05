@@ -94,12 +94,6 @@ const KINDS = {
 type Kind = keyof typeof KINDS;
 const NAMES = Object.keys(KINDS) as Kind[];
 
-/**
- * Every chart kind the wrapper supports, one at a time. A page showing six at
- * once teaches less than one a reader picks: the frame, the legend and the
- * tooltip are shared, so what the selector actually shows is which shapes the
- * same props can take.
- */
 export default function ChartShowcase() {
   const [kind, setKind] = useState<Kind>('Area');
 
@@ -120,9 +114,7 @@ export default function ChartShowcase() {
           </SelectContent>
         </Select>
       </div>
-      {/* Keyed, so switching kind mounts a new chart rather than reusing the
-          old one's marks: Recharts would otherwise animate from the previous
-          shape toward an unrelated one. */}
+      {/* Keyed, or Recharts animates from the previous kind's shape. */}
       <div key={kind}>{KINDS[kind]}</div>
     </div>
   );

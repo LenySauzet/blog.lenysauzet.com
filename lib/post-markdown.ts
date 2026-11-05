@@ -6,14 +6,8 @@ import { resolveMediaUrl } from './cdn';
 import type { Post } from './post-utils';
 import { TWEET_EMBED } from './tweet';
 
-// Shiki's diff notation at the end of a line, the one form lib/rehype-code.mjs admits.
 const DIFF_MARK = /\s*(?:\/\/|#|--|\/\*|<!--|;|%)\s*\[!code (\+\+|--)\]\s*(?:\*\/|-->)?\s*$/i;
 
-/**
- * A fence that marks lines with `[!code ++]` or `[!code --]` becomes a `diff`
- * fence: the notation is the build's, and left in place it would hand over the
- * removed lines as live code.
- */
 const asDiff = (fence: string) => {
   const lines = fence.split('\n');
   if (!lines.some((line) => DIFF_MARK.test(line))) return fence;
@@ -27,13 +21,7 @@ const asDiff = (fence: string) => {
   return ['```diff', ...body, lines.at(-1)].join('\n');
 };
 
-/**
- * A fenced block is the subject, not machinery: a post about Three.js carries
- * `import * as THREE` in an example, a shader post a `src=` in one, and a
- * transform that reaches inside eats them. The split captures the fences, so
- * they fall on the odd indices and are handed back untouched but for the diff
- * notation.
- */
+// The capturing split puts the fences on the odd indices.
 const outsideFences = (body: string, change: (text: string) => string) =>
   body
     .split(/(```[\s\S]*?```)/g)
@@ -51,7 +39,6 @@ const resolveSources = (text: string) =>
       (_match: string, lead: string, src: string) => `${lead}${resolveMediaUrl(src)})`
     );
 
-// A post on X is a line of JSX outside the page; as a link it says where it was.
 const embedTweets = (text: string) =>
   text.replace(
     TWEET_EMBED,
@@ -60,12 +47,6 @@ const embedTweets = (text: string) =>
 
 const IMPORT = /^import\s/;
 
-/**
- * Only what the file opens with. An import can also be a line of an example a
- * component carries in a prop, which begins at column zero like any other and
- * is the subject rather than the build's: anchoring to every line start cost
- * the design system its `import './scene.css';`.
- */
 const withoutPreamble = (content: string) => {
   const lines = content.replace(/^export const metadata = \{[\s\S]*?^\};?$/m, '').split('\n');
   let opening = 0;
@@ -97,11 +78,6 @@ const frontmatter = (post: Post) => {
   ].join('\n');
 };
 
-/**
- * A post as the file it was written as, minus the two things that only mean
- * something inside the build: the metadata export, which no parser but a
- * bundler reads, and the imports, which name modules nothing here can load.
- */
 export function toMarkdown(post: Post): string {
   const body = outsideFences(withoutPreamble(post.content), (text) => embedTweets(resolveSources(text)));
 

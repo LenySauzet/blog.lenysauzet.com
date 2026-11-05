@@ -29,7 +29,6 @@ index.addAll(POSTS);
 const slugs = (query: string) => searchPosts(index, query).map((post) => post.slug);
 
 describe('searchPosts', () => {
-  // An empty box is a table of contents, not a surface waiting to be used.
   it('lists every post newest first when nothing is typed', () => {
     expect(slugs('')).toEqual(['halftone', 'octrees']);
     expect(slugs('   ')).toEqual(['halftone', 'octrees']);
@@ -47,7 +46,6 @@ describe('searchPosts', () => {
     expect(slugs('glsl')).toEqual(['halftone']);
   });
 
-  // Typing more narrows: every word has to land somewhere.
   it('requires every word to match', () => {
     expect(slugs('octree illusion')).toEqual([]);
   });
@@ -57,7 +55,6 @@ describe('searchPosts', () => {
     expect(slugs('ocrees')).toEqual(['octrees']);
   });
 
-  // The excerpt marks the document's word, not the one that was typed.
   it('reports the words the document matched on', () => {
     expect(searchPosts(index, 'illus')[0].terms).toContain('illusion');
   });

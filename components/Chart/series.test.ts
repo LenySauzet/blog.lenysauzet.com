@@ -36,7 +36,6 @@ describe("resolve", () => {
 });
 
 describe("configOf", () => {
-  /** `ChartStyle` reads this to write each `--color-<key>`. */
   it("keys the config by series, carrying label and colour", () => {
     expect(configOf(resolve([series("webgl"), series("canvas")]))).toEqual({
       webgl: { label: "webgl", color: TOKENS[0] },

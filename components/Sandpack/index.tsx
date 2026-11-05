@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 
 import { EDITOR_HEIGHT } from './constants';
 
-// Heavy and browser-only, so only posts that embed a live editor pay for it.
 export const Sandpack = dynamic(() => import('./Sandpack').then((mod) => mod.Sandpack), {
   ssr: false,
   loading: () => (

@@ -11,7 +11,6 @@ export interface PostMatch {
   terms: string[];
 }
 
-/** Stored fields come back untyped, so they are named here and nowhere else. */
 const toMatch = (result: SearchResult): PostMatch => ({
   slug: String(result.id),
   title: result.title,
@@ -22,10 +21,6 @@ const toMatch = (result: SearchResult): PostMatch => ({
 
 const newestFirst = (a: PostMatch, b: PostMatch) => b.date.localeCompare(a.date);
 
-/**
- * Nothing typed lists every post, newest first, which is what the wildcard is for.
- * Keeping this out of the view leaves the engine testable without a DOM.
- */
 export function searchPosts(
   index: MiniSearch<SearchDocument>,
   query: string

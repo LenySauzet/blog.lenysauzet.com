@@ -7,12 +7,6 @@ import type { CarouselApi } from '@/components/ui/carousel';
 
 import { bendFor, parallaxShift, slidePath } from './bend';
 
-/**
- * The track's motion read into each slide. The seam between two moving slides bows
- * with the track's speed, as the Before/After's divider does with the hand's, so every
- * slide is clipped to `outline`; and each image lags its frame by how far that frame
- * sits from the middle of the view, written to the layer `layer(index)` attaches to.
- */
 export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivElement | null>, reduced: boolean) {
   const width = useMotionValue(0);
   const height = useMotionValue(0);
@@ -26,9 +20,7 @@ export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivEleme
 
   useEffect(() => {
     if (!api) return;
-    // Measured from the slides themselves, which the loop moves about on its own, every
-    // rect read before any layer moves: one style pass a frame, not one per slide. Its
-    // size comes in on `reInit`, which Embla's own observer raises on a resize.
+    // The size arrives on `reInit`, which Embla's own observer raises on a resize.
     const place = () => {
       const root = rootRef.current!;
       const span = root.clientWidth;
@@ -40,8 +32,7 @@ export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivEleme
         layers.current[index]?.style.setProperty('translate', `${reduced ? 0 : parallaxShift(distance, span)}px 0`);
       });
     };
-    // Embla's own speed, which an instant jump leaves at zero, so autoplay's cross-fade
-    // never bends; read off its engine, as its tween examples do.
+    // Read off the internal engine, as Embla's own tween examples do.
     const onScroll = () => {
       bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
       place();

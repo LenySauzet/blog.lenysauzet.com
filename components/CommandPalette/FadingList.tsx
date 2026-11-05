@@ -4,14 +4,9 @@ import { useCallback, useRef } from 'react';
 
 import { CommandList } from '@/components/ui/command';
 
-/** How far the fade reaches once it is fully drawn. */
 const FADE = 80;
 
-/**
- * Most of the falloff is in the first third, so a row is gone before it meets the
- * edge rather than half readable against it. Both ends take a 0 to 1 reach, so the
- * fade grows with the scroll instead of switching on.
- */
+// Most of the falloff in the first third, so a row is gone before it meets the edge.
 const fadeMask = (top: number, bottom: number) => {
   const head = FADE * top;
   const foot = FADE * bottom;
@@ -30,16 +25,7 @@ const fadeMask = (top: number, bottom: number) => {
 const ramp = (edge: 'top' | 'bottom') =>
   `linear-gradient(to ${edge === 'top' ? 'bottom' : 'top'}, black 0%, transparent 100%)`;
 
-/**
- * A `CommandList` whose cut-off ends fade rather than stop, by how far there is
- * left to scroll each way.
- *
- * Written to the nodes rather than held in state: scrolling would otherwise render
- * the whole list on every frame to move two gradients.
- *
- * Remount it with a `key` when the list underneath is replaced wholesale, or the
- * observers stay on a node that has been detached.
- */
+// Written to the nodes, not state, or every scroll frame renders the whole list.
 export function FadingList({ children }: { children: React.ReactNode }) {
   const list = useRef<HTMLElement | null>(null);
   const blurs = useRef<(HTMLDivElement | null)[]>([]);
@@ -59,12 +45,7 @@ export function FadingList({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  /**
-   * Wired from the frame's ref rather than an effect: the dialog portals its
-   * content, so an effect keyed on the open state runs before the node exists. The
-   * scrolling node is found under the frame because a ref handed to `CommandList`
-   * does not reach it, and filtering changes what it holds without changing its box.
-   */
+  // A ref callback: the dialog portals, and a ref on `CommandList` misses the scrolling node.
   const watchFrame = useCallback(
     (frame: HTMLDivElement | null) => {
       list.current = frame?.querySelector<HTMLElement>('[cmdk-list]') ?? null;
@@ -88,11 +69,10 @@ export function FadingList({ children }: { children: React.ReactNode }) {
 
   return (
     <div ref={watchFrame} className="relative">
-      {/* Masked rather than covered by a band: the panel is glass, and anything
-          opaque would fill in what it is meant to show. */}
+      {/* Masked, not covered: anything opaque would fill in the glass. */}
       <CommandList onScroll={draw}>{children}</CommandList>
 
-      {/* Siblings of the list: a child would be erased by that same mask. */}
+      {/* Siblings, or the list's own mask would erase them. */}
       {(['top', 'bottom'] as const).map((edge, index) => (
         <div
           key={edge}

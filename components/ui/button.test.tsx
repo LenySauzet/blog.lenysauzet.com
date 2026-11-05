@@ -3,10 +3,6 @@ import { describe, expect, it } from 'vitest';
 
 import { Button } from './button';
 
-// jsdom applies no Tailwind, so these assert which classes reach the element,
-// not what they paint. Whether the class exists in the compiled CSS is a build
-// concern; the glow silently never generated once, and only reading the built
-// stylesheet caught it.
 describe('Button', () => {
   it('is a real button, and says so to assistive tech', () => {
     render(<Button>Press</Button>);
@@ -29,8 +25,6 @@ describe('Button', () => {
     expect(cls).toContain('hover:shadow-[var(--shadow-bevel),0_2px_40px_-4px');
   });
 
-  // The press animates `scale`, which Tailwind v4 sets as its own property, so
-  // the transition has to name it. Naming only `transform` animates nothing.
   it('transitions the property the press actually changes', () => {
     render(<Button>Press</Button>);
     const cls = screen.getByRole('button').className;

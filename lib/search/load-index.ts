@@ -2,7 +2,6 @@ import MiniSearch from 'minisearch';
 
 import { INDEX_OPTIONS, SEARCH_INDEX_PATH, type SearchDocument } from './config';
 
-/** Fetched once per page load, and dropped on failure so a retry is possible. */
 let pending: Promise<MiniSearch<SearchDocument>> | null = null;
 
 export function loadSearchIndex(): Promise<MiniSearch<SearchDocument>> {

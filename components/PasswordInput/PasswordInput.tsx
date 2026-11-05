@@ -11,17 +11,10 @@ import {
 
 export interface PasswordInputProps
   extends Omit<React.ComponentProps<'input'>, 'type'> {
-  /** Names the reveal toggle for assistive tech. */
   revealLabel?: string;
 }
 
-/**
- * A password field whose eye redraws between its two states: the pupil draws in
- * as the strike retracts.
- *
- * The toggle's label names the action rather than the state, so a screen reader
- * hears what pressing it will do; `aria-pressed` carries the state.
- */
+// The toggle's label names the action; `aria-pressed` carries the state.
 export default function PasswordInput({
   className,
   revealLabel = 'password',

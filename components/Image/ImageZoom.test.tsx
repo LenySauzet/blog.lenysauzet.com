@@ -4,8 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import ImageZoom from './ImageZoom';
 
-// next/image validates remotePatterns against runtime config Vitest doesn't
-// load; a plain img keeps these tests about the zoom behaviour.
+// next/image checks remotePatterns against config Vitest does not load.
 vi.mock('next/image', () => ({
   default: ({
     src,
@@ -84,6 +83,3 @@ describe('ImageZoom', () => {
     );
   });
 });
-
-// Dismissal is asserted in Lightbox.test.tsx: the shared-layoutId morph never
-// completes under jsdom's zero-sized boxes, so the subtree stays mounted here.

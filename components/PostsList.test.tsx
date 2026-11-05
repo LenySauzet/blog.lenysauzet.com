@@ -32,10 +32,7 @@ describe('PostsList', () => {
     ]);
   });
 
-  // `data-year` is what the dim keys on: hovering one group fades the others through
-  // a `:has()` rule, so the attribute is load-bearing rather than descriptive. The
-  // fade itself is CSS on a pointer that jsdom has not got, and is checked in a
-  // browser.
+  // `data-year` is load-bearing: the `:has()` dim keys on it.
   it('marks every group so the others can be dimmed around it', () => {
     const { container } = render(
       <PostsList posts={[post('one', '2026-04-22'), post('two', '2025-02-02')]} />

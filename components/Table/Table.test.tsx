@@ -21,11 +21,7 @@ describe('a markdown table', () => {
     expect(screen.getByRole('cell', { name: '262.04' })).toBeInTheDocument();
   });
 
-  /**
-   * GFM carries a column's alignment as an inline style on every cell it
-   * applies to, so a mapping written as `({ children }) => ...` renders a
-   * table that silently ignores its own delimiter row.
-   */
+  // GFM puts alignment inline on each cell; `({ children }) => ...` would drop it.
   it.each([
     ['td', Cell],
     ['th', Head],

@@ -6,28 +6,16 @@ import { cn } from "@/lib/utils";
 export interface LegendEntry {
   key: string;
   label: string;
-  /** Resolved here rather than read as `--color-<key>`: that variable is
-      scoped to the chart container, and the legend sits outside it. */
   color: string;
 }
 
 export interface LegendProps {
   series: LegendEntry[];
   hidden?: ReadonlySet<string>;
-  /**
-   * Absent, the legend is a key rather than a control. A pie takes it that
-   * way: switching a slice off changes what the whole is, so the figure would
-   * answer a different question than the one it is captioned with.
-   */
+  /** Absent, the legend is a key rather than a control. */
   onToggle?: (key: string) => void;
 }
 
-/**
- * Ours rather than Recharts', for three reasons that all turned up at once:
- * its order follows the payload rather than the series as declared, it sits
- * under whatever we put beneath the plot, and a series a reader can switch off
- * is the whole point of a legend on an explanatory chart.
- */
 export default function Legend({ series, hidden, onToggle }: LegendProps) {
   return (
     <div
@@ -49,8 +37,7 @@ export default function Legend({ series, hidden, onToggle }: LegendProps) {
             {label}
           </>
         );
-        // The container's radius less its padding, so a row's corner sits
-        // concentric with it rather than inside a slightly squarer one.
+        // The container's radius less its padding, so the corners stay concentric.
         const shared = cn(
           "flex items-center gap-2 rounded-xl px-2.5 py-1 text-sm",
           off ? "text-subtle-foreground" : "text-foreground",

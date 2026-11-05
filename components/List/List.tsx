@@ -12,8 +12,6 @@ interface ListProps {
   children?: ReactNode;
 }
 
-// Ordered lists hide the arrow and show a CSS counter instead; the rules key off
-// `data-list` in app/globals.css, so nesting needs no depth logic here.
 export function List({ variant, className, children }: ListProps) {
   const Tag = variant === 'ordered' ? 'ol' : 'ul';
 

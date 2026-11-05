@@ -2,8 +2,6 @@ import { request as insecurely, type IncomingMessage } from 'node:http';
 import { request as securely } from 'node:https';
 import type { LookupFunction } from 'node:net';
 
-/** The socket is given the address that was checked while the request keeps its
-    hostname, so the certificate and the `Host` header stay the site's own. */
 const pinnedTo =
   (address: string): LookupFunction =>
   (_hostname, options, callback) => {
@@ -28,7 +26,7 @@ export function requestPinned(
         headers,
         lookup: pinnedTo(address),
         timeout,
-        // Node pools sockets by name, and a reused one never reaches this lookup.
+        // A pooled socket would skip the pinned lookup.
         agent: false,
       },
       resolve

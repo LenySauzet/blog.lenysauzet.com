@@ -5,9 +5,7 @@ export interface LogLevel {
   accent: string;
 }
 
-// A log block's level: its name in words, its colour alone not saying it, and the
-// accent its surface and ink derive from (globals.css). lib/rehype-code.mjs admits
-// the same keys.
+// lib/rehype-code.mjs admits the same keys.
 export const LOG_LEVELS = new Map<string, LogLevel>([
   ['info', { label: 'Info', accent: '[--code-accent:var(--primary)]' }],
   ['warning', { label: 'Warning', accent: '[--code-accent:var(--warning)]' }],
@@ -27,8 +25,6 @@ interface CodeProps {
   'data-variant'?: string;
 }
 
-// Read off the markup rehype-pretty-code emits: a line is a `data-line` span, a
-// diff marks it `add` or `remove`, and a fence's variant sits on its <pre>.
 export function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, removed: 0 }) {
   Children.forEach(node, (child) => {
     if (!isValidElement<CodeProps>(child)) return;

@@ -17,7 +17,7 @@ const KEY_SYMBOLS: Record<string, string> = { ArrowUp: '↑', ArrowDown: '↓' }
 
 const keyLabel = (key: string) => KEY_SYMBOLS[key] ?? key.toUpperCase();
 
-/** What cmdk matches a row on, and addresses it by. Not the rendered children. */
+/** What cmdk matches and addresses a row by, not its rendered children. */
 export const commandValue = (command: Command) =>
   [command.label, ...(command.keywords ?? [])].join(' ');
 
@@ -25,7 +25,6 @@ interface CommandRegistryProps {
   recommended: Command[];
   commands: Command[];
   onRun: (command: Command) => void;
-  /** cmdk refuses to select a disabled row, so the palette is told to do it. */
   onPointDisabled: (value: string) => void;
 }
 

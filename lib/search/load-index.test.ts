@@ -44,7 +44,6 @@ describe('loadSearchIndex', () => {
     ]);
   });
 
-  // Opening the palette five times should not fetch and parse it five times.
   it('fetches once however many times it is asked', async () => {
     const load = await freshLoad();
 

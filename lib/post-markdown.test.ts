@@ -24,7 +24,6 @@ const FRONTMATTER = `export const metadata = {
 };`;
 
 describe('toMarkdown', () => {
-  // `export const metadata = {` is parseable by a bundler and nothing else.
   it('reads the metadata out as YAML and drops the block it came from', () => {
     const out = toMarkdown(post(`${FRONTMATTER}\n\nThe dots.`));
 
@@ -42,7 +41,6 @@ describe('toMarkdown', () => {
     );
   });
 
-  // A title holding a colon, or a quote, is a YAML document that will not parse.
   it('quotes a title YAML would otherwise read as a mapping', () => {
     const out = toMarkdown(post('Body.', { title: 'Shaders: a field guide' }));
 
@@ -69,7 +67,6 @@ describe('toMarkdown', () => {
     expect(out).toContain('```diff\n-<p></p>\n```');
   });
 
-  // The body is the point: fences, headings and links survive untouched.
   it('leaves the prose exactly as written', () => {
     const body = '## Why\n\nA [link](https://x.dev).\n\n```glsl\nvec3 p;\n```';
 
@@ -83,11 +80,6 @@ describe('toMarkdown', () => {
     expect(out).toContain('Body.');
   });
 
-  /**
-   * The CDN is namespaced by kind, and a bare `blog/halftone.png` resolves to
-   * nothing off the site. The extension says which namespace, so no table of
-   * components has to be kept in step with `mdx-components.tsx`.
-   */
   it('resolves a relative source against the CDN, by what the file is', () => {
     const out = toMarkdown(
       post('<Image src="blog/halftone.png" />\n<VideoPlayer src="blog/clip.mp4" />')
@@ -119,11 +111,6 @@ describe('toMarkdown', () => {
     expect(toMarkdown(post(`<VideoPlayer src="${elsewhere}" />`))).toContain(elsewhere);
   });
 
-  /**
-   * A post about Three.js will carry `import * as THREE` in an example sooner
-   * or later, and a shader post a `src=` in one. Both are the subject, not
-   * machinery, and a transform that reaches inside a fence eats them.
-   */
   it('leaves a fenced block entirely alone', () => {
     const fenced = [
       '```ts',
@@ -138,12 +125,6 @@ describe('toMarkdown', () => {
     expect(out).toContain(fenced);
   });
 
-  /**
-   * A Sandpack holds its example in a prop, as a template literal, so a line
-   * of that example can begin at column zero halfway down the file. Stripped
-   * by a pattern anchored to any line start, the example silently loses it,
-   * which is what happened to `import './scene.css';` in the design system.
-   */
   it('only strips the imports the file opens with', () => {
     const sandpack = [
       '<Sandpack',

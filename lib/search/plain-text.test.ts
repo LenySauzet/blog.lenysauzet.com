@@ -18,7 +18,6 @@ describe('toPlainText', () => {
     expect(text).toBe('The dots are the point.');
   });
 
-  // A search for "const" should not surface every post carrying a code block.
   it('drops fenced code and display math', () => {
     const text = toPlainText(
       ['Before.', '```glsl', 'const float PI = 3.14;', '```', '$$x = 1$$', 'After.'].join(
@@ -29,8 +28,7 @@ describe('toPlainText', () => {
     expect(text).toBe('Before. After.');
   });
 
-  // A price is two dollar signs with prose between them, which a looser pattern
-  // reads as an expression and swallows.
+  // A looser pattern reads the prose between two prices as maths.
   it('leaves money alone', () => {
     expect(toPlainText('Cost is $5 and $10 a month.')).toBe(
       'Cost is $5 and $10 a month.'
@@ -55,7 +53,6 @@ describe('toPlainText', () => {
     expect(text).toBe('Above. Below.');
   });
 
-  // The link text is prose and the URL is not, so one stays and the other goes.
   it('unwraps links and drops images', () => {
     const text = toPlainText(
       'See [Paper](https://paper.design/).\n\n![A diagram](blog/halftone.png)'
