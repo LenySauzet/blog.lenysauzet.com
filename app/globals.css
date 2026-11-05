@@ -254,8 +254,7 @@ ol[data-list='ordered'] > li::before {
   font-variant-numeric: tabular-nums;
 }
 
-/* Unique names: the bundler dedupes same-named @keyframes. filter: none, as blur(0)
-   minifies to an invalid blur(). */
+/* Unique names: the bundler dedupes same-named @keyframes. */
 @keyframes details-open {
   from {
     height: 0;
@@ -423,8 +422,7 @@ figure[data-rehype-pretty-code-figure] [data-folded] pre {
     max-height: none;
   }
 }
-/* Mixed in oklab, as oklch would swing the hue through blue. Ink capped in light and
-   floored in dark: the raw accent reads under 4.5:1 on this tint. */
+/* oklab, as oklch swings the hue through blue; the ink is clamped to hold 4.5:1. */
 figure[data-rehype-pretty-code-figure][data-variant] {
   --code-pad-top: 0.25rem;
   --code-bg: color-mix(in oklab, var(--code-accent) 7%, var(--card));

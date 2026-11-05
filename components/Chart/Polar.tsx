@@ -122,6 +122,7 @@ export function RadialChart({
               tick={false}
             />
             <ChartTooltip
+              // Recharts' polar cursor fills the whole band, a stray ring.
               cursor={false}
               content={<ChartTooltipContent nameKey="key" hideLabel />}
             />

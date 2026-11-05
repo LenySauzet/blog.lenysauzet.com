@@ -45,7 +45,6 @@ export function Callout({ variant = 'info', label, className, children }: Callou
         )}
       </div>
 
-      {/* `[&>p]:` too: MDX wraps multi-line children in a muted paragraph. */}
       <div className="flex flex-col gap-4 font-display text-base leading-7 text-foreground [&>*]:my-0 [&>p]:text-inherit">
         {children}
       </div>
