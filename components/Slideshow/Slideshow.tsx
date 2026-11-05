@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { type SlideshowImage, SlideshowCarousel } from './SlideshowCarousel';
 
 export interface SlideshowProps {
-  /** CDN image paths or absolute URLs. */
+  /** CDN paths or absolute URLs; an object's `alt` names its own slide. */
   images: (string | SlideshowImage)[];
   /** Also the caption. */
   alt: string;

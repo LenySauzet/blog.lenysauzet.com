@@ -8,7 +8,7 @@ export interface ScrollFadeProps {
   blur?: string;
 }
 
-// Fixed, as the body does not scroll; `z-40` keeps it under the Dock and the Lightbox.
+// Fixed, as the body does not scroll; `z-40` keeps it under the island and the Lightbox.
 export default function ScrollFade({
   position = 'bottom',
   height = '6rem',

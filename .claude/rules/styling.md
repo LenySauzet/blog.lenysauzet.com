@@ -56,8 +56,9 @@ that neither file makes obvious:
 
 - **A class can be valid to the eye and absent from the stylesheet.** `blur(0)` is
   minified to an invalid `blur()`, and `[prop:value!important]` compiles to nothing: the
-  important mark trails, `[prop:value]!`. Read the computed value before believing a
-  class applied.
+  important mark trails, `[prop:value]!`. Tailwind only generates a class written out
+  whole in the source, so never assemble one from pieces (`hover:${BEVEL}`). Read the
+  computed value before believing a class applied.
 
 ## Theming
 

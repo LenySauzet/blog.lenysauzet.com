@@ -215,7 +215,6 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
           animate={{ height }}
           initial={false}
           transition={still || !travelling ? AT_ONCE : SWAP}
-          // Five `h-11` rows plus the list's padding.
           className="min-h-[14.75rem] overflow-hidden"
         >
           <AnimatePresence mode="wait" initial={false} custom={towards}>

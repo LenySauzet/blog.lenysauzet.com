@@ -9,7 +9,6 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { cva, VariantProps } from 'class-variance-authority';
 import Link from 'next/link';
 
-// `[&>p]:` neutralises the paragraph MDX wraps a multi-line label in.
 const anchorVariants = cva(
   'text-primary inline-flex gap-1 items-baseline leading-none cursor-pointer group w-fit no-underline [&>p]:m-0 [&>p]:[font:inherit] [&>p]:text-inherit',
   {

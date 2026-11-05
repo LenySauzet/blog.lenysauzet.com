@@ -16,6 +16,7 @@ const DEFOCUS = '14px';
 
 export function PanelReveal() {
   const [swept, setSwept] = useState(false);
+  // Gone once swept: a mounted backdrop-filter re-blurs every frame.
   if (swept) return null;
 
   return (

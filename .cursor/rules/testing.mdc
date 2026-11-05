@@ -71,5 +71,5 @@ assert the marker hook exists rather than the glyph.
   `lib/image-utils.ts`) directly; stub the client island when testing what the server
   hands over.
 - `vi.restoreAllMocks` only undoes `vi.spyOn`. Reset globals you stub yourself.
-- When an assertion looks strange, leave one line saying why. Those comments are the
-  point; see the writing-style rule in [CLAUDE.md](/CLAUDE.md).
+- When an assertion looks strange and neither its name nor a rule says why, leave one
+  short line; see the writing-style rule in [CLAUDE.md](/CLAUDE.md).

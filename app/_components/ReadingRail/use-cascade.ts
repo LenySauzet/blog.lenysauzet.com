@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import type { Section } from './rail';
 
-/** Seconds between two titles. */
+/** The longest gap between two titles, in seconds. */
 const BEAT = 0.0375;
 
 /** A ceiling, in seconds, never a fixed length. */
