@@ -29,8 +29,6 @@ describe('readMetadata', () => {
     expect(read('<title>From the title</title>').title).toBe('From the title');
   });
 
-  // Relative on more sites than you would expect, and a bare path is useless to
-  // a browser sitting on our own origin.
   it('resolves a relative image against the page it came from', () => {
     expect(read('<meta property="og:image" content="/cover.png">').image).toBe(
       'https://example.com/cover.png'
@@ -52,7 +50,6 @@ describe('readMetadata', () => {
     expect(read('<meta property=og:title content=Bare>').title).toBe('Bare');
   });
 
-  // Two of the same tag is common, and the first is the one the page meant.
   it('keeps the first of a repeated tag', () => {
     expect(
       read(`

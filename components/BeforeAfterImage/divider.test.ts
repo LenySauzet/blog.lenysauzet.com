@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { afterRegion, dividerPath, labelOpacity, MAX_PULL, pullFor } from './divider';
 
 const points = (path: string) => path.match(/-?\d+(\.\d+)?/g)!.map(Number);
-// The divider is one quadratic, top to bottom; `at` is where it crosses height t.
+// The divider is one quadratic; `at(t)` is where it crosses height t.
 const ends = (path: string) => {
   const [top, , control, , bottom] = points(path);
   const at = (t: number) => (1 - t) ** 2 * top + 2 * (1 - t) * t * control + t ** 2 * bottom;

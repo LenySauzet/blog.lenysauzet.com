@@ -18,17 +18,13 @@ import { cn } from '@/lib/utils';
 
 const PIXELS_PER_SECOND = 32;
 
-// Sized in names, not pixels, so restyling a row cannot leave four and a sliver.
 const ROWS_IN_VIEW = 5;
 
-/** First paint only, until the row is measured. */
 const ESTIMATED_ROW_HEIGHT = 41;
 
-// Damping ratio 1.18. Under 1 the speed overshoots, which runs the list backwards; at 1
-// it stops as abruptly as it can without that. Over-damped buys the slow tail.
+// Over-damped (ratio 1.18): under 1 the speed overshoots past zero and runs the list backwards.
 const SPEED_SPRING = { stiffness: 26, damping: 12, mass: 1 };
 
-// Mask ramps the opacity, the blur bands ramp the focus, as `ScrollFade` does it.
 const EDGE_MASK =
   'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)';
 
@@ -37,20 +33,17 @@ const blurRamp = (direction: string) =>
 
 const EDGE_BLUR = '3px';
 
-// A ratio of names, not of pixels: row height is on both sides and cancels. Measuring
-// it instead fed the answer back into its own input and ran away to 317 repeats.
 export const repeatsToFill = (count: number) =>
   count > 0 ? Math.max(1, Math.ceil(ROWS_IN_VIEW / count)) : 1;
 
-// Space-grouped: in monospace a comma beside "total" reads as punctuation.
+// Spaces: in monospace a comma beside "total" reads as punctuation.
 const groupThousands = (value: number) =>
   value.toLocaleString('en-US').replace(/,/g, ' ');
 
 export default function SupporterBand() {
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [total, setTotal] = useState(0);
-  // Hover and focus are tracked apart, then combined. One flag lets a pointer leaving
-  // resume a band that still has focus, and a blur resume one still under the pointer.
+  // Apart, or a pointer leaving would resume a band that still has focus.
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [rowHeight, setRowHeight] = useState(ESTIMATED_ROW_HEIGHT);
@@ -62,15 +55,11 @@ export default function SupporterBand() {
   const count = supporters.length;
   const speed = useSpring(1, SPEED_SPRING);
 
-  // Reduced motion drops the apparatus, not just the movement: a frozen window of
-  // repeated names reads as a duplication bug.
   const paused = hovered || focused;
   const scrolls = !reduceMotion;
   const copies = scrolls ? 2 * repeatsToFill(count) : 1;
   const bandHeight = rowHeight * ROWS_IN_VIEW;
 
-  // Fetched from the browser, not passed down: posts are statically generated, so a
-  // build-time read would freeze the names until the next deploy.
   useEffect(() => {
     const controller = new AbortController();
     fetch('/api/supporters', { signal: controller.signal })
@@ -84,8 +73,6 @@ export default function SupporterBand() {
     return () => controller.abort();
   }, []);
 
-  // The observer measures, including the first time, since it fires on observe.
-  // Reading inline here would be a render feeding a render.
   useEffect(() => {
     const row = rowRef.current;
     if (!row || !scrolls) return;
@@ -101,7 +88,7 @@ export default function SupporterBand() {
     speed.set(paused ? 0 : 1);
   }, [paused, speed]);
 
-  // Wrapped against one copy, not the window, so the seam lands where the copy ended.
+  // Wrapped against one copy, not the window, or the seam lands mid-copy.
   useAnimationFrame((_, delta) => {
     const list = listRef.current;
     if (!list || !scrolls) return;
@@ -126,10 +113,7 @@ export default function SupporterBand() {
         </span>
       </div>
 
-      {/* Endless motion needs a stop that is not the mouse (WCAG 2.2.2). No
-          `outline-none` here: in Tailwind v4 it sets `outline-style: none` for the
-          element, which the focus-visible width then inherits and never paints. Inset
-          because the card clips its overflow. */}
+      {/* A keyboard stop for endless motion (WCAG 2.2.2), ringed inside the card's clip. */}
       <div
         data-slot="supporter-scroller"
         data-paused={(scrolls && paused) || undefined}
@@ -155,8 +139,6 @@ export default function SupporterBand() {
           }
         >
           <motion.ul ref={listRef} style={{ y: scrolls ? offset : 0 }}>
-            {/* Twice, so the list wraps without a gap. Only the first pass is
-                announced; the rest are the same names again. */}
             {Array.from({ length: copies }, (_, pass) =>
               supporters.map((supporter, index) => (
                 <li

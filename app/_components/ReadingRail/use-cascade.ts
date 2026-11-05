@@ -11,12 +11,10 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import type { Section } from './rail';
 
-/** Seconds from one title to the next, where the walk has room for it. */
+/** The longest gap between two titles, in seconds. */
 const BEAT = 0.0375;
 
-/** A ceiling on the walk, so a long article does not cost more to reveal.
-    Bounded rather than fixed: fixed, this whole span would fall between the
-    only two titles of a short post. */
+/** A ceiling, in seconds, never a fixed length. */
 const WALK = 0.22;
 
 const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
@@ -24,24 +22,12 @@ const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));
 const FADE = { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] } as const;
 const AT_ONCE = { duration: 0 } as const;
 
-/** The boundary's travel, which is how long titles keep being told. */
 export const walkDuration = (count: number) =>
   beatOf(count) * Math.max(0, count - 1);
 
-/** The walk plus the last title's own fade. Anything waiting for the rail to
-    empty waits on this. */
 export const passDuration = (count: number) =>
   walkDuration(count) + FADE.duration;
 
-/**
- * A boundary walks the titles and tells each one, once, what to do as it
- * reaches it, so every pass runs top to bottom, a reversal being a new walk
- * rather than the last one rewinding. Nothing holds a delay, which is what
- * would otherwise strand a title mid-fade.
- *
- * A reversal walks only as far as the last pass reached, that being all it can
- * have left wrong, then tells the rest at once.
- */
 export function useCascade(
   sections: Section[],
   opened: boolean,

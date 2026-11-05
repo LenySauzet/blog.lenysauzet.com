@@ -23,15 +23,6 @@ import { configOf, resolve, toggled } from "./series";
 import type { PolarProps, RadialProps } from "./types";
 import { ENTRY_MS, useEntry } from "./use-entry";
 
-/**
- * One value per series on each of several named axes, which is the only shape
- * a radar says anything about: it compares profiles, so the axes have to be
- * commensurate and few enough to read around the ring.
- *
- * Its legend switches profiles off, the same as a cartesian chart's: hiding
- * one of two overlaid shapes is how a reader isolates the other, and nothing
- * about the remaining one changes meaning when it goes.
- */
 export function RadarChart({
   data,
   series,
@@ -90,11 +81,6 @@ export function RadarChart({
   );
 }
 
-/**
- * Arcs of a common track, which reads as a set of gauges rather than as parts
- * of a whole: each row is measured against the same full turn, so unlike a
- * pie they need not sum to anything.
- */
 export function RadialChart({
   data,
   caption,
@@ -105,8 +91,6 @@ export function RadialChart({
   const { ref, drawn } = useEntry(animated);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const entries = resolve(data);
-  // Each arc is its own gauge against a shared track, so dropping one leaves
-  // the others saying exactly what they said before.
   const rows = data
     .map((row, index) => ({ ...row, fill: entries[index].color }))
     .filter(({ key }) => !hidden.has(key));
@@ -131,20 +115,14 @@ export function RadialChart({
             startAngle={90}
             endAngle={-270}
           >
-            {/* The scale lives on a hidden angle axis, not on the chart: left
-                off, every row fills its own ring and the comparison the chart
-                exists for disappears. */}
             <PolarAngleAxis
               type="number"
               domain={[0, max]}
               dataKey="value"
               tick={false}
             />
-            {/* Recharts draws its polar cursor as the whole band at the
-                hovered radius rather than as the arc under the pointer, so it
-                reads as a stray ring around a chart that already highlights
-                itself. The arc and the tooltip are the answer. */}
             <ChartTooltip
+              // Recharts' polar cursor fills the whole band, a stray ring.
               cursor={false}
               content={<ChartTooltipContent nameKey="key" hideLabel />}
             />

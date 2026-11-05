@@ -4,8 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { SlideshowCarousel } from './SlideshowCarousel';
 
 // jsdom has no layout, so Embla cannot scroll here; the browser proves the motion.
-// What stands without it: the slideshow is one named carousel, its slides are
-// labelled and only the current one is reachable, and the controls it offers.
 const props = {
   images: [
     { src: 'https://cdn.example.com/a.png', alt: 'A meadow' },
@@ -61,8 +59,6 @@ describe('SlideshowCarousel', () => {
     ]);
   });
 
-  // Enter opening it lifts the image out of a frame jsdom gives no size, so the
-  // browser proves that; here, that a single image is still reachable and says how.
   it('draws no controls for a single image, even one asked to play, yet stays reachable', () => {
     for (const autoPlay of [false, true]) {
       const { unmount } = render(<SlideshowCarousel {...props} autoPlay={autoPlay} images={props.images.slice(0, 1)} />);

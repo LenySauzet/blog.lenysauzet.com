@@ -36,8 +36,6 @@ const DepartureMono = localFont({
 
 export const metadata = getRootMetadata();
 
-// The mobile chrome follows the OS, not the toggle: an accepted trade-off for
-// not shipping a client effect just for it.
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
@@ -45,14 +43,6 @@ export const viewport: Viewport = {
   ],
 };
 
-/**
- * Paints the reader's accent before the first frame, the way next-themes does
- * for the theme class. Left to React, the page would paint the default and
- * correct it on hydration, which is a visible flash of the wrong colour.
- *
- * Built from `HUES` rather than written out, so a preset cannot exist here and
- * nowhere else.
- */
 const paintHue = `try{var p=${JSON.stringify(
   Object.fromEntries(HUES.map((hue) => [hue.id, propertiesOf(hue)]))
 )}[localStorage.getItem(${JSON.stringify(

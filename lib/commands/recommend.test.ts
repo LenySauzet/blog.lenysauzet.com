@@ -40,7 +40,6 @@ describe('partitionByRecommendation', () => {
     expect(rest).toEqual([]);
   });
 
-  // Past a handful it stops being a recommendation and becomes a second menu.
   it('recommends no more than five', () => {
     const many = Array.from({ length: 8 }, (_, index) =>
       command(`wanted-${index}`, true)

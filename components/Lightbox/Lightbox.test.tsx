@@ -8,22 +8,11 @@ import { useLightboxStore } from '@/hooks/use-lightbox-store';
 
 import { Lightbox } from './Lightbox';
 
-/**
- * Motion caches `prefers-reduced-motion` at module scope, so whether the value
- * `vitest-setup` forces ever reaches it depends on import order. Measured across
- * runs, the exit took either 20ms or a full 300ms tween, and on a loaded runner
- * that tween outlived `waitFor`'s one second default: this file failed roughly
- * one run in three, on whichever machine was busiest.
- *
- * Nothing here asserts an animated state, so the transitions are collapsed and
- * dismissal stops being a race. Animation fidelity belongs in a browser.
- */
+// Motion caches reduced motion by import order, so an uncollapsed exit races `waitFor`.
 const Instantly = ({ children }: { children: ReactNode }) => (
   <MotionConfig transition={{ duration: 0 }}>{children}</MotionConfig>
 );
 
-// Dismissal is asserted here, not on ImageZoom: this surface has no shared-layout
-// morph, so its exit completes under jsdom's zero-sized boxes.
 function Covered() {
   return <output data-testid="covered">{String(useLightboxStore((state) => state.open > 0))}</output>;
 }
@@ -121,9 +110,7 @@ describe('Lightbox', () => {
     const { rerender } = render(<Controlled open />);
     await screen.findByRole('dialog');
 
-    // Why this owns its surface instead of a dialog primitive: Radix disables
-    // <body> pointer events while its layer is mounted, freezing the page for
-    // the exit. Here nothing touches the page; `overscroll-contain` holds it.
+    // Radix disables <body> pointer events for its whole exit; this surface must not.
     expect(document.body.style.pointerEvents).toBe('');
 
     rerender(<Controlled open={false} />);
@@ -136,7 +123,6 @@ describe('Lightbox', () => {
 
     const surface = await open(user);
 
-    // aria-modal claims the page is gone, so focus must leave the trigger.
     expect(surface).toHaveFocus();
   });
 
@@ -181,8 +167,6 @@ describe('Lightbox', () => {
 
     await open(user);
 
-    // Focus can leave by means the surface doesn't mediate; yanking it back on
-    // dismiss would discard the reader's intent.
     const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
     elsewhere.focus();
     await user.keyboard('{Escape}');
@@ -205,8 +189,7 @@ describe('Lightbox', () => {
 
   it('holds focus on the surface while its parent re-renders with a new callback', () => {
     const focused = vi.fn();
-    // Opened from a focusable trigger, as a slideshow opens it: closing would hand
-    // focus back to it, which is what a re-run of the effect did on every render.
+    // A focusable trigger, so a re-run of the effect would hand focus back to it.
     const surface = (open: boolean, callback: () => void) => (
       <Instantly>
         <button type="button">Trigger</button>

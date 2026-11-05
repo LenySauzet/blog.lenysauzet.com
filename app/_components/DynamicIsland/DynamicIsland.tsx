@@ -58,8 +58,6 @@ export function DynamicIsland() {
   const resolved = presented.at(-1) ?? resolve(context);
   const state = useOpening(resolved, resting);
 
-  // A reader who points at the island has found it: the hint's own visit, coming or
-  // under way, is called off, and it shows only while they point or focus.
   const point = () => {
     window.clearTimeout(mention.current);
     useIslandStore.getState().dismiss(hint.id);
@@ -71,8 +69,7 @@ export function DynamicIsland() {
     <div
       className={cn(
         'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
-        // On the positioner, not the button: it is a box of its own and keeps
-        // catching what the button no longer does.
+        // On the positioner: it keeps catching what the inert button no longer does.
         state.inert && 'pointer-events-none'
       )}
     >

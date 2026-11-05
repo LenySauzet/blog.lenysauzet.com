@@ -50,8 +50,7 @@ describe('rehypeCode', () => {
     );
   });
 
-  // rehype-pretty-code retries a failed highlight as plain text, where the notation
-  // is no comment, so a log's diff fails on its form.
+  // rehype-pretty-code retries a failed highlight as plain text, so this fails on form.
   it('fails on a log carrying a diff, whatever its language', async () => {
     await expect(render('a = 1; // [!code ++]', 'variant="warning"', 'ts')).rejects.toThrow();
   });

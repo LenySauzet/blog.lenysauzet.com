@@ -20,31 +20,11 @@ export interface ConfusionMatrixProps {
   columnLabel?: string;
 }
 
-/**
- * Past this share of the ramp a cell is near `--heat-to`, the end that
- * approaches the page's own extreme, so the count flips to `--background`.
- * One swap serves both themes because the ramp runs the other way in each.
- */
 const INVERTS_AT = 0.58;
 
 const heat = (ratio: number) =>
   `color-mix(in oklab, var(--heat-to) ${ratio * 100}%, var(--heat-from))`;
 
-/**
- * A heatmap, which is the form this data is read in everywhere it appears,
- * and a real `table` underneath: the counts stay selectable and a screen
- * reader reads each with its row and column.
- *
- * **The cells are square and spaced**, not a flush grid: a continuous field
- * reads as an image, where separated tiles read as counts, which is what they
- * are. The square is `aspect-square` on the cell rather than a fixed size, so
- * the matrix fills the column at any order.
- *
- * It is a client component only for the hover readout. Every row of a
- * confusion matrix means "of all the Xs, how many were called Y", and that
- * sentence is what a reader actually wants; the grid alone makes them count
- * along two axes to recover it.
- */
 export default function ConfusionMatrix({
   matrix,
   labels,
@@ -63,9 +43,6 @@ export default function ConfusionMatrix({
         <div className="flex items-stretch gap-3">
           <AxisLabel vertical>{rowLabel}</AxisLabel>
           <table className="mx-auto w-full max-w-lg table-fixed border-separate border-spacing-1.5 text-center">
-            {/* The row labels need a column of their own. Left to shrink to
-                nothing they overflowed onto the first cell, `table-fixed`
-                giving an unsized column no width at all. */}
             <colgroup>
               <col className="w-[5.5rem]" />
               {labels.map((label) => (
@@ -88,11 +65,6 @@ export default function ConfusionMatrix({
                             <TooltipTrigger
                               className={cn(
                                 'flex aspect-square w-full items-center justify-center rounded-md text-sm tabular-nums',
-                                // Nothing moves. A tile that grows pushes its
-                                // neighbours' edges out of line and the grid
-                                // stops reading as a grid; a hairline drawn
-                                // inside its own bounds says the same thing
-                                // and leaves the field still.
                                 'ring-foreground/0 ring-1 transition-[--tw-ring-color] duration-150 ring-inset',
                                 'hover:ring-foreground/35 focus-visible:ring-foreground/35',
                                 'focus-visible:outline-none motion-reduce:transition-none',
@@ -134,10 +106,6 @@ export default function ConfusionMatrix({
   );
 }
 
-/**
- * The scale as the gradient itself rather than as a list of swatches: a reader
- * matches a cell against it by eye, which only works if it is continuous.
- */
 function ColourBar({ from, to }: { from: number; to: number }) {
   return (
     <div className="flex shrink-0 items-stretch gap-2">

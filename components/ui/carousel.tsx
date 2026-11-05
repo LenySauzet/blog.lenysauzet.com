@@ -34,9 +34,6 @@ function useCarousel() {
   return context
 }
 
-// Trimmed from shadcn's: horizontal only, and the arrow keys and the navigation
-// state are the caller's, since `Slideshow` answers the arrows page-wide and draws
-// its own controls.
 function Carousel({
   opts,
   setApi,

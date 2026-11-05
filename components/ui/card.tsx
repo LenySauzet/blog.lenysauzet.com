@@ -2,10 +2,6 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-// Customized beyond the CLI output; see CLAUDE.md. Three edits: the edge is a
-// border rather than a ring so it resolves from --border like every other inset
-// surface, `sm` is the default size because 16px is this site's rhythm, and the
-// title and content carry the prose type the posts use.
 function Card({
   className,
   size = "sm",

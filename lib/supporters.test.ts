@@ -8,8 +8,7 @@ import {
   readTotal,
 } from './supporters';
 
-// From the live /v1/supporters response, personal fields replaced. Their reference
-// omits `support_hidden` entirely, so only a real payload can be trusted as a fixture.
+// From the live /v1/supporters response, personal fields replaced.
 const COFFEE = {
   support_id: 10030855,
   support_coffees: 1,
@@ -76,7 +75,6 @@ describe('normaliseSupporters', () => {
     expect(row.name).toBe('Anonymous');
   });
 
-  // The one failure here that cannot be undone, so each errs towards showing nobody.
   it.each([
     ['refunded', { is_refunded: 1 }],
     ['hidden', { support_hidden: 1 }],
@@ -84,8 +82,6 @@ describe('normaliseSupporters', () => {
     expect(normaliseSupporters([{ ...COFFEE, ...override }])).toEqual([]);
   });
 
-  // `support_visibility` is not a privacy signal: their two endpoints return
-  // opposite values for one row.
   it.each([0, 1, undefined])(
     'keeps a support whose visibility reads %p',
     (visibility) => {
@@ -95,7 +91,7 @@ describe('normaliseSupporters', () => {
     }
   );
 
-  // `Number('')` is 0 and a negative is finite, so neither is caught by "is it a number".
+  // `Number('')` is 0 and a negative is finite: neither fails "is it a number".
   it.each([null, '', '0', 0, '-5', -5])(
     'drops a row priced %p rather than publishing it',
     (price) => {
@@ -164,7 +160,6 @@ describe('normaliseMembers', () => {
     ).toEqual([]);
   });
 
-  // Their reference lists no privacy field for a member, and has been wrong before.
   it.each(['support_hidden', 'is_refunded'])('honours %s if it is present', (field) => {
     expect(normaliseMembers([{ ...MEMBER, [field]: 1 }])).toEqual([]);
   });

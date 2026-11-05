@@ -65,9 +65,12 @@ in this file, a rule or a skill.
 
 ## Writing style
 
-Code, comments and file names in **English**. Comments are for what the code cannot
-say: a constraint, a trap, a decision that would otherwise invite a bug-reintroducing
-"fix". Never restate the line below. Never use an em dash. No commented-out code.
+Code, comments and file names in **English**. **Comments are the exception.** Names,
+types and structure carry the meaning; a comment is written only where a plausible
+"fix" would reintroduce a bug (a browser or library trap, a value that looks wrong and
+is right), in one short line. Never restate the code, narrate its history or argue a
+design: decisions live in the rule or skill covering the path. Never use an em dash.
+No commented-out code.
 There is no prettier config and the repo writes single quotes: never run `prettier` on
 a directory, and only with `--single-quote` on exact paths.
 

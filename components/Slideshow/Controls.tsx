@@ -17,9 +17,8 @@ export interface ControlsProps {
   selected: number;
   loop: boolean;
   onGo: (index: number) => void;
-  /** Present only for a slideshow that plays itself. */
   playback?: { playing: boolean; onToggle: () => void };
-  /** Bumped each time the autoplay timer starts; null while it is stopped. */
+  /** Bumped as the autoplay timer starts; null while stopped. */
   timer: number | null;
   interval: number;
   className?: string;
@@ -28,8 +27,7 @@ export interface ControlsProps {
 export function Controls({ count, selected, loop, onGo, playback, timer, interval, className }: ControlsProps) {
   const shown = stepWindow(count, selected);
 
-  // The buttons stay out of the tab order: the slideshow takes the arrows itself,
-  // and only the pause button, which a reader must be able to reach, is a stop.
+  // Out of the tab order: the slideshow takes the arrows; only pause is a tab stop.
   return (
     <div className={cn('pointer-events-none absolute inset-x-0 bottom-4 z-[1] flex justify-center gap-1', className)}>
       <button
@@ -42,8 +40,6 @@ export function Controls({ count, selected, loop, onGo, playback, timer, interva
       >
         <HugeiconsIcon icon={ArrowLeft01Icon} size={16} strokeWidth={2} />
       </button>
-      {/* Each step is a box padded around its dot, so the pill's inset is the same at
-          either end whatever is active. */}
       <div className={cn(mediaGlass, 'pointer-events-auto relative flex rounded-full p-1')}>
         {Array.from({ length: count }, (_, index) => {
           const active = index === selected;

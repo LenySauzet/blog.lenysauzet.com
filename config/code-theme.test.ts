@@ -3,15 +3,11 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { codeTheme } from './code-theme';
 
-// Locks the hand-authored, order-dependent scope -> CSS-variable rules: a typo'd
-// scope, a reordered rule or a Shiki grammar change would otherwise recolour
-// every code block silently. Anchors one token per intent, not the whole theme.
 let highlighter: Highlighter;
 
 beforeAll(async () => {
   highlighter = await createHighlighter({
-    // Shiki normalises the `tokenColors` alias to `settings` at runtime, but the
-    // raw-theme type still requires `settings`, so the cast is load-bearing.
+    // Shiki accepts `tokenColors` at runtime, but its raw-theme type demands `settings`.
     themes: [codeTheme as unknown as ThemeRegistrationRaw],
     langs: ['tsx'],
   });

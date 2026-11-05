@@ -6,8 +6,6 @@ import { commands } from './registry';
 describe('the accent command', () => {
   const accent = commands.find((command) => command.id === 'accent')!;
 
-  // Four presets were four rows in `Tools` once. One door is one row, and the
-  // choosing happens on the other side of it.
   it('is a single row that opens a page of its own', () => {
     expect(commands.filter((command) => command.id.startsWith('tint-'))).toHaveLength(0);
     expect(accent.opens).toBe('accent');

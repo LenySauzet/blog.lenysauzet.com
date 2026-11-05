@@ -2,8 +2,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
-/** A row's own wash, so the one target in the header belongs to
-    the list rather than sitting beside it. */
 const CLASS = [
   'shrink-0 cursor-pointer rounded-md px-2 py-1 text-sm whitespace-nowrap',
   'text-muted-foreground/70 transition-[scale] duration-100',
@@ -12,11 +10,6 @@ const CLASS = [
   'focus-visible:ring-offset-background focus-visible:outline-none',
 ].join(' ');
 
-/**
- * Shown only while the box is empty, which is the only time Backspace leaves
- * a page: with a query in hand it deletes a character. It is the target as
- * well, so a mouse is not left with Escape alone.
- */
 export function BackHint({ shown, onBack }: { shown: boolean; onBack: () => void }) {
   const still = useReducedMotion();
 
@@ -27,9 +20,6 @@ export function BackHint({ shown, onBack }: { shown: boolean; onBack: () => void
           key="back"
           type="button"
           onClick={onBack}
-          // cmdk reads Enter on its root and runs whatever row is highlighted,
-          // so a button inside it is reachable by Tab and dead on arrival. The
-          // key is kept here and the browser's own activation does the rest.
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
           }}

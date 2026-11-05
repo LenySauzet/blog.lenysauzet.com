@@ -18,8 +18,7 @@ import type { ReactNode } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-// Tailwind v4's scale-* sets the `scale` property, not `transform`, so the plain
-// `transition` utility is what animates the hover/press feedback.
+// Plain `transition`: Tailwind v4's scale-* sets `scale`, which `transition-transform` misses.
 const toolbarButton =
   'grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground [will-change:transform] transition duration-200 ease-out hover:scale-110 hover:bg-foreground/[0.08] hover:text-foreground active:scale-95 focus-visible:scale-110 focus-visible:bg-foreground/[0.08] focus-visible:text-foreground focus-visible:outline-none';
 
@@ -77,8 +76,7 @@ export function RefreshButton() {
 }
 
 export function OpenInCodeSandboxButton() {
-  // Sandpack's button spreads incoming props AFTER its own submit onClick, so a
-  // Radix trigger applied directly would clobber it. The span takes it instead.
+  // Sandpack spreads props after its own onClick, so the Radix trigger goes on a span.
   return (
     <ToolbarTooltip label="Open in CodeSandbox">
       <span className="inline-flex">
@@ -94,8 +92,7 @@ export function ToggleCodeButton({ onClick }: { onClick: () => void }) {
   return <IconToolbarButton icon={FileScriptIcon} label="Toggle code" onClick={onClick} />;
 }
 
-// Clearing remounts SandpackConsole. The hook's own reset() is deliberately not
-// called: it clears a separate, non-rendered log instance.
+// Remounts the console: the hook's reset() clears a separate, unrendered log.
 export function ClearConsoleButton({ onClear }: { onClear: () => void }) {
   return <IconToolbarButton icon={Delete02Icon} label="Clear console" onClick={onClear} />;
 }

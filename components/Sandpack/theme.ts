@@ -1,7 +1,5 @@
 import type { SandpackTheme } from '@codesandbox/sandpack-react';
 
-// Maps Sandpack onto the same tokens as the static code block, so the live
-// editor re-themes with --base-hue like everything else.
 export const sandpackTheme: SandpackTheme = {
   colors: {
     surface1: 'var(--code-bg)',

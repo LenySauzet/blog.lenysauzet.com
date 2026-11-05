@@ -2,9 +2,7 @@ import '@testing-library/jest-dom/vitest';
 
 import { afterEach, vi } from 'vitest';
 
-// Motion skips transform/layout animations under reduced motion; they never
-// settle against jsdom's zero-sized boxes. Assigned unconditionally, since
-// jsdom's own matchMedia always reports `matches: false`.
+// Unconditional: jsdom's own matchMedia always reports `matches: false`.
 window.matchMedia = (query: string) =>
   ({
     matches: /prefers-reduced-motion/.test(query),
@@ -33,17 +31,14 @@ if (!window.PointerEvent) {
   window.PointerEvent = PointerEventPolyfill as unknown as typeof PointerEvent;
 }
 
-// Radix reaches for pointer capture the moment a control is pressed. jsdom
-// implements none of it, and the throw surfaces as an unhandled error rather
-// than a failure, so a test can pass while the interaction never happened.
+// Radix needs pointer capture; jsdom's throw is unhandled, so a broken test still passes.
 if (!Element.prototype.hasPointerCapture) {
   Element.prototype.hasPointerCapture = () => false;
   Element.prototype.setPointerCapture = () => {};
   Element.prototype.releasePointerCapture = () => {};
 }
 
-// cmdk keeps the highlighted item in view as the selection moves, and jsdom has no
-// scrolling to do it with. Left out, every command list throws on its first render.
+// cmdk scrolls its selection into view; without this every command list throws.
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }

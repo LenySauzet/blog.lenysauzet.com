@@ -12,8 +12,6 @@ interface FoldButtonProps {
   className?: string;
 }
 
-// Floats over the foot of a folded block. Without script it could not unfold
-// anything, and globals.css shows such a block whole.
 export function FoldButton({ expanded, lines, controls, onToggle, className }: FoldButtonProps) {
   return (
     <button

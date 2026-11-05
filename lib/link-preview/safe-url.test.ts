@@ -5,7 +5,6 @@ vi.mock('dns/promises', () => ({ lookup, default: { lookup } }));
 
 const { resolvePublicAddress } = await import('./safe-url');
 
-/** The address a request may be pinned to, or nothing at all. */
 const reaches = async (href: string) =>
   (await resolvePublicAddress(new URL(href))) !== undefined;
 
@@ -20,8 +19,6 @@ describe('resolvePublicAddress', () => {
     expect(await reaches('https://github.com/a')).toBe(true);
   });
 
-  // Handing the name on would leave the request free to be sent elsewhere, since
-  // nothing obliges a hostile resolver to answer twice the same way.
   it('hands back the address it checked, for the caller to pin', async () => {
     resolvesTo('140.82.121.4');
     expect(await resolvePublicAddress(new URL('https://github.com/a'))).toBe(
@@ -29,7 +26,6 @@ describe('resolvePublicAddress', () => {
     );
   });
 
-  // The whole point: a public name is free to point anywhere.
   it('refuses a public name resolving to a private address', async () => {
     resolvesTo('169.254.169.254');
     expect(await reaches('https://totally-fine.example.com')).toBe(false);

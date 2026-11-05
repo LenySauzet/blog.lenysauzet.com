@@ -39,8 +39,6 @@ function Fixture() {
   );
 }
 
-// rehype-pretty-code's markup: a title, token spans inside each line, and a
-// newline between lines.
 function Long({ lines }: { lines: number }) {
   return (
     <CodeBlock data-rehype-pretty-code-figure="">
@@ -74,7 +72,6 @@ describe('CodeBlock', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Copy code' }));
 
     expect(writeText).toHaveBeenCalledWith('const a = 1;\nconst b = 2;');
-    // The button keeps its stable name; confirmation lands in the status region.
     expect(await screen.findByText('Copied to clipboard')).toBeInTheDocument();
   });
 

@@ -306,9 +306,7 @@ const MediaPlayerRoot = ({
     }
   };
 
-  // Folded into the state that drives `animate` rather than a separate
-  // whileHover: hovering already-visible controls re-triggered the animation and
-  // flashed the backdrop-filter.
+  // In the `animate` state, not `whileHover`, which re-ran on visible controls and flashed the blur.
   const controlsHidden = isPlaying && !isFocusWithin && !isHovered && !isMobileDevice();
 
   return (
@@ -417,8 +415,6 @@ const MediaPlayerVideo = ({
   const { videoRef, videoProps, togglePlay } = useMedia();
   const reducedMotion = useReducedMotion();
   const [decoded, setDecoded] = useState(false);
-  // A poster is a first frame already; without one the video fades in on its own,
-  // rather than popping into an empty frame.
   const shown = !!poster || decoded;
 
   useEffect(() => {
@@ -476,8 +472,7 @@ const MediaPlayerVideoOverlay = ({
   children: React.ReactNode;
 }) => (
   <div className="relative w-full px-5 pt-4">
-    {/* Title contrast. A plain colour gradient, not a backdrop blur, so it fades
-        cleanly with the controls. */}
+    {/* A colour gradient, not a backdrop blur, so it fades cleanly with the controls. */}
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-t-frame-xl"

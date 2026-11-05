@@ -19,10 +19,5 @@ const collect = async () => {
 
 let known: Promise<Set<string>> | undefined;
 
-/**
- * The route would otherwise fetch whatever anyone handed it, and the only URLs
- * it ever needs are the ones a reader can hover. Read once per instance, since
- * content only changes on a deploy.
- */
 export const isLinkedFromAPost = async (host: string) =>
   (known ??= collect()).then((hosts) => hosts.has(bare(host)));

@@ -38,8 +38,7 @@ const decode = (value: string) =>
 const valueOf = (match: RegExpMatchArray | null) =>
   match ? (match[2] ?? match[3] ?? match[4] ?? '') : undefined;
 
-/** Read against the markup: a parser pulled in to read four tags would weigh
-    more than everything it reads. */
+// Regexes, not a parser: one would weigh more than the four tags it reads.
 export function readMetadata(html: string, base: string): LinkMetadata {
   const tags = new Map<string, string>();
 

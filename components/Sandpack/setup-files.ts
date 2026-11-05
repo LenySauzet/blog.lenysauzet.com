@@ -1,7 +1,5 @@
 import type { SandpackFiles } from '@codesandbox/sandpack-react';
 
-// Overrides the react template's stylesheet so previews centre in the pane and
-// inherit the site's sans font. Hidden from the editor tabs.
 const stylesCss = `body {
   margin: 0;
   font-family: sans-serif;

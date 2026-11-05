@@ -5,8 +5,6 @@ import { describe, expect, it, vi } from 'vitest';
 import Slider from './Slider';
 
 describe('Slider', () => {
-  // Radix puts role="slider" on the thumb, so a label left on the root is
-  // never announced.
   it('names the thumb, which is what carries the role', () => {
     render(<Slider label="Opacity" defaultValue={30} />);
 
@@ -25,8 +23,6 @@ describe('Slider', () => {
     expect(screen.getByText('12')).toBeInTheDocument();
   });
 
-  // The drag resistance is derived from the step rather than a prop of its own,
-  // so the step has to reach the control for any of it to happen.
   it('carries its step through to the control', async () => {
     const user = userEvent.setup();
     render(<Slider label="Stepped" min={0} max={100} step={25} defaultValue={50} />);

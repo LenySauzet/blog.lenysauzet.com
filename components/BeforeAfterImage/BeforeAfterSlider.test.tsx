@@ -4,9 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { BeforeAfterSlider } from './BeforeAfterSlider';
 
-// The pointer drag depends on element geometry, which jsdom reports as zero, so
-// it's exercised in a real browser instead. Here we cover the deterministic
-// part: the slider semantics and the keyboard stepping/clamping.
+// jsdom reports no geometry, so the pointer drag is proved in a browser.
 const props = {
   beforeSrc: 'https://cdn.example.com/before.png',
   afterSrc: 'https://cdn.example.com/after.png',

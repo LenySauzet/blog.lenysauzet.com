@@ -45,10 +45,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import type { MDXComponents } from 'mdx/types';
 import { FootnoteRef, FootnotesList } from './components/Footnotes';
 
-/**
- * Bridges markdown `![alt](src)` onto Image. `src` is narrowed because the HTML
- * img type also allows a Blob, which remark never emits.
- */
+// `src` narrowed: the img type also allows a Blob, which remark never emits.
 function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
   if (typeof src !== 'string') return null;
   return <Image src={src} alt={alt ?? ''} />;
@@ -93,8 +90,7 @@ export const components = {
     </h1>
   ),
   h2: ({ children }) => <PostH2>{children}</PostH2>,
-  // h3 and h4 are both body size; weight and colour carry the hierarchy, not
-  // scale. h4 keeping text-lg would have made it larger than its own parent.
+  // Both body size: a larger h4 would outsize its own h3.
   h3: ({ children }) => (
     <h3 className="font-display text-base font-medium mt-8 mb-3 text-foreground">
       {children}
@@ -113,9 +109,6 @@ export const components = {
   strong: ({ children }) => (
     <strong className="font-medium text-foreground">{children}</strong>
   ),
-  // The dimmest text tier, shared with Anchor's discreet variant, the Card
-  // title and the article date. Carries a touch more weight than the body so
-  // the italic keeps its presence at a lower contrast.
   em: ({ children }) => (
     <span className="italic font-medium text-subtle-foreground">{children}</span>
   ),
@@ -123,8 +116,7 @@ export const components = {
   table: Table,
   thead: TableHeader,
   tbody: TableBody,
-  // Mapped whole, never as `({ children }) => ...`: GFM carries a column's
-  // alignment as an inline style on each cell, and that drops it.
+  // Mapped whole: a `({ children })` wrapper drops GFM's inline alignment style.
   tr: TableRow,
   th: TableHead,
   td: TableCell,

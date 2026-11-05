@@ -45,7 +45,6 @@ const point = (node: Element, relatedTarget: Element | null = null) =>
 const leave = (node: Element, relatedTarget: Element | null = null) =>
   fireEvent.pointerOut(node, { pointerType: 'mouse', relatedTarget, bubbles: true });
 
-/** What the island would draw, which is the only thing a preview is for. */
 const shown = () => {
   const state = useIslandStore.getState().presented.at(-1);
   if (!state) return undefined;
@@ -98,7 +97,6 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(false);
   });
 
-  // The pointer crossing a link's own children must not restart the wait.
   it('reads moving within a link as staying on it', () => {
     const { container } = render(harness());
     const anchor = link(container, 0);
@@ -122,7 +120,6 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(false);
   });
 
-  // A tap is a navigation, not a request to be told where it goes.
   it('ignores a touch', () => {
     const { container } = render(harness());
 
@@ -157,7 +154,6 @@ describe('LinkPreviews', () => {
     expect(shown()).toContain('Said by the page.');
   });
 
-  // Handed straight over, a large layout and a small one share the screen.
   it('empties itself and shrinks before handing the island back', async () => {
     answer.mockResolvedValue({ title: 'A Real Title', description: 'Said by the page.' });
     const { container } = render(harness());
@@ -175,7 +171,6 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(false);
   });
 
-  // It names every post beside its date already, and the card would cover the list.
   it('says nothing on the index, where the page already says it', async () => {
     pathname = '/';
     const { container } = render(harness());
@@ -186,7 +181,6 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(false);
   });
 
-  // An answer that lands after the reader has moved on is an island changing by itself.
   it('drops an answer that arrives too late', async () => {
     answer.mockResolvedValue({ title: 'A Real Title' });
     const { container } = render(harness());
@@ -199,7 +193,6 @@ describe('LinkPreviews', () => {
     expect(previewing()).toBe(false);
   });
 
-  // It is already in hand: asking would only tell us what we built.
   it('asks nothing about a post of our own', () => {
     const { container } = render(harness());
 

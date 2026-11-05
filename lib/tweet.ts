@@ -2,16 +2,9 @@ import type { Indices, MediaAnimatedGif, MediaDetails, MediaVideo, Tweet } from 
 
 import { resolveVideoUrl } from '@/lib/cdn';
 
-// What this module needs of react-tweet is its data, from `react-tweet/api`. The
-// package's root also ships its own theme's stylesheets, which a figure in this site's
-// markup has no use for and Node cannot even load.
-
-/** How a post sits in an article, for every reader of the source to agree on. */
 export const TWEET_EMBED = /<Tweet\b[^>]*?\bid="(\d+)"[^>]*\/>/g;
 
-// Well under the 60 seconds after which Next restarts a static page that has made no
-// progress: a host that accepts the connection and never answers must reach the
-// fallback, not take the build down.
+// Well under Next's 60 s stall limit for a static page, so a silent host falls back.
 export const PATIENCE = 10_000;
 
 interface Segment {
@@ -19,16 +12,8 @@ interface Segment {
   href?: string;
 }
 
-// X sends its text HTML-escaped and counts its indices in the escaped text, so the text
-// is cut first and each plain run decoded after.
 const unescape = (text: string) => text.replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
 
-/**
- * A post's text as runs of plain text and links: hashtags, mentions, cashtags and URLs,
- * each URL shown as X displays it rather than as its t.co redirect. The media's own link
- * at the end is cut, the media being drawn below. Indices count code points, so the
- * text is split with `Array.from`, never by UTF-16 unit.
- */
 export function segmentsOf({
   text,
   display_text_range,
@@ -81,13 +66,12 @@ export const postUrl = ({ id_str, user }: Post) => `https://x.com/${user.screen_
 export const replyUrl = ({ id_str }: Post) => `https://x.com/intent/tweet?in_reply_to=${id_str}`;
 export const likeUrl = ({ id_str }: Post) => `https://x.com/intent/like?tweet_id=${id_str}`;
 
-// Bare, X serves a picture at 900 pixels whatever its size; `large` is up to 2048.
+// Bare, X serves 900px whatever the size; `large` is up to 2048.
 export const largeUrl = ({ media_url_https }: MediaDetails) => `${media_url_https}?name=large`;
 
 const COUNT = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 export const formatCount = (count: number) => COUNT.format(count);
 
-// UTC, so the date a post shows does not depend on the time zone it was built in.
 const DATE = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
@@ -100,17 +84,13 @@ type Moving = MediaAnimatedGif | MediaVideo;
 
 export interface TweetVideo {
   medium: Moving;
-  /** The file X serves, which X refuses to most sites that link to it. */
   source: string;
-  /** The copy on this site's CDN, which is what a reader plays. */
   mirror: string;
 }
 
 const isMoving = (medium: MediaDetails): medium is Moving => medium.type !== 'photo';
 
-// The second best of X's encodings, as react-tweet picks it: the best is several times
-// the weight for a figure the width of a column. A video X only streams has none, and
-// is left to the link to X.
+// The second best encoding, as react-tweet picks: the best is several times the weight.
 const playable = (medium: Moving) => {
   const mp4 = medium.video_info.variants
     .filter((variant) => variant.content_type === 'video/mp4')
@@ -118,8 +98,6 @@ const playable = (medium: Moving) => {
   return (mp4[1] ?? mp4[0])?.url;
 };
 
-// Keyed by the post and the video's place in it, so the command that copies a video and
-// the figure that plays it can never disagree on its name.
 export const videosOf = (tweet: Pick<Tweet, 'id_str' | 'mediaDetails'>): TweetVideo[] =>
   (tweet.mediaDetails ?? [])
     .filter(isMoving)
@@ -130,8 +108,7 @@ export const videosOf = (tweet: Pick<Tweet, 'id_str' | 'mediaDetails'>): TweetVi
     }))
     .filter((video): video is TweetVideo => video.source !== undefined);
 
-// A HEAD, because the CDN caches a GET's 404 for hours: asked before a copy is uploaded,
-// it would go on answering missing long after.
+// A HEAD: the CDN caches a GET's 404 for hours.
 export const answers = async (url: string) => {
   try {
     return (await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(PATIENCE) })).ok;
