@@ -14,7 +14,7 @@ export interface PasswordInputProps
   revealLabel?: string;
 }
 
-// The toggle's label names the action; `aria-pressed` carries the state.
+// Named for the action it takes next; `aria-pressed` reports the current state.
 export default function PasswordInput({
   className,
   revealLabel = 'password',

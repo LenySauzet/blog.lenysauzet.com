@@ -54,7 +54,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
             );
 
           return (
-            // Dims only the unhovered (an undo loses to `:has()`); pointer-fine, as touch hover sticks.
+            // Dims the rows not hovered, as un-dimming the hovered one loses to `:has()`; mouse only, as touch hover sticks.
             <div
               className="flex flex-col gap-4 px-8 transition-opacity duration-300 motion-reduce:transition-none lg:px-0 pointer-fine:group-has-[[data-year]:hover]/years:not-hover:opacity-40"
               data-year={year}
@@ -73,7 +73,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                       href={`/posts/${post.slug}`}
                       className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
                     >
-                      {/* The 180ms delay, with no fill mode, lags the caret a beat behind the pointer. */}
+                      {/* The 180ms delay keeps the caret hidden a beat; a `backwards` fill mode would show it at once. */}
                       <ScrambledText
                         className="after:ml-1 after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
                         delay={post.flatIndex * 0.1}

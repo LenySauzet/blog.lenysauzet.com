@@ -69,7 +69,7 @@ export function DynamicIsland() {
     <div
       className={cn(
         'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
-        // On the positioner: it keeps catching what the inert button no longer does.
+        // On the wrapper, not the button: the wrapper's own box would still catch the pointer.
         state.inert && 'pointer-events-none'
       )}
     >
@@ -98,7 +98,7 @@ export function DynamicIsland() {
           }}
           className={cn(
             glassSurface,
-            // The rim stands in for the hairline only where relative colour can draw it.
+            // The border goes only where relative colour works: the rim replacing it cannot be drawn without it.
             'glass-rim relative flex items-center overflow-hidden supports-[color:oklch(from_red_l_c_h)]:border-0 [--rim-highlight:0.16] [--rim-ink:var(--foreground)] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background'
           )}
         >

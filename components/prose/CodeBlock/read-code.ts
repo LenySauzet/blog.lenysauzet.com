@@ -5,7 +5,7 @@ export interface LogLevel {
   accent: string;
 }
 
-// lib/rehype-code.mjs admits the same keys.
+// Same keys as `VARIANTS` in lib/posts/rehype-code.mjs, which fails the build on any other.
 export const LOG_LEVELS = new Map<string, LogLevel>([
   ['info', { label: 'Info', accent: '[--code-accent:var(--primary)]' }],
   ['warning', { label: 'Warning', accent: '[--code-accent:var(--warning)]' }],

@@ -10,7 +10,7 @@ export function CodeEditorPane({ height }: { height: string }) {
   const activeFile = sandpack.activeFile;
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Sandpack rebuilds CodeMirror per file: hence `activeFile` and the rAF awaiting the mount.
+  // Sandpack remounts CodeMirror on every file switch, so this reruns on `activeFile` and waits a frame for it.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -99,7 +99,7 @@ export function CodeEditorPane({ height }: { height: string }) {
         className="sp-switch-mask pointer-events-none absolute inset-x-0 z-[4] bg-[var(--code-bg)]"
         style={{ top: 'var(--code-top, 3rem)', bottom: 0 }}
       />
-      {/* The left fade is `.cm-gutters::after`, glued to the sticky gutter through overscroll. */}
+      {/* The right fade only: the left one is `.cm-gutters::after`, so it stays on the sticky gutter in overscroll. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute z-[3] w-12 bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"

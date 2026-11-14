@@ -1,4 +1,4 @@
-// Square, off both axes: sized off height alone, a wide panel kept a corner uncovered.
+// Square, sized off both axes: off height alone, a wide panel keeps a corner uncovered.
 const SIDE_OF_HEIGHT = 2.4;
 const SIDE_OF_WIDTH = 1.3;
 
@@ -21,7 +21,7 @@ export const WASH =
 // Run linear: eased, the rim stops dead on screen instead of after leaving it.
 export const SWEEP_SECONDS = 1.15;
 
-// Outlasts the sweep, so it owns the unmount.
+// Longer than the sweep: its end unmounts the reveal, which must not happen mid-sweep.
 export const DEFOCUS_SECONDS = 1.95;
 
 export function revealGeometry(panelWidth: number, panelHeight: number) {

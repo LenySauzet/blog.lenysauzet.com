@@ -306,7 +306,7 @@ const MediaPlayerRoot = ({
     }
   };
 
-  // In the `animate` state, not `whileHover`, which re-ran on visible controls and flashed the blur.
+  // Hidden through `animate`, not `whileHover`, which re-runs while the controls show and flashes the blur.
   const controlsHidden = isPlaying && !isFocusWithin && !isHovered && !isMobileDevice();
 
   return (

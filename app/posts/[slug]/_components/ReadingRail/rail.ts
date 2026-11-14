@@ -2,7 +2,7 @@ export interface Section {
   label: string;
   level: number;
   progress: number;
-  /** Pixels into the column, before the rail's landing. */
+  /** Pixels from the column's top, raw: the scroll target subtracts `LANDING` later. */
   top: number;
 }
 

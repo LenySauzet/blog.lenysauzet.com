@@ -58,7 +58,7 @@ function CommandDialog({
   const still = usePrefersReducedMotion()
   const returnTo = React.useRef<HTMLElement | null>(null)
   const transition = { duration: 0.15, ease: "easeOut" } as const
-  // Motion moves the variable, not backdrop-filter, so Tailwind still writes Safari 17's prefixed one.
+  // Animate the variable, not backdrop-filter: Tailwind's class then keeps the `-webkit-` prefix Safari 17 needs.
   const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
 
   return (

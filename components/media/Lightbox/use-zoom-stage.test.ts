@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useZoomStage } from './use-zoom-stage';
 import { ZOOM_TRANSITION } from './zoom';
 
-// Past the timer standing in for a completion Motion drops.
+// Just past the fallback timer that ends the zoom when Motion drops its completion event.
 const ON_TIME = ZOOM_TRANSITION.duration * 1000 + 100;
 
 describe('useZoomStage', () => {

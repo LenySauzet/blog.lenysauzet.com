@@ -242,7 +242,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     const { clientWidth, clientHeight } = host;
     if (!clientWidth || !clientHeight) return;
     renderer.setSize(clientWidth, clientHeight);
-    // OGL writes the size into the style in pixels, which would hold the host open.
+    // OGL pins the canvas style to pixel sizes, which would stop the host from ever shrinking.
     canvas.style.width = canvas.style.height = '100%';
     set('uResolution', [gl.canvas.width, gl.canvas.height]);
     draw();

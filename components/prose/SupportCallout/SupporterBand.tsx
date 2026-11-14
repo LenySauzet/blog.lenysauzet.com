@@ -43,7 +43,7 @@ const groupThousands = (value: number) =>
 export default function SupporterBand() {
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [total, setTotal] = useState(0);
-  // Apart, or a pointer leaving would resume a band that still has focus.
+  // Two flags, not one: with one, a pointer leaving would resume a band that still has focus.
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [rowHeight, setRowHeight] = useState(ESTIMATED_ROW_HEIGHT);
@@ -88,7 +88,7 @@ export default function SupporterBand() {
     speed.set(paused ? 0 : 1);
   }, [paused, speed]);
 
-  // Wrapped against one copy, not the window, or the seam lands mid-copy.
+  // Wrap at one copy's height, not the window's, or the loop jumps mid-list.
   useAnimationFrame((_, delta) => {
     const list = listRef.current;
     if (!list || !scrolls) return;

@@ -91,7 +91,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     return () => resized.disconnect();
   }, [pane, page]);
 
-  // A frame late: cmdk highlights the first row as the rows mount.
+  // A frame late, or cmdk's own highlight of the first row on mount overrides it.
   useEffect(() => {
     if (page !== 'accent' || !isOpen) return;
 
@@ -123,7 +123,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     [recommended, rest]
   );
 
-  // Reset on the way in: on the way out the root list flicks back into a leaving palette.
+  // Reset on opening, not closing: reset on close, the root list flashes into the fading palette.
   const toRoot = useCallback(() => {
     setTowards(-1);
     setPage(null);
@@ -132,7 +132,7 @@ export function CommandPalette({ posts }: { posts: PostSummary[] }) {
     input.current?.focus();
   }, [rootValues]);
 
-  // Never `setIsOpen` directly: `onOpenChange` fires only for the reader's own dismissals.
+  // Open only through here: `onOpenChange` fires only on dismissal, so nothing else resets to the root.
   const open = useCallback(() => {
     toRoot();
     setIsOpen(true);

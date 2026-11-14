@@ -9,7 +9,7 @@ const RULES: [RegExp, string][] = [
   // `[^>]` crosses lines, which a component with a prop per line needs.
   [/<[A-Z][^>]*\/>/g, ''],
   [/<\/?[A-Za-z][^>]*>/g, ''],
-  // Images before links, being one character apart.
+  // Images before links: the link rule would turn `![alt](src)` into a stray `!alt`.
   [/!\[[^\]]*\]\([^)]*\)/g, ''],
   [/\[([^\]]*)\]\([^)]*\)/g, '$1'],
   [/^#{1,6}\s+/gm, ''],

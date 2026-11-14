@@ -8,7 +8,7 @@ import { relativeTime } from '@/lib/posts/relative-time';
 
 const subscribeToNothing = () => () => {};
 
-// Outlasts the date line's 1.12s decode, which drags the badge sideways while it runs.
+// Longer than the date line's 1.12s scramble, which shifts the badge sideways while it runs.
 const HOLD = 1.2;
 
 // Reduced motion changes the timing only: a second tree would not match the server's.

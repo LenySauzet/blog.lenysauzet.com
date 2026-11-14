@@ -107,7 +107,7 @@
   --input-icon: oklch(0.8094 0.019 var(--base-hue));
   --wash: oklch(0.75 0.03 var(--base-hue));
   --wash-lift: 50%;
-  /* The same in both themes: never redefine under .dark. */
+  /* Over pictures, not the page: redefined under .dark, it puts dark ink on dark photographs. */
   --media-glass: oklch(56.78% 0.05 var(--base-hue));
   --media-ink: oklch(93.66% 0.027 var(--base-hue));
   --ring: oklch(0.705 0.015 var(--base-hue));
@@ -128,7 +128,7 @@
   --sidebar-border: oklch(0.92 0.004 var(--base-hue));
   --sidebar-ring: oklch(0.705 0.015 var(--base-hue));
 
-  /* Function and operator keep fixed hues. */
+  /* The fixed hues below (function, and operator under .dark) are deliberate, not missed --base-hue. */
   --shiki-foreground: oklch(0.5013 0.047 var(--base-hue));
   --shiki-token-comment: oklch(0.62 0.03 var(--base-hue));
   --shiki-token-parameter: oklch(0.5013 0.047 var(--base-hue));
@@ -437,7 +437,7 @@ figure[data-rehype-pretty-code-figure][data-variant] {
 figure[data-rehype-pretty-code-figure][data-variant] code > [data-line]::before {
   content: none;
 }
-/* Shiki colours its tokens inline. */
+/* `!important`: Shiki colours its tokens inline, which nothing else outranks. */
 figure[data-rehype-pretty-code-figure][data-variant] [data-line] span {
   color: inherit !important;
 }

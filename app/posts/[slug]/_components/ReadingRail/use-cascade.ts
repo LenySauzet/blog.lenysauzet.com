@@ -14,7 +14,7 @@ import type { Section } from './rail';
 /** The longest gap between two titles, in seconds. */
 const BEAT = 0.0375;
 
-/** A ceiling, in seconds, never a fixed length. */
+/** Caps the whole cascade, in seconds: a long list squeezes its beats rather than running longer. */
 const WALK = 0.22;
 
 const beatOf = (count: number) => Math.min(BEAT, WALK / Math.max(1, count - 1));

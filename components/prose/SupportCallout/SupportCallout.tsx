@@ -6,7 +6,7 @@ import siteConfig from '@/config/site';
 import SupporterBand from './SupporterBand';
 
 export default function SupportCallout() {
-  // Answered in kind: plain `p-0` and `gap-0` lose to the primitive's `data-[size=sm]:` rules.
+  // Prefixed like the primitive's own `data-[size=sm]:` rules, which plain `gap-0` and `py-0` lose to.
   return (
     <CardRoot className="my-8 overflow-hidden data-[size=sm]:gap-0 data-[size=sm]:py-0">
       <CardContent className="flex flex-col gap-5 p-6">

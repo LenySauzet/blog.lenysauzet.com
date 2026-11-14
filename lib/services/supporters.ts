@@ -106,7 +106,7 @@ function readString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-// `Number('')` is 0; `readTotal` reads a real 0, so only amounts go through here.
+// Amounts only: it drops 0, as `Number('')` gives, but `readTotal` must keep a real 0.
 function readPositive(value: unknown) {
   const parsed = readNumber(value);
   return parsed !== undefined && parsed > 0 ? parsed : undefined;

@@ -67,7 +67,7 @@ export function Lift({ lift, id, src, alt, width, height, preload }: LiftProps) 
         aria-hidden="true"
         onLayoutAnimationComplete={settle}
         className={cn('pointer-events-none absolute overflow-hidden', stage === 'closing' ? 'z-101' : 'invisible')}
-        // The radius in style, which is what Motion corrects for scale.
+        // Radius in `style`, not a class: Motion only corrects a style radius for scale, so a class one distorts.
         style={{ inset: frame.inset, borderRadius: frame.radius }}
       >
         {face}

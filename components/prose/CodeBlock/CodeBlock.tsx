@@ -85,7 +85,7 @@ function CodeFigure({ className, children, ...props }: ComponentPropsWithoutRef<
       setExpanded(true);
       return;
     }
-    // Scrolled into view once it has shrunk, not measured before.
+    // Collapse synchronously first, or it scrolls to where the unfolded block ended.
     flushSync(() => setExpanded(false));
     figureRef.current?.scrollIntoView({ block: 'nearest' });
   };

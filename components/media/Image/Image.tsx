@@ -24,7 +24,7 @@ export default async function Image({
   ...props
 }: ImageProps) {
   const url = resolveImageUrl(src);
-  // `measured` stays on the server: the DOM has no use for it.
+  // Width and height only: `measureImage`'s `measured` flag would reach the <img> as a stray attribute.
   const measurement = width && height ? { width, height } : await measureImage(url);
   const dimensions = { width: measurement.width, height: measurement.height };
 

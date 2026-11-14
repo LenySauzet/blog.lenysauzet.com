@@ -13,7 +13,7 @@ import { accentOf, HUES, type Hue } from '@/lib/theme/hues';
 
 import { FadingList } from './FadingList';
 
-// `size-3.5` and `h-4 w-5` below, in the pixels the mask is written in.
+// Must match `size-3.5` and `h-4 w-5` below, or the mask cuts the discs in the wrong place.
 const DISC = 14;
 const OVERLAP = 8;
 const CUT = 1.5;

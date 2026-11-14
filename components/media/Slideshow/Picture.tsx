@@ -7,7 +7,7 @@ export interface PictureProps {
   width: number;
   height: number;
   sizes: string;
-  /** A CSS length, past either side. */
+  /** How far the image overhangs each side, as a CSS length. */
   bleed: string;
   loading?: 'eager' | 'lazy';
   decoding?: 'sync' | 'async';

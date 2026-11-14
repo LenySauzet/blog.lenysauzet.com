@@ -29,7 +29,7 @@ const GIVE_SPRING = { stiffness: 300, damping: 14, mass: 0.6 };
 
 const GIVE_MAX = 12;
 const GIVE_FALLOFF = 180;
-// Deeper than the stretch, or the give reads as the bar growing.
+// The squash must exceed the stretch, or pulling past an end reads as the bar growing.
 const SQUASH_RATIO = 1.5;
 
 // Under 0.5, or the snap reads as a correction.
@@ -78,7 +78,7 @@ export default function Slider({
   const [value, setValue] = useState(defaultValue);
   // Hidden until measured: the server cannot place the grip.
   const [gripClear, setGripClear] = useState(false);
-  // Apart from `trackGive`, which skips reduced motion and would leave a drag idle.
+  // Not set in `trackGive`, which returns early under reduced motion and would never mark a drag.
   const [hovered, setHovered] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [dots, setDots] = useState<number[]>([]);
