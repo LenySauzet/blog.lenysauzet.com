@@ -13,13 +13,13 @@ import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
+import { INSET } from './shape';
 import { islandStates } from './states';
 import { hint } from './states/hint';
 import { resting } from './states/resting';
 import type { IslandContext, IslandState } from './types';
 import { useOpening } from './use-opening';
 
-const INSET = '0.375rem';
 const COMPACT_HEIGHT = '2.75rem';
 const MAX_WIDTH = '19rem';
 

@@ -6,6 +6,7 @@ import type { LinkPreview } from '@/lib/link-preview';
 import { cn } from '@/lib/utils';
 
 import { Mark } from '../Mark';
+import { INSET } from '../shape';
 import type { IslandState } from '../types';
 
 export const LINK_PREVIEW = 'link-preview';
@@ -17,7 +18,10 @@ function Still({ src }: { src: string }) {
   const [shown, setShown] = useState(false);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-[0.875rem] bg-muted/40">
+    <div
+      className="relative aspect-video w-full overflow-hidden bg-muted/40"
+      style={{ borderRadius: OPEN_RADIUS - INSET }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
