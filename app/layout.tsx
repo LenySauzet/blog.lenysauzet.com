@@ -53,7 +53,7 @@ export default async function RootLayout({
           <TooltipProvider delayDuration={400}>
             <DynamicIsland />
             <LinkPreviews posts={known} />
-            <main className="h-full">{children}</main>
+            <main className="min-h-dvh">{children}</main>
             <CommandPalette posts={posts} />
           </TooltipProvider>
         </ThemeProvider>

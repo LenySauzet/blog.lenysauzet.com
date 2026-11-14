@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 // A mask over a flat fill, never a colour gradient, which bands into visible steps.
 const FADE = '[mask-image:linear-gradient(to_top,black,transparent)]';
 
-// Fixed, as the body does not scroll; `z-40` keeps it under the island and the Lightbox.
+// `z-40` keeps it under the island and the Lightbox.
 export default function ScrollFade() {
   return (
     <div

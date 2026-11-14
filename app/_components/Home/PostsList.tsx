@@ -20,11 +20,11 @@ export function PostsList({ posts }: { posts: Post[] }) {
   ].sort((a, b) => b - a);
 
   return (
-    <div className="relative flex flex-col h-full overflow-hidden">
+    <div className="relative flex flex-col">
 
-      <div className="pointer-events-none absolute top-0 inset-x-0 z-10 h-8 bg-linear-to-b from-background from-25% to-transparent" />
+      <div className="pointer-events-none fixed top-0 right-0 left-0 z-10 h-8 lg:left-1/2 bg-linear-to-b from-background from-25% to-transparent" />
       <div
-        className="pointer-events-none absolute top-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
+        className="pointer-events-none fixed top-0 right-0 left-0 z-20 h-40 lg:left-1/2 backdrop-blur-sm bg-background/40"
         style={{
           maskImage: 'linear-gradient(to bottom, black 25%, transparent 100%)',
           WebkitMaskImage:
@@ -32,9 +32,9 @@ export function PostsList({ posts }: { posts: Post[] }) {
         }}
       />
 
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 z-10 h-8 bg-linear-to-t from-background from-25% to-transparent" />
+      <div className="pointer-events-none fixed bottom-0 right-0 left-0 z-10 h-8 lg:left-1/2 bg-linear-to-t from-background from-25% to-transparent" />
       <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-40 backdrop-blur-sm bg-background/40"
+        className="pointer-events-none fixed bottom-0 right-0 left-0 z-20 h-40 lg:left-1/2 backdrop-blur-sm bg-background/40"
         style={{
           maskImage: 'linear-gradient(to top, black 25%, transparent 100%)',
           WebkitMaskImage:
@@ -43,8 +43,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
       />
 
       <div
-        data-scroll-root
-        className="group/years flex flex-col gap-8 pt-24 pb-32 sm:pb-28 flex-1 min-h-0 overflow-y-auto lg:border-l"
+        className="group/years flex min-h-dvh flex-col gap-8 pt-24 pb-32 sm:pb-28 lg:border-l"
       >
         {uniqueYears.map((year) => {
           const postsForYear = posts

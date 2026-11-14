@@ -6,7 +6,7 @@ import { PanelReveal } from './PanelReveal';
 
 export function IndexSection() {
   return (
-    <div className="relative hidden overflow-hidden lg:block">
+    <div className="relative hidden overflow-hidden lg:sticky lg:top-0 lg:block lg:h-dvh">
       <Backdrop visual={halftone} />
 
       <div className="absolute bottom-10 left-10 w-[400px]">

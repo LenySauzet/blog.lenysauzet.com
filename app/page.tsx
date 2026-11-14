@@ -7,7 +7,7 @@ export default async function Page() {
   const posts = await getPosts();
 
   return (
-    <div className="grid h-full grid-cols-1 lg:grid-cols-2">
+    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-2">
       <IndexSection />
       <PostsList
         posts={posts.map(({ slug, metadata }) => ({

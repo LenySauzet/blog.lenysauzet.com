@@ -34,7 +34,7 @@ export default function GlobalError({ error, retry }: ErrorProps) {
     <html lang="en" suppressHydrationWarning>
       <body className={bodyClassName}>
         <title>Something went wrong</title>
-        <main className="h-full">
+        <main className="min-h-dvh">
           <ErrorBody what="The site" retry={retry} />
         </main>
       </body>

@@ -8,9 +8,10 @@ import {
   type SandpackFiles,
   type SandpackPredefinedTemplate,
 } from '@codesandbox/sandpack-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useScrollLock } from '@/hooks/use-scroll-lock';
 import { cn } from '@/lib/utils';
 
 import { RunButton } from './buttons';
@@ -40,13 +41,7 @@ export function Sandpack({
   const [showCode, setShowCode] = useState(true);
   const [consoleKey, setConsoleKey] = useState(0);
 
-  // An effect, so the lock is released if the editor unmounts while fullscreen.
-  useEffect(() => {
-    document.body.style.overflow = isFullscreen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isFullscreen]);
+  useScrollLock(isFullscreen);
 
   const paneHeight = isFullscreen ? '100dvh' : `${EDITOR_HEIGHT}px`;
   const bodyHeight = `calc(${paneHeight} - ${TOOLBAR_HEIGHT}px)`;

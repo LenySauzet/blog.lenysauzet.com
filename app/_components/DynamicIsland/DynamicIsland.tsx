@@ -8,7 +8,6 @@ import { glassSurface } from '@/components/ui/glass';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
-import { handOnWheel } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
@@ -81,7 +80,6 @@ export function DynamicIsland() {
         onPointerLeave={() => setHovered(false)}
         onFocus={point}
         onBlur={() => setHovered(false)}
-        onWheel={handOnWheel}
         className="group inline-flex cursor-pointer outline-none transition-[scale] duration-200 hover:scale-[1.02] active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
       >
         <motion.div

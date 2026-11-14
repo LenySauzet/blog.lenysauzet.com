@@ -11,6 +11,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import { useLightboxStore } from '@/hooks/use-lightbox-store';
+import { useScrollLock } from '@/hooks/use-scroll-lock';
 
 const NEVER_CHANGES = () => () => {};
 
@@ -41,6 +42,7 @@ export function Lightbox({
   const dismiss = useEffectEvent(() => onOpenChange(false));
 
   useEffect(() => (open ? useLightboxStore.getState().cover() : undefined), [open]);
+  useScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

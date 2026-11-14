@@ -2,9 +2,9 @@ import { ReadingRail } from './_components/ReadingRail';
 import ScrollFade from './_components/ScrollFade';
 
 export default function MdxLayout({ children }: { children: React.ReactNode }) {
-  // Clips x, or a callout's overflowing corner badge scrolls the page.
+  // `clip`, not `hidden`, which would make this a scroll container in place of the page.
   return (
-    <div data-scroll-root className="h-full overflow-x-hidden overflow-y-auto pb-32">
+    <div className="overflow-x-clip pb-32">
       {children}
       <ScrollFade />
       <ReadingRail />

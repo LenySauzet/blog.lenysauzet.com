@@ -23,4 +23,4 @@ const DepartureMono = localFont({
   variable: '--font-mono',
 });
 
-export const bodyClassName = `${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`;
+export const bodyClassName = `${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative selection:bg-primary/[0.07] selection:text-primary`;

@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { scrollProgress } from '@/hooks/use-scroll-tracking';
 import { blurRamp, EASED } from '@/lib/fade';
-import { handOnWheel, scrollColumn, travelOf } from '@/lib/scroll-column';
+import { travel } from '@/lib/page-scroll';
 import { cn } from '@/lib/utils';
 
 import { layOutTicks, tickAt } from './rail';
@@ -115,13 +115,10 @@ export function ReadingRail() {
   const go = (event: React.MouseEvent) => {
     const index = under(event);
     const tick = index === undefined ? undefined : ticks[index];
-    const column = scrollColumn();
-    if (!tick || !column) return;
+    if (!tick) return;
 
-    column.scrollTo({
-      top: tick.section
-        ? Math.max(0, tick.section.top - LANDING)
-        : tick.progress * travelOf(column),
+    window.scrollTo({
+      top: tick.section ? Math.max(0, tick.section.top - LANDING) : tick.progress * travel(),
       behavior: still ? 'auto' : 'smooth',
     });
   };
@@ -143,7 +140,6 @@ export function ReadingRail() {
         const index = under(event);
         setPointed((was) => (was === index ? was : index));
       }}
-      onWheel={handOnWheel}
       onClick={go}
       style={{ width: widest ? widest + VEIL_MARGIN : undefined }}
       className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"

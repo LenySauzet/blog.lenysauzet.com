@@ -111,7 +111,7 @@ hardcode `dark` anywhere. The traps behind each of those are in
   file when small.
 - **`lib/` is pure logic, by domain**: `posts/`, `media/`, `geometry/`, `shader/`,
   `theme/`, `services/`, `commands/`, `search/`, `link-preview/`; what every domain uses
-  (`utils`, `url-utils`, `springs`, `scroll-column`, `fade`) sits at its root. Tests sit
+  (`utils`, `url-utils`, `springs`, `page-scroll`, `fade`) sits at its root. Tests sit
   beside their file.
 - **Every component accepts and forwards `className`.** Import order follows
   `.cursor/rules/typescript.mdc`.
@@ -180,7 +180,7 @@ any other agent reads the one covering the files it touches.
 | Any `.tsx` or `.css`: tokens, text tiers, focus rings, theming | `.claude/rules/styling.md` |
 | `components/ui/`, `Slider`, `Toggle`, `Card`, `Details`, form fields | `.claude/rules/ui.md` |
 | `app/_components/DynamicIsland`, link previews | `.claude/rules/dynamic-island.md` |
-| `app/posts/[slug]/_components/ReadingRail`, `ScrollFade`, `lib/scroll-column.ts` | `.claude/rules/reading-rail.md` |
+| `app/posts/[slug]/_components/ReadingRail`, `ScrollFade`, `lib/page-scroll.ts` | `.claude/rules/reading-rail.md` |
 | `lib/theme/hues.ts`, the accent presets | `.claude/rules/accent.md` |
 | `app/_components/CommandPalette`, `lib/commands`, `lib/search` | `.claude/rules/command-palette.md` |
 | `lib/services/booking.ts`, `lib/services/supporters.ts`, `SupportCallout` | `.claude/rules/third-parties.md` |

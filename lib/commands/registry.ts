@@ -21,7 +21,6 @@ import {
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
 import { prefersReducedMotion } from '@/hooks/use-prefers-reduced-motion'
-import { scrollColumn } from '@/lib/scroll-column'
 import { pickAnother } from '@/lib/search/random'
 import { openBooking } from '@/lib/services/booking'
 import { withThemeTransition } from '@/lib/theme/theme-transition'
@@ -116,10 +115,7 @@ export const commands: Command[] = [
         when: (context) => onAPost(context) && !context.atTop,
         recommend: underway,
         run: () =>
-            (scrollColumn() ?? document.scrollingElement)?.scrollTo({
-                top: 0,
-                behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-            }),
+            window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' }),
     },
     {
         id: 'resume',

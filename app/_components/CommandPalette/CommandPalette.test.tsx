@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MiniSearch from 'minisearch';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useHue } from '@/hooks/use-hue';
@@ -9,6 +9,7 @@ import { commands } from '@/lib/commands/registry';
 import { GROUPS } from '@/lib/commands/types';
 import { INDEX_OPTIONS } from '@/lib/search/config';
 import { HUES } from '@/lib/theme/hues';
+import { resetPageScroll, scrollPage } from '@/test/scroll';
 
 import { CommandPalette } from './CommandPalette';
 
@@ -37,30 +38,14 @@ vi.mock('@/lib/search/load-index', () => ({
   loadSearchIndex: () => Promise.resolve(index),
 }));
 
-let column: HTMLElement;
-
-beforeEach(() => {
-  column = document.createElement('div');
-  column.setAttribute('data-scroll-root', '');
-  document.body.append(column);
-});
-
 afterEach(() => {
-  column.remove();
+  resetPageScroll();
   useCmdkStore.setState({ isOpen: false });
   pathname = '/';
   vi.clearAllMocks();
 });
 
-const readTo = (fraction: number) => {
-  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
-  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
-  Object.defineProperty(column, 'scrollTop', {
-    value: Math.round(500 * fraction),
-    configurable: true,
-  });
-  fireEvent.scroll(column);
-};
+const readTo = (fraction: number) => scrollPage(fraction);
 
 const shown = () =>
   screen.getAllByRole('option').map((item) => item.textContent?.trim());

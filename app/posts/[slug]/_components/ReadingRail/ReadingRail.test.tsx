@@ -1,21 +1,22 @@
 import { render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { resetPageScroll, scrollPage } from '@/test/scroll';
 
 import { ReadingRail } from './ReadingRail';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/posts/anything' }));
 
-// jsdom boxes are zero high, so the column has to be told it scrolls.
 const column = (markup: string) => {
   const node = document.createElement('div');
-  node.setAttribute('data-scroll-root', '');
   node.innerHTML = markup;
-  Object.defineProperty(node, 'scrollHeight', { value: 2000 });
-  Object.defineProperty(node, 'clientHeight', { value: 800 });
   document.body.append(node);
+  scrollPage(0, 2000, 800);
 
   return node;
 };
+
+afterEach(resetPageScroll);
 
 describe('ReadingRail', () => {
   it('stands on a page with no headings at all', () => {
@@ -24,7 +25,7 @@ describe('ReadingRail', () => {
     expect(() => render(<ReadingRail />)).not.toThrow();
   });
 
-  it('stands before the column it measures exists', () => {
+  it('stands on a page too short to scroll', () => {
     expect(() => render(<ReadingRail />)).not.toThrow();
   });
 

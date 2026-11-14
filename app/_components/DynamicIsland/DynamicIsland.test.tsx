@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
+import { resetPageScroll, scrollPage } from '@/test/scroll';
 
 import { DynamicIsland } from './DynamicIsland';
 import { announce } from './states/announcement';
@@ -22,28 +23,12 @@ const pastTheGreeting = async () => {
   await vi.advanceTimersByTimeAsync(5200);
 };
 
-let column: HTMLElement;
-
-const readTo = (fraction: number) => {
-  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
-  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
-  Object.defineProperty(column, 'scrollTop', {
-    value: Math.round(500 * fraction),
-    configurable: true,
-  });
-  fireEvent.scroll(column);
-};
+const readTo = (fraction: number) => scrollPage(fraction);
 
 const scrollDown = () => readTo(0.5);
 
-beforeEach(() => {
-  column = document.createElement('div');
-  column.setAttribute('data-scroll-root', '');
-  document.body.append(column);
-});
-
 afterEach(() => {
-  column.remove();
+  resetPageScroll();
   useIslandStore.setState({ presented: [], post: null });
   useCmdkStore.setState({ isOpen: false });
   pathname = '/';
