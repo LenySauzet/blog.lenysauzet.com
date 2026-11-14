@@ -1,38 +1,14 @@
 import type { Viewport } from 'next';
-import { Geist, Instrument_Serif } from 'next/font/google';
-import localFont from 'next/font/local';
 
 import { ThemeProvider } from '@/components/shared/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
 import { getPosts, summaryOf } from '@/lib/posts/post-utils';
-import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/theme/hues';
 
 import { CommandPalette } from './_components/CommandPalette';
+import { bodyClassName, paintHue } from './_components/document';
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-display',
-  subsets: ['latin'],
-});
-
-const instrument = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
-});
-
-const FiraCode = localFont({
-  src: '../public/fonts/FiraCode.woff2',
-  variable: '--font-mono-code',
-});
-
-const DepartureMono = localFont({
-  src: '../public/fonts/DepartureMono-Regular.woff2',
-  variable: '--font-mono',
-});
 
 export const metadata = getRootMetadata();
 
@@ -42,12 +18,6 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#09090b' },
   ],
 };
-
-const paintHue = `try{var p=${JSON.stringify(
-  Object.fromEntries(HUES.map((hue) => [hue.id, propertiesOf(hue)]))
-)}[localStorage.getItem(${JSON.stringify(
-  STORAGE_KEY
-)})];if(p)for(var k in p)document.documentElement.style.setProperty(k,p[k])}catch(e){}`;
 
 export default async function RootLayout({
   children,
@@ -62,9 +32,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
-      >
+      <body className={bodyClassName}>
         <script dangerouslySetInnerHTML={{ __html: paintHue }} />
 
         <ThemeProvider
