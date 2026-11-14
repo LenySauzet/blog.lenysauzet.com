@@ -1,7 +1,8 @@
 ---
 name: figure-diagram
 description: >-
-  Builds, fixes and restyles drawn figures in components/figures: SVG geometry and
+  Builds, fixes and restyles drawn figures in components/figures (Bezier, Lerp,
+  Coverage, RaySphere, Wave and any new one): SVG geometry and
   constructions, 3D surfaces as lines, system diagrams of boxes and frames, and
   figures animated in time, all composed from the Diagram toolbox over pure, tested
   geometry. Use for any work on such a figure, a small fix included (overlapping

@@ -6,7 +6,8 @@ description: >-
   Departure Mono names, one idea per figure, scaling without scrolling, motion that
   pauses, both themes. Use when designing, building, fixing or reviewing any figure,
   chart, diagram or shader, and whenever a figure's colours, lines, labels, layout or
-  motion look wrong.
+  motion look wrong, a stroke too close to the accent under one of the reader's
+  presets included.
 ---
 
 # Figure design
