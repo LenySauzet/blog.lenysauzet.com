@@ -232,6 +232,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* No elastic overscroll: the page would slide under its fixed chrome, which stays put. */
+  html {
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground;
   }

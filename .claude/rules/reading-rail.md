@@ -111,5 +111,6 @@ top (2500px read, 0 restored); on an iPhone Safari's bar does not collapse over 
 either. So `body` keeps its natural height, the homepage's panel stays put with
 `sticky`, the article clips its sideways overflow with `overflow-x: clip` (`hidden`
 would make it a scroll container again), and an overlay that must hold the page still
-takes `useScrollLock`. `lib/page-scroll.ts` reads the page's travel and the article's
+takes `useScrollLock`. `html` refuses elastic overscroll (`overscroll-behavior: none`): on a
+Mac trackpad the page otherwise slides under its fixed chrome, which stays put. `lib/page-scroll.ts` reads the page's travel and the article's
 headings; the reading position is `window.scrollY`.
