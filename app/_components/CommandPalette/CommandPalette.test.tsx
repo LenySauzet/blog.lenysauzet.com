@@ -352,9 +352,12 @@ describe('CommandPalette', () => {
 
   it('hands the focus back to what held it once it has left', async () => {
     const user = userEvent.setup();
+    const flagged: boolean[] = [];
     render(
       <>
-        <button type="button">Before</button>
+        <button type="button" onFocus={() => flagged.push(useCmdkStore.getState().returningFocus)}>
+          Before
+        </button>
         <CommandPalette posts={posts} />
       </>
     );
@@ -366,6 +369,9 @@ describe('CommandPalette', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    // The focus handed back says so, which is how the island tells it from a reader's.
+    expect(flagged).toEqual([false, true]);
+    expect(useCmdkStore.getState().returningFocus).toBe(false);
   });
 
   it('takes the selection off the last row when a disabled one is pointed at', async () => {

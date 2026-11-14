@@ -222,6 +222,21 @@ describe('DynamicIsland', () => {
     await waitFor(() => expect(island()).not.toHaveTextContent('Shades of Halftone'));
   });
 
+  // A taller window shortens the travel with no scroll at all, as the phone's bar folding does.
+  it('reads the end of the article when the window grows to it', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+    act(() => scrollPage(0.5, 1000, 500));
+    await settlesOn('Shades of Halftone');
+
+    act(() => {
+      Object.defineProperty(document.documentElement, 'clientHeight', { value: 750, configurable: true });
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    await settlesOn('Support me');
+  });
+
   it('stops answering the pointer while it is showing someone else\'s link', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<DynamicIsland />);

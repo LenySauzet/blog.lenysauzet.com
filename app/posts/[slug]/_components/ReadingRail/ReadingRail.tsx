@@ -142,7 +142,7 @@ export function ReadingRail() {
       }}
       onClick={go}
       style={{ width: widest ? widest + VEIL_MARGIN : undefined }}
-      className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
+      className="pointer-events-none fixed top-0 right-[var(--removed-body-scroll-bar-size,0px)] z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
     >
       <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-28" />
 

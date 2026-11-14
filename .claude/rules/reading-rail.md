@@ -115,5 +115,5 @@ would make it a scroll container again), and an overlay that must hold the page 
 takes `useScrollLock`. Under a fine pointer `html` refuses elastic overscroll (`overscroll-behavior: none`):
 on a Mac trackpad the page otherwise slides under its fixed chrome; phones keep
 pull-to-refresh. A lock gives back a classic scrollbar's width as padding and sets
-Radix's `--removed-body-scroll-bar-size`, which the island uses to stay centred. `lib/page-scroll.ts` reads the page's travel and the article's
+Radix's `--removed-body-scroll-bar-size`, which the island and the rail use to stay put. `lib/page-scroll.ts` reads the page's travel and the article's
 headings; the reading position is `window.scrollY`.

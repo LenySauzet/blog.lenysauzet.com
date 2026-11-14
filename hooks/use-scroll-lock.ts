@@ -16,8 +16,11 @@ function lock() {
 
   body.style.overflow = 'hidden';
   // A classic scrollbar leaves with the overflow: pad its width back, or the page shifts.
-  body.style.paddingRight = `${gap}px`;
-  body.style.setProperty(GAP, `${gap}px`);
+  // None to give back under Radix's own lock, whose measure must not be overwritten with 0.
+  if (gap > 0) {
+    body.style.paddingRight = `${gap}px`;
+    body.style.setProperty(GAP, `${gap}px`);
+  }
 
   restore = () => {
     Object.assign(body.style, before);

@@ -18,6 +18,33 @@ describe('useScrollLock', () => {
     expect(body.style.paddingRight).toBe('3px');
   });
 
+  it('gives back the width of a classic scrollbar, and takes it away again', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(document.documentElement, 'clientWidth', { value: 1265, configurable: true });
+    const lock = renderHook(() => useScrollLock(true));
+    expect(body.style.paddingRight).toBe('15px');
+    expect(body.style.getPropertyValue('--removed-body-scroll-bar-size')).toBe('15px');
+
+    lock.unmount();
+    expect(body.style.paddingRight).toBe('');
+    expect(body.style.getPropertyValue('--removed-body-scroll-bar-size')).toBe('');
+    Reflect.deleteProperty(window, 'innerWidth');
+    Reflect.deleteProperty(document.documentElement, 'clientWidth');
+  });
+
+  // Under Radix's lock the scrollbar is already gone: writing 0 would override its measure.
+  it('writes nothing when there is no scrollbar to give back', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(document.documentElement, 'clientWidth', { value: 1280, configurable: true });
+    const lock = renderHook(() => useScrollLock(true));
+
+    expect(body.style.paddingRight).toBe('');
+    expect(body.style.getPropertyValue('--removed-body-scroll-bar-size')).toBe('');
+    lock.unmount();
+    Reflect.deleteProperty(window, 'innerWidth');
+    Reflect.deleteProperty(document.documentElement, 'clientWidth');
+  });
+
   it('stays locked until the last of two overlapping locks lets go', () => {
     const first = renderHook(() => useScrollLock(true));
     const second = renderHook(() => useScrollLock(true));
