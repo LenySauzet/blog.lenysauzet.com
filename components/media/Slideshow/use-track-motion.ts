@@ -7,7 +7,7 @@ import type { CarouselApi } from '@/components/ui/carousel';
 
 import { bendFor, parallaxShift, slidePath } from './bend';
 
-export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivElement | null>, reduced: boolean) {
+export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivElement | null>, still: boolean) {
   const width = useMotionValue(0);
   const height = useMotionValue(0);
   const bend = useMotionValue(0);
@@ -29,12 +29,12 @@ export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivEleme
       const left = root.getBoundingClientRect().left + root.clientLeft;
       const distances = api.slideNodes().map((slide) => (slide.getBoundingClientRect().left - left) / span);
       distances.forEach((distance, index) => {
-        layers.current[index]?.style.setProperty('translate', `${reduced ? 0 : parallaxShift(distance, span)}px 0`);
+        layers.current[index]?.style.setProperty('translate', `${still ? 0 : parallaxShift(distance, span)}px 0`);
       });
     };
     // Read off the internal engine, as Embla's own tween examples do.
     const onScroll = () => {
-      bend.set(reduced ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
+      bend.set(still ? 0 : bendFor(api.internalEngine().scrollBody.velocity()));
       place();
     };
     const onSettle = () => {
@@ -46,7 +46,7 @@ export function useTrackMotion(api: CarouselApi, rootRef: RefObject<HTMLDivEleme
     return () => {
       api.off('scroll', onScroll).off('settle', onSettle).off('reInit', place);
     };
-  }, [api, rootRef, reduced, width, height, bend]);
+  }, [api, rootRef, still, width, height, bend]);
 
   const layer = (index: number) => (node: HTMLDivElement | null) => {
     layers.current[index] = node;

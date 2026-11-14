@@ -11,10 +11,10 @@ interface AutoplayOptions {
   playing: boolean;
   /** Milliseconds. */
   interval: number;
-  reduced: boolean;
+  still: boolean;
 }
 
-export function useAutoplay(api: CarouselApi, { plays, playing, interval, reduced }: AutoplayOptions) {
+export function useAutoplay(api: CarouselApi, { plays, playing, interval, still }: AutoplayOptions) {
   const [timer, setTimer] = useState<number | null>(null);
   const [leaving, setLeaving] = useState<number | null>(null);
 
@@ -24,7 +24,7 @@ export function useAutoplay(api: CarouselApi, { plays, playing, interval, reduce
   );
 
   const leave = useEffectEvent(() => {
-    if (api && !reduced) setLeaving(api.previousScrollSnap());
+    if (api && !still) setLeaving(api.previousScrollSnap());
   });
 
   useEffect(() => {

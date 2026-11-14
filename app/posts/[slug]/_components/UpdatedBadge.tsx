@@ -14,9 +14,6 @@ const HOLD = 1.2;
 // Reduced motion changes the timing only: a second tree would not match the server's.
 const AT_ONCE = { duration: 0, delay: 0 };
 
-// The pill clips its children, and a blurred letter is wider than the sharp one.
-const CLASS = 'overflow-visible font-display font-normal';
-
 export function UpdatedBadge({ date, label }: { date: string; label: string }) {
   const still = useReducedMotion();
   const current = useSyncExternalStore(
@@ -54,7 +51,12 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
   };
 
   return (
-    <Badge variant="info" asChild className={CLASS}>
+    <Badge
+      variant="info"
+      asChild
+      // The badge clips its content, and a letter's blur spills past its box.
+      className="overflow-visible font-display font-normal"
+    >
       <motion.time
         dateTime={date}
         variants={badge}

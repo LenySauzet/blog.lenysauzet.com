@@ -149,7 +149,7 @@ export const ScrambledText = ({
   speed?: number;
   delay?: number;
 }) => {
-  const shouldReduceMotion = useReducedMotion();
+  const still = useReducedMotion();
 
   return (
     <>
@@ -167,7 +167,7 @@ export const ScrambledText = ({
         </div>
       ) : (
         <>
-          {shouldReduceMotion ? (
+          {still ? (
             <div className={className} suppressHydrationWarning {...props}>
               {children}
             </div>

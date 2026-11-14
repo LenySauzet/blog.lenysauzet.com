@@ -55,7 +55,7 @@ export function SlideshowCarousel({
   const [selected, setSelected] = useState(0);
   const [announced, setAnnounced] = useState<number | null>(null);
   const byReader = useRef(false);
-  const reduced = usePrefersReducedMotion();
+  const still = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
   const covered = useLightboxStore((state) => state.open > 0);
@@ -68,8 +68,8 @@ export function SlideshowCarousel({
   const loop = plays;
   const playing = plays && playback.playing && inView && !covered;
 
-  const autoplay = useAutoplay(api, { plays, playing, interval, reduced });
-  const track = useTrackMotion(api, rootRef, reduced);
+  const autoplay = useAutoplay(api, { plays, playing, interval, still });
+  const track = useTrackMotion(api, rootRef, still);
 
   useEffect(() => {
     if (!api) return;
@@ -96,7 +96,7 @@ export function SlideshowCarousel({
     if (target === api.selectedScrollSnap()) return false;
     byReader.current = true;
     autoplay.clearLeaving();
-    api.scrollTo(target, reduced);
+    api.scrollTo(target, still);
     api.plugins().autoplay?.reset();
     return true;
   };

@@ -25,7 +25,7 @@ export function CopyButton({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const reduce = useReducedMotion();
+  const still = useReducedMotion();
   const pathLength = useMotionValue(0);
   const opacity = useTransform(pathLength, [0.05, 0.15], [0, 1]);
 
@@ -46,7 +46,7 @@ export function CopyButton({
     setCopied(true);
   };
 
-  const transition = { duration: reduce ? 0 : DURATION };
+  const transition = { duration: still ? 0 : DURATION };
   const state = copied ? 'checked' : 'unchecked';
   const stroke = {
     stroke: 'currentColor',
@@ -63,8 +63,8 @@ export function CopyButton({
       onClick={copy}
       aria-label="Copy code"
       initial="idle"
-      whileHover={reduce ? undefined : 'hover'}
-      whileTap={reduce ? undefined : 'pressed'}
+      whileHover={still ? undefined : 'hover'}
+      whileTap={still ? undefined : 'pressed'}
       variants={{ idle: { scale: 1 }, hover: { scale: 1.05 }, pressed: { scale: 0.95 } }}
       transition={transition}
       className={cn(

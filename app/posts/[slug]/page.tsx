@@ -83,7 +83,7 @@ export default async function Page({
               {metadata.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              {/* One string, so a single decode crosses the whole line. */}
+              {/* One string: split in two, each half would scramble on its own. */}
               <time
                 dateTime={metadata.date}
                 className="font-mono text-sm uppercase text-subtle-foreground"
@@ -101,7 +101,7 @@ export default async function Page({
             </div>
           </div>
 
-          {/* No font-weight: strong, em and h3 step up from a 400 body. */}
+          {/* No font-weight: strong, em and h3 are 500, so the body must stay at 400. */}
           <div data-prose className="flex flex-col gap-5">
             <Post />
           </div>

@@ -165,7 +165,7 @@ const MediaPlayerRoot = ({
   const rafRef = useRef<number>(0);
   const lastTickRef = useRef<number>(0);
 
-  const reducedMotion = useReducedMotion();
+  const still = useReducedMotion();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -369,7 +369,7 @@ const MediaPlayerRoot = ({
             className="absolute bottom-0 left-0 right-0 p-2 pointer-events-auto"
             variants={{ hidden: { y: 52 }, visible: { y: 0 } }}
             transition={{
-              duration: reducedMotion ? 0 : 0.3,
+              duration: still ? 0 : 0.3,
               bounce: 0.17,
               type: 'spring',
             }}
@@ -413,7 +413,7 @@ const MediaPlayerVideo = ({
   fit = 'cover',
 }: MediaPlayerVideoProps) => {
   const { videoRef, videoProps, togglePlay } = useMedia();
-  const reducedMotion = useReducedMotion();
+  const still = useReducedMotion();
   const [decoded, setDecoded] = useState(false);
   const shown = !!poster || decoded;
 
@@ -445,7 +445,7 @@ const MediaPlayerVideo = ({
     <div className="w-full h-full" style={{ aspectRatio: ratio }}>
       <video
         {...videoProps}
-        autoPlay={videoProps.autoPlay && !reducedMotion}
+        autoPlay={videoProps.autoPlay && !still}
         ref={videoRef}
         poster={poster}
         onClick={togglePlay}

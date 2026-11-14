@@ -96,7 +96,7 @@ export function BeforeAfterSlider({
 }: BeforeAfterSliderProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const clipId = useId();
-  const reduce = useReducedMotion();
+  const still = useReducedMotion();
   const [measured, setMeasured] = useState(false);
   const [held, setHeld] = useState(false);
 
@@ -118,7 +118,7 @@ export function BeforeAfterSlider({
   const frame = useRef(0);
   const apply = (next: number) => {
     target.set(clamp(next));
-    if (reduce) follow.jump(target.get());
+    if (still) follow.jump(target.get());
     if (frame.current) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
@@ -264,7 +264,7 @@ export function BeforeAfterSlider({
           mediaGlass,
           'pointer-events-none absolute top-1/2 z-[1] flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md sm:size-8 sm:rounded-lg'
         )}
-        animate={{ scale: held && !reduce ? HELD_SCALE : 1 }}
+        animate={{ scale: held && !still ? HELD_SCALE : 1 }}
         transition={HELD_SPRING}
         style={{ left: handleLeft }}
       >
