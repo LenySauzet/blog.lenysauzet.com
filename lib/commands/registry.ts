@@ -20,6 +20,8 @@ import {
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
+import { prefersReducedMotion } from '@/hooks/use-prefers-reduced-motion'
+import { scrollColumn } from '@/lib/scroll-column'
 import { pickAnother } from '@/lib/search/random'
 import { openBooking } from '@/lib/services/booking'
 import { withThemeTransition } from '@/lib/theme/theme-transition'
@@ -113,17 +115,11 @@ export const commands: Command[] = [
         shortcut: 'ArrowUp',
         when: (context) => onAPost(context) && !context.atTop,
         recommend: underway,
-        // `body` is fixed and each column owns its overflow, so the window never scrolls.
-        run: () => {
-            const behavior = window.matchMedia('(prefers-reduced-motion: reduce)')
-                .matches
-                ? 'auto'
-                : 'smooth'
-            const root =
-                document.querySelector<HTMLElement>('[data-scroll-root]') ??
-                document.scrollingElement
-            root?.scrollTo({ top: 0, behavior })
-        },
+        run: () =>
+            (scrollColumn() ?? document.scrollingElement)?.scrollTo({
+                top: 0,
+                behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+            }),
     },
     {
         id: 'resume',
