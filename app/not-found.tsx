@@ -1,9 +1,6 @@
-import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
-import { Button } from '@/components/ui/button';
+import Anchor from '@/components/prose/Anchor/Anchor';
 
 import { StatusPage } from './_components/StatusPage';
 
@@ -19,12 +16,9 @@ export default function NotFound() {
         </kbd>
         .
       </p>
-      <Button variant="outline" asChild>
-        <Link href="/">
-          <HugeiconsIcon icon={ArrowLeft02Icon} data-icon="inline-start" />
-          Back home
-        </Link>
-      </Button>
+      <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+        Home
+      </Anchor>
     </StatusPage>
   );
 }

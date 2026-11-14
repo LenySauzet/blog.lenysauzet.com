@@ -8,6 +8,6 @@ describe('NotFound', () => {
     render(<NotFound />);
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('This page does not exist');
-    expect(screen.getByRole('link', { name: /back home/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: /home/i })).toHaveAttribute('href', '/');
   });
 });
