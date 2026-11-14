@@ -16,7 +16,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
   return (
     <section
       className={cn(
-        'grid h-full grid-cols-[minmax(0,1fr)] px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-12',
+        'grid h-full grid-cols-[minmax(0,1fr)] px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-20',
         className
       )}
     >
@@ -25,16 +25,20 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
       <div className="flex flex-col items-center justify-center text-center lg:col-start-3">
         <p
           className={cn(
-            'font-mono text-[clamp(8rem,40vw,14rem)] leading-none text-subtle-foreground [mask-image:linear-gradient(to_bottom,black_45%,transparent_78%)]',
+            'relative font-mono text-[clamp(6rem,30vw,9rem)] leading-none text-transparent [mask-image:linear-gradient(to_bottom,black_40%,transparent_80%)]',
             'animate-[status-rise_0.9s_cubic-bezier(0.22,0.61,0.36,1)_both] motion-reduce:animate-none'
           )}
         >
-          {status}
+          {/* Stroked twice as wide, then filled with the page: only the outer half shows. */}
+          <span className="[-webkit-text-stroke:2px_var(--subtle-foreground)]">{status}</span>
+          <span aria-hidden className="absolute inset-0 text-background">
+            {status}
+          </span>
         </p>
 
         <h1
           className={cn(
-            'relative -mt-12 font-serif text-4xl leading-tight tracking-tight text-balance sm:-mt-20 sm:text-5xl',
+            'relative mt-4 font-serif text-4xl leading-tight tracking-tight text-balance sm:text-5xl',
             'animate-[status-rise_0.9s_cubic-bezier(0.22,0.61,0.36,1)_0.12s_both] motion-reduce:animate-none'
           )}
         >
