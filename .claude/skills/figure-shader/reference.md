@@ -65,7 +65,7 @@
 
 **`components/Backdrop` is a `Shader` and two CSS gradients**, and it draws onto
 transparency, so the page supplies the ground.
-The shader outputs the accent with the ink as alpha, so `--background` is never copied
+The shader outputs the accent premultiplied by the ink, so `--background` is never copied
 into the frame. It used to be a uniform, and a theme flip left the old one baked in
 until the next mount: light mode with a black blob over it. Do not reintroduce it. The
 framing gradients stay in CSS for the same reason, and cost nothing extra: measured

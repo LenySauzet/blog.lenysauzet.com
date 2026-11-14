@@ -160,6 +160,15 @@ describe('a shader', () => {
     expect(gpu.renders).toBe(0);
   });
 
+  it('asks for a premultiplied canvas, which Safari composites correctly', () => {
+    start();
+
+    expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith(
+      'webgl2',
+      expect.objectContaining({ premultipliedAlpha: true }),
+    );
+  });
+
   it('draws once it is sized, then only when something has moved', () => {
     const shader = start();
     const settled = gpu.renders;

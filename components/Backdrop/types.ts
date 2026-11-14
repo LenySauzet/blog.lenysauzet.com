@@ -9,7 +9,7 @@
  * Draw onto transparency: the canvas has none of its own, so the page shows through
  * wherever alpha does not. That is what keeps a visual from having to know the theme,
  * and what stops a stale background being baked into the frame when the theme flips.
- * Alpha is straight, not premultiplied, matching the renderer.
+ * Alpha is premultiplied, matching the renderer: multiply the colour by it.
  */
 export interface Visual {
   fragment: string;
