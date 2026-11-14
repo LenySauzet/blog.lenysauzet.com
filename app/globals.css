@@ -314,6 +314,39 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
+/* `filter: none` as the end, never blur(0), which minifies to an invalid blur(). */
+@keyframes status-rise {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    translate: 0 0.5rem;
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    translate: 0 0;
+  }
+}
+
+/* Two names, so the hover can replay a sweep the load already finished. */
+@keyframes status-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes status-shine-again {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
 /* Not caret-blink, which tw-animate-css owns. 530ms a phase, as terminals blink. */
 @keyframes terminal-caret {
   from {
