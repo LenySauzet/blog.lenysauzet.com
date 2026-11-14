@@ -5,6 +5,7 @@ import { Command as CommandPrimitive } from "cmdk"
 import { AnimatePresence, motion, useIsPresent } from "motion/react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
+import { useCmdkStore } from "@/hooks/use-cmdk-store"
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -84,7 +85,11 @@ function CommandDialog({
               }}
               onCloseAutoFocus={(event) => {
                 event.preventDefault()
-                if (returnTo.current?.isConnected) returnTo.current.focus()
+                if (!returnTo.current?.isConnected) return
+                // focus() fires focus synchronously, so whoever receives it can tell.
+                useCmdkStore.setState({ returningFocus: true })
+                returnTo.current.focus()
+                useCmdkStore.setState({ returningFocus: false })
               }}
             >
               <Panel

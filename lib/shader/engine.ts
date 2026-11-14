@@ -1,8 +1,9 @@
 import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
 
 import { isVideo, resolveMediaUrl } from '@/lib/media/cdn';
-import { step } from '@/lib/shader/clock';
-import { cssColor } from '@/lib/shader/css-color';
+
+import { step } from './clock';
+import { cssColor } from './css-color';
 
 export type Uniform = number | readonly number[];
 

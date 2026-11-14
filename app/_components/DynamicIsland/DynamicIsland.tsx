@@ -25,9 +25,6 @@ const MAX_WIDTH = '19rem';
 const MENTIONS_PALETTE_AFTER = 1400;
 const MENTIONS_PALETTE_FOR = 2400;
 
-/** Long enough to cover the palette's exit, after which it hands its focus back. */
-const HANDED_BACK_WITHIN = 600;
-
 const resolve = (context: IslandContext): IslandState =>
   islandStates.find((state) => state.when?.(context) ?? true) ?? islandStates.at(-1)!;
 
@@ -39,7 +36,6 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
-  const paletteOpen = useCmdkStore((state) => state.isOpen);
   const { atTop, finished } = useScrollTracking();
   const still = useReducedMotion();
 
@@ -49,13 +45,6 @@ export function DynamicIsland() {
   );
 
   const mention = useRef(0);
-  const paletteClosedAt = useRef(-Infinity);
-  const wasOpen = useRef(false);
-
-  useEffect(() => {
-    if (wasOpen.current && !paletteOpen) paletteClosedAt.current = performance.now();
-    wasOpen.current = paletteOpen;
-  }, [paletteOpen]);
 
   useEffect(() => {
     mention.current = window.setTimeout(
@@ -78,7 +67,8 @@ export function DynamicIsland() {
   return (
     <div
       className={cn(
-        'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
+        // Recentred while a scroll lock has taken a classic scrollbar away.
+        'fixed bottom-6 left-[calc(50%-var(--removed-body-scroll-bar-size,0px)/2)] z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
         // On the wrapper, not the button: the wrapper's own box would still catch the pointer.
         state.inert && 'pointer-events-none'
       )}
@@ -91,7 +81,7 @@ export function DynamicIsland() {
         onPointerLeave={() => setHovered(false)}
         onFocus={() => {
           // The palette returns focus to whatever opened it: that is not the reader pointing.
-          if (performance.now() - paletteClosedAt.current < HANDED_BACK_WITHIN) return;
+          if (useCmdkStore.getState().returningFocus) return;
           point();
         }}
         onBlur={() => setHovered(false)}
@@ -111,7 +101,7 @@ export function DynamicIsland() {
           }}
           className={cn(
             glassSurface,
-            // The border goes only where relative colour works: the rim replacing it cannot be drawn without it.
+            // The border drops only where relative colour can draw the rim that replaces it.
             'glass-rim relative flex items-center overflow-hidden supports-[color:oklch(from_red_l_c_h)]:border-0 [--rim-highlight:0.16] [--rim-ink:var(--foreground)] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background'
           )}
         >

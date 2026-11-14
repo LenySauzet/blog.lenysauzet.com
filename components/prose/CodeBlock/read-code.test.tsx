@@ -44,7 +44,7 @@ describe('readCode', () => {
 });
 
 describe('LOG_LEVELS', () => {
-  it('names every variant lib/rehype-code.mjs admits, and no other', () => {
+  it('names every variant lib/posts/rehype-code.mjs admits, and no other', () => {
     expect([...LOG_LEVELS.keys()]).toEqual(VARIANTS);
   });
 });

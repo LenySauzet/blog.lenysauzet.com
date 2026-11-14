@@ -47,7 +47,7 @@ export default function SupporterBand() {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [rowHeight, setRowHeight] = useState(ESTIMATED_ROW_HEIGHT);
-  const reduceMotion = useReducedMotion();
+  const still = useReducedMotion();
 
   const listRef = useRef<HTMLUListElement>(null);
   const rowRef = useRef<HTMLLIElement>(null);
@@ -56,7 +56,7 @@ export default function SupporterBand() {
   const speed = useSpring(1, SPEED_SPRING);
 
   const paused = hovered || focused;
-  const scrolls = !reduceMotion;
+  const scrolls = !still;
   const copies = scrolls ? 2 * repeatsToFill(count) : 1;
   const bandHeight = rowHeight * ROWS_IN_VIEW;
 

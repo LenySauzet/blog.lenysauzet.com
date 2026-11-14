@@ -1,4 +1,4 @@
-import { vec2, type Vec2 } from '@/lib/geometry/vec2';
+import { vec2, type Vec2 } from './vec2';
 
 export interface Rect {
   readonly corner: Vec2;

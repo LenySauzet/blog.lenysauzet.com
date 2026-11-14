@@ -82,7 +82,7 @@ export default function Slider({
   const [hovered, setHovered] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [dots, setDots] = useState<number[]>([]);
-  const reduceMotion = useReducedMotion();
+  const still = useReducedMotion();
 
   const frameRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
@@ -142,9 +142,9 @@ export default function Slider({
           )
         : 0;
     const target = Math.min(Math.max(at + strain, 0), 100);
-    if (reduceMotion) fill.jump(target);
+    if (still) fill.jump(target);
     else fill.set(target);
-  }, [fill, reduceMotion, strainLimit]);
+  }, [fill, still, strainLimit]);
 
   useEffect(() => {
     percentRef.current = percent;
@@ -194,7 +194,7 @@ export default function Slider({
 
   const trackGive = useCallback(
     (event: React.PointerEvent) => {
-      if (disabled || reduceMotion || !frameRef.current) return;
+      if (disabled || still || !frameRef.current) return;
       const rect = frameRef.current.getBoundingClientRect();
       dragRef.current = { rect, x: event.clientX };
 
@@ -228,7 +228,7 @@ export default function Slider({
       window.addEventListener('pointerup', onRelease);
       window.addEventListener('pointercancel', onRelease);
     },
-    [applyFill, disabled, give, reduceMotion]
+    [applyFill, disabled, give, still]
   );
 
   const engaged = !disabled && (hovered || dragging);

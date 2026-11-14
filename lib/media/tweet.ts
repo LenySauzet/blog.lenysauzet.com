@@ -1,6 +1,6 @@
 import type { Indices, MediaAnimatedGif, MediaDetails, MediaVideo, Tweet } from 'react-tweet/api';
 
-import { resolveVideoUrl } from '@/lib/media/cdn';
+import { resolveVideoUrl } from './cdn';
 
 export const TWEET_EMBED = /<Tweet\b[^>]*?\bid="(\d+)"[^>]*\/>/g;
 

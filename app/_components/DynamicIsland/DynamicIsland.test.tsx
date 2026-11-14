@@ -242,22 +242,19 @@ describe('DynamicIsland', () => {
     vi.useFakeTimers();
     render(<DynamicIsland />);
     await pastTheGreeting();
-    act(() => useCmdkStore.setState({ isOpen: true }));
-    act(() => useCmdkStore.setState({ isOpen: false }));
 
+    useCmdkStore.setState({ returningFocus: true });
     fireEvent.focus(island());
+    useCmdkStore.setState({ returningFocus: false });
     await vi.advanceTimersByTimeAsync(500);
 
     expect(island()).toHaveTextContent('Leny');
   });
 
-  it('still names itself to a reader who tabs to it later', async () => {
+  it('still names itself to a reader who tabs to it', async () => {
     vi.useFakeTimers();
     render(<DynamicIsland />);
     await pastTheGreeting();
-    act(() => useCmdkStore.setState({ isOpen: true }));
-    act(() => useCmdkStore.setState({ isOpen: false }));
-    await vi.advanceTimersByTimeAsync(1000);
 
     fireEvent.focus(island());
     await vi.advanceTimersByTimeAsync(500);

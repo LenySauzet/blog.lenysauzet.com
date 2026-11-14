@@ -1,9 +1,9 @@
 import 'server-only';
 
 import siteConfig from '@/config/site';
+import { resolveMediaUrl } from '@/lib/media/cdn';
+import { TWEET_EMBED } from '@/lib/media/tweet';
 
-import { resolveMediaUrl } from '../media/cdn';
-import { TWEET_EMBED } from '../media/tweet';
 import type { Post } from './post-utils';
 
 const DIFF_MARK = /\s*(?:\/\/|#|--|\/\*|<!--|;|%)\s*\[!code (\+\+|--)\]\s*(?:\*\/|-->)?\s*$/i;

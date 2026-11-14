@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { DEFAULT_HUE, hueOf, STORAGE_KEY } from '@/lib/theme/hues';
 
-import { useHue } from './use-hue';
+import { paintStoredHue, useHue } from './use-hue';
 
 const painted = () => document.documentElement.style.getPropertyValue('--base-hue');
 
@@ -25,6 +25,16 @@ describe('useHue', () => {
     useHue.getState().setHue('teal');
 
     expect(document.documentElement.style.getPropertyValue('--accent-l')).toBe('0.565');
+  });
+
+  it('paints the stored accent without saving one nobody chose', () => {
+    paintStoredHue();
+    expect(painted()).toBe(String(DEFAULT_HUE.hue));
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+
+    localStorage.setItem(STORAGE_KEY, 'rose');
+    paintStoredHue();
+    expect(painted()).toBe(String(hueOf('rose').hue));
   });
 
   it('paints the default rather than nothing for an id it does not know', () => {

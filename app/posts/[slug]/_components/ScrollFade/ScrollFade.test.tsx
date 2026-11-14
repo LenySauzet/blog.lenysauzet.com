@@ -14,6 +14,13 @@ describe('ScrollFade', () => {
     expect(root(container).className).toContain('pointer-events-none');
   });
 
+  it('fades the foot of the page only', () => {
+    const { container } = render(<ScrollFade />);
+
+    expect(root(container).className).toContain('bottom-0');
+    expect(root(container).className).not.toContain('top-0');
+  });
+
   it('fades a blur and a flat fill through the same mask, never a colour gradient', () => {
     const { container } = render(<ScrollFade />);
     const [blurLayer, colourLayer] = Array.from(root(container).children);

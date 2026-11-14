@@ -100,7 +100,9 @@ hardcode `dark` anywhere. The traps behind each of those are in
 ### Layout and conventions
 
 - **A piece used by one route lives beside it**: `app/_components/` is the shell every
-  page shares (DynamicIsland, CommandPalette) and the homepage (`Home/`);
+  page shares (DynamicIsland, CommandPalette, the theme provider, the status pages'
+  `StatusPage` and `ErrorBody`, and `document.ts`, the fonts and body classes the root
+  layout and `global-error` both need) and the homepage (`Home/`);
   `app/posts/[slug]/_components/` is the article page's (ReadingRail, ScrollFade,
   UpdatedBadge, PostFooter).
 - **`components/` is what more than one place uses**, by kind: `prose/` (what a post
@@ -109,10 +111,10 @@ hardcode `dark` anywhere. The traps behind each of those are in
   `bunx shadcn@latest add`, configured in `components.json`, several customised: see
   `.claude/rules/ui.md`). A component is `Name/index.ts` plus `Name.tsx`, or one flat
   file when small.
-- **`lib/` is pure logic, by domain**: `posts/`, `media/`, `geometry/`, `shader/`,
-  `theme/`, `services/`, `commands/`, `search/`, `link-preview/`; what every domain uses
-  (`utils`, `url-utils`, `springs`, `page-scroll`, `fade`) sits at its root. Tests sit
-  beside their file.
+- **`lib/` is logic, by domain**: `posts/`, `media/`, `geometry/`, `shader/`, `theme/`,
+  `services/`, `commands/`, `search/`, `link-preview/`; what every domain uses (`utils`,
+  `url-utils`, `springs`, `page-scroll`, `fade`) sits at its root. `test/` holds shared
+  test helpers (`figure.ts`, `scroll.ts`, `stubs/`). Tests sit beside their file.
 - **Every component accepts and forwards `className`.** Import order follows
   `.cursor/rules/typescript.mdc`.
 - **Imports** use the `@/` alias.
@@ -141,6 +143,7 @@ hardcode `dark` anywhere. The traps behind each of those are in
 | `lib/shader/engine.ts`, `components/figures/Shader` | The one WebGL 2 engine, it as a component, and shared GLSL in `glsl.ts` |
 | `config/site.ts` | Site metadata, SEO, CDN origin, `getRootMetadata()` |
 | `config/code-theme.ts` | The Shiki theme, emitting token variables rather than colours |
+| `lib/page-scroll.ts` | The page's travel and the article's headings: the window scrolls, never a column |
 | `lib/utils.ts` | `cn()` |
 
 ## Testing

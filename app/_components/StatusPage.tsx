@@ -36,7 +36,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
       <div className="flex flex-col items-center justify-center py-24 text-center lg:col-start-3">
         <p
           className={cn(
-            'relative font-mono text-[clamp(6rem,30vw,9rem)] leading-none text-transparent [mask-image:linear-gradient(to_bottom,black_40%,transparent_80%)]',
+            'relative font-mono text-[clamp(4.5rem,24vw,9rem)] leading-none text-transparent [mask-image:linear-gradient(to_bottom,black_40%,transparent_80%)]',
             'animate-[status-rise_0.9s_cubic-bezier(0.22,0.61,0.36,1)_both] motion-reduce:animate-none'
           )}
         >

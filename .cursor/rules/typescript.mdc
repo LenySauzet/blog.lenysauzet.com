@@ -63,9 +63,8 @@ import { sameSections, type Section } from './rail';
 ```
 
 Alphabetical puts `@/components` before `@/config` before `@/hooks` before
-`@/lib`, which is the order every file here already reads in. Measured across
-the 112 source files: 105 have every block sorted, and exactly one `@/` block
-is out of order.
+`@/lib`, which is the order the files here read in. Inside one feature folder, import
+relatively; across folders, through `@/`.
 
 ## ESLint Rules
 

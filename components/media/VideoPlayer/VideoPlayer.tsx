@@ -37,7 +37,7 @@ const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { amount: 0.1 });
-  const isReducedMotion = useReducedMotion();
+  const still = useReducedMotion();
 
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => {
@@ -62,8 +62,8 @@ const VideoPlayer = ({
           aria-label={alt}
           playsInline
           muted={muted}
-          autoPlay={shouldAutoPlay && !isReducedMotion}
-          loop={shouldLoop || !!isReducedMotion}
+          autoPlay={shouldAutoPlay && !still}
+          loop={shouldLoop || !!still}
         >
           {glow && <MediaPlayer.Glow />}
           <MediaPlayer.Video width={width} height={height} poster={poster}>

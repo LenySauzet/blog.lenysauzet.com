@@ -1,4 +1,4 @@
-import { cross, dot3, normalize3, sub3, vec3, type Vec3 } from '@/lib/geometry/vec3';
+import { cross, dot3, normalize3, sub3, vec3, type Vec3 } from './vec3';
 
 export type Grid = Vec3[][];
 export type Edge = readonly [Vec3, Vec3];

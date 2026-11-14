@@ -41,11 +41,13 @@ export function useScrollTracking(): ScrollPosition {
     };
 
     window.addEventListener('scroll', read, { passive: true });
+    window.addEventListener('resize', read);
     const resized = new ResizeObserver(read);
     resized.observe(document.documentElement);
 
     return () => {
       window.removeEventListener('scroll', read);
+      window.removeEventListener('resize', read);
       resized.disconnect();
     };
   }, [pathname]);

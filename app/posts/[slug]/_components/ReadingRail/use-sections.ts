@@ -39,11 +39,15 @@ export function useSections(): Section[] {
 
     measure();
 
-    // The page grows as an image or formula lands late, moving every section below it.
+    // The page grows as an image or formula lands late; the window's height changes the travel.
     const resized = new ResizeObserver(measure);
     resized.observe(document.documentElement);
+    window.addEventListener('resize', measure);
 
-    return () => resized.disconnect();
+    return () => {
+      resized.disconnect();
+      window.removeEventListener('resize', measure);
+    };
   }, [pathname]);
 
   return sections;

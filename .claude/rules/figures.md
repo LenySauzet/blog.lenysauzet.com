@@ -18,7 +18,7 @@ keep a fix from breaking the figure at another value of its control or in the ot
 
 | Touching | Skill |
 |---|---|
-| A figure drawn in SVG, `Diagram`, `lib/vec*`, `lib/geometry/mesh`, `lib/geometry/rect`, `lib/geometry/polygon`, `test/figure.ts` | `figure-diagram` |
+| A figure drawn in SVG, `Diagram`, `lib/geometry`, `test/figure.ts` | `figure-diagram` |
 | `components/figures/Chart`, `ui/chart.tsx`, `ConfusionMatrix` | `figure-chart` |
 | `components/figures/Shader`, `lib/shader/engine.ts`, `Backdrop`, and any figure rendering `<Shader>` (`LitWave`, `Halftone`, `VideoHalftone`: a folder with a `fragment.ts`) | `figure-shader` |
 | `components/figures/Sandpack` | `figure-code` |

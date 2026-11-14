@@ -1,6 +1,5 @@
 import type { Viewport } from 'next';
 
-import { ThemeProvider } from '@/components/shared/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
 import { getPosts, summaryOf } from '@/lib/posts/post-utils';
@@ -10,6 +9,7 @@ import { CommandPalette } from './_components/CommandPalette';
 import { bodyClassName } from './_components/document';
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
 import { StoredHue } from './_components/StoredHue';
+import { ThemeProvider } from './_components/theme-provider';
 import './globals.css';
 
 export const metadata = getRootMetadata();

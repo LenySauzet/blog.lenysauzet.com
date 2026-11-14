@@ -2,6 +2,8 @@
 paths:
   - "**/*.tsx"
   - "**/*.css"
+  - "app/_components/document.ts"
+  - "lib/theme/stored-theme.ts"
 ---
 
 # Styling, tokens and theming

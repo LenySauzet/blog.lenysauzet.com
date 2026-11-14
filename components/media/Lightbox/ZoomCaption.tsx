@@ -26,9 +26,9 @@ export interface ZoomCaptionProps {
 
 // Hidden from assistive tech: the lightbox is already named by this text.
 export function ZoomCaption({ children, start }: ZoomCaptionProps) {
-  const reduceMotion = useReducedMotion();
+  const still = useReducedMotion();
 
-  if (reduceMotion) {
+  if (still) {
     return (
       <p aria-hidden className={CLASS}>
         {children}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { vec2 } from '@/lib/geometry/vec2';
+import { vec2 } from './vec2';
 
 import { centre, rect } from './rect';
 
