@@ -112,7 +112,7 @@ hardcode `dark` anywhere. The traps behind each of those are in
 - **`lib/` is pure logic, by domain**: `posts/`, `media/`, `geometry/`, `shader/`,
   `theme/`, `services/`, `commands/`, `search/`, `link-preview/`; what every domain uses
   (`utils`, `url-utils`, `springs`, `scroll-column`, `fade`) sits at its root. Tests sit
-  beside their file; `.vscode/settings.json` nests them under it in the explorer.
+  beside their file.
 - **Every component accepts and forwards `className`.** Import order follows
   `.cursor/rules/typescript.mdc`.
 - **Imports** use the `@/` alias.
