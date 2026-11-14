@@ -70,7 +70,8 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
   const canvas = document.createElement('canvas');
   // Taken before OGL asks, so OGL is handed this context rather than falling back to
   // WebGL 1, which a `#version 300 es` shader cannot compile on.
-  if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: false })) {
+  // Premultiplied: Safari composites a straight-alpha canvas as if it were, adding the colour.
+  if (!canvas.getContext('webgl2', { alpha: true, depth: false, premultipliedAlpha: true })) {
     report('unavailable');
     return inert;
   }
@@ -79,6 +80,7 @@ export function createShader(host: HTMLElement, fragment: string, report: (statu
     canvas,
     webgl: 2,
     alpha: true,
+    premultipliedAlpha: true,
     depth: false,
     dpr: Math.min(window.devicePixelRatio, MAX_DPR),
   });

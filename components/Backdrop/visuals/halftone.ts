@@ -68,7 +68,8 @@ void main() {
   float edge = (1.0 / CELL) * (1.0 + soften * 11.0);
   float ink = 1.0 - smoothstep(radius - edge, radius + edge, length(within));
 
-  fragColor = vec4(uColor, ink * field * (1.0 - soften * 0.45));
+  float alpha = ink * field * (1.0 - soften * 0.45);
+  fragColor = vec4(uColor * alpha, alpha);
 }
 `,
 };

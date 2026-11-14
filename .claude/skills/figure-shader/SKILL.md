@@ -60,6 +60,9 @@ reuse it, and add a snippet there the second time one is needed.
 
 ## What bites
 
+- **Output premultiplied colour**: `vec4(color * alpha, alpha)`. The canvas is
+  premultiplied because Safari composites a straight-alpha one as if it were, so a
+  colour left at full strength where alpha is low glows over the page.
 - **Sample a cell at the mip level it spans** (`textureLod` with `log2(texelsPerCell)`),
   or a cell takes whichever texel its centre lands on and flickers.
 - **A dot never reaches past half its cell**: cap the radius at 0.5.
