@@ -2,8 +2,19 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-const HATCH =
-  'hidden border-x border-border bg-[repeating-linear-gradient(-45deg,var(--border)_0_1px,transparent_1px_12px)] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] lg:block';
+function Band({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        'relative hidden border-x border-border [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] lg:block',
+        className
+      )}
+    >
+      <div className="hatch absolute inset-0" />
+    </div>
+  );
+}
 
 interface StatusPageProps {
   status: string;
@@ -20,7 +31,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
         className
       )}
     >
-      <div aria-hidden className={HATCH} />
+      <Band />
 
       <div className="flex flex-col items-center justify-center text-center lg:col-start-3">
         <p
@@ -55,7 +66,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
         </div>
       </div>
 
-      <div aria-hidden className={cn(HATCH, 'lg:col-start-5')} />
+      <Band className="lg:col-start-5" />
     </section>
   );
 }
