@@ -27,13 +27,13 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
   return (
     <section
       className={cn(
-        'grid h-full grid-cols-[minmax(0,1fr)] px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-20',
+        'grid h-full grid-cols-[minmax(0,1fr)] overflow-y-auto px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-20',
         className
       )}
     >
       <Band />
 
-      <div className="flex flex-col items-center justify-center text-center lg:col-start-3">
+      <div className="flex flex-col items-center justify-center py-24 text-center lg:col-start-3">
         <p
           className={cn(
             'relative font-mono text-[clamp(6rem,30vw,9rem)] leading-none text-transparent [mask-image:linear-gradient(to_bottom,black_40%,transparent_80%)]',

@@ -529,8 +529,7 @@ figure[data-rehype-pretty-code-figure][data-variant] [data-line] {
   }
 }
 
-/* Hatching as an SVG tile, not a repeating gradient: a gradient's hard stops are not
-   antialiased, so a diagonal line thickens and thins along its length. */
+/* An SVG tile: a gradient's hard stops are not antialiased, so its lines thicken and thin. */
 @utility hatch {
   background-color: var(--border);
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M-1 1l2-2M0 12L12 0M11 13l2-2' stroke='black'/%3E%3C/svg%3E")

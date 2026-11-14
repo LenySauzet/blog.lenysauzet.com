@@ -81,7 +81,7 @@ chrome colour follows the OS via the `themeColor` viewport export, not the toggl
 `app/not-found.tsx`, `app/error.tsx` and `app/global-error.tsx` share
 `app/_components/StatusPage`: the status as a hairline outline of Departure Mono (stroked
 at twice its width, then covered by the same text in `--background`, so only the outer
-half shows and no inner contour crosses), fading out above the serif title, one line of
+half shows and no inner contour crosses), fading out above the serif title, a paragraph of
 copy, and hatched bands at the page's sides on a wide screen. Home comes first and any
 button after it, so the arrow points away. The error pages call `retry()`, not `reset()`:
 it fetches the failed segment again. A slug no post has gets the root 404, posts being
@@ -90,4 +90,6 @@ fully static (`dynamicParams = false`), so a per-post `not-found` would never re
 **`global-error.tsx` replaces the root layout**, so it brings the layout's fonts and body
 classes (`app/_components/document.ts`, shared with the layout) and applies the stored
 theme (`themeOf`) and accent itself. It does so in a layout effect: Next renders it on
-the client after the crash, where an inline script never runs.
+the client after the crash, where an inline script never runs. The same holds on the
+way back: when `retry()` succeeds, React strips `<html>` as the root layout takes it
+again, so `StoredHue` repaints the accent on every mount of that layout.
