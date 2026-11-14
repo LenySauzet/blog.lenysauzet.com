@@ -1,5 +1,5 @@
 'use client';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   useEffect,
   useLayoutEffect,
@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 
+import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import useInterval from '@/hooks/useInterval';
 
 export const alphanumericChars =
@@ -149,7 +150,9 @@ export const ScrambledText = ({
   speed?: number;
   delay?: number;
 }) => {
-  const still = useReducedMotion();
+  // Not Motion's hook: it reads the preference at the first render, so the client's tree
+  // differs from the server's and hydration keeps the server's hidden one.
+  const still = usePrefersReducedMotion();
 
   return (
     <>
