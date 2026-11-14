@@ -9,10 +9,10 @@ import { StatusPage } from './_components/StatusPage';
 
 export default function Error({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -21,10 +21,12 @@ export default function Error({
   return (
     <StatusPage status="Error" title="Something went wrong">
       <p>This page failed to load. Trying again usually fixes it.</p>
-      <Button onClick={reset}>Try again</Button>
-      <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
-        Home
-      </Anchor>
+      <div className="flex items-center gap-6">
+        <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+          Home
+        </Anchor>
+        <Button onClick={retry}>Try again</Button>
+      </div>
     </StatusPage>
   );
 }

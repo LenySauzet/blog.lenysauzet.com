@@ -21,10 +21,10 @@ const storedTheme = () => {
 
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -45,10 +45,10 @@ export default function GlobalError({
           <StatusPage status="Error" title="Something went wrong">
             <p>The site failed to load. Trying again usually fixes it.</p>
             <div className="flex items-center gap-6">
-              <Button onClick={reset}>Try again</Button>
               <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
                 Home
               </Anchor>
+              <Button onClick={retry}>Try again</Button>
             </div>
           </StatusPage>
         </main>
