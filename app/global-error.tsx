@@ -5,18 +5,18 @@ import { useEffect, useLayoutEffect } from 'react';
 import Anchor from '@/components/prose/Anchor/Anchor';
 import { Button } from '@/components/ui/button';
 import { useHue } from '@/hooks/use-hue';
+import { themeOf } from '@/lib/theme/stored-theme';
 
 import { bodyClassName } from './_components/document';
 import { StatusPage } from './_components/StatusPage';
 import './globals.css';
 
-// next-themes' choice, read by hand: this document replaces the layout that runs it.
 const storedTheme = () => {
+  let stored = null;
   try {
-    const theme = localStorage.getItem('theme') ?? 'dark';
-    if (theme !== 'system') return theme;
+    stored = localStorage.getItem('theme');
   } catch {}
-  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return themeOf(stored, matchMedia('(prefers-color-scheme: light)').matches);
 };
 
 export default function GlobalError({
