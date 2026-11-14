@@ -20,13 +20,10 @@ export default function Error({
 
   return (
     <StatusPage status="Error" title="Something went wrong">
-      <p>This page failed to load. Trying again usually fixes it.</p>
-      <div className="flex items-center gap-6">
-        <Button onClick={reset}>Try again</Button>
-        <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
-          Home
-        </Anchor>
-      </div>
+      <Button onClick={reset}>Try again</Button>
+      <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+        Home
+      </Anchor>
     </StatusPage>
   );
 }

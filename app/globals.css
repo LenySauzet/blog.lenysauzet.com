@@ -328,25 +328,6 @@ ol[data-list='ordered'] > li::before {
   }
 }
 
-/* Two names, so the hover can replay a sweep the load already finished. */
-@keyframes status-shine {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-
-@keyframes status-shine-again {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-
 /* Not caret-blink, which tw-animate-css owns. 530ms a phase, as terminals blink. */
 @keyframes terminal-caret {
   from {
