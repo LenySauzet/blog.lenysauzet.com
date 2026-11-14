@@ -238,6 +238,33 @@ describe('DynamicIsland', () => {
     expect(island().parentElement).toHaveClass('pointer-events-none');
   });
 
+  it('keeps its own state when the closing palette hands it the focus back', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+    act(() => useCmdkStore.setState({ isOpen: true }));
+    act(() => useCmdkStore.setState({ isOpen: false }));
+
+    fireEvent.focus(island());
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(island()).toHaveTextContent('Leny');
+  });
+
+  it('still names itself to a reader who tabs to it later', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+    act(() => useCmdkStore.setState({ isOpen: true }));
+    act(() => useCmdkStore.setState({ isOpen: false }));
+    await vi.advanceTimersByTimeAsync(1000);
+
+    fireEvent.focus(island());
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(island()).toHaveTextContent('for commands');
+  });
+
   it('opens the palette when it is pressed', async () => {
     const user = userEvent.setup();
     render(<DynamicIsland />);

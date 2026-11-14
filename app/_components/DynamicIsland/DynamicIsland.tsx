@@ -25,6 +25,9 @@ const MAX_WIDTH = '19rem';
 const MENTIONS_PALETTE_AFTER = 1400;
 const MENTIONS_PALETTE_FOR = 2400;
 
+/** Long enough to cover the palette's exit, after which it hands its focus back. */
+const HANDED_BACK_WITHIN = 600;
+
 const resolve = (context: IslandContext): IslandState =>
   islandStates.find((state) => state.when?.(context) ?? true) ?? islandStates.at(-1)!;
 
@@ -36,6 +39,7 @@ export function DynamicIsland() {
   const post = useIslandStore((state) => state.post);
   const presented = useIslandStore((state) => state.presented);
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
+  const paletteOpen = useCmdkStore((state) => state.isOpen);
   const { atTop, finished } = useScrollTracking();
   const still = useReducedMotion();
 
@@ -45,6 +49,13 @@ export function DynamicIsland() {
   );
 
   const mention = useRef(0);
+  const paletteClosedAt = useRef(-Infinity);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (wasOpen.current && !paletteOpen) paletteClosedAt.current = performance.now();
+    wasOpen.current = paletteOpen;
+  }, [paletteOpen]);
 
   useEffect(() => {
     mention.current = window.setTimeout(
@@ -78,7 +89,11 @@ export function DynamicIsland() {
         onClick={() => setIsOpen(true)}
         onPointerEnter={point}
         onPointerLeave={() => setHovered(false)}
-        onFocus={point}
+        onFocus={() => {
+          // The palette returns focus to whatever opened it: that is not the reader pointing.
+          if (performance.now() - paletteClosedAt.current < HANDED_BACK_WITHIN) return;
+          point();
+        }}
         onBlur={() => setHovered(false)}
         className="group inline-flex cursor-pointer outline-none transition-[scale] duration-200 hover:scale-[1.02] active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
       >
