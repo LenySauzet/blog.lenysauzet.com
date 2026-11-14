@@ -1,6 +1,11 @@
-'use client'; // Error boundaries must be Client Components
+'use client';
 
 import { useEffect } from 'react';
+
+import Anchor from '@/components/prose/Anchor/Anchor';
+import { Button } from '@/components/ui/button';
+
+import { StatusPage } from './_components/StatusPage';
 
 export default function Error({
   error,
@@ -14,11 +19,14 @@ export default function Error({
   }, [error]);
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={reset}>
-        Try again
-      </button>
-    </div>
+    <StatusPage status="Error" title="Something went wrong">
+      <p>This page failed to load. Trying again usually fixes it.</p>
+      <div className="flex items-center gap-6">
+        <Button onClick={reset}>Try again</Button>
+        <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+          Home
+        </Anchor>
+      </div>
+    </StatusPage>
   );
 }
