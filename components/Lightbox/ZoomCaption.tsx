@@ -12,7 +12,6 @@ const WORD = {
 const REVEAL = {
   hidden: {},
   visible: { transition: { delayChildren: 0.06, staggerChildren: 0.045 } },
-  // Leaving mirrors arriving, last word first, inside the zoom's own exit.
   gone: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
 };
 
@@ -25,7 +24,7 @@ export interface ZoomCaptionProps {
   start: boolean;
 }
 
-/** Hidden from assistive tech: the lightbox is already named by this same text. */
+// Hidden from assistive tech: the lightbox is already named by this text.
 export function ZoomCaption({ children, start }: ZoomCaptionProps) {
   const reduceMotion = useReducedMotion();
 

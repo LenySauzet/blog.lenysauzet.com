@@ -5,17 +5,11 @@ const authorUrl = 'https://lenysauzet.com'
 
 const cdnUrl = 'https://cdn.lenysauzet.com'
 
-// Where SupportCallout sends readers. The API the band reads is a different origin
-// entirely and needs no username, since the token already identifies the account.
 const supportUrl = 'https://buymeacoffee.com/lenysauzet'
 const membershipUrl = `${supportUrl}/membership`
 
-// A path on cal.com, which is what the embed takes, and the page rather than one
-// event type so a visitor picks the length they need.
 const calHandle = 'lenysauzet'
 
-// Everywhere the site points at me. One list, so the command palette, the footer and
-// anything after them cannot drift apart.
 const social = {
   work: authorUrl,
   contact: 'mailto:contact@lenysauzet.com',
@@ -30,8 +24,6 @@ const social = {
 
 const resumeUrl = `${cdnUrl}/files/Leny-Sauzet-Resume.pdf`
 
-// Relative paths in posts are namespaced by media kind, so `blog/halftone.png`
-// resolves to `{cdnUrl}/images/blog/halftone.png`.
 const cdnPaths = {
   images: 'images',
   videos: 'videos',

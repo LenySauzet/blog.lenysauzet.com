@@ -31,11 +31,6 @@ const PLOTS = { area: AreaChart, bar: BarChart, line: LineChart } as const;
 
 type Mark = (series: Resolved, animate: boolean, fill?: string) => ReactNode;
 
-/**
- * A mark paints `var(--color-<key>)`, which `ChartStyle` writes from the
- * config, except where it is handed a fill: a gradient is an id this chart
- * made, and only this chart knows it.
- */
 const MARKS: Record<NonNullable<ChartProps['type']>, Mark> = {
   area: ({ key }, animate, fill) => (
     <Area
@@ -74,25 +69,10 @@ const MARKS: Record<NonNullable<ChartProps['type']>, Mark> = {
   ),
 };
 
-/**
- * The entry animation leaves a `stroke-dasharray` behind, and the mark for
- * this override is a trailing `!`: Tailwind v4 does not compile
- * `[stroke-dasharray:none!important]`, so that class reaches the DOM and
- * generates no rule, which looks exactly like a fix until it is measured. It
- * names the series marks alone, the grid and the cursor being dashed on purpose.
- */
+// Series marks only: the grid and the cursor are dashed on purpose.
 const PAINTED =
   '[&_.recharts-line-curve]:[stroke-dasharray:none]! [&_.recharts-area-area]:[stroke-dasharray:none]! [&_.recharts-area-curve]:[stroke-dasharray:none]!';
 
-/**
- * A figure that carries axes. It owns the grid, the tooltip and the legend so
- * every chart on the site reads the same, and takes its colours from the five
- * chart tokens, which derive from `--base-hue` like everything else.
- *
- * `children` are drawn inside the plot, where Recharts' hooks let them read
- * the scales it already built: a decoration shares the axes it decorates
- * rather than standing up a second chart beside them.
- */
 export default function Chart({
   data,
   series,
@@ -109,8 +89,6 @@ export default function Chart({
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const animated = !useReducedMotion();
   const { ref, drawn, settled } = useEntry(animated);
-  // An id is document-wide, so a fixed one would hand every chart on the page
-  // the first one's fill.
   const scope = useId().replace(/:/g, '');
 
   const resolved = resolve(series);
@@ -128,8 +106,6 @@ export default function Chart({
           onToggle={(key) => setHidden((current) => toggled(current, key, series.length))}
         />
       ) : null}
-      {/* A grid rather than nested boxes: the vertical label then centres on
-          the plot's own row instead of on the whole column. */}
       <div ref={ref} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
         {y?.label ? <AxisLabel vertical>{y.label}</AxisLabel> : <span />}
         <ChartContainer config={configOf(resolved)} className={settled ? PAINTED : undefined}>
@@ -145,8 +121,7 @@ export default function Chart({
               </defs>
             ) : null}
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            {/* Recharts labels every datum it has room for, so a densely
-                sampled curve gets a wall of numbers. */}
+            {/* Recharts labels every datum it has room for, hence the gap. */}
             <XAxis
               dataKey={x.key}
               tickLine={false}
@@ -165,9 +140,6 @@ export default function Chart({
               cursor={{ strokeDasharray: '3 3' }}
               content={
                 <ChartTooltipContent
-                  // Shadcn resolves the heading through the config whenever the
-                  // label is not a string, which on a numeric axis hands back a
-                  // series' name.
                   labelFormatter={(_, items) =>
                     `${items?.[0]?.payload?.[x.key] ?? ''}${x.unit ?? ''}`
                   }
@@ -193,10 +165,6 @@ export default function Chart({
   );
 }
 
-/**
- * `XAxis`'s own `label` positions against the plot and lands on top of the
- * tick text at these sizes. Ours is a box in the layout, so it cannot collide.
- */
 function AxisLabel({
   children,
   vertical,

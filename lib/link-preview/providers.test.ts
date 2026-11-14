@@ -34,7 +34,6 @@ describe('resolveLinkPreview', () => {
     expect(preview('#halftone')).toBeUndefined();
   });
 
-  // The still comes out of the id, so a video has a picture before anything is asked.
   it.each([
     'https://youtu.be/gOGtHkBQQiQ',
     'https://www.youtube.com/watch?v=gOGtHkBQQiQ',
@@ -91,7 +90,6 @@ describe('enrich', () => {
     expect(enrich('https://www.example.com/a', site, {}).label).toBe('example.com');
   });
 
-  // Their title repeats the repository the path already gave us.
   it('leaves a GitHub repository named as the path named it', () => {
     const repo = preview('https://github.com/LenySauzet/blog')!;
 
@@ -103,7 +101,6 @@ describe('enrich', () => {
     ).toMatchObject({ label: 'LenySauzet/blog', detail: 'The blog.' });
   });
 
-  // Their page is built by the reader's browser, so its title is the app's name.
   it('keeps a Bluesky handle over the generic title their page carries', () => {
     const profile = preview('https://bsky.app/profile/lenysauzet.com')!;
 

@@ -5,34 +5,18 @@ import { Slider as SliderPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
-/**
- * The filled part: the track's own wash laid over itself, so the boundary reads
- * as depth rather than as a second colour.
- */
 const sliderFill = "absolute h-full rounded-xl bg-wash/30 select-none"
 
-/**
- * The grip rides near the fill's leading edge but is not part of it: at the
- * bottom of the range the fill has no width left to hang it off, and it has to
- * stay in the bar rather than follow the edge out of it.
- */
 const sliderGrip =
   "pointer-events-none absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-full bg-foreground/50 [transition:opacity_.2s_ease-in-out,scale_.2s_ease-in-out] motion-reduce:transition-none"
 
-/**
- * Marks a detent on a stepped bar. Sits above the fill rather than under it, so
- * a step stays legible on the side already covered, and gets out of the way once
- * the bar is resting on it: the grip already marks where that is.
- */
+// Drawn above the fill, so a detent stays legible on the covered side.
 const sliderDot =
   "pointer-events-none absolute top-1/2 size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/25 [transition:opacity_.15s_ease-in-out] motion-reduce:transition-none"
 
-/** Children are required: the fill and its grip are the consumer's to animate. */
 function Slider({
   className,
   children,
-  // Forwarded to the thumb, not left on the root: the thumb is what carries
-  // role="slider", so a label anywhere else is never announced.
   "aria-label": ariaLabel,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root> & {

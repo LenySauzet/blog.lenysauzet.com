@@ -8,17 +8,14 @@ import type { ReactNode } from 'react';
 import { Accordion, AccordionItem } from '@/components/ui/accordion';
 
 export interface DetailsProps {
-  /** The always-visible, clickable line. */
   summary: ReactNode;
-  /** Revealed on open. Any block: text, image, code. */
   children: ReactNode;
   defaultOpen?: boolean;
 }
 
 const ITEM_VALUE = 'details';
 
-// A box-shadow rather than a background gradient, so fading the bar's opacity
-// fades the halo with it.
+// A box-shadow, not a gradient, so fading the bar's opacity fades the halo too.
 const ACCENT_GLOW =
   '0 0 16px 4px oklch(from var(--glow) l c h / 0.95), 0 0 34px 13px oklch(from var(--glow) l c h / 0.5)';
 
@@ -32,8 +29,7 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
     >
       <AccordionItem
         value={ITEM_VALUE}
-        // `group` drives the open-state styling off Radix's data-state;
-        // overflow-hidden clips the accent glow so it only bleeds inward.
+        // overflow-hidden keeps the accent glow bleeding inward only.
         className="frame-container group relative overflow-hidden rounded-frame-xl border border-border bg-card"
       >
         <AccordionPrimitive.Header className="flex">
@@ -59,16 +55,10 @@ export default function Details({ summary, children, defaultOpen = false }: Deta
           </AccordionPrimitive.Trigger>
         </AccordionPrimitive.Header>
 
-        {/* The primitive, not the generated AccordionContent, whose inner
-            `h-(--radix-…-height)` div clipped the bottom padding. The reveal must
-            ride on the className, not a separate [data-state] rule, or it races
-            Radix's unmount check and the exit never plays. */}
         <AccordionPrimitive.Content
           data-slot="accordion-content"
           className="overflow-hidden data-[state=open]:animate-[details-open_350ms_ease-out] data-[state=closed]:animate-[details-close_350ms_ease-out] motion-reduce:animate-none"
         >
-          {/* `[&>*]:my-0` neutralises each child's own margin so the gap alone
-              sets the rhythm, letting any block sit inside. */}
           <div className="frame-nest flex flex-col gap-4 px-4 pb-6 font-display text-base leading-7 text-muted-foreground [&>*]:my-0">
             {children}
           </div>

@@ -13,7 +13,7 @@ paths:
 
 Several shadcn files are customised beyond the CLI output. Update one with
 `bunx shadcn@latest add <name> --diff` and re-apply its edits, never overwrite: they are
-listed here for `badge`, `card`, `input`, `input-group` and `slider`, in
+listed here for `badge`, `button`, `card`, `input`, `input-group` and `slider`, in
 `.claude/rules/command-palette.md` for `command`, in `.claude/rules/tables.md` for
 `table`, and in the `figure-chart` skill's reference for `chart`.
 
@@ -35,6 +35,15 @@ the first one does.
 Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status variants
 (`info` / `success` / `warning` / `danger`), each a ~10% wash of its colour. shadcn's stock
 `destructive` is kept alongside `danger`.
+
+**`components/ui/button.tsx` is customised beyond the CLI output**:
+
+- The default variant wears `--shadow-bevel` and blooms in `--glow` on hover, in place of
+  `hover:bg-primary/80`.
+- A press scales to 0.95 (undone under reduced motion) instead of the stock
+  `translate-y-px`, through a transition list naming `scale`, never `transition-all`.
+- `rounded-lg`, not `rounded-md`; `cursor-pointer`, and `cursor-not-allowed` when disabled.
+- Ghost sits on `text-subtle-foreground`; default and lg pad by `px-3` and `px-3.5`.
 
 **`components/ui/card.tsx` is intentionally customized** beyond the CLI output, like
 `badge.tsx`. Four edits: the edge is a `border` resolving from `--border` rather than

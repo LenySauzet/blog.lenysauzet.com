@@ -6,17 +6,14 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Tests stub next/image with a plain <img> on purpose: the real component
-    // validates remotePatterns against runtime config Vitest does not load.
-    // The LCP advice this rule gives does not apply to a jsdom render.
+    // Tests stub next/image with <img>: the real one needs config Vitest does not load.
     files: ["**/*.test.ts", "**/*.test.tsx"],
     rules: {
       "@next/next/no-img-element": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
+  // Replaces eslint-config-next's ignores, so its defaults are restated.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

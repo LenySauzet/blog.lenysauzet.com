@@ -1,14 +1,4 @@
-/**
- * Copies the videos of every post on X that an article embeds to the CDN, where the
- * Tweet figure plays them: X refuses its video files to most sites that link to them.
- * Only the video is copied; the post itself is still read from X at each build, so one
- * its author deletes leaves every article, video and all.
- *
- *   bun run tweet-videos
- *
- * Uploads with wrangler, which needs `bunx wrangler login` once. Without it, the files
- * are left in a folder and the command says where each one goes.
- */
+// Needs `bunx wrangler login` once; without it the files are left in a folder.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

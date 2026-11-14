@@ -34,8 +34,7 @@ export function useScrollTracking(): ScrollPosition {
       const finished = progress >= NEARLY_THERE;
 
       scrollProgress.set(progress);
-      // A fresh object every scroll event would re-render both readers sixty
-      // times a second to tell them nothing had changed.
+      // Kept when unchanged, or both readers re-render on every scroll event.
       setPosition((previous) =>
         previous.atTop === atTop && previous.finished === finished
           ? previous

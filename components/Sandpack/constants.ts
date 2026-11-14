@@ -1,6 +1,5 @@
-// Shared with the dynamic-import skeleton in index.tsx; if the two drift, the
-// skeleton reserves the wrong height and CLS comes back.
+// The skeleton in index.tsx reserves this height: let them drift and CLS returns.
 export const EDITOR_HEIGHT = 560;
 export const TOOLBAR_HEIGHT = 48;
-// Scroll distance over which an edge fade ramps from clear to full.
+// Scroll distance over which an edge fade ramps in.
 export const FADE = 40;

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 export interface Series {
-  /** The key this series reads out of each datum. */
+  /** Read out of each datum. */
   key: string;
   label: string;
-  /** Overrides the chart token this series would otherwise take. */
+  /** Overrides the chart token. */
   color?: string;
 }
 
@@ -15,7 +15,7 @@ export interface Axis {
   unit?: string;
 }
 
-/** The value axis, which names no key: it reads whatever the series hold. */
+/** The value axis: it reads whatever the series hold. */
 export interface Scale {
   label?: string;
   unit?: string;
@@ -29,11 +29,6 @@ export interface ChartProps {
   x: Axis;
   y?: Scale;
   type?: "area" | "bar" | "line";
-  /**
-   * How an area is filled. Recharts has no gradient prop, so shadcn's own
-   * "gradient" example is markup a caller copies; owning the marks turns it
-   * into a word here.
-   */
   fill?: "gradient" | "flat";
   caption?: ReactNode;
   legend?: boolean;
@@ -51,7 +46,6 @@ export interface Slice {
 export interface PieProps {
   data: Slice[];
   caption?: ReactNode;
-  /** A hole in the middle, which keeps the slices comparable by angle alone. */
   donut?: boolean;
   legend?: boolean;
 }
@@ -69,6 +63,6 @@ export interface RadialProps {
   data: Slice[];
   caption?: ReactNode;
   legend?: boolean;
-  /** The full turn, against which every arc is read. */
+  /** The value of a full turn. */
   max?: number;
 }

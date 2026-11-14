@@ -13,13 +13,9 @@ const PLAIN_WIDTH = 'w-2';
 
 const BLUR = 6;
 
-/** Lifts a title off whatever the veil has not taken. Invisible above `xl`,
-    where nothing passes behind the rail at all. */
 const HALO =
   '[text-shadow:0_0_5px_var(--background),0_0_10px_var(--background),0_0_18px_var(--background)]';
 
-/** The reader's place is a tick wearing `--primary`, never a line laid over
-    one: two marks at one place cannot stay lined up. */
 const lineOf = (section: Section | undefined, pointed: boolean, reached: boolean) => {
   if (reached) return cn(SECTION_WIDTH, 'bg-primary');
 
@@ -42,9 +38,7 @@ function Title({
   shown: MotionValue<number>;
   pointed: boolean;
 }) {
-  // `none` at either end, or every title holds a composited blur layer for the
-  // whole life of the page to draw a radius of zero, or one it cannot be seen
-  // through at an opacity of zero.
+  // `none` at both ends, or every title holds a composited layer for good.
   const blurred = useTransform(shown, (value) =>
     value <= 0 || value >= 1 ? 'none' : `blur(${(1 - value) * BLUR}px)`
   );
@@ -53,8 +47,7 @@ function Title({
     <motion.span
       data-title
       style={{ opacity: shown, filter: blurred }}
-      // Only `translate` transitions. Eased, the colour would answer none of
-      // several sections crossed quickly.
+      // Only `translate`: an eased colour misses sections crossed quickly.
       className={cn(
         'font-mono text-[0.6875rem] tracking-wider whitespace-nowrap text-foreground uppercase transition-[translate] duration-200 motion-reduce:transition-none',
         HALO,
@@ -74,8 +67,6 @@ interface TickProps {
   shown?: MotionValue<number>;
 }
 
-/** Memoised: the mark moves as the reader scrolls, and redrawing fifty ticks to
-    light one of them was measurable. */
 export const Tick = memo(function Tick({
   progress,
   section,

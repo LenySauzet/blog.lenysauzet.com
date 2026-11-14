@@ -34,8 +34,6 @@ const read = async (response: NodeJS.ReadableStream) => {
 };
 
 describe('requestPinned', () => {
-  // The whole point of the guard: resolving the name a second time is what a
-  // hostile resolver is free to answer differently.
   it('connects to the address it was given, not to where the name points', async () => {
     const url = new URL(`http://example.com:${port}/preview`);
 
@@ -46,7 +44,6 @@ describe('requestPinned', () => {
     expect(seen.url).toBe('/preview');
   });
 
-  // The certificate and the virtual host both read it, so it has to survive.
   it('keeps the hostname the site expects', async () => {
     await requestPinned(new URL(`http://example.com:${port}/`), '127.0.0.1', {}, 2000);
 

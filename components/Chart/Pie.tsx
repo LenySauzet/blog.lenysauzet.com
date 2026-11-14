@@ -11,12 +11,6 @@ import { configOf, resolve } from './series';
 import type { PieProps } from './types';
 import { ENTRY_MS, useEntry } from './use-entry';
 
-/**
- * Parts of a whole, so it has no axes and shares none of the cartesian chart's
- * shape beyond the frame and the tooltip. Its legend stays a key: switching a
- * slice off changes what the whole is, so the figure would quietly answer a
- * different question than its caption.
- */
 export default function PieChart({ data, caption, donut = true, legend = true }: PieProps) {
   const animated = !useReducedMotion();
   const { ref, drawn } = useEntry(animated);
@@ -38,9 +32,6 @@ export default function PieChart({ data, caption, donut = true, legend = true }:
                 strokeWidth={0}
                 isAnimationActive={animated}
                 animationDuration={ENTRY_MS}
-                // Recharts holds a pie back where every other mark begins at
-                // once: `Pie.d.ts` declares `animationBegin: 400`, which showed
-                // as 441ms of nothing against a bar's 8.
                 animationBegin={0}
               >
                 {slices.map(({ key }) => (

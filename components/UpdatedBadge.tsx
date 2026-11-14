@@ -6,39 +6,26 @@ import { Fragment, useSyncExternalStore } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { relativeTime } from '@/lib/relative-time';
 
-/** The clock is only ever read, never pushed, so there is nothing to subscribe to. */
-const readOnly = () => () => {};
+const subscribeToNothing = () => () => {};
 
-// The date line beside it decodes for 1.12s and changes width as it goes, which drags
-// the badge 196px sideways. Arriving once that has settled is what holds it still.
+// Outlasts the date line's 1.12s decode, which drags the badge sideways while it runs.
 const HOLD = 1.2;
 
-// Reduced motion changes the timing, never the markup. Rendering a second, simpler
-// tree for it was a hydration mismatch by construction: the server cannot know the
-// preference, so it always sent the animated one and the client threw it away.
+// Reduced motion changes the timing only: a second tree would not match the server's.
 const AT_ONCE = { duration: 0, delay: 0 };
 
-// `overflow-visible` because the pill clips its own children, and a letter arriving
-// out of focus is wider than the letter it becomes.
+// The pill clips its children, and a blurred letter is wider than the sharp one.
 const CLASS = 'overflow-visible font-display font-normal';
 
-/**
- * Posts are statically generated, so a relative label is only true on the day it was
- * built: months later the markup would still claim the post changed three days ago.
- * The build's value is the server snapshot, which is what the first paint carries and
- * what hydration matches, and the reader's own clock is read from then on.
- */
 export function UpdatedBadge({ date, label }: { date: string; label: string }) {
   const still = useReducedMotion();
   const current = useSyncExternalStore(
-    readOnly,
+    subscribeToNothing,
     () => relativeTime(date),
     () => label
   );
   const reading = `Updated ${current}`;
 
-  // The pill arrives out of focus with its text, rather than appearing whole and
-  // waiting to be filled: it is one object, so it resolves as one.
   const badge = {
     hidden: { opacity: 0, filter: 'blur(8px)' },
     visible: {
@@ -48,8 +35,6 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
     },
   };
 
-  // Per letter rather than per word: four words is four arrivals, and the sweep has to
-  // outlast the pill's own blur or there is nothing left to see travel.
   const sweep = {
     hidden: {},
     visible: {
@@ -76,12 +61,9 @@ export function UpdatedBadge({ date, label }: { date: string; label: string }) {
         initial="hidden"
         animate="visible"
       >
-        {/* Split for the sweep, so the sentence is spoken from here instead. */}
         <span className="sr-only">{reading}</span>
 
-        {/* One flex item, so inline flow resumes inside it. Loose in the pill, the
-            letters were spaced by its `gap` and the spaces between them dropped,
-            which is what a flex container does with whitespace. */}
+        {/* One flex item, or the pill's flex layout drops the spaces between letters. */}
         <motion.span aria-hidden variants={sweep}>
           {reading.split('').map((character, index) =>
             character === ' ' ? (

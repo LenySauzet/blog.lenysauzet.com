@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLift } from './Lift';
 
-// The stages themselves are `useZoomStage`'s, tested beside it.
 describe('useLift', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());

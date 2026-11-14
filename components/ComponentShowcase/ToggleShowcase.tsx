@@ -24,7 +24,6 @@ function Row({
   );
 }
 
-/** Left column live, right column disabled, as the reference does. */
 export default function ToggleShowcase() {
   return (
     <div className="my-6 grid gap-x-4 gap-y-6 sm:grid-cols-2">

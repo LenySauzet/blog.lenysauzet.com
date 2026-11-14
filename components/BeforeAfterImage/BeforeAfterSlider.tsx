@@ -21,19 +21,16 @@ import { afterRegion, dividerPath, labelOpacity, type LabelSpan, pullFor } from 
 
 const STEP = 5;
 const HELD_SCALE = 1.1;
-// A pickup, its own spring: loose enough to pop, and untouched by tuning the chase.
 const HELD_SPRING = { type: 'spring', stiffness: 500, damping: 22, mass: 0.6 } as const;
 const SIZES = '(max-width: 768px) calc(100vw - 2rem), 700px';
-// The divider sits on the image, not on a theme surface, so it is a fixed tint that
-// reads in both themes rather than a semantic token.
+// On the image, not a theme surface: a fixed tint for both themes, not a token.
 const HANDLE_EDGE = 'oklch(0.82 0.03 var(--base-hue) / 0.45)';
 const clamp = (value: number) => Math.min(Math.max(value, 0), 100);
 
 export interface BeforeAfterSliderProps {
-  /** Fully resolved URLs; resolution happens on the server. */
+  /** Fully resolved URLs. */
   beforeSrc: string;
   afterSrc: string;
-  /** Accessible name for the slider. */
   alt: string;
   defaultPosition: number;
   width: number;
@@ -66,8 +63,6 @@ function Label({ side, progress, width }: LabelProps) {
     return () => observer.disconnect();
   }, [span]);
 
-  // Every input is read before branching: a transform subscribes only to what it read
-  // when the component last rendered, so one skipped while unmeasured goes untracked.
   const opacity = useTransform(() => {
     const x = (progress.get() / 100) * width.get();
     const measured = span.get();
@@ -105,18 +100,11 @@ export function BeforeAfterSlider({
   const [measured, setMeasured] = useState(false);
   const [held, setHeld] = useState(false);
 
-  // Input moves the target and the drawing chases it on a spring, so a click or a
-  // key glides there. Nothing re-renders: `aria-valuenow` is written to the element
-  // once a frame, and React, whose prop never changes, leaves it alone.
   const target = useMotionValue(clamp(defaultPosition));
   const follow = useSpring(target, FOLLOW_SPRING);
-  // The overshoot past an end is held at the edge, or the line would leave the image.
   const progress = useTransform(follow, clamp);
   const surfaceWidth = useMotionValue(0);
   const surfaceHeight = useMotionValue(0);
-  // Re-run on each spring frame for the spring's own speed, which `jump` zeroes.
-  // `useVelocity` would read a reduced-motion jump as speed, and drops to 0
-  // between frames mid-drag, flickering the bow.
   const pull = useTransform(follow, () => pullFor(follow.getVelocity(), surfaceWidth.get()));
 
   const divider = useTransform(() =>
@@ -181,8 +169,6 @@ export function BeforeAfterSlider({
     apply(moves[event.key]);
   };
 
-  // Inside the border, the box the clipped image and the divider are laid out in:
-  // measured with it, the line and the clip part by the border's width.
   useLayoutEffect(() => {
     const wrap = wrapRef.current!;
     const measure = () => {
@@ -234,8 +220,6 @@ export function BeforeAfterSlider({
         draggable={false}
         className={imageClass}
       />
-      {/* Clipped by the bowed divider once the surface is measured; a plain inset
-          until then, so the first paint already splits the two. */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -267,7 +251,6 @@ export function BeforeAfterSlider({
         </defs>
         {measured && <motion.path d={divider} fill="none" strokeWidth={1} style={{ stroke: HANDLE_EDGE }} />}
       </motion.svg>
-      {/* The server's line, straight, until the surface is measured and the path draws. */}
       {!measured && (
         <motion.div
           aria-hidden="true"
@@ -279,7 +262,6 @@ export function BeforeAfterSlider({
         aria-hidden="true"
         className={cn(
           mediaGlass,
-          // Not a touch target, the whole surface dragging, so a phone's handle can be small.
           'pointer-events-none absolute top-1/2 z-[1] flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md sm:size-8 sm:rounded-lg'
         )}
         animate={{ scale: held && !reduce ? HELD_SCALE : 1 }}

@@ -65,8 +65,6 @@ function Preview({ preview, open }: { preview: LinkPreview; open: boolean }) {
   );
 }
 
-/** Keeps the corner it is collapsing from, which a pill's radius would round
-    into a pebble while the box is still card-sized. */
 export const collapsing = (radius?: number): IslandState => ({
   id: LINK_PREVIEW,
   inert: true,

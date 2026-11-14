@@ -4,11 +4,6 @@ interface BlockquoteProps {
   children?: ReactNode;
 }
 
-// A centred pull-quote, not a left-border aside. `font-serif` (Instrument
-// Serif) is a deliberate departure from the ported design, which renders this
-// in its default sans because its own `var(--font-serif)` is undefined. The
-// `[&>p]:` overrides exist because the inner <p> is the globally MDX-mapped
-// paragraph.
 export default function Blockquote({ children }: BlockquoteProps) {
   return (
     <blockquote className="my-8 w-full text-center">

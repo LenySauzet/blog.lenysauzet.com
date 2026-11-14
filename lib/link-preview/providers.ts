@@ -19,8 +19,6 @@ interface Provider {
 
 const segments = (url: URL) => url.pathname.split('/').filter(Boolean);
 
-/** Their own title either repeats the path or, on a page built in the reader's
-    browser, is the name of the app. */
 const keepsItsLabel = (preview: LinkPreview, { description, image }: LinkMetadata) => ({
   ...preview,
   detail: preview.detail ?? description,

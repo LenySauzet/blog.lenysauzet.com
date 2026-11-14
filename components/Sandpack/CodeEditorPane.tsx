@@ -5,17 +5,12 @@ import { useEffect, useRef } from 'react';
 
 import { FADE } from './constants';
 
-// Carries the chrome the shared theme cannot express: the overflow edge fades
-// and the file-switch mask.
 export function CodeEditorPane({ height }: { height: string }) {
   const { sandpack } = useSandpack();
   const activeFile = sandpack.activeFile;
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Split so the scroll path stays cheap: geometry only shifts on resize, while
-  // the edge opacities track every scroll frame. Sandpack recreates the
-  // CodeMirror DOM per file, hence the activeFile dependency and the rAF that
-  // waits for the new mount.
+  // Sandpack rebuilds CodeMirror per file: hence `activeFile` and the rAF awaiting the mount.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -77,8 +72,7 @@ export function CodeEditorPane({ height }: { height: string }) {
       observer.observe(content);
     };
     attach();
-    // Capture-phase: scroll doesn't bubble, and binding to the stable wrapper
-    // survives the scroller being rebuilt on file switch.
+    // Capture: scroll does not bubble, and the wrapper outlives the scroller on file switch.
     wrap.addEventListener('scroll', scheduleEdges, { capture: true, passive: true });
 
     return () => {
@@ -98,16 +92,14 @@ export function CodeEditorPane({ height }: { height: string }) {
       style={{ height }}
     >
       <SandpackCodeEditor showRunButton={false} showTabs showLineNumbers style={{ height: '100%' }} />
-      {/* Masks CodeMirror's mount reflow on file switch. Keyed on the file so it
-          remounts and replays its CSS fade-out. */}
+      {/* Keyed on the file, so it replays its fade over CodeMirror's remount reflow. */}
       <div
         key={activeFile}
         aria-hidden="true"
         className="sp-switch-mask pointer-events-none absolute inset-x-0 z-[4] bg-[var(--code-bg)]"
         style={{ top: 'var(--code-top, 3rem)', bottom: 0 }}
       />
-      {/* Right edge fade only. The left one lives on `.cm-gutters::after` so it
-          stays glued to the sticky line-number column through macOS overscroll. */}
+      {/* The left fade is `.cm-gutters::after`, glued to the sticky gutter through overscroll. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute z-[3] w-12 bg-gradient-to-l from-[var(--code-bg)] to-transparent transition-opacity duration-150"

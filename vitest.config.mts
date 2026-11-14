@@ -8,9 +8,6 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
     alias: {
-      // `server-only` throws unless the react-server condition is set, which
-      // Vitest does not; the stub keeps server modules importable in tests
-      // without weakening the guard in the real build.
       'server-only': fileURLToPath(
         new URL('./test/stubs/server-only.ts', import.meta.url)
       ),
@@ -18,8 +15,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    // Load-bearing: Testing Library registers its between-test DOM cleanup only
-    // when `afterEach` exists as a global. Without this it silently stops.
+    // Testing Library only registers its DOM cleanup when `afterEach` is global.
     globals: true,
     setupFiles: ['./vitest-setup.ts'],
     include: ['{app,components,config,lib,hooks}/**/*.test.{ts,tsx}'],

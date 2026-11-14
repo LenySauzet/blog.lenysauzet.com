@@ -1,8 +1,4 @@
-/**
- * A token's colour, read every frame: CSS has no change event, and an edit to a rule
- * changes what a token resolves to without any DOM mutation to observe. The read
- * converts only when the string has moved, by painting one sRGB pixel.
- */
+// Polled, not observed: a stylesheet edit changes a token with no DOM mutation to see.
 export function cssColor(token: `--${string}`) {
   const probe = document.createElement('span');
   probe.style.cssText = `position:fixed;width:0;height:0;opacity:0;color:var(${token})`;

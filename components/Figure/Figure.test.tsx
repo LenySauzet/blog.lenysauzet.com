@@ -12,7 +12,6 @@ describe('Figure', () => {
     expect(figure.querySelector('figcaption')).toHaveTextContent('What this shows');
   });
 
-  /** It is a frame, not a box: given only content, it adds nothing around it. */
   it('wraps its content in nothing at all when given neither caption nor controls', () => {
     render(
       <Figure>

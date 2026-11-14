@@ -2,15 +2,13 @@ import type { CSSProperties, ReactNode } from 'react';
 
 export interface FullbleedProps {
   children: ReactNode;
-  /** Inner width as a percentage of the viewport on desktop. */
+  /** Of the viewport, on desktop. */
   widthPercent?: number;
-  /** Cap on the inner width, in px. */
+  /** In px. */
   maxWidth?: number;
 }
 
-// The outer box spans 100vw through viewport-centred negative margins, which
-// re-centre it regardless of the narrower parent; the inner box then caps the
-// content. The post's own overflow-x:hidden clips the span, so no scrollbar.
+// Spans 100vw by negative margins; the post's `overflow-x: hidden` spares a scrollbar.
 export default function Fullbleed({
   children,
   widthPercent = 80,

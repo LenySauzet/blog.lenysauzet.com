@@ -14,7 +14,6 @@ import { useLightboxStore } from '@/hooks/use-lightbox-store';
 
 const NEVER_CHANGES = () => () => {};
 
-/** Portals need a DOM, and this component is rendered on the server too. */
 const useIsHydrated = () =>
   useSyncExternalStore(
     NEVER_CHANGES,
@@ -25,17 +24,10 @@ const useIsHydrated = () =>
 interface LightboxProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Names the surface for screen readers. */
   title: string;
   children: ReactNode;
 }
 
-/**
- * Deliberately NOT a dialog primitive: Radix ties its scroll lock to the layer's
- * mount, and the layer must outlive the dismiss to animate out, so the page stays
- * frozen for the whole exit. Here `overscroll-contain` holds the page still and
- * the exit variant drops pointer events instead.
- */
 export function Lightbox({
   open,
   onOpenChange,
@@ -46,9 +38,6 @@ export function Lightbox({
   const surface = useRef<HTMLDivElement>(null);
   const restoreFocusTo = useRef<HTMLElement | null>(null);
 
-  // Read at the moment it is called, so the effects below depend on `open` alone: a
-  // parent's new callback on every render would otherwise close and reopen them,
-  // bouncing focus out of the open surface and back.
   const dismiss = useEffectEvent(() => onOpenChange(false));
 
   useEffect(() => (open ? useLightboxStore.getState().cover() : undefined), [open]);
@@ -59,7 +48,6 @@ export function Lightbox({
     const surfaceEl = surface.current;
     restoreFocusTo.current = document.activeElement as HTMLElement | null;
 
-    // `aria-modal` claims the rest of the page is gone, so Tab must not leave.
     surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -71,8 +59,7 @@ export function Lightbox({
     return () => {
       document.removeEventListener('keydown', onKeyDown);
 
-      // This cleanup also runs on unmount (a route change), where stealing focus
-      // back would be wrong.
+      // Also runs on unmount (a route change), where stealing focus back would be wrong.
       const active = document.activeElement;
       const focusIsOurs =
         !active || active === document.body || surfaceEl?.contains(active);
@@ -93,11 +80,9 @@ export function Lightbox({
           aria-modal="true"
           aria-label={title}
           tabIndex={-1}
-          // z-100, not z-50: the site header already claims z-50. A phone's padding
-          // is the column's gutter: any wider and the image shrinks on its way in.
+          // z-100: the site header already claims z-50.
           className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-4 outline-none sm:p-8"
-          // Fading a custom property rather than opacity keeps the morphing
-          // image out of the fade.
+          // A custom property, not opacity, keeps the morphing image out of the fade.
           style={{
             backgroundColor:
               'oklch(from var(--background) l c h / var(--scrim-opacity, 0))',

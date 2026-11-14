@@ -53,10 +53,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
             );
 
           return (
-            // Dimmed by not being the hovered year, rather than by the hovered one
-            // outranking a dim laid over everything: a `:has()` rule carries enough
-            // specificity to win that fight and leave the year under the pointer faded
-            // with the rest. `pointer-fine` because a touch hover sticks after a scroll.
+            // Dims only the unhovered (an undo loses to `:has()`); pointer-fine, as touch hover sticks.
             <div
               className="flex flex-col gap-4 px-8 transition-opacity duration-300 motion-reduce:transition-none lg:px-0 pointer-fine:group-has-[[data-year]:hover]/years:not-hover:opacity-40"
               data-year={year}
@@ -75,11 +72,7 @@ export function PostsList({ posts }: { posts: Post[] }) {
                       href={`/posts/${post.slug}`}
                       className="flex gap-2 justify-between items-center py-4 w-full group-hover:text-foreground transition-colors text-foreground/50"
                     >
-                      {/* The caret holds its column whether or not it is showing, so
-                          arriving costs no reflow. The delay is the animation's own:
-                          with no fill mode the title keeps its resting state until
-                          the first keyframe lands, which is what makes the caret
-                          appear a beat after the pointer rather than with it. */}
+                      {/* The 180ms delay, with no fill mode, lags the caret a beat behind the pointer. */}
                       <ScrambledText
                         className="after:ml-1 after:content-['\_'] after:opacity-0 motion-safe:group-hover:after:animate-[terminal-caret_1.06s_step-end_infinite_180ms] motion-reduce:group-hover:after:opacity-100"
                         delay={post.flatIndex * 0.1}

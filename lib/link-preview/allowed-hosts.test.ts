@@ -21,7 +21,6 @@ describe('isLinkedFromAPost', () => {
     expect(await allowed('paper.design')).toBe(true);
   });
 
-  // Anyone can call the route, and the only URLs it needs are the hoverable ones.
   it('refuses a host no post mentions', async () => {
     withContent('nothing here');
     const allowed = await load();
@@ -53,7 +52,6 @@ describe('isLinkedFromAPost', () => {
     expect(await allowed('example.com')).toBe(false);
   });
 
-  // Reachable by URL, so their links are hoverable too.
   it('reads drafts as well', async () => {
     withContent('https://paper.design/');
     await (await load())('paper.design');

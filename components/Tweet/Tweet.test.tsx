@@ -17,8 +17,7 @@ vi.mock('@/lib/tweet', async (original) => ({
   answers: vi.fn(),
 }));
 
-// The real components need the runtime image config and a browser; these tests cover
-// what the server decides to hand them.
+// The real one needs the runtime image config; these tests cover what the server hands it.
 vi.mock('next/image', () => ({
   default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
   getImageProps: ({ src }: { src: string }) => ({ props: { src: `/_next/image?url=${encodeURIComponent(src)}` } }),

@@ -8,11 +8,6 @@ interface KeyPress {
   shiftKey: boolean;
 }
 
-/**
- * What a key asks of a slideshow. The arrows reach one from anywhere on the page;
- * Home, End, Space and Enter only one that holds focus itself, since elsewhere they
- * scroll the page or belong to what has focus.
- */
 export function keyFor(press: KeyPress, focused: boolean): SlideshowKey | null {
   if (press.altKey || press.ctrlKey || press.metaKey || press.shiftKey) return null;
   if (press.key === 'ArrowLeft') return 'previous';
@@ -32,7 +27,7 @@ interface Box {
   right: number;
 }
 
-/** The box on screen whose middle is nearest the viewport's, or -1 when none shows. */
+/** -1 when none is on screen. */
 export function nearestToCentre(boxes: Box[], width: number, height: number) {
   let nearest = -1;
   let distance = Infinity;
@@ -47,10 +42,9 @@ export function nearestToCentre(boxes: Box[], width: number, height: number) {
   return nearest;
 }
 
-/** Whether the key moved anything, which is what decides `preventDefault`. */
+/** Returns whether the key moved anything. */
 export type SlideshowHandler = (key: SlideshowKey) => boolean;
 
-// Anything that answers the arrows itself keeps them.
 const OWNS_KEYS = [
   'input',
   'textarea',
@@ -72,7 +66,6 @@ const OWNS_KEYS = [
 
 interface Entry {
   handle: SlideshowHandler;
-  /** Whether it has anywhere to go, which alone earns it the page's bare arrows. */
   roams: boolean;
 }
 
@@ -97,12 +90,11 @@ function onKeyDown(event: KeyboardEvent) {
   }
 
   if (!key || !handle) return;
-  // A held Space would flip playback thirty times a second; it still must not scroll.
+  // A held Space must not flip playback on every repeat, nor scroll.
   if (key === 'toggle' && event.repeat) event.preventDefault();
   else if (handle(key)) event.preventDefault();
 }
 
-/** One listener for the page, however many slideshows it holds. */
 export function registerSlideshow(root: HTMLElement, handle: SlideshowHandler, roams: boolean) {
   if (entries.size === 0) document.addEventListener('keydown', onKeyDown);
   entries.set(root, { handle, roams });

@@ -20,7 +20,6 @@ index.add({
   text: 'The halftone dot pattern is an optical illusion of smooth tone.',
 });
 
-/** What the server hands the palette, which is what an unsearched list shows. */
 const posts = [
   {
     slug: 'halftone',
@@ -30,7 +29,6 @@ const posts = [
   },
 ];
 
-/** The page lives inside the cmdk root, which owns the roles it is read through. */
 const show = (query: string, onPick = vi.fn()) =>
   render(
     <Command shouldFilter={false}>
@@ -43,7 +41,6 @@ beforeEach(() => {
 });
 
 describe('PostSearch', () => {
-  // The description would read the same on every result; the matched line does not.
   it('quotes the line that matched and lifts the term out of it', async () => {
     show('illusion');
 
@@ -58,9 +55,6 @@ describe('PostSearch', () => {
     expect(await screen.findByText(/No post says anything/)).toBeInTheDocument();
   });
 
-  // The unsearched list is the server's and waits on nothing. It used to be
-  // the index's, which arrived after the page did and resized the palette
-  // under the reader on every cold load.
   it('lists the posts without asking for the index at all', () => {
     loadSearchIndex.mockReturnValue(new Promise(() => {}));
     show('');

@@ -44,8 +44,6 @@ describe('readCode', () => {
 });
 
 describe('LOG_LEVELS', () => {
-  // A variant the plugin admits but CodeBlock does not know would build into a block
-  // with no accent and no name.
   it('names every variant lib/rehype-code.mjs admits, and no other', () => {
     expect([...LOG_LEVELS.keys()]).toEqual(VARIANTS);
   });

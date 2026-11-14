@@ -5,14 +5,8 @@ import siteConfig from '@/config/site';
 
 import SupporterBand from './SupporterBand';
 
-/**
- * The copy and the links are the same on every article, so this half stays a Server
- * Component and ships no JavaScript. Only the band below needs the network.
- */
 export default function SupportCallout() {
-  // The size variant has to be answered in kind: `p-0` and `gap-0` lose to the
-  // primitive's own `data-[size=sm]:` rules, which would leave the band floating 16px
-  // clear of the card's bottom edge instead of running into it.
+  // Answered in kind: plain `p-0` and `gap-0` lose to the primitive's `data-[size=sm]:` rules.
   return (
     <CardRoot className="my-8 overflow-hidden data-[size=sm]:gap-0 data-[size=sm]:py-0">
       <CardContent className="flex flex-col gap-5 p-6">

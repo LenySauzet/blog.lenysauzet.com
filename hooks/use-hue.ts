@@ -7,7 +7,6 @@ type HueStore = {
   setHue: (hue: string) => void;
 };
 
-/** Whatever the blocking script in `app/layout.tsx` already painted. */
 const stored = () => {
   if (typeof window === 'undefined') return DEFAULT_HUE.id;
 
@@ -25,8 +24,7 @@ export const useHue = create<HueStore>((set) => ({
       document.documentElement.style.setProperty(property, value);
     }
 
-    // A private window throws rather than returning null, and the colour
-    // just asked for should land either way.
+    // A private window throws rather than returning null.
     try {
       window.localStorage.setItem(STORAGE_KEY, hue);
     } catch {}

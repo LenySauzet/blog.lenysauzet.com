@@ -12,11 +12,6 @@ import {
   propertiesOf,
 } from './hues';
 
-/**
- * oklch to sRGB, so the contrast floor below is checked rather than asserted.
- * Test-only: nothing ships it, the browser doing this conversion itself.
- * Agrees with Chrome to within 0.02 of a ratio across all eighteen presets.
- */
 const luminance = (L: number, C: number, H: number) => {
   const h = (H * Math.PI) / 180;
   const a = C * Math.cos(h);
@@ -50,8 +45,6 @@ describe('hueOf', () => {
     expect(hueOf('teal')).toBe(HUES.find((hue) => hue.id === 'teal'));
   });
 
-  // The id comes out of storage, so it is whatever a reader last left there,
-  // an older build wrote, or somebody typed into devtools.
   it('falls back to the default for anything it does not know', () => {
     expect(hueOf('chartreuse')).toBe(DEFAULT_HUE);
     expect(hueOf(null)).toBe(DEFAULT_HUE);
@@ -69,8 +62,6 @@ describe('HUES', () => {
   });
 
   it('names each preset after the hue it actually is', () => {
-    // Tailwind's own angles. A preset called Blue that sits at 262 is a violet
-    // with a blue's name, which is how the default shipped before.
     const tailwind: Record<string, number> = {
       red: 25.331, orange: 47.604, amber: 70.08, yellow: 86.047, lime: 130.85,
       green: 149.579, emerald: 162.48, teal: 182.503, cyan: 215.221, sky: 237.323,
@@ -83,13 +74,6 @@ describe('HUES', () => {
     }
   });
 
-  /**
-   * Only the hue turns for every other token, and the accent carries far more
-   * chroma than any of them, so what a preset costs in contrast is decided by
-   * its angle. At a fixed lightness the green and cyan arc falls to 3.17 on
-   * white where the warm end reaches 4.06; each preset carries the lightness
-   * that buys it back. The floor is what the site shipped before any of this.
-   */
   it('clears the floor in both themes, every one of them', () => {
     const onWhite = luminance(1, 0, 0);
 

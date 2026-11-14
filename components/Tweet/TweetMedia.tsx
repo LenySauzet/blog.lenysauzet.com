@@ -50,7 +50,6 @@ function Video({ medium, mirror, url, author }: VideoProps) {
       </a>
     );
 
-  // Through the optimizer, so even a poster is asked of this site and not of X.
   const poster = getImageProps({
     src: largeUrl(medium),
     alt: '',

@@ -10,10 +10,6 @@ import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Tick02Icon } from "@hugeicons/core-free-icons"
 
-// Custom, not from the CLI: `data-keyed` marks a palette the keyboard is driving,
-// any key, so a row shows the selection with no fine pointer too: arrows on a
-// keyboard paired with a phone, or a query typed before Enter runs the first row. The selection
-// is then the only focus indicator, DOM focus staying in the box. A touch clears it.
 function Command({
   className,
   onKeyDown,
@@ -42,15 +38,6 @@ function Command({
   )
 }
 
-// Custom, not from the CLI: Motion animates the dialog rather than the
-// primitive's keyframes. Mounting the palette takes a frame of 65 to 85ms and a
-// CSS animation is timed from that frame's start, so a 100ms entrance was nine
-// tenths done by the time it was first painted; Motion's starts on the frame
-// after. The backdrop's radius travels too, not just the opacity: a blurred
-// backdrop is as good as fully blurred at an opacity of zero, so fading alone
-// held the page blurred to the last frame and then let it snap back. Motion
-// moves a variable rather than the property, so Tailwind still writes the
-// prefixed one Safari before 18 reads.
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
@@ -62,7 +49,6 @@ function CommandDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Once it has left: what repaints the page waits for this, or reads as a cut. */
   onExitComplete?: () => void
   title?: string
   description?: string
@@ -70,9 +56,9 @@ function CommandDialog({
   className?: string
 }) {
   const still = usePrefersReducedMotion()
-  // No trigger holds the dialog, so Radix has nothing to hand the focus back to.
   const returnTo = React.useRef<HTMLElement | null>(null)
   const transition = { duration: 0.15, ease: "easeOut" } as const
+  // Motion moves the variable, not backdrop-filter, so Tailwind still writes Safari 17's prefixed one.
   const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
 
   return (
@@ -123,17 +109,12 @@ function CommandDialog({
   )
 }
 
-/** The dialog's box, shut once it is leaving: AnimatePresence keeps the props
-    it last had, an open dialog's, and cmdk would still run a row on Enter.
-    `inert` alone lets through a key pressed before the next frame, when the
-    browser takes back the focus it holds. */
 function Panel(props: React.ComponentProps<typeof motion.div>) {
   const present = useIsPresent()
   return (
     <motion.div
       {...props}
       inert={!present}
-      // Enter alone: the shortcut that reopens it is read on the document, past here.
       onKeyDownCapture={(event) => {
         if (!present && event.key === "Enter") event.stopPropagation()
       }}
@@ -141,14 +122,11 @@ function Panel(props: React.ComponentProps<typeof motion.div>) {
   )
 }
 
-// Laid out inline rather than through InputGroup: a bare box with room at its
-// end, not a field with an addon floating over it.
 function CommandInput({
   className,
   hint,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input> & {
-  /** Room at the end of the row for what the box can do right now. */
   hint?: React.ReactNode
 }) {
   return (
@@ -226,12 +204,6 @@ function CommandSeparator({
   )
 }
 
-// Custom, not from the CLI: rows rest on the body tier and the selected one
-// steps up to `--foreground` on a faint wash, the accent being left to what the
-// reader chose rather than to where the cursor is. Only where a fine pointer
-// exists or the keyboard is driving: cmdk always selects a row, which under a
-// finger alone is no cursor at all and read as one row stuck lit. Re-run
-// `add command --diff` and re-apply.
 function CommandItem({
   className,
   children,
@@ -252,12 +224,6 @@ function CommandItem({
   )
 }
 
-/** What a row says on its right: a destination, a date, the accent in force.
-    Lifts with the row the way a shortcut does, or the one thing on the line
-    that does not answer the selection reads as disabled.
-
-    Exported as a class as well, for a mark that has to be a motion element to
-    animate its own exit. */
 const commandHint =
   "ml-auto truncate pl-6 text-sm font-normal text-subtle-foreground any-pointer-fine:group-data-selected/command-item:text-foreground in-data-keyed:group-data-selected/command-item:text-foreground"
 

@@ -7,7 +7,6 @@ interface LightboxStore {
   cover: () => () => void;
 }
 
-/** Whether a lightbox covers the page, so what plays on its own behind the veil can hold still. */
 export const useLightboxStore = create<LightboxStore>((set) => ({
   open: 0,
   cover: () => {

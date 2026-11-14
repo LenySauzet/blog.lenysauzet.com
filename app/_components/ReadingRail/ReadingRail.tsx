@@ -24,11 +24,8 @@ const SPACING = 14;
 
 const VEIL_BLUR = 14;
 
-/** Air kept beyond the longest title: a title reaching past the panel reaches
-    past the veil with it. */
 const VEIL_MARGIN = 120;
 
-/** Held as far as the longest title, the veil is a slab, not a dissolve. */
 const VEIL_SOLID = 0.28;
 
 const RAMP = blurRamp('to left', VEIL_SOLID * 100, EASED);
@@ -65,8 +62,6 @@ export function ReadingRail() {
   const cascade = useCascade(sections, unfolded, Boolean(still));
   const veil = useMotionValue(0);
 
-  // The veil waits on the walk, where the figure waits on the whole pass: once
-  // every title has been told, the column is emptying everywhere at once.
   useEffect(() => {
     const running = animate(
       veil,
@@ -79,7 +74,6 @@ export function ReadingRail() {
     return () => running.stop();
   }, [unfolded, still, veil, sections.length]);
 
-  // A title hanging past the veil leaves the column legible through the words.
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const node = field.current;
@@ -96,9 +90,7 @@ export function ReadingRail() {
     return () => cancelAnimationFrame(frame);
   }, [sections, height]);
 
-  // The radius travels, not the opacity: a blurred layer is as good as fully
-  // blurred at half of it. `none` at rest, a backdrop filter re-blurring its
-  // backdrop every frame it is mounted.
+  // `none` at rest: a mounted backdrop filter re-blurs every frame, even at 0px.
   const backdrop = useTransform(veil, (shown) =>
     shown === 0 ? 'none' : `blur(${(shown * VEIL_BLUR).toFixed(2)}px)`
   );
@@ -113,8 +105,7 @@ export function ReadingRail() {
     setReached(count < 2 ? 0 : Math.round(progress * (count - 1)))
   );
 
-  /** Read off the event, not the state the pointer last set: a click arriving
-      in the same batch as its move would act on the tick before it. */
+  // Off the event, not state: a click batched with its move would hit the tick before.
   const under = (event: { clientY: number }) => {
     const box = field.current?.getBoundingClientRect();
 
@@ -154,16 +145,11 @@ export function ReadingRail() {
       }}
       onWheel={handOnWheel}
       onClick={go}
-      // Inert itself: the two boxes below are the whole of what the pointer
-      // reaches. Its width never animates either, which re-laid the veil and
-      // all fifty ticks on every frame.
       style={{ width: widest ? widest + VEIL_MARGIN : undefined }}
       className="pointer-events-none fixed top-0 right-0 z-[45] hidden h-dvh cursor-pointer py-24 pointer-fine:md:block"
     >
-      {/* The only way in, narrow enough that crossing the page is not one. */}
       <div className="pointer-events-auto absolute inset-y-0 right-0 w-12 lg:w-28" />
 
-      {/* Holds it open: the longest title's reach and not a pixel more. */}
       <div
         style={{ width: widest || undefined }}
         className={cn(
@@ -172,9 +158,6 @@ export function ReadingRail() {
         )}
       />
 
-      {/* Gone from `xl` up, nothing passing behind the rail there. The colour
-          layer is a masked fill, never a gradient of alphas: over a page of
-          its own colour that bands where it should be invisible. */}
       <div className="pointer-events-none absolute inset-0 xl:hidden">
         <motion.div
           className="absolute inset-0"
@@ -203,7 +186,6 @@ export function ReadingRail() {
           />
         ))}
 
-        {/* Clutter beside a column of titles, so it waits them out. */}
         <motion.span
           style={{ top }}
           animate={{ opacity: unfolded ? 0 : 1 }}

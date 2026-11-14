@@ -3,12 +3,6 @@ import * as React from 'react';
 import { Table as TablePrimitive } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-/**
- * A table as an article reads it. The primitive owns structure and appearance;
- * this adds the block rhythm, the surface that holds it, and the one type
- * declaration every cell inherits, so a header is the only thing that has to
- * say anything about itself.
- */
 export default function Table({
   className,
   ...props
@@ -18,11 +12,7 @@ export default function Table({
       <TablePrimitive
         className={cn(
           'font-display text-muted-foreground leading-6',
-          // Faint enough that the rule under it and the type on it still do the
-          // marking. A raised surface would read as a second panel inside one.
           '[&_thead]:bg-foreground/[0.03]',
-          // A column narrower than this wraps a sentence into a column of
-          // single words, so a wide table scrolls inside its own edge instead.
           '[&_td]:min-w-36 [&_th]:min-w-36',
           className
         )}

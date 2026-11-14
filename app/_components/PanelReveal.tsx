@@ -16,14 +16,12 @@ const DEFOCUS = '14px';
 
 export function PanelReveal() {
   const [swept, setSwept] = useState(false);
+  // Gone once swept: a mounted backdrop-filter re-blurs every frame.
   if (swept) return null;
 
   return (
     <>
-      {/* A backdrop filter re-blurs its backdrop every frame it stays mounted,
-          which is why the whole component goes once the sweep is over. Hidden in
-          CSS rather than skipped in JS: branching the first render on a media query
-          the server cannot read is a hydration mismatch. */}
+      {/* Hidden in CSS, not JS: the server cannot read the media query. */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-10 motion-reduce:hidden"

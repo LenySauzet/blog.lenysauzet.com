@@ -19,26 +19,23 @@ import { isNear, stepTarget } from './steps';
 import { useAutoplay } from './use-autoplay';
 import { useTrackMotion } from './use-track-motion';
 
-// The article's column; the lift loads the current image at the lightbox's own sizes.
 const SLIDE_SIZES = '(max-width: 768px) calc(100vw - 2rem), 672px';
 const BLEED = `${MAX_BEND}px`;
 
 export interface SlideshowImage {
   src: string;
-  /** What it shows, read on its slide and naming it enlarged; empty leaves it to the caption. */
+  /** Empty leaves it to the caption. */
   alt: string;
 }
 
 export interface SlideshowCarouselProps {
-  /** Fully resolved URLs, each with what it shows; resolution happens on the server. */
+  /** Fully resolved URLs. */
   images: SlideshowImage[];
-  /** The first image's, which sets the frame every slide shares. */
   width: number;
   height: number;
-  /** Names the slideshow and every image in it. */
   alt: string;
   autoPlay: boolean;
-  /** Milliseconds each image holds while playing. */
+  /** Milliseconds. */
   interval: number;
   className?: string;
 }
@@ -56,22 +53,18 @@ export function SlideshowCarousel({
   const rootRef = useRef<HTMLDivElement>(null);
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
-  // What the live region says: the reader's own moves, emptied by autoplay's, so a
-  // move back to the image last announced is still announced.
   const [announced, setAnnounced] = useState<number | null>(null);
   const byReader = useRef(false);
   const reduced = usePrefersReducedMotion();
   const playback = usePlayback();
   const inView = useInView(rootRef);
-  // Any lightbox, this one's or another figure's, covers the page: nothing plays behind it.
   const covered = useLightboxStore((state) => state.open > 0);
   const lift = useLift(rootRef);
 
   const count = images.length;
   const navigable = count > 1;
-  // One image has nowhere to go, and Autoplay throws when asked to play it.
+  // Autoplay throws when asked to play a single image.
   const plays = autoPlay && navigable;
-  // A slideshow that plays itself goes round; one the reader drives stops at its ends.
   const loop = plays;
   const playing = plays && playback.playing && inView && !covered;
 
@@ -86,8 +79,7 @@ export function SlideshowCarousel({
       setAnnounced(byReader.current ? index : null);
       byReader.current = false;
     };
-    // A press that moves nothing (a tap, a drag that snaps back) selects nothing;
-    // Embla raises this after any select a press does make.
+    // Embla raises this after any select the press made, and a tap selects nothing.
     const onRelease = () => {
       byReader.current = false;
     };
@@ -130,7 +122,6 @@ export function SlideshowCarousel({
     return moved;
   });
 
-  // A single image still opens by Enter; only one that can move takes the page's arrows.
   useEffect(() => registerSlideshow(rootRef.current!, (key) => handle(key), navigable), [navigable]);
 
   return (
@@ -145,7 +136,6 @@ export function SlideshowCarousel({
           aria-label={alt}
           aria-describedby={`${id}-keys`}
           data-slideshow=""
-          // Keyboard focus anywhere in the slideshow stops it, as the APG carousel pattern asks.
           onFocus={(event) => {
             if (event.target.matches(':focus-visible')) playback.pause();
           }}
@@ -195,7 +185,7 @@ export function SlideshowCarousel({
                     height={height}
                     sizes={SLIDE_SIZES}
                     bleed={BLEED}
-                    // Once on screen the neighbours load ahead, so a drag never reveals a blank slide.
+                    // Neighbours load ahead, or a drag reveals a blank slide.
                     loading={inView && isNear(index, selected, count, loop) ? 'eager' : 'lazy'}
                   />
                 </motion.div>

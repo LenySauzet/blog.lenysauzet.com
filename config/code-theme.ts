@@ -1,7 +1,4 @@
-// Shiki's `css-variables` theme, inlined as plain data rather than built via
-// `createCssVariablesTheme`: next.config.ts compiles to CommonJS and cannot
-// import ESM-only shiki, and Turbopack only accepts serializable plugin options.
-// Colours resolve to the `--shiki-token-*` variables in app/globals.css.
+// Plain data, not createCssVariablesTheme: the CJS config cannot import ESM-only shiki.
 export const codeTheme = {
   name: 'css-variables',
   type: 'dark',
@@ -135,15 +132,11 @@ export const codeTheme = {
       scope: ['markup.changed', 'punctuation.definition.changed'],
       settings: { foreground: 'var(--shiki-token-changed)' },
     },
-    // Not in the stock css-variables theme: operators get their own token so
-    // they can carry the fixed orange accent.
     {
       scope: ['keyword.operator', 'storage.type.function.arrow'],
       settings: { foreground: 'var(--shiki-token-operator)' },
     },
-    // The rules below realign the stock theme's coarse TypeScript classification
-    // with Maxime Heckel's Prism palette. Order matters: the more specific scope
-    // wins, and later rules break ties.
+    // Order matters below: the more specific scope wins, and later rules break ties.
     {
       scope: [
         'entity.name.type',
@@ -165,8 +158,7 @@ export const codeTheme = {
       scope: ['support.type.primitive', 'support.type.builtin'],
       settings: { foreground: 'var(--shiki-token-keyword)' },
     },
-    // Plain variables stay uncoloured, so only literals and properties carry a
-    // colour. This is what makes the palette read as Prism rather than VS Code.
+    // Plain variables stay uncoloured, as in Prism.
     {
       scope: [
         'variable.other.constant',

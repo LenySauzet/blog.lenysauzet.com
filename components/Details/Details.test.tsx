@@ -19,8 +19,7 @@ describe('Details', () => {
 
     await user.click(trigger);
 
-    // Assert the disclosure state on the trigger, not the content's unmount:
-    // jsdom's zero-sized boxes keep Motion's exit from ever settling.
+    // On the trigger: jsdom's zero-sized boxes keep Motion's exit from settling.
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('Nested content')).toBeInTheDocument();
   });

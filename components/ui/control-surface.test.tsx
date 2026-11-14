@@ -6,14 +6,7 @@ import { Checkbox } from './checkbox';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 import { Switch } from './switch';
 
-// jsdom applies no Tailwind, so these assert which classes reach the element,
-// not what they paint. Each mark animates a property Tailwind v4 sets on its
-// own rather than folding into `transform`; a transition naming `transform`
-// compiles fine and animates nothing, which is how this shipped the first time.
-//
-// The expectation matches the mark's whole transition declaration, since the
-// shared surface animates `scale` too for its hover feedback and a bare
-// property name would pass on that alone.
+// The whole declaration: the shared surface animates `scale` too, so a bare name passes on it alone.
 const MARKS = [
   {
     name: 'Checkbox',
