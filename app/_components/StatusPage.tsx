@@ -16,7 +16,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
   return (
     <section
       className={cn(
-        'grid h-full grid-cols-[minmax(0,1fr)] px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-0',
+        'grid h-full grid-cols-[minmax(0,1fr)] px-4 lg:grid-cols-[6rem_1fr_minmax(0,42rem)_1fr_6rem] lg:px-12',
         className
       )}
     >
@@ -25,7 +25,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
       <div className="flex flex-col items-center justify-center text-center lg:col-start-3">
         <p
           className={cn(
-            'font-mono text-[clamp(8rem,40vw,14rem)] leading-none text-subtle-foreground [mask-image:linear-gradient(to_bottom,black_20%,transparent_85%)]',
+            'font-mono text-[clamp(8rem,40vw,14rem)] leading-none text-subtle-foreground [mask-image:linear-gradient(to_bottom,black_45%,transparent_78%)]',
             'animate-[status-rise_0.9s_cubic-bezier(0.22,0.61,0.36,1)_both] motion-reduce:animate-none'
           )}
         >
@@ -43,7 +43,7 @@ export function StatusPage({ status, title, children, className }: StatusPagePro
 
         <div
           className={cn(
-            'mt-6 flex items-center gap-2 font-display text-base text-muted-foreground',
+            'mt-6 flex max-w-md flex-col items-center gap-6 font-display text-base leading-7 text-muted-foreground',
             'animate-[status-rise_0.9s_cubic-bezier(0.22,0.61,0.36,1)_0.24s_both] motion-reduce:animate-none'
           )}
         >

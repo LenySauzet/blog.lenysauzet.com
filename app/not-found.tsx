@@ -9,15 +9,16 @@ export const metadata: Metadata = { title: 'Page not found' };
 export default function NotFound() {
   return (
     <StatusPage status="404" title="This page does not exist">
-      <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
-        Home
-      </Anchor>
-      <span className="text-subtle-foreground">
-        or search with{' '}
+      <p>
+        It may have moved, or the link was mistyped. Every article is one search away with{' '}
         <kbd className="rounded-md border border-border px-1.5 py-0.5 font-mono text-xs text-foreground">
           ⌘K
         </kbd>
-      </span>
+        .
+      </p>
+      <Anchor href="/" direction="left" discreet underline={false} favicon={false}>
+        Home
+      </Anchor>
     </StatusPage>
   );
 }
