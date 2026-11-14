@@ -6,7 +6,6 @@ export default function MdxLayout({ children }: { children: React.ReactNode }) {
   return (
     <div data-scroll-root className="h-full overflow-x-hidden overflow-y-auto pb-32">
       {children}
-      {/* Bottom only: a top band washes over the head of any media under it. */}
       <ScrollFade />
       <ReadingRail />
     </div>

@@ -41,7 +41,8 @@ What the shape forces:
   and should be nothing at all, and it lays down steps of about one part in 255 that
   read as a vertical seam: worst column step 0.97 as a gradient against 0.10 as a mask.
   `ScrollFade` is built the same way for the same reason, 1.20 against 0.12 across its
-  band, and `lib/fade.ts` now offers no way to paint a colour ramp at all.
+  band, and `lib/fade.ts` now offers no way to paint a colour ramp at all. `ScrollFade` fades
+  the foot of an article only: a band at the top would wash over media scrolling under it.
 - **The veil holds at full across less than a third of the panel**, then falls along
   `EASED`. Held as far as the title itself it is a flat slab where a dissolve belongs,
   and the blur carries legibility under a title long before the colour has to. A
