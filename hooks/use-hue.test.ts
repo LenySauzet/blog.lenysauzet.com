@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DEFAULT_HUE, hueOf, STORAGE_KEY } from '@/lib/hues';
+import { DEFAULT_HUE, hueOf, STORAGE_KEY } from '@/lib/theme/hues';
 
 import { useHue } from './use-hue';
 

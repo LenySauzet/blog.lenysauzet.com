@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { rect } from '@/lib/rect';
-import { vec2 } from '@/lib/vec2';
+import { rect } from '@/lib/geometry/rect';
+import { vec2 } from '@/lib/geometry/vec2';
 
 import Diagram from './Diagram';
 import { Arrow, Box, Circle, Detail, Frame, Magnifier, Polygon, Readout } from './primitives';

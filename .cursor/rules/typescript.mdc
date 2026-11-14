@@ -22,8 +22,8 @@ All imports use the `@/` alias pointing to the project root:
 ```tsx
 import { cn } from '@/lib/utils';
 import siteConfig from '@/config/site';
-import { getPosts } from '@/lib/post-utils';
-import Anchor from '@/components/Anchor';
+import { getPosts } from '@/lib/posts/post-utils';
+import Anchor from '@/components/prose/Anchor';
 ```
 
 Never use relative `../../../` imports when `@/` works.
@@ -51,11 +51,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 
-import Anchor from '@/components/Anchor';
+import Anchor from '@/components/prose/Anchor';
 import { Button } from '@/components/ui/button';
 import siteConfig from '@/config/site';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
-import { getPosts } from '@/lib/post-utils';
+import { getPosts } from '@/lib/posts/post-utils';
 import { cn } from '@/lib/utils';
 
 import { MySubComponent } from './MySubComponent';
@@ -133,7 +133,7 @@ try {
 
 ## MDX Metadata Typing
 
-Posts export a typed `metadata` object. Define and reuse the type in `lib/post-utils.ts`:
+Posts export a typed `metadata` object. Define and reuse the type in `lib/posts/post-utils.ts`:
 
 ```tsx
 type PostMetadata = {

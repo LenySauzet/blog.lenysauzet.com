@@ -1,12 +1,12 @@
 ---
 name: figure-chart
 description: >-
-  Builds and changes charts, graphs and data figures with components/Chart on Recharts
+  Builds and changes charts, graphs and data figures with components/figures/Chart on Recharts
   (area, bar and line over axes, PieChart, RadarChart, RadialChart) and the
   ConfusionMatrix heatmap. Use whenever a post shows measured or computed values
   (timings, benchmarks, distributions, proportions, profiles, counts), even when the
   user just says 'a graph' or gives the numbers inline, and for any change to
-  components/Chart, components/ui/chart.tsx or ConfusionMatrix.
+  components/figures/Chart, components/ui/chart.tsx or ConfusionMatrix.
 ---
 
 # Charts
@@ -24,8 +24,8 @@ Data goes through the chart components as props; a post never touches Recharts. 
 | Gauges against one full turn | `RadialChart` | `data` of slices, `max` |
 | Counts across two categories | `ConfusionMatrix` | `matrix`, `labels`, `rowLabel`, `columnLabel` |
 
-Types are in `components/Chart/types.ts`, and every chart is shown in the design system
-through `components/ComponentShowcase/ChartShowcase.tsx`, with data a post can copy.
+Types are in `components/figures/Chart/types.ts`, and every chart is shown in the design system
+through `components/prose/ComponentShowcase/ChartShowcase.tsx`, with data a post can copy.
 `Chart`, `PieChart` and `ConfusionMatrix` are registered in `mdx-components.tsx`;
 register `RadarChart` or `RadialChart` there before a post uses one.
 

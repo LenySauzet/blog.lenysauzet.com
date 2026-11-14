@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import Halftone from './Halftone';
 
-vi.mock('@/lib/shader', async (original) => ({
-  ...(await original<typeof import('@/lib/shader')>()),
+vi.mock('@/lib/shader/engine', async (original) => ({
+  ...(await original<typeof import('@/lib/shader/engine')>()),
   createShader: () => ({ sync: () => {}, dispose: () => {} }),
 }));
 

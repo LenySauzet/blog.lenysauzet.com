@@ -1,4 +1,4 @@
-import { add, fromAngle, length, scale, sub, type Vec2 } from '@/lib/vec2';
+import { add, fromAngle, length, scale, sub, type Vec2 } from '@/lib/geometry/vec2';
 
 export interface Disc {
   at: Vec2;

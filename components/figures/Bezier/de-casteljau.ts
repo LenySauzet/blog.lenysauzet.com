@@ -1,4 +1,4 @@
-import { lerp, type Vec2 } from '@/lib/vec2';
+import { lerp, type Vec2 } from '@/lib/geometry/vec2';
 
 export const deCasteljau = (points: readonly Vec2[], t: number): Vec2[][] =>
   points.length === 1

@@ -5,7 +5,7 @@ Contents: [Why SVG](#why-svg), [Layout and names](#layout-and-names), [The toolb
 ## Why SVG
 
 **A geometric figure is drawn in SVG, from maths a test can read.**
-`components/figures/Diagram` is the plane and its marks; `lib/vec2.ts` is the plane
+`components/figures/Diagram` is the plane and its marks; `lib/geometry/vec2.ts` is the plane
 maths; the figure's own geometry sits beside it, pure, the way `rail.ts` sits beside
 the reading rail. `RaySphere` is the first and the shape the next ones copy.
 
@@ -106,7 +106,7 @@ rather than a surface a screen reader cannot enter.
   follows the type.
 - **A figure driven by time is a figure whose parameter comes from `useTimeline`**
   rather than from a slider, so its geometry stays a pure function of one number. It
-  runs only on screen, a step capped by `lib/clock.ts` so a tab coming back does not
+  runs only on screen, a step capped by `lib/shader/clock.ts` so a tab coming back does not
   leap. Whether it plays is `hooks/use-playback.ts`, shared with every shader and
   `Backdrop`: still for a reader who asked for less motion, and a figure is pausable
   through `Playback`, since anything moving on its own past five seconds must be (WCAG
@@ -114,9 +114,9 @@ rather than a surface a screen reader cannot enter.
 
 ## Three dimensions
 
-- **Three dimensions stay in SVG while the subject is lines.** `lib/vec3.ts` holds an
+- **Three dimensions stay in SVG while the subject is lines.** `lib/geometry/vec3.ts` holds an
   orthographic camera, yaw, pitch and scale, of which `ISOMETRIC` is one setting;
-  `lib/mesh.ts` builds a heightfield, its faces and its silhouette. Perspective waits
+  `lib/geometry/mesh.ts` builds a heightfield, its faces and its silhouette. Perspective waits
   for the figure that needs it, and a phenomenon that lives per pixel, lighting
   included, is a canvas's.
 - **A silhouette is an edge between a face turned to the eye and one turned away, and

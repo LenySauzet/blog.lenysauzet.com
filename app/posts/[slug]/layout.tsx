@@ -1,5 +1,5 @@
-import { ReadingRail } from '@/app/_components/ReadingRail';
-import ScrollFade from '@/components/ScrollFade';
+import { ReadingRail } from './_components/ReadingRail';
+import ScrollFade from './_components/ScrollFade';
 
 export default function MdxLayout({ children }: { children: React.ReactNode }) {
   // Clips x, or a callout's overflowing corner badge scrolls the page.

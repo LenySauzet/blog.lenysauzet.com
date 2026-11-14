@@ -1,4 +1,4 @@
-import Logo from '@/components/Logo';
+import Logo from '@/components/shared/Logo';
 import siteConfig from '@/config/site';
 
 import type { IslandState } from '../types';

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { usePlayback } from '@/hooks/use-playback';
-import { step } from '@/lib/clock';
+import { step } from '@/lib/shader/clock';
 
 export const advance = (phase: number, seconds: number, period: number) =>
   (phase + step(seconds) / period) % 1;

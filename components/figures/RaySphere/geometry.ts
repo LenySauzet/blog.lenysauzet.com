@@ -8,7 +8,7 @@ import {
   sub,
   vec2,
   type Vec2,
-} from '@/lib/vec2';
+} from '@/lib/geometry/vec2';
 
 import { rayCircle } from './ray-circle';
 

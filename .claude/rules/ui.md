@@ -1,12 +1,12 @@
 ---
 paths:
   - "components/ui/**"
-  - "components/Slider/**"
-  - "components/Toggle/**"
-  - "components/Card/**"
-  - "components/Details/**"
-  - "components/EmailInput/**"
-  - "components/PasswordInput/**"
+  - "components/controls/Slider/**"
+  - "components/controls/Toggle/**"
+  - "components/prose/Card/**"
+  - "components/prose/Details/**"
+  - "components/controls/EmailInput/**"
+  - "components/controls/PasswordInput/**"
 ---
 
 # Primitives and controls
@@ -52,7 +52,7 @@ Sized for prose (`text-sm px-3 py-1 rounded-lg`) and carrying four tinted status
 type posts use; and its corners, an edge image's included, are `rounded-frame-xl`, a
 framed block's, so a Callout nests it.
 
-**`components/Card` holds no style at all.** The primitive owns structure and appearance;
+**`components/prose/Card` holds no style at all.** The primitive owns structure and appearance;
 the wrapper only adds the article's block rhythm (`my-6`) and the header a `title`
 implies. The separator is `border-b` on `CardHeader`: the primitive's `[.border-b]:pb-*`
 supplies the padding and preflight's `* { @apply border-border }` supplies the colour, so
@@ -61,7 +61,7 @@ keeps it a shade under the body rather than level with it.
 `CardFooter` and `CardAction` are deliberately not re-exported; import them from
 `@/components/ui/card` if a post ever needs them.
 
-**`components/Details` is built on the shadcn Accordion primitive**, not a hand-rolled
+**`components/prose/Details` is built on the shadcn Accordion primitive**, not a hand-rolled
 disclosure, so Radix owns the open state and the ARIA wiring. It composes
 `AccordionPrimitive.Header/Trigger` and `.Content` directly, because the generated
 wrappers bring a chevron we don't want and an inner `h-(--radix-…-height)` div that
@@ -172,7 +172,7 @@ as a second colour; a 2px grip sits just inside its leading edge and the thumb i
   left on the root is never announced. `components/ui/slider.tsx` forwards it.
 - **The label and readout sit over the bar, not inside the control**, so
   `data-disabled:opacity-40` fades the surface without taking the caption with it.
-  `components/Slider` describes that readout with `unit` and `decimals` rather than a
+  `components/controls/Slider` describes that readout with `unit` and `decimals` rather than a
   formatter callback: a post is a Server Component, and React cannot pass a function
   across that boundary: the callback version crashed the page.
 - **The fill is ours, not `SliderPrimitive.Range`.** Radix drives Range's width from the

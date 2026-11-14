@@ -19,7 +19,7 @@ const withMDX = createMDX({
       // Before rehype-code, which would otherwise highlight the math nodes.
       'rehype-mathjax',
       // Absolute: the loader resolves a path from the MDX file's directory.
-      [join(__dirname, 'lib/rehype-code.mjs'), { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
+      [join(__dirname, 'lib/posts/rehype-code.mjs'), { theme: codeTheme, keepBackground: false, defaultLang: { block: 'plaintext' } }],
     ],
   },
 });

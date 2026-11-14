@@ -1,13 +1,14 @@
 ---
 paths:
-  - "app/_components/ReadingRail/**"
+  - "app/posts/[slug]/_components/ReadingRail/**"
   - "lib/scroll-column.ts"
-  - "components/ScrollFade/**"
+  - "app/posts/[slug]/_components/ScrollFade/**"
+  - "lib/fade.ts"
 ---
 
 # The reading rail
 
-**The reading rail is a ruler down the side of an article.** `app/_components/ReadingRail/`:
+**The reading rail is a ruler down the side of an article.** `app/posts/[slug]/_components/ReadingRail/`:
 ticks against the viewport, the reader's place among them in `--primary`, the sections as
 longer marks, and their titles unfolding on hover. Clicking anywhere travels there.
 
@@ -35,12 +36,12 @@ What the shape forces:
   all, so what was left to see was its own quantisation. Below, it earns the cost:
   249px of column sit under the panel at 1024, 311 at 900.
 - **Both of its layers carry their ramp as a mask**, from
-  `components/ScrollFade/gradients.ts`, the colour one over a flat fill. Painted as a
+  `lib/fade.ts`, the colour one over a flat fill. Painted as a
   gradient of alphas instead, it is `--background` on `--background` over an empty page
   and should be nothing at all, and it lays down steps of about one part in 255 that
   read as a vertical seam: worst column step 0.97 as a gradient against 0.10 as a mask.
   `ScrollFade` is built the same way for the same reason, 1.20 against 0.12 across its
-  band, and `gradients.ts` now offers no way to paint a colour ramp at all.
+  band, and `lib/fade.ts` now offers no way to paint a colour ramp at all.
 - **The veil holds at full across less than a third of the panel**, then falls along
   `EASED`. Held as far as the title itself it is a flat slab where a dissolve belongs,
   and the blur carries legibility under a title long before the colour has to. A

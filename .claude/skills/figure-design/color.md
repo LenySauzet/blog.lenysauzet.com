@@ -5,7 +5,7 @@
 - **A figure is drawn in one ink, and the ink is the accent.** The structure takes
   `ink`, which is `--primary`, so every figure carries the colour the reader chose, the
   way Making Software draws everything in its own cobalt. Beside it sit two companions,
-  `second` and `third`, **picked per preset in `lib/hues.ts`**: out of orange, emerald,
+  `second` and `third`, **picked per preset in `lib/theme/hues.ts`**: out of orange, emerald,
   violet, rose and sky, each is the one furthest round the wheel from the accent and
   from the companion before it, as Tailwind's 600 in light and 400 in dark. A fixed hue
   fails because with seventeen presets it is somebody's accent; a plain complement

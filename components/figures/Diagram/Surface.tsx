@@ -1,5 +1,5 @@
-import type { Grid } from '@/lib/mesh';
-import type { Camera } from '@/lib/vec3';
+import type { Grid } from '@/lib/geometry/mesh';
+import type { Camera } from '@/lib/geometry/vec3';
 
 import { Arrow, Label, Line, Point, Polygon } from './primitives';
 import { scene, type Axis } from './scene';

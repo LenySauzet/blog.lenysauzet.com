@@ -4,7 +4,7 @@ Contents: [The model](#the-model), [What a chart forces](#what-a-chart-forces), 
 
 ## The model
 
-- **A chart carries axes**, so it is `components/Chart` on Recharts, through shadcn's
+- **A chart carries axes**, so it is `components/figures/Chart` on Recharts, through shadcn's
   `ui/chart.tsx`. `type` picks the plot and the mark together, which is the whole of
   Recharts' model: `AreaChart` plus `Area`, `BarChart` plus `Bar`. **A kind with no
   axes gets its own component** rather than a fourth value of `type`: a pie's parts and

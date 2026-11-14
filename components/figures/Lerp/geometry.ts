@@ -1,5 +1,5 @@
 import { MEASURE } from '@/components/figures/Diagram';
-import { lerp, vec2 } from '@/lib/vec2';
+import { lerp, vec2 } from '@/lib/geometry/vec2';
 
 export const HEIGHT = 240;
 export const PERIOD = 4;

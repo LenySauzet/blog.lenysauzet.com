@@ -1,4 +1,4 @@
-import { getPosts } from '@/lib/post-utils';
+import { getPosts } from '@/lib/posts/post-utils';
 
 const AUTHORITY = /https?:\/\/([^\s/"'<>)\]]+)/g;
 

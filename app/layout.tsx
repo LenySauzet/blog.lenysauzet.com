@@ -2,13 +2,13 @@ import type { Viewport } from 'next';
 import { Geist, Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 
-import { CommandPalette } from '@/components/CommandPalette';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProvider } from '@/components/shared/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
-import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/hues';
-import { getPosts, summaryOf } from '@/lib/post-utils';
+import { getPosts, summaryOf } from '@/lib/posts/post-utils';
+import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/theme/hues';
 
+import { CommandPalette } from './_components/CommandPalette';
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
 import './globals.css';
 

@@ -1,6 +1,7 @@
-import { PostsList } from '@/components/PostsList';
-import { getPosts } from '@/lib/post-utils';
-import { IndexSection } from './_components/IndexSection';
+import { getPosts } from '@/lib/posts/post-utils';
+
+import { IndexSection } from './_components/Home/IndexSection';
+import { PostsList } from './_components/Home/PostsList';
 
 export default async function Page() {
   const posts = await getPosts();

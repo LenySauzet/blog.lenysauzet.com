@@ -1,11 +1,11 @@
 ---
 name: figure-code
 description: >-
-  Puts live, editable code in a blog post with components/Sandpack, themed with the
+  Puts live, editable code in a blog post with components/figures/Sandpack, themed with the
   site's tokens, for when the code itself is the subject and the reader should change
   and run it. Use whenever a post should show a runnable example (a React hook, an
   API, a library, a technique by example), even when the user only asks for 'an
-  example the reader can edit', and for changes to components/Sandpack.
+  example the reader can edit', and for changes to components/figures/Sandpack.
 ---
 
 # Live code

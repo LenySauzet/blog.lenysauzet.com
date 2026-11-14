@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { AMPLITUDE, ripple } from '@/components/figures/Wave/geometry';
-import { dot3 } from '@/lib/vec3';
+import { dot3 } from '@/lib/geometry/vec3';
 
 import { FRAGMENT } from './fragment';
 import { ASPECT, EXTENT, FREQUENCY, light, outline, uniforms } from './geometry';

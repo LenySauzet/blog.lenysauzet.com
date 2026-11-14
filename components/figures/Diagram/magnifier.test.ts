@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { dot, length, sub, vec2 } from '@/lib/vec2';
+import { dot, length, sub, vec2 } from '@/lib/geometry/vec2';
 import { side } from '@/test/figure';
 
 import { tangents } from './magnifier';

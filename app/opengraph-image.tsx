@@ -1,6 +1,7 @@
-import Logo from '@/components/Logo';
-import siteConfig from '@/config/site';
 import { ImageResponse } from 'next/og';
+
+import Logo from '@/components/shared/Logo';
+import siteConfig from '@/config/site';
 
 export const alt = siteConfig.siteName;
 export const size = {

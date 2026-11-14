@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getPosts = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/post-utils', () => ({ getPosts }));
+vi.mock('@/lib/posts/post-utils', () => ({ getPosts }));
 
 const withContent = (...content: string[]) =>
   getPosts.mockResolvedValue(content.map((text) => ({ content: text })));

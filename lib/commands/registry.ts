@@ -20,9 +20,9 @@ import {
 
 import { announce } from '@/app/_components/DynamicIsland'
 import siteConfig from '@/config/site'
-import { openBooking } from '@/lib/booking'
 import { pickAnother } from '@/lib/search/random'
-import { withThemeTransition } from '@/lib/theme-transition'
+import { openBooking } from '@/lib/services/booking'
+import { withThemeTransition } from '@/lib/theme/theme-transition'
 
 import type { Command, CommandContext } from './types'
 

@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react';
 
-import Figure from '@/components/Figure';
-import { Shader } from '@/components/Shader';
-import Slider from '@/components/Slider';
-import Toggle from '@/components/Toggle';
+import Slider from '@/components/controls/Slider';
+import Toggle from '@/components/controls/Toggle';
+import Figure from '@/components/figures/Figure';
 import { Playback } from '@/components/figures/Playback';
 import { Playground } from '@/components/figures/Playground';
+import { Shader } from '@/components/figures/Shader';
 import { usePlayback } from '@/hooks/use-playback';
 
 import { FRAGMENT } from './fragment';

@@ -1,5 +1,5 @@
 import { AMPLITUDE, ripple } from '@/components/figures/Wave/geometry';
-import { basis, dot3, ISOMETRIC, vec3, type Vec3 } from '@/lib/vec3';
+import { basis, dot3, ISOMETRIC, vec3, type Vec3 } from '@/lib/geometry/vec3';
 
 export const FREQUENCY = { min: 0.5, max: 3, initial: 1.5 };
 export const LIGHT = { min: 0, max: 360, initial: 135 };

@@ -1,16 +1,18 @@
-import { AnnouncePost } from '@/app/_components/DynamicIsland';
-import Anchor from '@/components/Anchor/Anchor';
-import Footnote from '@/components/Footnote';
-import { ScrambledText } from '@/components/ScrambledText';
-import { UpdatedBadge } from '@/components/UpdatedBadge';
-import siteConfig from '@/config/site';
-import { postDate } from '@/lib/post-date';
-import { getPosts } from '@/lib/post-utils';
-import { readingTimeOf } from '@/lib/reading-time';
-import { relativeTime } from '@/lib/relative-time';
 import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
+import { AnnouncePost } from '@/app/_components/DynamicIsland';
+import Anchor from '@/components/prose/Anchor/Anchor';
+import { ScrambledText } from '@/components/shared/ScrambledText';
+import siteConfig from '@/config/site';
+import { postDate } from '@/lib/posts/post-date';
+import { getPosts } from '@/lib/posts/post-utils';
+import { readingTimeOf } from '@/lib/posts/reading-time';
+import { relativeTime } from '@/lib/posts/relative-time';
+
+import PostFooter from './_components/PostFooter';
+import { UpdatedBadge } from './_components/UpdatedBadge';
 
 const { url, authorName, siteName, twitter } = siteConfig;
 
@@ -105,7 +107,7 @@ export default async function Page({
           </div>
         </div>
 
-        <Footnote />
+        <PostFooter />
       </article>
     );
   } catch {

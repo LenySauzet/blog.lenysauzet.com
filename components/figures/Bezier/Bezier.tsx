@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 
-import Figure from '@/components/Figure';
-import Slider from '@/components/Slider';
+import Slider from '@/components/controls/Slider';
 import Diagram, {
   Curve,
   Label,
@@ -11,6 +10,7 @@ import Diagram, {
   Line,
   Point,
 } from '@/components/figures/Diagram';
+import Figure from '@/components/figures/Figure';
 
 import { bezier, HEIGHT, T } from './geometry';
 

@@ -4,7 +4,7 @@ import {
   MEASURE,
   type Placement,
 } from '@/components/figures/Diagram';
-import { add, scale, vec2, type Vec2 } from '@/lib/vec2';
+import { add, scale, vec2, type Vec2 } from '@/lib/geometry/vec2';
 
 export const SIZES = [13, 16, LARGEST_TYPE];
 

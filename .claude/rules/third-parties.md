@@ -1,14 +1,14 @@
 ---
 paths:
-  - "lib/booking.ts"
-  - "lib/supporters.ts"
+  - "lib/services/booking.ts"
+  - "lib/services/supporters.ts"
   - "app/api/supporters/**"
-  - "components/SupportCallout/**"
+  - "components/prose/SupportCallout/**"
 ---
 
 # Third parties: cal.com and Buy Me a Coffee
 
-**Booking is one row in `Tools` and nothing else.** `lib/booking.ts` is the whole of
+**Booking is one row in `Tools` and nothing else.** `lib/services/booking.ts` is the whole of
 it: the command's `run` hands it the theme the palette already carries, and cal.com's
 own modal goes up over the page. `config/site.ts` holds the handle, the embed taking a
 path rather than a URL, and the page rather than one event type so a visitor picks the
@@ -36,7 +36,7 @@ length they need.
   `--base-hue`, the reader picks one of seventeen, and an iframe reads its variables
   once.
 
-**Buy Me a Coffee answers 200 to everything.** `lib/supporters.ts` and
+**Buy Me a Coffee answers 200 to everything.** `lib/services/supporters.ts` and
 `app/api/supporters/route.ts` read their API, and `response.ok` proves nothing there: an
 empty result is `{ error: "No supporters" }` and a stale token is a 200 carrying their
 *login page*, so the route checks the content type instead. Their published reference is
@@ -56,7 +56,7 @@ contradict themselves on cannot carry a privacy decision, so only `support_hidde
 `is_refunded` do. That public endpoint is also the way to settle the next such
 question: if it publishes a name without a token, the name is public.
 
-**`components/SupportCallout` fetches from the browser on purpose.** Posts are statically
+**`components/prose/SupportCallout` fetches from the browser on purpose.** Posts are statically
 generated, so reading the supporter list at build time would freeze the names until the
 next deploy. The card itself stays a Server Component; only the band is a client.
 

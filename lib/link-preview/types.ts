@@ -1,6 +1,6 @@
 import type { IconSvgElement } from '@hugeicons/react';
 
-import type { PostSummary } from '@/lib/post-utils';
+import type { PostSummary } from '@/lib/posts/post-utils';
 
 export interface LinkPreview {
   icon: IconSvgElement;

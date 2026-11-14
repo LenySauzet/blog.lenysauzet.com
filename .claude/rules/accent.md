@@ -1,6 +1,6 @@
 ---
 paths:
-  - "lib/hues.ts"
+  - "lib/theme/hues.ts"
   - "hooks/use-hue.ts"
   - "app/layout.tsx"
   - "app/globals.css"
@@ -8,7 +8,7 @@ paths:
 
 # The accent
 
-**The accent is a reader's choice, out of seventeen presets.** `lib/hues.ts` is the
+**The accent is a reader's choice, out of seventeen presets.** `lib/theme/hues.ts` is the
 whole list; everything else reads it. One row in `Tools` opens a page of the palette,
 and the choosing happens there.
 

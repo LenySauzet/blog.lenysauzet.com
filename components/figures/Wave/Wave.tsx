@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 
-import Figure from '@/components/Figure';
-import Slider from '@/components/Slider';
+import Slider from '@/components/controls/Slider';
 import Diagram, { Surface, Title } from '@/components/figures/Diagram';
+import Figure from '@/components/figures/Figure';
 
 import { AXES, FREQUENCY, HEIGHT, TITLE, TURN, wave } from './geometry';
 

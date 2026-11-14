@@ -67,7 +67,6 @@ that neither file makes obvious:
 element**: that force-applies dark and breaks the toggle. It was a bug once; don't
 reintroduce it. `:root` is light, `.dark` overrides, both in `app/globals.css`.
 
-`components/ModeToggle` is no longer mounted anywhere: the theme is switched from the
-palette, with ⌘D. `<html
+The theme is switched from the palette, with ⌘D. `<html
 suppressHydrationWarning>` plus next-themes' injected script avoids the flash. Mobile
 chrome colour follows the OS via the `themeColor` viewport export, not the toggle.

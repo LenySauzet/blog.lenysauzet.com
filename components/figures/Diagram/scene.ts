@@ -1,5 +1,5 @@
-import { faces, silhouette, type Grid } from '@/lib/mesh';
-import { normalize, sub, type Vec2 } from '@/lib/vec2';
+import { faces, silhouette, type Grid } from '@/lib/geometry/mesh';
+import { normalize, sub, type Vec2 } from '@/lib/geometry/vec2';
 import {
   scale3,
   towardViewer,
@@ -7,7 +7,7 @@ import {
   view,
   type Camera,
   type Vec3,
-} from '@/lib/vec3';
+} from '@/lib/geometry/vec3';
 
 import type { Placement } from './primitives';
 

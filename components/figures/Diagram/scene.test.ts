@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { heightfield } from '@/lib/mesh';
-import { length, sub, vec2 } from '@/lib/vec2';
-import { ISOMETRIC, vec3 } from '@/lib/vec3';
+import { heightfield } from '@/lib/geometry/mesh';
+import { length, sub, vec2 } from '@/lib/geometry/vec2';
+import { ISOMETRIC, vec3 } from '@/lib/geometry/vec3';
 
 import { paintOrder, scene, type Piece } from './scene';
 

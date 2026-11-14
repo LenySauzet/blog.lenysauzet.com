@@ -1,27 +1,27 @@
 ---
 paths:
   - "content/**"
-  - "lib/post-*.ts"
-  - "lib/cdn.ts"
-  - "lib/image-utils.ts"
-  - "components/Image/**"
-  - "components/Lightbox/**"
-  - "components/Slideshow/**"
+  - "lib/posts/**"
+  - "lib/media/cdn.ts"
+  - "lib/media/image-utils.ts"
+  - "components/media/Image/**"
+  - "components/media/Lightbox/**"
+  - "components/media/Slideshow/**"
   - "hooks/use-lightbox-store.ts"
-  - "components/VideoPlayer/**"
-  - "components/Blockquote/**"
-  - "components/List/**"
-  - "components/Separator.tsx"
+  - "components/media/VideoPlayer/**"
+  - "components/prose/Blockquote/**"
+  - "components/prose/List/**"
+  - "components/shared/Separator.tsx"
   - "app/posts/**"
   - "app/llms.txt/**"
   - "mdx-components.tsx"
   - "next.config.ts"
   - "config/site.ts"
-  - "components/UpdatedBadge.tsx"
-  - "components/Footnote.tsx"
-  - "components/Footnotes/**"
-  - "components/Tweet/**"
-  - "lib/tweet.ts"
+  - "app/posts/[slug]/_components/UpdatedBadge.tsx"
+  - "app/posts/[slug]/_components/PostFooter.tsx"
+  - "components/prose/Footnotes/**"
+  - "components/media/Tweet/**"
+  - "lib/media/tweet.ts"
   - "scripts/tweet-videos.ts"
 ---
 
@@ -47,7 +47,7 @@ export const metadata = {
 
 The slug is the filename. Posts load via dynamic `import()` at build time
 (`generateStaticParams` + `dynamicParams = false` in `app/posts/[slug]/page.tsx`).
-`getPosts()` in `lib/post-utils.ts` reads `content/` and imports each file's metadata;
+`getPosts()` in `lib/posts/post-utils.ts` reads `content/` and imports each file's metadata;
 it excludes drafts unless asked, so the feed, RSS and sitemap never leak them.
 
 `updated` is set by hand, so it means "changed in a way worth telling a reader
@@ -68,7 +68,7 @@ one of 1027 `<span>`s, so the code arrives unfenced and indistinguishable from p
 and the thirteen headings arrive unmarked. MathJax renders a formula as vector glyphs,
 which is right for an eye and unreadable for anything else.
 
-`lib/post-markdown.ts` is the whole transform and takes two liberties with the source,
+`lib/posts/post-markdown.ts` is the whole transform and takes two liberties with the source,
 each because the original means nothing outside the build: the metadata export becomes
 YAML, which something other than a bundler can parse, and a relative media path becomes
 absolute. Both are narrower than they look. **Only the imports the file opens with are
@@ -101,14 +101,14 @@ file in the wrong place.
 
 Media lives on `cdn.lenysauzet.com` (Cloudflare R2), namespaced by kind: `images/…`
 and `videos/…`. Origin and layout are declared in `config/site.ts` (`cdnUrl`,
-`cdnPaths`); `lib/cdn.ts` is the only module aware of them. Absolute URLs pass through
+`cdnPaths`); `lib/media/cdn.ts` is the only module aware of them. Absolute URLs pass through
 untouched, so a post can point at a third-party asset.
 
 ```mdx
 <Image src="blog/halftone.png" alt="Diagram breaking down the distance field" />
 ```
 
-**Prefer omitting `width`/`height`.** `components/Image` is an async Server Component
+**Prefer omitting `width`/`height`.** `components/media/Image` is an async Server Component
 that reads the image header at build time (ranged request + `image-size`, memoized with
 `cache()`) to reserve space and avoid CLS. Hand-written values tend to be the *displayed*
 size, not the intrinsic one, which skews the aspect ratio and the generated `srcset`.
@@ -137,7 +137,7 @@ script of its own. What it rests on, each for a reason:
   same way, to a line saying the post is gone, and never takes the build down.
 - **Only `react-tweet/api` is imported.** The package's root also ships its own theme's
   stylesheets, which Node cannot load and the page has no use for, so the text is split
-  by `segmentsOf` in `lib/tweet.ts`: hashtags, mentions and links, each URL shown as X
+  by `segmentsOf` in `lib/media/tweet.ts`: hashtags, mentions and links, each URL shown as X
   displays it, the media's trailing t.co link cut, indices counted in code points. X
   sends the text HTML-escaped and counts its indices in the escaped text, so the text is
   cut first and each plain run decoded after.
@@ -166,9 +166,9 @@ a second, differently styled set of notes in the same article.
 **`---` is a native `<hr>`**, mapped in `mdx-components.tsx`, not shadcn's `Separator`:
 a thematic break is what `<hr>` means, to a screen reader and to reader modes alike,
 where the Radix primitive is a decorative `div` built for menus and toolbars.
-`components/Separator.tsx` is something else, the dashed rule that opens a post's footer.
+`components/shared/Separator.tsx` is something else, the dashed rule that opens a post's footer.
 
-**`components/Lightbox` uses no dialog primitive**: not `ui/dialog.tsx`, not Radix, not
+**`components/media/Lightbox` uses no dialog primitive**: not `ui/dialog.tsx`, not Radix, not
 Base UI. Radix ties its scroll lock to the layer's mount, and the layer must outlive a
 dismiss to animate out, so the page is frozen for the whole exit animation by
 construction. The surface holds one decorative image, so a focus trap has nothing to
@@ -196,7 +196,7 @@ first paints on the frame the other hides, and lazy and decoded off the main thr
 Safari painted nothing there, so the image leapt in mid-flight on an iPhone and never
 in Chrome.
 
-**`components/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
+**`components/prose/Blockquote` is a centred pull-quote**, not a left-border aside; markdown
 `>` maps to it. It uses `font-serif` (Instrument Serif) as **a deliberate departure from
 the reference**, which renders its pull-quote in the default sans because its own
 `var(--font-serif)` is undefined. This is the one place the blog knowingly diverges, so
@@ -212,7 +212,7 @@ Two `globals.css` rules fight Tailwind preflight's `svg { display: block }`, whi
 otherwise decentres display math and breaks inline math onto its own line. Array cells are
 textstyle by LaTeX rule, so use `\dfrac` for displaystyle fractions.
 
-**Fenced code (`components/CodeBlock`).** A fence takes `title="file.ts"` and `{2,5-7}` to
+**Fenced code (`components/prose/CodeBlock`).** A fence takes `title="file.ts"` and `{2,5-7}` to
 highlight lines. A changed line ends in `// [!code ++]` or `// [!code --]` (Shiki's
 notation, in the language's own comment syntax): the build strips it and draws a diff,
 its `+` and `−` read aloud as "added" and "removed"; copying leaves the removed lines
@@ -223,13 +223,13 @@ its line, or notation in plain text fails, the twin having no way to mirror them
 has: one ink whatever its language, unnumbered, wrapped, titled "Info", "Warning" or
 "Error" unless given a title, before which the level is still read aloud. Another
 variant fails the build, as does a log with a diff or highlighted lines. The
-transformers run through `lib/rehype-code.mjs`, because Turbopack cannot pass a function
+transformers run through `lib/posts/rehype-code.mjs`, because Turbopack cannot pass a function
 as a plugin option. **A running `bun dev` keeps the version it started with**: restart
 it after changing that file. A block over 24 lines folds to its first 16 under a veil,
 a floating button unfolding it, and shows whole in print or without script: split a
 listing rather than let it fold when every line matters.
 
-**`components/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
+**`components/media/Slideshow` is a carousel of images on Embla.** `<Slideshow images={[…]}
 alt="…" />`, `alt` doubling as caption and name, and each image a path alone or `{ src,
 alt }`, its own `alt` read on its slide and naming it enlarged (a bare path leaves it to
 the caption); `autoPlay` cross-fades, goes round and draws a pause button, `interval`
@@ -281,7 +281,7 @@ its pace. Its frame is `--card`, which shows wherever an image has not loaded.
   (`steps.ts`), the seam and the parallax (`bend.ts`), and the key routing
   (`keyboard.ts`, against fake slideshows).
 
-**Prose lists (`components/List`).** Every item renders the same decorative arrow marker;
+**Prose lists (`components/prose/List`).** Every item renders the same decorative arrow marker;
 ordered lists hide it via CSS and show a counter instead. Those counter rules live in
 `app/globals.css` under `ol[data-list='ordered']`, a deliberate exception to the
 inline-className rule, because `content: counter(...)` cannot be a Tailwind class. Nesting

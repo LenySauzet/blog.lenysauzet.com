@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { DEFAULT_HUE, hueOf, propertiesOf, STORAGE_KEY } from '@/lib/hues';
+import { DEFAULT_HUE, hueOf, propertiesOf, STORAGE_KEY } from '@/lib/theme/hues';
 
 type HueStore = {
   hue: string;

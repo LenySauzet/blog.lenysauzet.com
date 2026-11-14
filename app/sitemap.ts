@@ -1,6 +1,7 @@
-import siteConfig from '@/config/site'
-import { getPosts } from '@/lib/post-utils'
 import { MetadataRoute } from 'next'
+
+import siteConfig from '@/config/site'
+import { getPosts } from '@/lib/posts/post-utils'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url
