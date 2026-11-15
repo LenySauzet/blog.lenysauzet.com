@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { getTweet } from 'react-tweet/api';
 
-import { answers, TWEET_EMBED, videosOf } from '@/lib/tweet';
+import { answers, TWEET_EMBED, videosOf } from '@/lib/media/tweet';
 
 const BUCKET = 'lenysauzet-assets';
 

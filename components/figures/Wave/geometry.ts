@@ -1,7 +1,7 @@
 import { MEASURE, type Axis } from '@/components/figures/Diagram';
-import { heightfield } from '@/lib/mesh';
-import { vec2 } from '@/lib/vec2';
-import { ISOMETRIC, vec3, type Camera } from '@/lib/vec3';
+import { heightfield } from '@/lib/geometry/mesh';
+import { vec2 } from '@/lib/geometry/vec2';
+import { ISOMETRIC, vec3, type Camera } from '@/lib/geometry/vec3';
 
 export const HEIGHT = 440;
 export const TITLE = vec2(MEASURE / 2, 390);

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode, Ref } from 'react';
 
-import { EASED, blurRamp } from '@/components/ScrollFade/gradients';
+import { EASED, blurRamp } from '@/lib/fade';
 import { cn } from '@/lib/utils';
 
 export const MEASURE = 672;

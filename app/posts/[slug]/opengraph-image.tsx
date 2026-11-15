@@ -1,10 +1,12 @@
-import Logo from '@/components/Logo';
-import DotMatrix from '@/components/OG/DotMatrix';
-import Shapes from '@/components/OG/Shapes';
-import siteConfig from '@/config/site';
 import { ImageResponse } from 'next/og';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import Logo from '@/components/shared/Logo';
+import siteConfig from '@/config/site';
+
+import DotMatrix from './_components/OG/DotMatrix';
+import Shapes from './_components/OG/Shapes';
 
 export const alt = siteConfig.siteName;
 export const size = {

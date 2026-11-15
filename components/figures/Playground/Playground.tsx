@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import Fullbleed from '@/components/Fullbleed';
+import Fullbleed from '@/components/prose/Fullbleed';
 import { cn } from '@/lib/utils';
 
 const PANEL = 'rounded-frame-xl border border-(--code-border) bg-(--code-bg)';

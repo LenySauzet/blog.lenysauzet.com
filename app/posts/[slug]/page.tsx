@@ -1,16 +1,18 @@
-import { AnnouncePost } from '@/app/_components/DynamicIsland';
-import Anchor from '@/components/Anchor/Anchor';
-import Footnote from '@/components/Footnote';
-import { ScrambledText } from '@/components/ScrambledText';
-import { UpdatedBadge } from '@/components/UpdatedBadge';
-import siteConfig from '@/config/site';
-import { postDate } from '@/lib/post-date';
-import { getPosts } from '@/lib/post-utils';
-import { readingTimeOf } from '@/lib/reading-time';
-import { relativeTime } from '@/lib/relative-time';
 import { format } from 'date-fns';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
+import { AnnouncePost } from '@/app/_components/DynamicIsland';
+import Anchor from '@/components/prose/Anchor/Anchor';
+import { ScrambledText } from '@/components/shared/ScrambledText';
+import siteConfig from '@/config/site';
+import { postDate } from '@/lib/posts/post-date';
+import { getPosts } from '@/lib/posts/post-utils';
+import { readingTimeOf } from '@/lib/posts/reading-time';
+import { relativeTime } from '@/lib/posts/relative-time';
+
+import PostFooter from './_components/PostFooter';
+import { UpdatedBadge } from './_components/UpdatedBadge';
 
 const { url, authorName, siteName, twitter } = siteConfig;
 
@@ -81,7 +83,7 @@ export default async function Page({
               {metadata.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              {/* One string, so a single decode crosses the whole line. */}
+              {/* One string: split in two, each half would scramble on its own. */}
               <time
                 dateTime={metadata.date}
                 className="font-mono text-sm uppercase text-subtle-foreground"
@@ -99,13 +101,13 @@ export default async function Page({
             </div>
           </div>
 
-          {/* No font-weight: strong, em and h3 step up from a 400 body. */}
+          {/* No font-weight: strong, em and h3 are 500, so the body must stay at 400. */}
           <div data-prose className="flex flex-col gap-5">
             <Post />
           </div>
         </div>
 
-        <Footnote />
+        <PostFooter />
       </article>
     );
   } catch {

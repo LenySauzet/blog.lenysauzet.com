@@ -6,7 +6,7 @@ import { Checkbox } from './checkbox';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 import { Switch } from './switch';
 
-// The whole declaration: the shared surface animates `scale` too, so a bare name passes on it alone.
+// Match the whole declaration: the shared surface also transitions `scale`, so a bare name would always pass.
 const MARKS = [
   {
     name: 'Checkbox',

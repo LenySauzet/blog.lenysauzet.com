@@ -1,0 +1,43 @@
+import { Children, isValidElement, type ReactNode } from 'react';
+
+export interface LogLevel {
+  label: string;
+  accent: string;
+}
+
+// Same keys as `VARIANTS` in lib/posts/rehype-code.mjs, which fails the build on any other.
+export const LOG_LEVELS = new Map<string, LogLevel>([
+  ['info', { label: 'Info', accent: '[--code-accent:var(--primary)]' }],
+  ['warning', { label: 'Warning', accent: '[--code-accent:var(--warning)]' }],
+  ['danger', { label: 'Error', accent: '[--code-accent:var(--destructive)]' }],
+]);
+
+export interface CodeStats {
+  lines: number;
+  added: number;
+  removed: number;
+  variant?: string;
+}
+
+interface CodeProps {
+  children?: ReactNode;
+  className?: string;
+  'data-variant'?: string;
+}
+
+export function readCode(node: ReactNode, stats: CodeStats = { lines: 0, added: 0, removed: 0 }) {
+  Children.forEach(node, (child) => {
+    if (!isValidElement<CodeProps>(child)) return;
+    const { props } = child;
+    stats.variant ??= props['data-variant'];
+    if (!('data-line' in props)) {
+      readCode(props.children, stats);
+      return;
+    }
+    const classes = props.className?.split(' ') ?? [];
+    stats.lines += 1;
+    if (classes.includes('add')) stats.added += 1;
+    if (classes.includes('remove')) stats.removed += 1;
+  });
+  return stats;
+}

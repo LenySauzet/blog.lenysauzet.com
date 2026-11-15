@@ -1,4 +1,4 @@
-import { COVER, LUMA } from '@/components/Shader/glsl';
+import { COVER, LUMA } from '@/components/figures/Shader/glsl';
 
 export const FRAGMENT = /* glsl */ `#version 300 es
 precision highp float;

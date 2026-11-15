@@ -1,7 +1,8 @@
 ---
 name: figure-diagram
 description: >-
-  Builds, fixes and restyles drawn figures in components/figures: SVG geometry and
+  Builds, fixes and restyles drawn figures in components/figures (Bezier, Lerp,
+  Coverage, RaySphere, Wave and any new one): SVG geometry and
   constructions, 3D surfaces as lines, system diagrams of boxes and frames, and
   figures animated in time, all composed from the Diagram toolbox over pure, tested
   geometry. Use for any work on such a figure, a small fix included (overlapping
@@ -33,14 +34,14 @@ module and test beside `geometry.ts`. Register the figure in `mdx-components.tsx
 ## The toolbox
 
 - **Plane**: `Diagram` (the `MEASURE`-wide SVG, its type steps and fading edges),
-  `lib/vec2.ts`, `lib/rect.ts`, `lib/polygon.ts`. A scale is a subtraction and a multiply;
+  `lib/geometry/vec2.ts`, `lib/geometry/rect.ts`, `lib/geometry/polygon.ts`. A scale is a subtraction and a multiply;
   reach for `d3-scale` when the mapping stops being linear, not before.
 - **Atoms**: `Point`, `Line`, `Curve`, `Arrow`, `Polygon`, `Circle`, `Rectangle`,
   `Label`, `Title`, `Readout`. Every shape takes one tone, width, dash and fill
   (`none`, `soft`, `solid`, `hatched`, or a share), and `outline` for an edge of its own.
 - **Parts**: `Leader` and `stack` for names in the margin, `Magnifier` and `Detail` for
   lenses, `Surface` for a heightfield, `Box` and `Frame` for systems.
-- **Space**: `lib/vec3.ts` (orthographic camera, `ISOMETRIC`), `lib/mesh.ts`
+- **Space**: `lib/geometry/vec3.ts` (orthographic camera, `ISOMETRIC`), `lib/geometry/mesh.ts`
   (heightfield, faces, silhouette), `scene` and `paintOrder` for depth.
 - **Time**: `useTimeline` for the parameter, `Playback` for the pause, `use-playback`.
 - **Tones**: `tones.ts`, applied through `paint()` as `--fill` and `--edge`.

@@ -1,9 +1,8 @@
 import { useId, type ReactNode } from 'react';
 
-import { centre, type Rect } from '@/lib/rect';
+import { centre, type Rect } from '@/lib/geometry/rect';
+import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/geometry/vec2';
 import { cn } from '@/lib/utils';
-import { add, normalize, scale, sub, vec2, type Vec2 } from '@/lib/vec2';
-
 
 import { LEADER_GAP, leaderPath } from './leaders';
 import { tangents, type Disc } from './magnifier';

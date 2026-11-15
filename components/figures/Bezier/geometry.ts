@@ -1,5 +1,5 @@
 import { FADE_HOLD, LARGEST_TYPE, stack, type Placement } from '@/components/figures/Diagram';
-import { vec2, type Vec2 } from '@/lib/vec2';
+import { vec2, type Vec2 } from '@/lib/geometry/vec2';
 
 import { deCasteljau } from './de-casteljau';
 

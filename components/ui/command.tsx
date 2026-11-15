@@ -5,6 +5,7 @@ import { Command as CommandPrimitive } from "cmdk"
 import { AnimatePresence, motion, useIsPresent } from "motion/react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
+import { useCmdkStore } from "@/hooks/use-cmdk-store"
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -58,7 +59,7 @@ function CommandDialog({
   const still = usePrefersReducedMotion()
   const returnTo = React.useRef<HTMLElement | null>(null)
   const transition = { duration: 0.15, ease: "easeOut" } as const
-  // Motion moves the variable, not backdrop-filter, so Tailwind still writes Safari 17's prefixed one.
+  // Animate the variable, not backdrop-filter: Tailwind's class then keeps the `-webkit-` prefix Safari 17 needs.
   const away = { opacity: 0, scale: still ? 1 : 0.95, "--dialog-blur": "0px" }
 
   return (
@@ -84,7 +85,11 @@ function CommandDialog({
               }}
               onCloseAutoFocus={(event) => {
                 event.preventDefault()
-                if (returnTo.current?.isConnected) returnTo.current.focus()
+                if (!returnTo.current?.isConnected) return
+                // focus() fires focus synchronously, so whoever receives it can tell.
+                useCmdkStore.setState({ returningFocus: true })
+                returnTo.current.focus()
+                useCmdkStore.setState({ returningFocus: false })
               }}
             >
               <Panel

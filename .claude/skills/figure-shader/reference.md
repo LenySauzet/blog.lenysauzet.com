@@ -2,7 +2,7 @@
 
 ## The engine
 
-- **One engine, `lib/shader.ts`, under the figures and `Backdrop` alike.** It knows no
+- **One engine, `lib/shader/engine.ts`, under the figures and `Backdrop` alike.** It knows no
   React: `createShader` holds the canvas, the loop and the observers, and `sync` takes
   the whole scene on every render and redoes only what changed, a vector compared by
   its values, a texture fetched once and freed on the GPU when its source changes. A
@@ -12,7 +12,7 @@
   derivatives for an edge, `textureLod`, mipmaps on an image of any size. Every
   browser the site supports has it; the rest are told so.
 - **It draws on change.** While on screen it re-reads its colour tokens each frame
-  (`lib/css-color.ts`, for the reason given there) and redraws only when one of them,
+  (`lib/shader/css-color.ts`, for the reason given there) and redraws only when one of them,
   a uniform, a texture or the size has moved. `playing` runs `uTime` inside that loop,
   so a playing shader never re-renders React, and a still one with no colour to watch
   runs no loop at all. The first frame only reads the clock: a frame's timestamp can
@@ -63,7 +63,7 @@
 
 ## Backdrop
 
-**`components/Backdrop` is a `Shader` and two CSS gradients**, and it draws onto
+**`app/_components/Home/Backdrop` is a `Shader` and two CSS gradients**, and it draws onto
 transparency, so the page supplies the ground.
 The shader outputs the accent premultiplied by the ink, so `--background` is never copied
 into the frame. It used to be a uniform, and a theme flip left the old one baked in

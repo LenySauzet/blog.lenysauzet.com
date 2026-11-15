@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalize, vec2 } from '@/lib/vec2';
+import { normalize, vec2 } from '@/lib/geometry/vec2';
 
 import { rayCircle } from './ray-circle';
 

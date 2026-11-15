@@ -8,18 +8,17 @@ import { glassSurface } from '@/components/ui/glass';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
 import { useScrollTracking } from '@/hooks/use-scroll-tracking';
-import { handOnWheel } from '@/lib/scroll-column';
 import { cn } from '@/lib/utils';
 
 import { MORPH } from './motion';
 import { Presentation } from './Presentation';
+import { INSET } from './shape';
 import { islandStates } from './states';
 import { hint } from './states/hint';
 import { resting } from './states/resting';
 import type { IslandContext, IslandState } from './types';
 import { useOpening } from './use-opening';
 
-const INSET = '0.375rem';
 const COMPACT_HEIGHT = '2.75rem';
 const MAX_WIDTH = '19rem';
 
@@ -68,8 +67,9 @@ export function DynamicIsland() {
   return (
     <div
       className={cn(
-        'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
-        // On the positioner: it keeps catching what the inert button no longer does.
+        // Recentred while a scroll lock has taken a classic scrollbar away.
+        'fixed bottom-6 left-[calc(50%-var(--removed-body-scroll-bar-size,0px)/2)] z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
+        // On the wrapper, not the button: the wrapper's own box would still catch the pointer.
         state.inert && 'pointer-events-none'
       )}
     >
@@ -79,9 +79,12 @@ export function DynamicIsland() {
         onClick={() => setIsOpen(true)}
         onPointerEnter={point}
         onPointerLeave={() => setHovered(false)}
-        onFocus={point}
+        onFocus={() => {
+          // The palette returns focus to whatever opened it: that is not the reader pointing.
+          if (useCmdkStore.getState().returningFocus) return;
+          point();
+        }}
         onBlur={() => setHovered(false)}
-        onWheel={handOnWheel}
         className="group inline-flex cursor-pointer outline-none transition-[scale] duration-200 hover:scale-[1.02] active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
       >
         <motion.div
@@ -98,7 +101,7 @@ export function DynamicIsland() {
           }}
           className={cn(
             glassSurface,
-            // The rim stands in for the hairline only where relative colour can draw it.
+            // The border drops only where relative colour can draw the rim that replaces it.
             'glass-rim relative flex items-center overflow-hidden supports-[color:oklch(from_red_l_c_h)]:border-0 [--rim-highlight:0.16] [--rim-ink:var(--foreground)] group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background'
           )}
         >

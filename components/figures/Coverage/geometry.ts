@@ -1,6 +1,6 @@
 import type { Placement } from '@/components/figures/Diagram';
-import { area, clip, depth, rectangle, type HalfPlane } from '@/lib/polygon';
-import { add, fromAngle, vec2, type Vec2 } from '@/lib/vec2';
+import { area, clip, depth, rectangle, type HalfPlane } from '@/lib/geometry/polygon';
+import { add, fromAngle, vec2, type Vec2 } from '@/lib/geometry/vec2';
 
 export const HEIGHT = 300;
 export const ANGLE = { min: -70, max: 70, initial: 25 };

@@ -3,7 +3,7 @@ paths:
   - "app/_components/DynamicIsland/**"
   - "hooks/use-island-store.ts"
   - "hooks/use-scroll-tracking.ts"
-  - "lib/scroll-column.ts"
+  - "lib/page-scroll.ts"
   - "lib/link-preview/**"
   - "app/api/link-preview/**"
 ---
@@ -39,8 +39,6 @@ What the shape forces, none of it obvious:
 - **The lift and the press scale the target, not the pill.** A transform carries the
   hit area with it; on the pill they would reach past their own target and bring the
   oscillation back.
-- **A wheel over the island does nothing on its own.** `body` does not scroll and the
-  scrolling column is a sibling, so the delta is handed on by hand.
 - **The hint is for a reader who has not found the island yet.** It visits once after
   load, unless the island is pointed at or focused first: that calls off the visit to
   come, or ends the one under way, and from then on the hint shows only while pointed or focused.

@@ -4,6 +4,8 @@ import { useSyncExternalStore } from 'react';
 
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
+export const prefersReducedMotion = () => window.matchMedia(REDUCED).matches;
+
 const subscribe = (change: () => void) => {
   const query = window.matchMedia(REDUCED);
   query.addEventListener('change', change);
@@ -14,7 +16,7 @@ const subscribe = (change: () => void) => {
 export function usePrefersReducedMotion() {
   return useSyncExternalStore(
     subscribe,
-    () => window.matchMedia(REDUCED).matches,
+    prefersReducedMotion,
     () => false
   );
 }

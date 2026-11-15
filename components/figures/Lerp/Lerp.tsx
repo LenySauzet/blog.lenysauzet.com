@@ -1,6 +1,5 @@
 'use client';
 
-import Figure from '@/components/Figure';
 import Diagram, {
   Label,
   Line,
@@ -8,6 +7,7 @@ import Diagram, {
   Readout,
   useTimeline,
 } from '@/components/figures/Diagram';
+import Figure from '@/components/figures/Figure';
 import { Playback } from '@/components/figures/Playback';
 
 import { HEIGHT, INITIAL, interpolation, PERIOD, READOUT } from './geometry';

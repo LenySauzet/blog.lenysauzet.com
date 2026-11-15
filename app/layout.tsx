@@ -1,38 +1,16 @@
 import type { Viewport } from 'next';
-import { Geist, Instrument_Serif } from 'next/font/google';
-import localFont from 'next/font/local';
 
-import { CommandPalette } from '@/components/CommandPalette';
-import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getRootMetadata } from '@/config/site';
-import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/hues';
-import { getPosts, summaryOf } from '@/lib/post-utils';
+import { getPosts, summaryOf } from '@/lib/posts/post-utils';
+import { HUES, propertiesOf, STORAGE_KEY } from '@/lib/theme/hues';
 
+import { CommandPalette } from './_components/CommandPalette';
+import { bodyClassName } from './_components/document';
 import { DynamicIsland, LinkPreviews } from './_components/DynamicIsland';
+import { StoredHue } from './_components/StoredHue';
+import { ThemeProvider } from './_components/theme-provider';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-display',
-  subsets: ['latin'],
-});
-
-const instrument = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
-});
-
-const FiraCode = localFont({
-  src: '../public/fonts/FiraCode.woff2',
-  variable: '--font-mono-code',
-});
-
-const DepartureMono = localFont({
-  src: '../public/fonts/DepartureMono-Regular.woff2',
-  variable: '--font-mono',
-});
 
 export const metadata = getRootMetadata();
 
@@ -62,10 +40,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${instrument.variable} ${FiraCode.variable} ${DepartureMono.variable} antialiased relative h-screen overflow-hidden selection:bg-primary/[0.07] selection:text-primary`}
-      >
+      <body className={bodyClassName}>
         <script dangerouslySetInnerHTML={{ __html: paintHue }} />
+        <StoredHue />
 
         <ThemeProvider
           attribute="class"
@@ -76,7 +53,7 @@ export default async function RootLayout({
           <TooltipProvider delayDuration={400}>
             <DynamicIsland />
             <LinkPreviews posts={known} />
-            <main className="h-full">{children}</main>
+            <main className="min-h-dvh">{children}</main>
             <CommandPalette posts={posts} />
           </TooltipProvider>
         </ThemeProvider>

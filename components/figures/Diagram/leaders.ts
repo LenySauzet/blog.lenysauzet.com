@@ -1,4 +1,4 @@
-import { vec2, type Vec2 } from '@/lib/vec2';
+import { vec2, type Vec2 } from '@/lib/geometry/vec2';
 
 export function stack(
   targets: readonly number[],

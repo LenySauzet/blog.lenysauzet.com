@@ -67,8 +67,8 @@ assert the marker hook exists rather than the glyph.
 
 - Prefer accessible queries (`getByRole`) over `getByTestId`.
 - Test what the user sees and does, not internals.
-- Server Components: test the utilities they call (`lib/post-utils.ts`,
-  `lib/image-utils.ts`) directly; stub the client island when testing what the server
+- Server Components: test the utilities they call (`lib/posts/post-utils.ts`,
+  `lib/media/image-utils.ts`) directly; stub the client island when testing what the server
   hands over.
 - `vi.restoreAllMocks` only undoes `vi.spyOn`. Reset globals you stub yourself.
 - When an assertion looks strange and neither its name nor a rule says why, leave one

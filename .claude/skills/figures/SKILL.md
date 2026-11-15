@@ -39,7 +39,7 @@ needs its caption to say what it is, or its control changes nothing the text dis
 | Counts across two categories | `ConfusionMatrix` | `figure-chart` |
 | Values a reader looks up | A GFM pipe table, not a figure | `.claude/rules/tables.md` |
 | Geometry, a construction, a mechanism computed from maths | Drawn figure, SVG | `figure-diagram` |
-| A surface or object in 3D, read as lines | Drawn figure on `lib/vec3` | `figure-diagram` |
+| A surface or object in 3D, read as lines | Drawn figure on `lib/geometry/vec3` | `figure-diagram` |
 | A system: stages, where they run, what flows | `Box`, `Frame`, `Arrow` | `figure-diagram` |
 | A process unfolding in time | Drawn figure on `useTimeline` | `figure-diagram` |
 | Anything per pixel: light, noise, a filter, an image or video processed | `Shader` | `figure-shader` |
@@ -54,7 +54,7 @@ curve is a chart, a chart of something spatial is a diagram.
 told apart by colour), `Coverage` (a pixel grid, a magnifier), `Wave` (3D as lines),
 `Lerp` (a system driven by time), `LitWave` (a marched surface, lit), `Halftone` and
 `VideoHalftone` (an image and a video processed), and the charts in
-`components/ComponentShowcase/ChartShowcase.tsx`. The reference blogs are Making Software
+`components/prose/ComponentShowcase/ChartShowcase.tsx`. The reference blogs are Making Software
 (makingsoftware.com) for drawing and Maxime Heckel (blog.maximeheckel.com, whose source
 may be checked out beside this repo as `../blog.maximeheckel.com`) for interaction.
 

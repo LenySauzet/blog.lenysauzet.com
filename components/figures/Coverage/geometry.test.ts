@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { area } from '@/lib/polygon';
+import { area } from '@/lib/geometry/polygon';
 import { clearOfFade, SIZES, textBox } from '@/test/figure';
 
 import { ANGLE, CELL, coverage, HEIGHT, LENS, SWATCH } from './geometry';

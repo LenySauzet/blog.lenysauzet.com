@@ -18,7 +18,7 @@ output, as plainly as what passed; a step that was skipped is named as skipped.
 
 - **Pure logic carries the weight.** Geometry, settings, framing: `geometry.test.ts`
   beside the code. jsdom has no layout and no WebGL, so a component test only shows the
-  figure stands (one named `img`, its controls), with `@/lib/shader` mocked for shaders.
+  figure stands (one named `img`, its controls), with `@/lib/shader/engine` mocked for shaders.
 - **Sweep, never sample.** Iterate each control over its whole range in fine steps and,
   for a drawn figure, at each size in `SIZES` from `test/figure.ts`. Nearly every past
   defect lived at one angle out of a hundred, or at an extreme.

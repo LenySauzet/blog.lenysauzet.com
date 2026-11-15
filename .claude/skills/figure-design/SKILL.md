@@ -6,7 +6,8 @@ description: >-
   Departure Mono names, one idea per figure, scaling without scrolling, motion that
   pauses, both themes. Use when designing, building, fixing or reviewing any figure,
   chart, diagram or shader, and whenever a figure's colours, lines, labels, layout or
-  motion look wrong.
+  motion look wrong, a stroke too close to the accent under one of the reader's
+  presets included.
 ---
 
 # Figure design
@@ -32,7 +33,7 @@ computed live, and a figure the reader learns from by pushing it to its limits.
 
 ## The frame
 
-- **`components/Figure` is the frame**: block rhythm and a caption, and it never knows
+- **`components/figures/Figure` is the frame**: block rhythm and a caption, and it never knows
   what it contains. A visual that needs more than that is a component inside it.
 - **A figure draws no surface.** It sits in the prose, not in a card that fences it off
   from the paragraph introducing it. Only content that runs to its own bounds, a canvas,

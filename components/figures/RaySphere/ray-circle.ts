@@ -1,4 +1,4 @@
-import { dot, lengthSq, sub, type Vec2 } from '@/lib/vec2';
+import { dot, lengthSq, sub, type Vec2 } from '@/lib/geometry/vec2';
 
 export type RayCircle =
   | { readonly hits: false; readonly closest: number }

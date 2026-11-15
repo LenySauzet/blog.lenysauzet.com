@@ -2,6 +2,8 @@
 paths:
   - "**/*.tsx"
   - "**/*.css"
+  - "app/_components/document.ts"
+  - "lib/theme/stored-theme.ts"
 ---
 
 # Styling, tokens and theming
@@ -59,6 +61,11 @@ that neither file makes obvious:
   important mark trails, `[prop:value]!`. Tailwind only generates a class written out
   whole in the source, so never assemble one from pieces (`hover:${BEVEL}`). Read the
   computed value before believing a class applied.
+- **Hatching is the `hatch` utility**, an SVG tile masking `--border`, never a
+  `repeating-linear-gradient`: a gradient's hard stops are not antialiased, so a
+  diagonal line thickens and thins along its length. Measured as ink per pixel row over
+  whole periods, the gradient varied by 23% in Chromium and 32% in WebKit, the tile by
+  3.9% and 0%.
 
 ## Theming
 
@@ -67,7 +74,24 @@ that neither file makes obvious:
 element**: that force-applies dark and breaks the toggle. It was a bug once; don't
 reintroduce it. `:root` is light, `.dark` overrides, both in `app/globals.css`.
 
-`components/ModeToggle` is no longer mounted anywhere: the theme is switched from the
-palette, with ⌘D. `<html
+The theme is switched from the palette, with ⌘D. `<html
 suppressHydrationWarning>` plus next-themes' injected script avoids the flash. Mobile
 chrome colour follows the OS via the `themeColor` viewport export, not the toggle.
+
+## Status pages
+
+`app/not-found.tsx`, `app/error.tsx` and `app/global-error.tsx` share
+`app/_components/StatusPage`: the status as a hairline outline of Departure Mono (stroked
+at twice its width, then covered by the same text in `--background`, so only the outer
+half shows and no inner contour crosses), fading out above the serif title, a paragraph of
+copy, and hatched bands at the page's sides on a wide screen. Home comes first and any
+button after it, so the arrow points away. The error pages call `retry()`, not `reset()`:
+it fetches the failed segment again. A slug no post has gets the root 404, posts being
+fully static (`dynamicParams = false`), so a per-post `not-found` would never render.
+
+**`global-error.tsx` replaces the root layout**, so it brings the layout's fonts and body
+classes (`app/_components/document.ts`, shared with the layout) and applies the stored
+theme (`themeOf`) and accent itself. It does so in a layout effect: Next renders it on
+the client after the crash, where an inline script never runs. The same holds on the
+way back: when `retry()` succeeds, React strips `<html>` as the root layout takes it
+again, so `StoredHue` repaints the accent on every mount of that layout.

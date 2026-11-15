@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { PAGES } from './pages';
 import { commands } from './registry';
@@ -23,5 +23,17 @@ describe('every command that opens a page', () => {
       expect(Object.keys(PAGES)).toContain(command.opens);
       expect(command.run).toBeUndefined();
     }
+  });
+});
+
+describe('Go to top', () => {
+  it('scrolls the page itself to its top', () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    const top = commands.find((command) => command.id === 'go-to-top')!;
+
+    top.run!({} as Parameters<NonNullable<typeof top.run>>[0]);
+
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }));
+    scrollTo.mockRestore();
   });
 });

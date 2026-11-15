@@ -1,6 +1,6 @@
 ---
 paths:
-  - "components/Table/**"
+  - "components/prose/Table/**"
   - "components/ui/table.tsx"
 ---
 
@@ -30,7 +30,7 @@ to sort or filter fifty rows, which is why nothing has to be undone to get there
   hover band; cells are `px-4 py-3 align-top` on the article's rhythm rather than `p-2`;
   and **`whitespace-nowrap` stays on `th` alone**, a header being a short label where a
   cell holds prose that has to wrap.
-- **The cells' type is declared once on the table**, in `components/Table`, and every
+- **The cells' type is declared once on the table**, in `components/prose/Table`, and every
   cell inherits it. Only a header says anything about itself.
 - **A cell is mapped whole, never as `({ children }) => ...`.** GFM carries a column's
   alignment as an inline style on each cell, and rewriting the mapping in the prevailing

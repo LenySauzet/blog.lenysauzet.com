@@ -1,5 +1,5 @@
 import siteConfig from '@/config/site';
-import { getPosts } from '@/lib/post-utils';
+import { getPosts } from '@/lib/posts/post-utils';
 
 export const dynamic = 'force-static';
 

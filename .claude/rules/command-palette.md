@@ -1,6 +1,6 @@
 ---
 paths:
-  - "components/CommandPalette/**"
+  - "app/_components/CommandPalette/**"
   - "lib/commands/**"
   - "lib/search/**"
   - "components/ui/command.tsx"
@@ -13,7 +13,7 @@ paths:
 
 **The command palette is a registry, not a component full of items.**
 `lib/commands/registry.ts` is a list of `{ id, label, icon, group, keywords, run }`,
-and `components/CommandPalette` only renders it and hands each `run` the page's router
+and `app/_components/CommandPalette` only renders it and hands each `run` the page's router
 and theme. Adding a command is one entry; nothing about the surface changes. `run`
 takes a context rather than reaching for hooks itself, which is what keeps the registry
 a plain module a test can read.

@@ -4,7 +4,7 @@ import { motionValue } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { scrollColumn, travelOf } from '@/lib/scroll-column';
+import { travel } from '@/lib/page-scroll';
 
 const NEARLY_THERE = 0.98;
 
@@ -23,12 +23,10 @@ export function useScrollTracking(): ScrollPosition {
   const pathname = usePathname();
 
   useEffect(() => {
-    const column = scrollColumn();
-
     const read = () => {
-      const travel = column ? travelOf(column) : 0;
-      const passed = column?.scrollTop ?? 0;
-      const progress = travel > 0 ? Math.min(1, passed / travel) : 0;
+      const room = travel();
+      const passed = window.scrollY;
+      const progress = room > 0 ? Math.min(1, passed / room) : 0;
 
       const atTop = passed === 0;
       const finished = progress >= NEARLY_THERE;
@@ -42,12 +40,14 @@ export function useScrollTracking(): ScrollPosition {
       );
     };
 
-    column?.addEventListener('scroll', read, { passive: true });
+    window.addEventListener('scroll', read, { passive: true });
+    window.addEventListener('resize', read);
     const resized = new ResizeObserver(read);
-    resized.observe(column ?? document.documentElement);
+    resized.observe(document.documentElement);
 
     return () => {
-      column?.removeEventListener('scroll', read);
+      window.removeEventListener('scroll', read);
+      window.removeEventListener('resize', read);
       resized.disconnect();
     };
   }, [pathname]);

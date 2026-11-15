@@ -1,5 +1,41 @@
-import Anchor from '@/components/Anchor/Anchor';
-import BeforeAfterImage from '@/components/BeforeAfterImage';
+import type { MDXComponents } from 'mdx/types';
+
+import Bezier from '@/components/figures/Bezier';
+import Chart, { PieChart } from '@/components/figures/Chart';
+import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
+import Coverage from '@/components/figures/Coverage';
+import Figure from '@/components/figures/Figure';
+import Halftone from '@/components/figures/Halftone';
+import Lerp from '@/components/figures/Lerp';
+import LitWave from '@/components/figures/LitWave';
+import RaySphere from '@/components/figures/RaySphere';
+import { Sandpack } from '@/components/figures/Sandpack';
+import VideoHalftone from '@/components/figures/VideoHalftone';
+import Wave from '@/components/figures/Wave';
+import BeforeAfterImage from '@/components/media/BeforeAfterImage';
+import Image from '@/components/media/Image';
+import Slideshow from '@/components/media/Slideshow';
+import Tweet from '@/components/media/Tweet';
+import VideoPlayer from '@/components/media/VideoPlayer';
+import Anchor from '@/components/prose/Anchor/Anchor';
+import Blockquote from '@/components/prose/Blockquote';
+import { Callout } from '@/components/prose/Callout';
+import Card from '@/components/prose/Card';
+import { CodeBlock } from '@/components/prose/CodeBlock';
+import {
+  ButtonShowcase,
+  ChartShowcase,
+  InputShowcase,
+  SelectShowcase,
+  SliderShowcase,
+  ToggleShowcase,
+} from '@/components/prose/ComponentShowcase';
+import Details from '@/components/prose/Details';
+import Fullbleed from '@/components/prose/Fullbleed';
+import { List, ListItem } from '@/components/prose/List';
+import { PostH2 } from '@/components/prose/PostH2';
+import SupportCallout from '@/components/prose/SupportCallout';
+import Table from '@/components/prose/Table';
 import { Badge } from '@/components/ui/badge';
 import {
   TableBody,
@@ -8,42 +44,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import Blockquote from '@/components/Blockquote';
-import { Callout } from '@/components/Callout';
-import {
-  ButtonShowcase,
-  ChartShowcase,
-  InputShowcase,
-  SelectShowcase,
-  SliderShowcase,
-  ToggleShowcase,
-} from '@/components/ComponentShowcase';
-import Card from '@/components/Card';
-import Chart, { PieChart } from '@/components/Chart';
-import Details from '@/components/Details';
-import Figure from '@/components/Figure';
-import Bezier from '@/components/figures/Bezier';
-import ConfusionMatrix from '@/components/figures/ConfusionMatrix';
-import Coverage from '@/components/figures/Coverage';
-import Halftone from '@/components/figures/Halftone';
-import Lerp from '@/components/figures/Lerp';
-import LitWave from '@/components/figures/LitWave';
-import RaySphere from '@/components/figures/RaySphere';
-import VideoHalftone from '@/components/figures/VideoHalftone';
-import Wave from '@/components/figures/Wave';
-import Fullbleed from '@/components/Fullbleed';
-import { CodeBlock } from '@/components/CodeBlock';
-import Image from '@/components/Image';
-import { List, ListItem } from '@/components/List';
-import { PostH2 } from '@/components/PostH2';
-import { Sandpack } from '@/components/Sandpack';
-import Slideshow from '@/components/Slideshow';
-import SupportCallout from '@/components/SupportCallout';
-import Table from '@/components/Table';
-import Tweet from '@/components/Tweet';
-import VideoPlayer from '@/components/VideoPlayer';
-import type { MDXComponents } from 'mdx/types';
-import { FootnoteRef, FootnotesList } from './components/Footnotes';
+
+import { FootnoteRef, FootnotesList } from './components/prose/Footnotes';
 
 // `src` narrowed: the img type also allows a Blob, which remark never emits.
 function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {

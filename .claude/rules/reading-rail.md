@@ -1,13 +1,15 @@
 ---
 paths:
-  - "app/_components/ReadingRail/**"
-  - "lib/scroll-column.ts"
-  - "components/ScrollFade/**"
+  - "app/posts/*/_components/ReadingRail/**"
+  - "lib/page-scroll.ts"
+  - "hooks/use-scroll-lock.ts"
+  - "app/posts/*/_components/ScrollFade/**"
+  - "lib/fade.ts"
 ---
 
 # The reading rail
 
-**The reading rail is a ruler down the side of an article.** `app/_components/ReadingRail/`:
+**The reading rail is a ruler down the side of an article.** `app/posts/[slug]/_components/ReadingRail/`:
 ticks against the viewport, the reader's place among them in `--primary`, the sections as
 longer marks, and their titles unfolding on hover. Clicking anywhere travels there.
 
@@ -35,12 +37,13 @@ What the shape forces:
   all, so what was left to see was its own quantisation. Below, it earns the cost:
   249px of column sit under the panel at 1024, 311 at 900.
 - **Both of its layers carry their ramp as a mask**, from
-  `components/ScrollFade/gradients.ts`, the colour one over a flat fill. Painted as a
+  `lib/fade.ts`, the colour one over a flat fill. Painted as a
   gradient of alphas instead, it is `--background` on `--background` over an empty page
   and should be nothing at all, and it lays down steps of about one part in 255 that
   read as a vertical seam: worst column step 0.97 as a gradient against 0.10 as a mask.
   `ScrollFade` is built the same way for the same reason, 1.20 against 0.12 across its
-  band, and `gradients.ts` now offers no way to paint a colour ramp at all.
+  band, and `lib/fade.ts` now offers no way to paint a colour ramp at all. `ScrollFade` fades
+  the foot of an article only: a band at the top would wash over media scrolling under it.
 - **The veil holds at full across less than a third of the panel**, then falls along
   `EASED`. Held as far as the title itself it is a flat slab where a dissolve belongs,
   and the blur carries legibility under a title long before the colour has to. A
@@ -102,6 +105,15 @@ What the shape forces:
   high, so the rail lays out no tick there at all: a DOM test can only show that the
   component stands. Anything worth asserting belongs in `rail.ts` or `passDuration`.
 
-`lib/scroll-column.ts` owns the scrolling column: the page does not scroll in `body`, so
-chrome fixed over it is a sibling and a wheel landing there reaches nothing on its own.
-The island and the rail both hand it on from there.
+**The page scrolls the window, never a column.** A `div` with its own overflow lost
+what the browser gives the page for free, measured in Chromium and WebKit: Space and
+Page Down did nothing until the column was clicked, and back navigation returned to the
+top (2500px read, 0 restored); on an iPhone Safari's bar does not collapse over a `div`
+either. So `body` keeps its natural height, the homepage's panel stays put with
+`sticky`, the article clips its sideways overflow with `overflow-x: clip` (`hidden`
+would make it a scroll container again), and an overlay that must hold the page still
+takes `useScrollLock`. Under a fine pointer `html` refuses elastic overscroll (`overscroll-behavior: none`):
+on a Mac trackpad the page otherwise slides under its fixed chrome; phones keep
+pull-to-refresh. A lock gives back a classic scrollbar's width as padding and sets
+Radix's `--removed-body-scroll-bar-size`, which the island and the rail use to stay put. `lib/page-scroll.ts` reads the page's travel and the article's
+headings; the reading position is `window.scrollY`.

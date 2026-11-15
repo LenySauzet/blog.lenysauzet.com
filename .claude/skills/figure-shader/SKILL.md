@@ -1,18 +1,18 @@
 ---
 name: figure-shader
 description: >-
-  Builds and changes shaders and rendered figures with components/Shader, the site's
+  Builds and changes shaders and rendered figures with components/figures/Shader, the site's
   one WebGL 2 engine on OGL: GLSL ES 3.00 fragment shaders driven by uniforms, colour
   tokens, images, videos and time, laid out in Playground. Use whenever someone asks
   for a shader, or for anything computed per pixel (noise, lighting, ray marching,
   halftone, a filter over an image or video, an animated background), and for any
-  change to components/Shader, lib/shader.ts, a fragment.ts or the homepage Backdrop,
+  change to components/figures/Shader, lib/shader/engine.ts, a fragment.ts or the homepage Backdrop,
   a one-line fix included.
 ---
 
 # Rendered figures
 
-A rendered figure is one fragment shader handed to `components/Shader`, which owns the
+A rendered figure is one fragment shader handed to `components/figures/Shader`, which owns the
 canvas, the loop, visibility, colours, textures and failure. A figure never holds OGL or
 a canvas itself. Load `figure-design` first; how the engine behaves and why is in
 [reference.md](reference.md).
@@ -42,7 +42,7 @@ camera and framing, a colour token, time).
 | `colors={{ uInk: '--primary' }}` | A token as sRGB from 0 to 1, re-read every frame on screen, so a theme flip follows |
 | `textures={{ uImage: 'blog/x.jpg' }}` | A CDN path; `.mp4` and other video extensions play as video. Adds `uImageSize`, zero until loaded |
 
-Shared GLSL lives in `components/Shader/glsl.ts` (`LUMA`, `COVER` for `coverScale`):
+Shared GLSL lives in `components/figures/Shader/glsl.ts` (`LUMA`, `COVER` for `coverScale`):
 reuse it, and add a snippet there the second time one is needed.
 
 ## Building one
@@ -56,7 +56,7 @@ reuse it, and add a snippet there the second time one is needed.
 4. **Lay it out** in `Playground`: `Slider` and `Toggle` as `controls`, `Playback` as
    `action` when `playing` comes from `usePlayback()`. Give it an `aspect`.
 5. **Verify** with `figure-verify`, in a real browser: jsdom has no WebGL, so component
-   tests mock `@/lib/shader` and only prove the figure stands.
+   tests mock `@/lib/shader/engine` and only prove the figure stands.
 
 ## What bites
 
@@ -73,5 +73,5 @@ reuse it, and add a snippet there the second time one is needed.
 - **Media is encoded at the size it is drawn** (what a 4K source costs is in the
   reference): ask for a ~1280px encode, and give a replaced file a new name, or
   browsers keep the old one for four hours.
-- **An engine change is tested in `lib/shader.test.ts`**, against mocked OGL with frames
+- **An engine change is tested in `lib/shader/engine.test.ts`**, against mocked OGL with frames
   driven by hand, and proved by breaking it.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { LEADER_GAP, leaderPath } from '@/components/figures/Diagram/leaders';
-import { vec2, type Vec2 } from '@/lib/vec2';
+import { vec2, type Vec2 } from '@/lib/geometry/vec2';
 import { clearOfFade, covers, overlap, segmentsCross, SIZES, textBox } from '@/test/figure';
 
 import { bezier, HEIGHT, T } from './geometry';

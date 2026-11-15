@@ -1,5 +1,5 @@
-import { toMarkdown } from '@/lib/post-markdown';
-import { getPosts } from '@/lib/post-utils';
+import { toMarkdown } from '@/lib/posts/post-markdown';
+import { getPosts } from '@/lib/posts/post-utils';
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;

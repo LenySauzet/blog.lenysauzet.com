@@ -86,7 +86,7 @@ what you know: read `node_modules/next/dist/docs/` before using an API.
 - **`content/design-system.mdx`** renders the content components at
   `/posts/design-system`. Read it first when adding or changing one; a new one enters it
   only when the user asks.
-- **Media** lives on `cdn.lenysauzet.com`; `lib/cdn.ts` is the only module that knows
+- **Media** lives on `cdn.lenysauzet.com`; `lib/media/cdn.ts` is the only module that knows
   its layout.
 
 ### Styling and theming
@@ -99,11 +99,22 @@ hardcode `dark` anywhere. The traps behind each of those are in
 
 ### Layout and conventions
 
-- `app/_components/` is the page shell (DynamicIsland, IndexSection, ReadingRail);
-  `components/` is reusable, shadcn primitives in `components/ui/` (added with
+- **A piece used by one route lives beside it**: `app/_components/` is the shell every
+  page shares (DynamicIsland, CommandPalette, the theme provider, the status pages'
+  `StatusPage` and `ErrorBody`, and `document.ts`, the fonts and body classes the root
+  layout and `global-error` both need) and the homepage (`Home/`);
+  `app/posts/[slug]/_components/` is the article page's (ReadingRail, ScrollFade,
+  UpdatedBadge, PostFooter).
+- **`components/` is what more than one place uses**, by kind: `prose/` (what a post
+  writes with), `media/`, `figures/` (the frame, the toolbox and the figures),
+  `controls/`, `shared/`, and the shadcn primitives in `ui/` (added with
   `bunx shadcn@latest add`, configured in `components.json`, several customised: see
-  `.claude/rules/ui.md`), custom components as `Name/index.ts` plus `Name.tsx`, or one
-  flat file when small.
+  `.claude/rules/ui.md`). A component is `Name/index.ts` plus `Name.tsx`, or one flat
+  file when small.
+- **`lib/` is logic, by domain**: `posts/`, `media/`, `geometry/`, `shader/`, `theme/`,
+  `services/`, `commands/`, `search/`, `link-preview/`; what every domain uses (`utils`,
+  `url-utils`, `springs`, `page-scroll`, `fade`) sits at its root. `test/` holds shared
+  test helpers (`figure.ts`, `scroll.ts`, `stubs/`). Tests sit beside their file.
 - **Every component accepts and forwards `className`.** Import order follows
   `.cursor/rules/typescript.mdc`.
 - **Imports** use the `@/` alias.
@@ -112,26 +123,27 @@ hardcode `dark` anywhere. The traps behind each of those are in
   is an icon that draws itself on, which needs `pathLength` per path: `EmailInput` and
   `PasswordInput` hand-author theirs.
 - **Animation** is `motion/react`, never `framer-motion`; an exit animation needs
-  `AnimatePresence`, and a canvas goes through `components/Shader`.
+  `AnimatePresence`, and a canvas goes through `components/figures/Shader`.
 - **State** stores are Zustand, in `hooks/`.
 
 ### Key modules
 
 | Path | What it owns |
 |---|---|
-| `lib/post-utils.ts` | `getPosts()`: reads and sorts posts, drafts excluded unless asked |
-| `lib/post-markdown.ts` | A post as its source, served at `/posts/<slug>/index.md` |
-| `lib/cdn.ts` | The CDN layout; a media path resolved by its extension |
-| `lib/tweet.ts` | A post on X: its text as links, its videos and their copies on the CDN |
-| `lib/image-utils.ts` | Build-time image dimensions; `measureImage` degrades, `getImageDimensions` throws |
+| `lib/posts/post-utils.ts` | `getPosts()`: reads and sorts posts, drafts excluded unless asked |
+| `lib/posts/post-markdown.ts` | A post as its source, served at `/posts/<slug>/index.md` |
+| `lib/media/cdn.ts` | The CDN layout; a media path resolved by its extension |
+| `lib/media/tweet.ts` | A post on X: its text as links, its videos and their copies on the CDN |
+| `lib/media/image-utils.ts` | Build-time image dimensions; `measureImage` degrades, `getImageDimensions` throws |
 | `lib/url-utils.ts` | `isInternalLink()`, `getLinkTypeIcon()` |
-| `components/Figure` | The frame every visual shares: block rhythm and caption |
+| `components/figures/Figure` | The frame every visual shares: block rhythm and caption |
 | `components/figures/Diagram` | The toolbox every drawn figure is composed from |
-| `components/Chart` | A figure with axes, on Recharts; `series.ts` is its logic |
-| `components/Table` | A table as an article reads it |
-| `lib/shader.ts`, `components/Shader` | The one WebGL 2 engine, it as a component, and shared GLSL in `glsl.ts` |
+| `components/figures/Chart` | A figure with axes, on Recharts; `series.ts` is its logic |
+| `components/prose/Table` | A table as an article reads it |
+| `lib/shader/engine.ts`, `components/figures/Shader` | The one WebGL 2 engine, it as a component, and shared GLSL in `glsl.ts` |
 | `config/site.ts` | Site metadata, SEO, CDN origin, `getRootMetadata()` |
 | `config/code-theme.ts` | The Shiki theme, emitting token variables rather than colours |
+| `lib/page-scroll.ts` | The page's travel and the article's headings: the window scrolls, never a column |
 | `lib/utils.ts` | `cn()` |
 
 ## Testing
@@ -167,14 +179,14 @@ any other agent reads the one covering the files it touches.
 |---|---|
 | `content/`, posts, media, `Image`, `Lightbox`, `Slideshow`, `Blockquote`, `List`, math, the Markdown twin | `.claude/rules/content.md` |
 | Any figure, chart, shader or sandbox, and the code under them | `.claude/rules/figures.md` |
-| `components/Table`, `ui/table.tsx` | `.claude/rules/tables.md` |
+| `components/prose/Table`, `ui/table.tsx` | `.claude/rules/tables.md` |
 | Any `.tsx` or `.css`: tokens, text tiers, focus rings, theming | `.claude/rules/styling.md` |
 | `components/ui/`, `Slider`, `Toggle`, `Card`, `Details`, form fields | `.claude/rules/ui.md` |
 | `app/_components/DynamicIsland`, link previews | `.claude/rules/dynamic-island.md` |
-| `app/_components/ReadingRail`, `ScrollFade`, `lib/scroll-column.ts` | `.claude/rules/reading-rail.md` |
-| `lib/hues.ts`, the accent presets | `.claude/rules/accent.md` |
-| `components/CommandPalette`, `lib/commands`, `lib/search` | `.claude/rules/command-palette.md` |
-| `lib/booking.ts`, `lib/supporters.ts`, `SupportCallout` | `.claude/rules/third-parties.md` |
+| `app/posts/[slug]/_components/ReadingRail`, `ScrollFade`, `lib/page-scroll.ts` | `.claude/rules/reading-rail.md` |
+| `lib/theme/hues.ts`, the accent presets | `.claude/rules/accent.md` |
+| `app/_components/CommandPalette`, `lib/commands`, `lib/search` | `.claude/rules/command-palette.md` |
+| `lib/services/booking.ts`, `lib/services/supporters.ts`, `SupportCallout` | `.claude/rules/third-parties.md` |
 | Any `*.test.*`, `vitest-setup.ts`, `test/` | `.claude/rules/testing.md` |
 | `*.ts`, `*.tsx`, `*.css`: TS and React conventions, token tables, test patterns (every agent reads these; Cursor loads them itself) | `.cursor/rules/{typescript,react,tokens,testing}.mdc` |
 

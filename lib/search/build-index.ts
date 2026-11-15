@@ -1,8 +1,7 @@
+import MiniSearch from 'minisearch';
 import 'server-only';
 
-import MiniSearch from 'minisearch';
-
-import { getPosts } from '@/lib/post-utils';
+import { getPosts } from '@/lib/posts/post-utils';
 
 import { INDEX_OPTIONS, type SearchDocument } from './config';
 import { toPlainText } from './plain-text';

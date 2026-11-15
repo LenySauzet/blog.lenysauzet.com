@@ -4,7 +4,7 @@ import {
   normaliseSupporters,
   readTotal,
   type SupportersResponse,
-} from '@/lib/supporters';
+} from '@/lib/services/supporters';
 
 const API = 'https://developers.buymeacoffee.com/api/v1';
 

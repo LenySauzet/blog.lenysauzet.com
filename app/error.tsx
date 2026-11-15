@@ -1,24 +1,13 @@
-'use client'; // Error boundaries must be Client Components
+'use client';
 
 import { useEffect } from 'react';
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+import { ErrorBody, type ErrorProps } from './_components/ErrorBody';
+
+export default function Error({ error, retry }: ErrorProps) {
   useEffect(() => {
     console.error(error);
   }, [error]);
 
-  return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={reset}>
-        Try again
-      </button>
-    </div>
-  );
+  return <ErrorBody what="This page" retry={retry} />;
 }

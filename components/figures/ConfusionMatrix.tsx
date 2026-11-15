@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 
-import Figure from '@/components/Figure';
+import Figure from '@/components/figures/Figure';
 import {
   Tooltip,
   TooltipContent,

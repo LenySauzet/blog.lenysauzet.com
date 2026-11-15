@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
 import { useIslandStore } from '@/hooks/use-island-store';
+import { resetPageScroll, scrollPage } from '@/test/scroll';
 
 import { DynamicIsland } from './DynamicIsland';
 import { announce } from './states/announcement';
@@ -22,28 +23,12 @@ const pastTheGreeting = async () => {
   await vi.advanceTimersByTimeAsync(5200);
 };
 
-let column: HTMLElement;
-
-const readTo = (fraction: number) => {
-  Object.defineProperty(column, 'scrollHeight', { value: 1000, configurable: true });
-  Object.defineProperty(column, 'clientHeight', { value: 500, configurable: true });
-  Object.defineProperty(column, 'scrollTop', {
-    value: Math.round(500 * fraction),
-    configurable: true,
-  });
-  fireEvent.scroll(column);
-};
+const readTo = (fraction: number) => scrollPage(fraction);
 
 const scrollDown = () => readTo(0.5);
 
-beforeEach(() => {
-  column = document.createElement('div');
-  column.setAttribute('data-scroll-root', '');
-  document.body.append(column);
-});
-
 afterEach(() => {
-  column.remove();
+  resetPageScroll();
   useIslandStore.setState({ presented: [], post: null });
   useCmdkStore.setState({ isOpen: false });
   pathname = '/';
@@ -237,6 +222,21 @@ describe('DynamicIsland', () => {
     await waitFor(() => expect(island()).not.toHaveTextContent('Shades of Halftone'));
   });
 
+  // A taller window shortens the travel with no scroll at all, as the phone's bar folding does.
+  it('reads the end of the article when the window grows to it', async () => {
+    useIslandStore.setState({ post: { title: 'Shades of Halftone' } });
+    render(<DynamicIsland />);
+    act(() => scrollPage(0.5, 1000, 500));
+    await settlesOn('Shades of Halftone');
+
+    act(() => {
+      Object.defineProperty(document.documentElement, 'clientHeight', { value: 750, configurable: true });
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    await settlesOn('Support me');
+  });
+
   it('stops answering the pointer while it is showing someone else\'s link', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<DynamicIsland />);
@@ -251,6 +251,30 @@ describe('DynamicIsland', () => {
     );
 
     expect(island().parentElement).toHaveClass('pointer-events-none');
+  });
+
+  it('keeps its own state when the closing palette hands it the focus back', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+
+    useCmdkStore.setState({ returningFocus: true });
+    fireEvent.focus(island());
+    useCmdkStore.setState({ returningFocus: false });
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(island()).toHaveTextContent('Leny');
+  });
+
+  it('still names itself to a reader who tabs to it', async () => {
+    vi.useFakeTimers();
+    render(<DynamicIsland />);
+    await pastTheGreeting();
+
+    fireEvent.focus(island());
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(island()).toHaveTextContent('for commands');
   });
 
   it('opens the palette when it is pressed', async () => {
