@@ -73,50 +73,48 @@ once it stopped.
 
 `components/ui/command.tsx` is customized beyond the CLI output seven times over: its
 `CommandInput` is a bare box laid out inline rather than through `InputGroup`, no
-leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier
-and the selected one steps up to `--foreground` on a faint wash**, never the accent,
-which belongs to what the reader chose rather than to where the cursor is (a search
-match keeps it, being the reader's own word); **the selection shows only where a fine
-pointer exists or the keyboard is driving**: cmdk always selects a row, which under a
-finger alone is no cursor and read as one row stuck lit, so it takes
-`any-pointer-fine` (a tablet with a trackpad keeps it) or `data-keyed`, which the root
-sets on any key and a touch clears. Any key, not the arrows alone: a query typed on a
-phone makes Enter run the first row, and cmdk also moves on Ctrl+N and Ctrl+P. The
-selection is the only focus indicator there, DOM focus staying in the box;
-**`CommandHint` names what a row says on its right** and lifts it with the selection
-the way a shortcut does, since the one
-thing on the line that does not answer the selection reads as disabled (it is
-exported as a class too, for a mark that has to be a motion element to animate
-its own exit), **a row's selection is not transitioned**, **Motion animates the dialog rather
-than the primitive's keyframes**, and **it travels its backdrop's radius both ways**
-rather than only its opacity. The row eased its colour and its wash over 100ms while
-the icon, whose colour is set on the `svg` and carries no transition of its
-own, snapped: one change arriving at two speeds. Only the press is animated
-now, which is the same reason the reading rail's titles take their accent at
-once. A blurred backdrop is as good as fully blurred at an opacity of
-zero, so fading alone held the page blurred to the last frame and let it snap back,
-which reads as a missing exit where there is detail behind the panel. Mounting the palette takes one frame of 65 to 85ms, and a
-CSS animation is timed from that frame's start: the 100ms entrance was nine tenths
-done when first painted, so none was ever seen. Motion's starts on the frame after. A command the reader picks runs on the
-dialog's `onExitComplete`, not on a timer guessing its length, and at once if the
-palette is reopened first, the exit then never completing. **A leaving dialog is shut**: AnimatePresence keeps
-the props it last had, an open one's, so the box takes `inert` from `useIsPresent`,
-and stops Enter as well, the browser only taking back the focus it holds at the next
-frame: three quick presses otherwise ran a command twice. Enter alone, or the ⌘K that
-reopens it mid-exit is swallowed too; and reopened so, it hands the box its focus again
-once rendered, `inert` having refused the first. **With no trigger, Radix has nothing to hand the focus
-back to**, so the dialog notes what held it on opening and returns it on closing; a
-keyboard reader otherwise started again from the top of the page. **The palette sits at `z-110`, over the lightbox's `z-100`**, so ⌘K over a
-zoomed image opens it in sight; the lightbox leaves a key Radix has already handled
-(`defaultPrevented`), so one Escape closes only the palette, and it traps Tab only while
-the focus is its own. **The box is 16px
-below `sm`**, the size under which iOS zooms the page on focus, and 14px above. **`ui/dialog.tsx` is gone**, nothing
-using it once the dialog was built on Radix's primitives: `add command` brings it
-back as a dependency, so drop it again. Update it with
-`bunx shadcn@latest add command --diff` and re-apply, and note that overriding the
-selected colour from a caller's `className` does not work: the primitive's sits under
-`any-pointer-fine` and `in-data-keyed`, which `cn()` keeps beside a plain
-`data-selected:` one, and wins wherever those apply.
+leading icon, with a `hint` slot at the end of its row; **rows rest on the body tier and
+the selected one steps up to `--foreground` on a faint wash**, never the accent, which
+belongs to what the reader chose rather than to where the cursor is (a search match
+keeps it, being the reader's own word); **the selection shows only where a fine pointer
+exists or the keyboard is driving**: cmdk always selects a row, which under a finger
+alone is no cursor and read as one row stuck lit, so it takes `any-pointer-fine` (a
+tablet with a trackpad keeps it) or `data-keyed`, which the root sets on any key and a
+touch clears. Any key, not the arrows alone: a query typed on a phone makes Enter run
+the first row, and cmdk also moves on Ctrl+N and Ctrl+P. The selection is the only focus
+indicator there, DOM focus staying in the box; **`CommandHint` names what a row says on
+its right** and lifts it with the selection the way a shortcut does, since the one thing
+on the line that does not answer the selection reads as disabled (it is exported as a
+class too, for a mark that has to be a motion element to animate its own exit), **a
+row's selection is not transitioned**, **Motion animates the dialog rather than the
+primitive's keyframes**, and **it travels its backdrop's radius both ways** rather than
+only its opacity. The row eased its colour and its wash over 100ms while the icon, whose
+colour is set on the `svg` and carries no transition of its own, snapped: one change
+arriving at two speeds. Only the press is animated now, which is the same reason the
+reading rail's titles take their accent at once. A blurred backdrop is as good as fully
+blurred at an opacity of zero, so fading alone held the page blurred to the last frame
+and let it snap back, which reads as a missing exit where there is detail behind the
+panel. Mounting the palette takes one frame of 65 to 85ms, and a CSS animation is timed
+from that frame's start: the 100ms entrance was nine tenths done when first painted, so
+none was ever seen. Motion's starts on the frame after. A command the reader picks runs
+on the dialog's `onExitComplete`, not on a timer guessing its length, and at once if the
+palette is reopened first, the exit then never completing. **A leaving dialog is shut**:
+AnimatePresence keeps the props it last had, an open one's, so the box takes `inert`
+from `useIsPresent`, and stops Enter as well, the browser only taking back the focus it
+holds at the next frame: three quick presses otherwise ran a command twice. Enter alone,
+or the ⌘K that reopens it mid-exit is swallowed too; and reopened so, it hands the box
+its focus again once rendered, `inert` having refused the first. **With no trigger,
+Radix has nothing to hand the focus back to**, so the dialog notes what held it on
+opening and returns it on closing; a keyboard reader otherwise started again from the
+top of the page. **The palette sits at `z-110`, over the lightbox's `z-100`**, so ⌘K
+over a zoomed image opens it in sight; how the two share Escape and Tab is in
+`content.md`. **The box is 16px below `sm`**, the size under which iOS zooms the page on
+focus, and 14px above. **`ui/dialog.tsx` is gone**, nothing using it once the dialog was
+built on Radix's primitives: `add command` brings it back as a dependency, so drop it
+again. Update it with `bunx shadcn@latest add command --diff` and re-apply, and note
+that overriding the selected colour from a caller's `className` does not work: the
+primitive's sits under `any-pointer-fine` and `in-data-keyed`, which `cn()` keeps beside
+a plain `data-selected:` one, and wins wherever those apply.
 
 **A page of the palette is an entry in `lib/commands/pages.ts`**, holding its prompt and
 whether it ranks its own rows. `Page` is the map's keys, so a page that is not described

@@ -172,7 +172,11 @@ where the Radix primitive is a decorative `div` built for menus and toolbars.
 Base UI. Radix ties its scroll lock to the layer's mount, and the layer must outlive a
 dismiss to animate out, so the page is frozen for the whole exit animation by
 construction. The surface holds one decorative image, so a focus trap has nothing to
-trap. What remains is a portal, Escape, focus restoration and two ARIA attributes. Two
+trap. What remains is a portal, Escape, focus restoration and two ARIA attributes.
+**The palette can open over it** (`z-110` over its `z-100`): it leaves a key Radix has
+already handled (`defaultPrevented`), so one Escape closes only the palette, and it
+swallows Tab unless the focus is in another dialog. Through the palette's 150ms exit
+Radix still holds Escape, so a second press that quick is spent on it. Two
 figures open it, `Image` and `Slideshow`, and share its `ZoomCaption`, its transition and
 `ZOOM_SIZES`, the size a zoomable image loads at so the lightbox opens on it. Its effects
 read `onOpenChange` through an effect event and depend on `open` alone: on a parent's

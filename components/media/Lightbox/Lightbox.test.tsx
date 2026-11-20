@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MotionConfig } from 'motion/react';
 import { useState, type ReactNode } from 'react';
@@ -106,7 +106,29 @@ describe('Lightbox', () => {
     await user.keyboard('{Escape}');
     document.removeEventListener('keydown', above, { capture: true });
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    // The dialog outlives a dismiss through its exit; the store counts it out at once.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(useLightboxStore.getState().open).toBe(1);
+  });
+
+  it('leaves Tab to a dialog opened over it, and traps it from anywhere else', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Harness />
+        <div role="dialog" aria-label="Palette">
+          <input aria-label="Search" />
+        </div>
+      </>
+    );
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await screen.findByRole('dialog', { name: 'Distance field breakdown' });
+
+    screen.getByRole('textbox', { name: 'Search' }).focus();
+    expect(fireEvent.keyDown(document.activeElement!, { key: 'Tab' })).toBe(true);
+
+    (document.activeElement as HTMLElement).blur();
+    expect(fireEvent.keyDown(document.body, { key: 'Tab' })).toBe(false);
   });
 
   it('dismisses when clicking anywhere on the surface', async () => {
