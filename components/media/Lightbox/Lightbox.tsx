@@ -29,6 +29,11 @@ interface LightboxProps {
   children: ReactNode;
 }
 
+const focusInAnotherDialog = (surface: HTMLElement | null) => {
+  const focus = document.activeElement;
+  return Boolean(focus?.closest('[role="dialog"]') && !surface?.contains(focus));
+};
+
 export function Lightbox({
   open,
   onOpenChange,
@@ -53,8 +58,10 @@ export function Lightbox({
     surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // A layer opened over it, the palette, takes the key first and marks it handled.
+      if (event.defaultPrevented) return;
       if (event.key === 'Escape') dismiss();
-      if (event.key === 'Tab') event.preventDefault();
+      if (event.key === 'Tab' && !focusInAnotherDialog(surfaceEl)) event.preventDefault();
     };
     document.addEventListener('keydown', onKeyDown);
 
@@ -82,7 +89,7 @@ export function Lightbox({
           aria-modal="true"
           aria-label={title}
           tabIndex={-1}
-          // z-100: the site header already claims z-50.
+          // z-100: over the island's z-50, under the palette's z-110.
           className="fixed inset-0 z-100 grid cursor-zoom-out grid-rows-1 place-items-center overflow-y-auto overscroll-contain p-4 outline-none sm:p-8"
           // A custom property, not opacity, keeps the morphing image out of the fade.
           style={{

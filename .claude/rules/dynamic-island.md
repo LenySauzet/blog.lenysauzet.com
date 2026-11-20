@@ -67,6 +67,11 @@ What the shape forces, none of it obvious:
   rect snaps between the two sizes in a single frame and makes a working morph
   look like a jump. Three readings were taken off the wrong element before that
   showed up.
+- **Its fixed positioner is a measured layout root** (`layout` and `layoutRoot`), and the
+  pill anchors its morph to it (`layoutAnchor`: centred across, from the pinned edge,
+  top from `sm`, foot below). Otherwise Motion measures the pill against the page:
+  back on the index from an article scrolled 3000px, it flew in from 3024px below.
+  `layout="size"` stopped that too but shrank the pill from its left edge.
 - **The scroll progress lives at module scope**, not in the state that draws it: a
   state unmounts on every change of shape and the ring would fall back to zero.
 

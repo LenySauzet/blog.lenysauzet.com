@@ -69,7 +69,7 @@ function CommandDialog({
           <DialogPrimitive.Portal forceMount>
             <DialogPrimitive.Overlay data-slot="dialog-overlay" forceMount asChild>
               <motion.div
-                className="fixed inset-0 isolate z-50 bg-background/80"
+                className="fixed inset-0 isolate z-110 bg-background/80"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -94,7 +94,7 @@ function CommandDialog({
             >
               <Panel
                 className={cn(
-                  "fixed top-[20%] left-1/2 z-50 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none backdrop-blur-(--dialog-blur) backdrop-saturate-[115%]",
+                  "fixed top-[20%] left-1/2 z-110 w-[600px] max-w-[95vw] -translate-x-1/2 overflow-hidden rounded-xl border border-muted-foreground/15 bg-card/75 text-sm text-popover-foreground outline-none backdrop-blur-(--dialog-blur) backdrop-saturate-[115%]",
                   className
                 )}
                 initial={away}
