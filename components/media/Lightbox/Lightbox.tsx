@@ -53,8 +53,10 @@ export function Lightbox({
     surfaceEl?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // A layer opened over it, the palette, takes the key first and marks it handled.
+      if (event.defaultPrevented) return;
       if (event.key === 'Escape') dismiss();
-      if (event.key === 'Tab') event.preventDefault();
+      if (event.key === 'Tab' && surfaceEl?.contains(document.activeElement)) event.preventDefault();
     };
     document.addEventListener('keydown', onKeyDown);
 

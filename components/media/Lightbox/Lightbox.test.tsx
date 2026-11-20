@@ -94,6 +94,21 @@ describe('Lightbox', () => {
     );
   });
 
+  // The palette opened over it takes Escape first, through Radix, and marks it handled.
+  it('leaves an Escape a layer above it has already handled', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await screen.findByRole('dialog');
+
+    const above = (event: KeyboardEvent) => event.key === 'Escape' && event.preventDefault();
+    document.addEventListener('keydown', above, { capture: true });
+    await user.keyboard('{Escape}');
+    document.removeEventListener('keydown', above, { capture: true });
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
   it('dismisses when clicking anywhere on the surface', async () => {
     const user = userEvent.setup();
     render(<Harness />);

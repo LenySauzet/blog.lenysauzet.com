@@ -106,7 +106,10 @@ frame: three quick presses otherwise ran a command twice. Enter alone, or the âŒ
 reopens it mid-exit is swallowed too; and reopened so, it hands the box its focus again
 once rendered, `inert` having refused the first. **With no trigger, Radix has nothing to hand the focus
 back to**, so the dialog notes what held it on opening and returns it on closing; a
-keyboard reader otherwise started again from the top of the page. **The box is 16px
+keyboard reader otherwise started again from the top of the page. **The palette sits at `z-110`, over the lightbox's `z-100`**, so âŒ˜K over a
+zoomed image opens it in sight; the lightbox leaves a key Radix has already handled
+(`defaultPrevented`), so one Escape closes only the palette, and it traps Tab only while
+the focus is its own. **The box is 16px
 below `sm`**, the size under which iOS zooms the page on focus, and 14px above. **`ui/dialog.tsx` is gone**, nothing
 using it once the dialog was built on Radix's primitives: `add command` brings it
 back as a dependency, so drop it again. Update it with
