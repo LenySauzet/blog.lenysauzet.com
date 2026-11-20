@@ -9,12 +9,12 @@ import {
 } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
+import { blurRamp } from '@/lib/fade';
 import {
   formatAmount,
   type Supporter,
   type SupportersResponse,
 } from '@/lib/services/supporters';
-import { blurRamp } from '@/lib/fade';
 import { cn } from '@/lib/utils';
 
 const PIXELS_PER_SECOND = 32;

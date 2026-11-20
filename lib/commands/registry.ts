@@ -36,10 +36,12 @@ const openExternally = (url: string) => () => {
 /** Same origin, so `download` is honoured and the page is never left behind. */
 const RESUME_ROUTE = '/resume'
 
-const onAPost = ({ pathname }: CommandContext) => pathname.startsWith('/posts/')
-
 const slugOf = ({ pathname }: CommandContext) =>
     pathname.split('/').filter(Boolean).pop()
+
+// A post that exists: a 404 under /posts/ has no room to scroll and would read as finished.
+const onAPost = (context: CommandContext) =>
+    context.pathname.startsWith('/posts/') && context.slugs.includes(slugOf(context) ?? '')
 
 const onTheIndex = ({ pathname }: CommandContext) => pathname === '/'
 
