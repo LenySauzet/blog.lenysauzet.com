@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 
 import { glassSurface } from '@/components/ui/glass';
 import { useCmdkStore } from '@/hooks/use-cmdk-store';
@@ -22,6 +22,15 @@ import { useOpening } from './use-opening';
 const COMPACT_HEIGHT = '2.75rem';
 const MAX_WIDTH = '19rem';
 
+// Tailwind's `sm`, where the island moves from the foot of the screen to its head.
+const AT_THE_HEAD = '(min-width: 40rem)';
+
+const onBreakpoint = (change: () => void) => {
+  const query = window.matchMedia(AT_THE_HEAD);
+  query.addEventListener('change', change);
+  return () => query.removeEventListener('change', change);
+};
+
 const MENTIONS_PALETTE_AFTER = 1400;
 const MENTIONS_PALETTE_FOR = 2400;
 
@@ -38,6 +47,11 @@ export function DynamicIsland() {
   const setIsOpen = useCmdkStore((state) => state.setIsOpen);
   const { atTop, finished } = useScrollTracking();
   const still = useReducedMotion();
+  const atTheHead = useSyncExternalStore(
+    onBreakpoint,
+    () => window.matchMedia(AT_THE_HEAD).matches,
+    () => true
+  );
 
   const context = useMemo<IslandContext>(
     () => ({ pathname, hovered, post, scrolled: !atTop, finished }),
@@ -65,7 +79,11 @@ export function DynamicIsland() {
   };
 
   return (
-    <div
+    // Fixed, so Motion asks for a layout root, measured itself, or the pill's morph reads
+    // the page's scroll as a move: back from a scrolled article it flew in from below.
+    <motion.div
+      layout
+      layoutRoot
       className={cn(
         // Recentred while a scroll lock has taken a classic scrollbar away.
         'fixed bottom-6 left-[calc(50%-var(--removed-body-scroll-bar-size,0px)/2)] z-50 -translate-x-1/2 sm:top-6 sm:bottom-auto',
@@ -90,6 +108,8 @@ export function DynamicIsland() {
         <motion.div
           ref={pill}
           layout
+          // Centred across, and grown from the edge the island is pinned to.
+          layoutAnchor={{ x: 0.5, y: atTheHead ? 0 : 1 }}
           transition={still ? { duration: 0 } : MORPH}
           style={{
             borderRadius: state.radius ?? 999,
@@ -110,6 +130,6 @@ export function DynamicIsland() {
           </div>
         </motion.div>
       </button>
-    </div>
+    </motion.div>
   );
 }
