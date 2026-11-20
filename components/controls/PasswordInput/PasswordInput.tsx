@@ -14,7 +14,7 @@ export interface PasswordInputProps
   revealLabel?: string;
 }
 
-// Named for the action it takes next; `aria-pressed` reports the current state.
+// One name for both states: `aria-pressed` reports which, and a name that flipped too would be read twice.
 export default function PasswordInput({
   className,
   revealLabel = 'password',
@@ -34,7 +34,7 @@ export default function PasswordInput({
         <InputGroupButton
           disabled={disabled}
           aria-pressed={revealed}
-          aria-label={revealed ? `Hide ${revealLabel}` : `Show ${revealLabel}`}
+          aria-label={`Show ${revealLabel}`}
           onClick={() => setRevealed((shown) => !shown)}
           className="[--eye:2] [--strike:0] aria-pressed:[--eye:0] aria-pressed:[--strike:2]"
         >

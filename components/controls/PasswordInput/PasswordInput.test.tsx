@@ -21,14 +21,14 @@ describe('PasswordInput', () => {
     await user.click(screen.getByRole('button', { name: 'Show password' }));
     expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'text');
 
-    await user.click(screen.getByRole('button', { name: 'Hide password' }));
+    await user.click(screen.getByRole('button', { name: 'Show password' }));
     expect(screen.getByLabelText('Password')).toHaveAttribute(
       'type',
       'password'
     );
   });
 
-  it('reports its state through aria-pressed', async () => {
+  it('reports its state through aria-pressed alone, under one name', async () => {
     const user = userEvent.setup();
     render(<PasswordInput aria-label="Password" />);
 
@@ -36,9 +36,8 @@ describe('PasswordInput', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
     await user.click(toggle);
-    expect(
-      screen.getByRole('button', { name: 'Hide password' })
-    ).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveAccessibleName('Show password');
   });
 
   it('never submits the form it sits in', () => {

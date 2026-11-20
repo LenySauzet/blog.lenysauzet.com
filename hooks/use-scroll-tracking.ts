@@ -15,6 +15,12 @@ export interface ScrollPosition {
   finished: boolean;
 }
 
+/** A page with no room to scroll is read to its end: all of it is in sight. */
+export const readProgress = (room: number, passed: number) =>
+  room > 0 ? Math.min(1, passed / room) : 1;
+
+export const isFinished = (progress: number) => progress >= NEARLY_THERE;
+
 export function useScrollTracking(): ScrollPosition {
   const [position, setPosition] = useState<ScrollPosition>({
     atTop: true,
@@ -26,10 +32,10 @@ export function useScrollTracking(): ScrollPosition {
     const read = () => {
       const room = travel();
       const passed = window.scrollY;
-      const progress = room > 0 ? Math.min(1, passed / room) : 0;
+      const progress = readProgress(room, passed);
 
       const atTop = passed === 0;
-      const finished = progress >= NEARLY_THERE;
+      const finished = isFinished(progress);
 
       scrollProgress.set(progress);
       // Kept when unchanged, or both readers re-render on every scroll event.
