@@ -9,6 +9,7 @@ import {
 } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
+import { blurRamp } from '@/lib/fade';
 import {
   formatAmount,
   type Supporter,
@@ -27,9 +28,6 @@ const SPEED_SPRING = { stiffness: 26, damping: 12, mass: 1 };
 
 const EDGE_MASK =
   'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)';
-
-const blurRamp = (direction: string) =>
-  `linear-gradient(${direction}, black 0%, transparent 100%)`;
 
 const EDGE_BLUR = '3px';
 

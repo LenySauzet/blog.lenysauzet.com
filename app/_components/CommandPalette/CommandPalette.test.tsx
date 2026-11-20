@@ -89,7 +89,7 @@ describe('CommandPalette', () => {
   });
 
   it('offers every command that suits the page, under its own heading', async () => {
-    pathname = '/posts/anything';
+    pathname = '/posts/halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     readTo(0.5);
@@ -181,7 +181,7 @@ describe('CommandPalette', () => {
   });
 
   it('withholds the way back up from a reader already at the top', async () => {
-    pathname = '/posts/shades-of-halftone';
+    pathname = '/posts/halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     await screen.findByText('Copy link to clipboard');
@@ -210,7 +210,7 @@ describe('CommandPalette', () => {
   });
 
   it('names the way onward once the article runs out', async () => {
-    pathname = '/posts/shades-of-halftone';
+    pathname = '/posts/halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     await screen.findByText('Home');
@@ -227,7 +227,7 @@ describe('CommandPalette', () => {
   });
 
   it('leaves no copy behind in the group it was lifted from', async () => {
-    pathname = '/posts/shades-of-halftone';
+    pathname = '/posts/halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     readTo(1);
@@ -238,7 +238,7 @@ describe('CommandPalette', () => {
   });
 
   it('offers them again inside an article', async () => {
-    pathname = '/posts/shades-of-halftone';
+    pathname = '/posts/halftone';
     useCmdkStore.setState({ isOpen: true });
     render(<CommandPalette posts={posts} />);
     readTo(0.5);

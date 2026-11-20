@@ -61,6 +61,10 @@ that neither file makes obvious:
   important mark trails, `[prop:value]!`. Tailwind only generates a class written out
   whole in the source, so never assemble one from pieces (`hover:${BEVEL}`). Read the
   computed value before believing a class applied.
+- **An anchor lands clear of the island through `scroll-padding-top` on `html`**: 96px
+  from `sm`, where the island is pinned to the top, 24px below it, where it sits at the
+  foot. One rule for every fragment, a footnote's included; a `scroll-mt-*` on a heading
+  would add to it. The reading rail scrolls by its own figure and is not affected.
 - **Hatching is the `hatch` utility**, an SVG tile masking `--border`, never a
   `repeating-linear-gradient`: a gradient's hard stops are not antialiased, so a
   diagonal line thickens and thins along its length. Measured as ink per pixel row over

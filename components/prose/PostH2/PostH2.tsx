@@ -27,7 +27,7 @@ export function PostH2({ children }: { children: ReactNode }) {
   return (
     <h2
       id={id}
-      className="group flex items-center gap-2 mt-20 mb-6 scroll-mt-24"
+      className="group flex items-center gap-2 mt-20 mb-6"
     >
       <a
         href={`#${id}`}

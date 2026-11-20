@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { PAGES } from './pages';
 import { commands } from './registry';
+import type { CommandContext } from './types';
 
 describe('the accent command', () => {
   const accent = commands.find((command) => command.id === 'accent')!;
@@ -35,5 +36,20 @@ describe('Go to top', () => {
 
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }));
     scrollTo.mockRestore();
+  });
+});
+
+describe('the end of an article', () => {
+  const at = (pathname: string) =>
+    ({ pathname, slugs: ['design-system'], atTop: true, finished: true }) as CommandContext;
+  const recommended = (context: CommandContext) =>
+    commands.filter((command) => command.recommend?.(context)).map((command) => command.id);
+
+  it('is offered on a post read to its end', () => {
+    expect(recommended(at('/posts/design-system'))).not.toHaveLength(0);
+  });
+
+  it('is not offered on a missing post, which has no room to scroll', () => {
+    expect(recommended(at('/posts/does-not-exist'))).toHaveLength(0);
   });
 });

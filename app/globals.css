@@ -232,6 +232,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* An anchor lands clear of the island, which is pinned to the top from sm. */
+  html {
+    scroll-padding-top: 1.5rem;
+    @variant sm {
+      scroll-padding-top: 6rem;
+    }
+  }
   /* No trackpad bounce: the page would slide under its fixed chrome. Phones keep pull-to-refresh. */
   @media (pointer: fine) {
     html {

@@ -90,8 +90,9 @@ What the shape forces:
   `sameSections` would otherwise hold a stale place on the rail.
 - **The reader's place is a tick, never a line laid over one.** Two marks at one place
   cannot stay lined up, and a tick that is already the mark has nothing to add on hover.
-- **The landing is the rail's alone.** A heading's own `scroll-mt` is for its anchor link;
-  counting both put an h2 twice as far down as an h3. A section's place on the ruler is
+- **The landing is the rail's alone.** An anchor link lands through `html`'s
+  `scroll-padding-top`, which `window.scrollTo` with a figure ignores; a heading's own
+  `scroll-mt` once counted on top of the landing and put an h2 twice as far down as an h3. A section's place on the ruler is
   measured from the landing too, or the mark misses the title just clicked.
 - **Nothing re-renders while scrolling** but the two ticks that trade the mark, which is
   what `memo` on the row is for: the rail costs 76-100ms of scripting over 300 scroll

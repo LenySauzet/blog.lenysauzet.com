@@ -61,7 +61,9 @@ without a DOM.
 
 Three moments ask for something today: the index, an article underway, and an
 article finished. A reader who has only just arrived at an article is offered
-nothing, having made no move yet to answer.
+nothing, having made no move yet to answer, unless all of it is in sight: a page with
+no room to scroll is read to its end. Only a post that exists counts, or a 404 under
+`/posts/`, unscrollable too, was offered the end of an article.
 
 What the reader has scrolled is in the context too, which is what lets a command
 withhold itself: `Go to top` is not offered to someone already there.
